@@ -121,7 +121,7 @@ echo "</td>\n</tr>\n";
 
 
   echo "<tr>
-  <th align=right class=rows>EMail Changes</th>
+  <th align=right class=rows>Email Changes</th>
   <td>
     <table border=0 cellspacing=0 cellpadding=3><tr>
       <td>

@@ -159,6 +159,22 @@
      }
   }
 
+  function header_row() {
+    global $format;
+
+    echo "<tr>\n";
+    column_header("WR&nbsp;#", "request_id");
+    column_header("Request By", "lfull" );
+    column_header("Request On", "request_on" );
+    column_header("Description", "lbrief");
+    column_header("Status", "status_desc" );
+    column_header("Type", "request_type_desc" );
+    column_header("Last Chng", "request.last_activity");
+    if ( "$format" == "edit" )  //adds in the Active field header for the Brief (editable) report
+        column_header("Active", "active");
+    echo "</tr>";
+  }
+
   if ( "$format" == "edit" && isset($submitBriefEditable) ) // If changes have been returned from Brief (editable) then function is called update the database with the changes
   {
      $ChangedRequests_count = 0;
@@ -354,6 +370,8 @@ else {
   /////////////////////////////////////////////////////////////////////////////////////////////////
 
   if ( "$qry$search_for$org_code$system_code " != "" ) {
+    // Recommended way of limiting queries to not include sub-tables for 7.1
+    $result = awm_pgexec( $wrms_db, "SET SQL_Inheritance TO OFF;" );
     $query = "";
     if ( "$qry" != "" ) {
       $qry = tidy($qry);
@@ -363,17 +381,14 @@ else {
       $query = $thisquery->query_sql ;
     }
     else {
-      // Recommended way of limiting queries to not include sub-tables for 7.1
-      $result = awm_pgexec( $wrms_db, "SET SQL_Inheritance TO OFF;" );
+
 
       $query .= "SELECT request.request_id, brief, fullname, email, request_on, status.lookup_desc AS status_desc, last_activity, detailed ";
       $query .= ", request_type.lookup_desc AS request_type_desc, lower(fullname) AS lfull, lower(brief) AS lbrief ";
       $query .= ", to_char( request.last_activity, 'FMdd Mon yyyy') AS last_change ";
       $query .= ", to_char( request.request_on, 'FMdd Mon yyyy') AS date_requested";
-      if("$format" == "edit") //provides extra fields that are needed to create a Brief (editable) report
-         $query .= ", active, last_status ";
-      else
-         $query .= " ";
+      //provides extra fields that are needed to create a Brief (editable) report
+      $query .= ", active, last_status ";
       $query .= "FROM ";
       if ( intval("$interested_in") > 0 ) $query .= "request_interested, ";
       if ( intval("$allocated_to") > 0 ) $query .= "request_allocated, ";
@@ -442,21 +457,6 @@ $query";
       }
     }
 
-function header_row() {
-    global $format;
-
-    echo "<tr>\n";
-    column_header("WR&nbsp;#", "request_id");
-    column_header("Request By", "lfull" );
-    column_header("Request On", "request_on" );
-    column_header("Description", "lbrief");
-    column_header("Status", "status_desc" );
-    column_header("Type", "request_type_desc" );
-    column_header("Last Chng", "request.last_activity");
-    if ( "$format" == "edit" )  //adds in the Active field header for the Brief (editable) report
-        column_header("Active", "active");
-    echo "</tr>";
-}
     if ( "$style" != "stripped" || ("$style" == "stripped" && "$format" == "edit")) {
       $this_page = "$PHP_SELF?style=%s&format=%s";
       if ( isset($qry) ) $uqry = urlencode($qry);

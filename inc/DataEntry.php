@@ -78,10 +78,12 @@ class EntryField
 
        case "lookup":
          $r .= "select name=\"$this->fname\"%%attributes%%>\n";
-         if ( isset($this->attributes["_all"]) )
+         if ( isset($this->attributes["_all"]) ) {
            $r .= sprintf("<option value=\"all\"".("all"==$this->current?" selected":"").">%s</option>\n", $this->attributes["_all"] );
-         if ( isset($this->attributes["_null"]) )
+         }
+         if ( isset($this->attributes["_null"]) ) {
            $r .= sprintf("<option value=\"\"".(""==$this->current?" selected":"").">%s</option>\n", $this->attributes["_null"] );
+         }
          if ( isset($this->attributes["_zero"]) ) {
            $r .= sprintf("<option value=\"0\"".(0==$this->current?" selected":"").">%s</option>\n", $this->attributes["_zero"] );
          }
@@ -108,6 +110,10 @@ class EntryField
 
        case "button":
          $r .= "input type=\"button\" name=\"$this->fname\"%%attributes%%>\n";
+         break;
+
+       case "submit":
+         $r .= "input type=\"submit\" name=\"$this->fname\" value=\"".htmlentities($this->current)."\"%%attributes%%>\n";
          break;
 
        case "textarea":
@@ -179,9 +185,9 @@ class EntryForm
     $this->table_line_format = '<tr><th class="prompt">%s</th><td class="entry">%s</td><td class="help">%s</td></tr>'."\n";
   }
 
-  function SimpleForm( ) {
+  function SimpleForm( $new_format = '<span class="prompt">%s:</span>&nbsp;<span class="entry">%s</span>' ) {
     $this->break_line_format = '%s'."\n";
-    $this->table_line_format = '<span class="prompt">%s:</span>&nbsp;<span class="entry">%s</span>'."\n";
+    $this->table_line_format = $new_format."\n";
   }
 
   function TempLineFormat( $new_format = '<span class="prompt">%s:</span>&nbsp;<span class="entry">%s</span>' ) {
@@ -233,16 +239,6 @@ class EntryForm
   //////////////////////////////////////////////////////
   function HiddenField($fname,$fvalue) {
     return sprintf( '<input type="hidden" name="%s" value="%s" />%s', $fname, htmlentities($fvalue), "\n" );
-  }
-
-  //////////////////////////////////////////////////////
-  // A utility function for a submit button within a data entry table
-  //////////////////////////////////////////////////////
-  function SubmitButton( $fname, $fvalue )
-  {
-    return sprintf( $this->table_line_format, '&nbsp;',
-                       sprintf('<input type="submit" name="%s" value="%s" class="submit" />',
-                                               $fname, $fvalue), "");
   }
 
   /////////////////////////////////////////////////////
@@ -318,6 +314,15 @@ class EntryForm
     return $field->Render();
   }
 
+
+  //////////////////////////////////////////////////////
+  // A utility function for a submit button within a data entry table
+  //////////////////////////////////////////////////////
+  function SubmitButton( $fname, $fvalue, $type_extra = '' )
+  {
+    $field = new EntryField( 'submit', $fname, $this->_ParseTypeExtra('submit', $type_extra), $fvalue );
+    return $field->Render();
+  }
 
   //////////////////////////////////////////////////////
   // A utility function for a data entry line within a table

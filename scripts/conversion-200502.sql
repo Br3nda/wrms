@@ -60,7 +60,12 @@ ALTER TABLE request_attachment DROP CONSTRAINT request_id_fk;
 
 -- We have to delete some pre-existing crap, and we're not sure how it got there, but it's
 -- meaningless without the parent stuff.
+DELETE FROM usr WHERE NOT EXISTS( SELECT 1 FROM organisation WHERE org_code = usr.org_code);
+
+DELETE FROM request WHERE NOT EXISTS( SELECT 1 FROM usr WHERE user_no = request.requester_id);
+DELETE FROM request WHERE NOT EXISTS( SELECT 1 FROM usr WHERE user_no = request.entered_by);
 DELETE FROM request WHERE NOT EXISTS( SELECT 1 FROM usr WHERE user_no = request.requester_id) ;
+
 DELETE FROM request_note WHERE NOT EXISTS ( SELECT 1 FROM request WHERE request_id = request_note.request_id);
 DELETE FROM request_status WHERE NOT EXISTS ( SELECT 1 FROM request WHERE request_id = request_status.request_id);
 DELETE FROM request_quote WHERE NOT EXISTS ( SELECT 1 FROM request WHERE request_id = request_quote.request_id);
@@ -68,11 +73,6 @@ DELETE FROM request_timesheet WHERE NOT EXISTS ( SELECT 1 FROM request WHERE req
 DELETE FROM request_interested WHERE NOT EXISTS ( SELECT 1 FROM request WHERE request_id = request_interested.request_id);
 DELETE FROM request_allocated WHERE NOT EXISTS ( SELECT 1 FROM request WHERE request_id = request_allocated.request_id);
 DELETE FROM request_attachment WHERE NOT EXISTS ( SELECT 1 FROM request WHERE request_id = request_attachment.request_id);
-
-DELETE FROM request WHERE NOT EXISTS( SELECT 1 FROM usr WHERE user_no = request.requester_id);
-DELETE FROM request WHERE NOT EXISTS( SELECT 1 FROM usr WHERE user_no = request.entered_by);
-
-DELETE FROM usr WHERE NOT EXISTS( SELECT 1 FROM organisation WHERE org_code = usr.org_code);
 
 
 -- Finally, we can (re-)add the constraints

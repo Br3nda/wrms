@@ -24,8 +24,11 @@
     echo "<br>\n &nbsp;<a href=$base_url/requestlist.php?qs=complex class=block title=\"$tooltip\" alt=\"$tooltip\">Request&nbsp;Search</a>";
 
     if ( is_member_of('Admin', 'Support') || $rank_report_anyone ) {
+      $tooltip = "A really comprehensive search facility for reporting on work requests (version 2)";
+      echo "<br>\n &nbsp;<a href=\"$base_url/wrsearch.php\" class=\"block\" title=\"$tooltip\" alt=\"$tooltip\">Search&nbsp;V2</a>";
+
       $tooltip = "A ranked list of work requests, most important and urgent at the top";
-      echo "<br>\n &nbsp;<a href=$base_url/requestrank.php?qs=complex class=block title=\"$tooltip\" alt=\"$tooltip\">Request&nbsp;Ranking</a>";
+      echo "<br>\n &nbsp;<a href=\"$base_url/requestrank.php?qs=\"complex\" class=\"block\" title=\"$tooltip\" alt=\"$tooltip\">Request&nbsp;Ranking</a>";
     }
   }
 
@@ -43,7 +46,7 @@
   }
 
   echo "<br><img class=blocksep src=\"/$images/menuBreak.gif\" width=\"130\" height=\"9\">";
-  echo "<table border=0 width=100%><form method=get action=\"/wr.php\"><tr><td align=right>";
+  echo "<table border=0 width=100%><form method=get action=\"/wr.php\" name=\"quickwr\" id=\"quickwr\"><tr><td align=right>";
   echo "<input type=text size=7 value=\"$request_id\" name=request_id></td></tr></form></table>";
 
   if ( is_member_of('Admin', 'Support', 'Manage') ) {

@@ -90,6 +90,20 @@ textarea.ftextarea {
   font-size: 100%;
 }
 
+.fsubmit {
+  text-decoration: none;
+  font: small-caps bold 11px verdana, sans-serif;
+  background: #660000;
+  color: #f0fff0;
+  padding: 0px 1px 1px 1px;
+  margin: 0px 1px;
+  border: thin outset;
+}
+.fsubmit:hover {
+  color: #f0ff4c;
+  border: thin inset;
+}
+
 
 /* For the display of important messages to the user, such as
    validation failures and so forth. */

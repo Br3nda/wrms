@@ -356,7 +356,9 @@ class Request {
      if ( $edit ) {
        $html .= $ef->DataEntryLine( "Quiet update", "%s", "checkbox", "send_no_email",
                array( "size" => 70, "title" => "Check the box if this update should not send e-mail notifications") );
+       $html .= '<tr><th class="prompt">&nbsp;</th><td class="entry">';
        $html .= $ef->SubmitButton( "submit", ($this->new_record ? "Create" : "Update") );
+       $html .= "</td></tr>";
      }
      $html .= "</table>\n";
      if ( $edit ) $html .= $ef->EndForm();
@@ -1189,46 +1191,49 @@ class Request {
        $this->DetectEmailChanges();
      }
 
-     if ( !$db_errors && isset($_POST['note_detail']) && trim($_POST['note_detail']) != "" ) {
-       $db_errors = ! $this->AddNote();
-     }
+     if ( $request_id > 0 ) {
 
-     if ( !$db_errors && isset($_POST['status_code'])
-             && ($_POST['status_code'] != $this->last_status || "create" == $this->chtype ) ) {
-       $db_errors = ! $this->NewStatusCode();
-     }
+        if ( !$db_errors && isset($_POST['note_detail']) && trim($_POST['note_detail']) != "" ) {
+          $db_errors = ! $this->AddNote();
+        }
 
-     if ( !$db_errors && isset($_POST['request_action']) ) {
-       $db_errors = ! $this->UpdateActions();
-     }
+        if ( !$db_errors && isset($_POST['status_code'])
+                && ($_POST['status_code'] != $this->last_status || "create" == $this->chtype ) ) {
+          $db_errors = ! $this->NewStatusCode();
+        }
 
-     if ( !$db_errors && $_FILES['att_filename']['tmp_name'] != ""
-                && $_FILES['att_filename']['name'] != "" ) {
-       $db_errors = ! $this->AttachFile('att_filename',$_POST['att_brief']);
-     }
+        if ( !$db_errors && isset($_POST['request_action']) ) {
+          $db_errors = ! $this->UpdateActions();
+        }
 
-     if ( !$db_errors && intval(trim($_POST['parent_request_id'])) > 0 ) {
-       $db_errors = ! $this->AddParent();
-     }
+        if ( !$db_errors && $_FILES['att_filename']['tmp_name'] != ""
+                    && $_FILES['att_filename']['name'] != "" ) {
+          $db_errors = ! $this->AttachFile('att_filename',$_POST['att_brief']);
+        }
 
-     if ( !$db_errors && trim($_POST['quote_brief']) != "" ) {
-       $db_errors = ! $this->AddQuote();
-     }
+        if ( !$db_errors && intval(trim($_POST['parent_request_id'])) > 0 ) {
+          $db_errors = ! $this->AddParent();
+        }
 
-     if ( !$db_errors && isset($_POST['new_allocations']) ) {
-       $db_errors = ! $this->NewAllocations();
-     }
+        if ( !$db_errors && trim($_POST['quote_brief']) != "" ) {
+          $db_errors = ! $this->AddQuote();
+        }
 
-     if ( !$db_errors && ('create' == $this->chtype || isset($_POST['new_subscriptions'])) ) {
-       $db_errors = ! $this->NewSubscriptions();
-     }
+        if ( !$db_errors && isset($_POST['new_allocations']) ) {
+          $db_errors = ! $this->NewAllocations();
+        }
 
-     if ( !$db_errors && isset($_POST['new_tags']) ) {
-       $db_errors = ! $this->NewTags();
-     }
+        if ( !$db_errors && ('create' == $this->chtype || isset($_POST['new_subscriptions'])) ) {
+          $db_errors = ! $this->NewSubscriptions();
+        }
 
-     if ( !$db_errors && trim($_POST['work_description']) != "" ) {
-       $db_errors = ! $this->AddWork();
+        if ( !$db_errors && isset($_POST['new_tags']) ) {
+          $db_errors = ! $this->NewTags();
+        }
+
+        if ( !$db_errors && trim($_POST['work_description']) != "" ) {
+          $db_errors = ! $this->AddWork();
+        }
      }
 
      $qry = new PgQuery( ( $db_errors ? "ROLLBACK;" : "COMMIT;") );  $qry->Exec("WR::Write");
@@ -1687,10 +1692,11 @@ EOX
      global $sysabbr, $session, $client_messages;
 
      if ( $this->chtype = 'create' ) {
-       $subscribers = array_merge( array( $_POST['requester_id'], $session->user_no  ), $_POST['new_allocations'] );
+       $subscribers = array_merge( array( $_POST['requester_id'], $session->user_no  ),
+                                   $_POST['new_allocations'], $_POST['new_subscriptions'] );
      }
      else {
-       $subscribers = $_POST['new_allocations'];
+       $subscribers = array_merge( $_POST['new_allocations'], $_POST['new_subscriptions'] );
      }
 
      $new_subscriptions = preg_replace( "/[^0-9,]/", "", join(",", $subscribers));

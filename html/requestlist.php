@@ -24,7 +24,7 @@
 
   // If they didn't provide a $columns, we use a default.
   if ( !isset($columns) || $columns == "" || $columns == array() ) {
-    $columns = array("request_id","lfull","request_on","lbrief","status_desc","request_type_desc","request.last_activity");
+    $columns = array("request_id","lfull","request_on","lbrief","status_desc","request_type_desc","request.last_activity", "request.urgency", "request.importance");
     if ( "$format" == "edit" )  //adds in the Active field header for the Brief (editable) report
       array_push( $columns, "active");
   }
@@ -41,6 +41,8 @@
           "lbrief" => "Description",
           "request_type_desc" => "Type",
           "status_desc" => "Status",
+          "request.urgency" => "Urgency",
+          "request.importance" => "Importance",
           "request.last_activity" => "Last Chng",
           "active" => "Active",
    );
@@ -266,6 +268,12 @@ function show_column_value( $column_name, $row ) {
     case "request_type_desc":
       echo "<td class=sml>&nbsp;" . str_replace( " ", "&nbsp;", $row->request_type_desc) . "&nbsp;</td>\n";
       break;
+    case "request.urgency":
+      echo "<td class=sml>$row->urgency_desc</td>\n";
+      break;
+   case "request.importance":
+      echo "<td class=sml>$row->importance_desc</td>\n";
+      break;   
     case "last_change":
     case "request.last_activity":
       echo "<td class=sml align=center>" . str_replace( " ", "&nbsp;", $row->last_change) . "</td>\n";
@@ -550,12 +558,19 @@ else {
       //provides extra fields that are needed to create a Brief (editable) report
       $query .= ", active, last_status ";
       $query .= ", creator.email AS by_email, creator.fullname AS by_fullname, lower(creator.fullname) AS lby_fullname ";
+      $query .= ", request.urgency, urgency.lookup_desc AS urgency_desc ";   
+      $query .= ", request.importance, importance.lookup_desc AS importance_desc ";   
       $query .= "FROM ";
       if ( intval("$interested_in") > 0 ) $query .= "request_interested, ";
       if ( intval("$allocated_to") > 0 ) $query .= "request_allocated, ";
-      $query .= "request, usr, lookup_code AS status ";
+      $query .= "request";
+      $query .= " JOIN lookup_code urgency ON urgency.source_table='request' AND urgency.source_field='urgency' AND urgency.lookup_code = request.urgency::text ";
+      $query .= " JOIN lookup_code importance ON importance.source_table='request' AND importance.source_field='importance' AND importance.lookup_code = request.importance::text ";
+      $query .= ", usr, lookup_code AS status ";
+      
       $query .= ", lookup_code AS request_type";
       $query .= ", usr AS creator";
+
 
       $query .= " WHERE request.requester_id=usr.user_no AND request.entered_by=creator.user_no ";
       $query .= " AND request_type.source_table='request' AND request_type.source_field='request_type' AND request.request_type = request_type.lookup_code";

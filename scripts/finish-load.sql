@@ -1,7 +1,7 @@
 VACUUM ANALYZE request_words;
 
-CREATE INDEX request_words_pkey ON request_words ( string, id );
-CREATE INDEX request_oid_skey ON request ( oid );
+-- CREATE INDEX request_words_pkey ON request_words ( string, id );
+-- CREATE INDEX request_oid_skey ON request ( oid );
 
 SELECT setval( 'usr_user_no_seq', max_usr() )                      AS "   User No";
 SELECT setval( 'organisation_org_code_seq', max_organisation() )   AS " Org. Code";

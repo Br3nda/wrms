@@ -118,5 +118,6 @@
   <item url="html/inc/wu-valid.php" />
   <item url="html/inc/wu-form.php" />
   <item url="html/inc/wu-action.php" />
+  <item url="html/inc/block-newnodes.php" />
  </project>
 </webproject>

@@ -254,7 +254,7 @@
         $attachment = pg_Fetch_Object( $updateq, $i );
 
         printf("<tr class=row%1d>", ($i % 2) );
-        echo "<td><a href=/attachment.php/$attachment->att_filename?id=$attachment->attachment_id target=_new>$attachment->att_filename</a></td>\n";
+        echo "<td><a href=/attachment.php/" . urlencode($attachment->att_filename) . "?id=$attachment->attachment_id target=_new>$attachment->att_filename</a></td>\n";
         echo "<td>$attachment->att_type</td>\n";
         echo "<td>" . nice_date($attachment->attached_on) . "</TD>\n";
         echo "<td>$attachment->att_brief</td>";
@@ -263,7 +263,7 @@
           printf("<tr class=row%1d>", ($i % 2) );
           echo "<td colspan=4>";
           echo "<iframe width=$attachment->att_width height=$attachment->att_height src=/attachment.php/$attachment->att_filename?id=$attachment->attachment_id>\n";
-          echo "<a href=/attachment.php/$attachment->att_filename?id=$attachment->attachment_id target=_new>View Attachment</a>\n";
+          echo "<a href=/attachment.php/" . urlencode($attachment->att_filename) . "?id=$attachment->attachment_id target=_new>View Attachment</a>\n";
           echo "</iframe>\n";
           echo "</td></tr>";
         }

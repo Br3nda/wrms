@@ -8,7 +8,7 @@
   include("inc/bodydef.php");
   include("inc/menuhead.php");
 
-  if ( ! $roles[wrms][Admin] || "$error_msg$error_qry" != "" ) {
+  if ( ! ($roles['wrms']['Admin'] || $roles[wrms]['Support']  || $roles[wrms]['Manage']) || "$error_msg$error_qry" != "" ) {
     include( "inc/error.php" );
   }
   else {
@@ -71,7 +71,7 @@
         echo md5(strtolower($thisusr->password));
         echo "\">$thisusr->username</a></td>\n";
         echo "<td class=sml><a href=\"usr.php?user_no=$thisusr->user_no\">$thisusr->fullname</a></td>\n";
-        echo "<td class=sml><a href=\"org.php?org_code=$thisusr->org_code\">$thisusr->org_name</a></td>\n";
+        echo "<td class=sml><a href=\"form.php?form=organisation&org_code=$thisusr->org_code\">$thisusr->org_name</a></td>\n";
         echo "<td class=sml><a href=\"mailto:$thisusr->email\">$thisusr->email</a>&nbsp;</td>\n";
         echo "<td class=sml>" . substr($thisusr->last_update, 4, 7) . substr($thisusr->last_update, 20, 4) . " " . substr($thisusr->last_update, 11, 5) . "&nbsp;</td>\n";
 

@@ -28,8 +28,8 @@
   }
 
   $hdcell = "<th width=7%><img src=images/clear.gif width=60 height=2></th>";
-  $tbldef = "<table width=100% cellspacing=0 border=0 cellpadding=2\n";
-  echo "$tbldef><tr><td align=left>\n";;
+  $tbldef = "<table width=100% cellspacing=0 border=0 cellpadding=2";
+  echo "$tbldef>\n<tr><td align=left>\n";;
   if ( "$because" != "" )
     echo $because;
   else if ( ! $plain ) {
@@ -172,7 +172,7 @@
     $rows = pg_NumRows($updateq);
     if ( $rows > 0 ) {
 ?>
-<?php echo "$tbldef><TR><TD CLASS=sml COLSPAN=5>&nbsp;</TD></TR><TR>$hdcell"; ?>
+<?php echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=5>&nbsp;</TD></TR><TR>$hdcell"; ?>
 <TD CLASS=h3 COLSPAN=4 ALIGN=RIGHT<?php echo " bgcolor=$colors[8]"; ?>><FONT SIZE=+1 color=<?php echo $colors[1]; ?>><B>Program Update Details</B></FONT></TD></TR>
  <TR><TH>ID</TH><TH>Done By</TH><TH>Done On</TH><TH>Description</TH><TH>&nbsp;</TH></TR>
 <?php
@@ -198,7 +198,7 @@
 <?php /***** Quote Details */
   /* we only show quote details if it is 'quotable' (i.e. requestor, administrator or catalyst owner) */
   if ( $quotable ) {
-    $query = "SELECT *, awm_get_lookup_desc('request_quote','quote_type', request_quote.quote_type) AS type_desc ";
+    $query = "SELECT *, get_lookup_desc('request_quote','quote_type', request_quote.quote_type) AS type_desc ";
     $query .= "FROM request_quote, usr ";
     $query .= "WHERE request_quote.request_id = $request->request_id ";
     $query .= "AND request_quote.quote_by_id = usr.user_no ";
@@ -262,7 +262,7 @@
   $allocq = pg_Exec( $wrms_db, $query);
   $rows = pg_NumRows($allocq);
   if ( $rows > 0 ) {
-    echo "$tbldef><TR><TD CLASS=sml COLSPAN=2>&nbsp;</TD></TR>\n";
+    echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=2>&nbsp;</TD></TR>\n";
     echo "<TR>$hdcell<TD CLASS=h3 ALIGN=RIGHT bgcolor=$colors[8]><FONT SIZE=+1 color=$colors[1]><B>Work Allocated To</B></FONT></TD></TR>\n";
     echo "<TR VALIGN=TOP><th>&nbsp;</th><td>";
     for( $i=0; $i<$rows; $i++ ) {
@@ -286,7 +286,7 @@
   $rows = pg_NumRows($workq);
   if ( $rows > 0  || (($allocated_to || $sysmgr) && !$plain) ) {
 ?>
-<?php echo "$tbldef><TR><TD CLASS=sml COLSPAN=6>&nbsp;</TD></TR><TR>$hdcell"; ?>
+<?php echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=6>&nbsp;</TD></TR><TR>$hdcell"; ?>
 <TD CLASS=h3 COLSPAN=5 ALIGN=RIGHT<?php echo " bgcolor=$colors[8]"; ?>><FONT SIZE=+1 color=<?php echo $colors[1]; ?>><B>Work Done</B></FONT></TD></TR>
  <TR VALIGN=TOP>
    <th>&nbsp;</th>
@@ -335,7 +335,7 @@
   $peopleq = pg_Exec( $wrms_db, $query);
   $rows = pg_NumRows($peopleq);
   if ( $rows > 0 ) {
-    echo "$tbldef><TR><TD CLASS=sml COLSPAN=3>&nbsp;</TD></TR>\n";
+    echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=3>&nbsp;</TD></TR>\n";
     echo "<TR>$hdcell<TD CLASS=h3 COLSPAN=2 ALIGN=RIGHT bgcolor=$colors[8]><FONT SIZE=+1 color=$colors[1]><B>Interested Users</B></FONT></TD></TR>\n";
     echo "<TR VALIGN=TOP><th nowrap>&nbsp;</th>\n<td>";
     for( $i=0; $i<$rows; $i++ ) {
@@ -369,11 +369,11 @@
   if ( $rows > 0 ) {
 ?>
 
-<?php echo "$tbldef><TR><TD CLASS=sml COLSPAN=4>&nbsp;</TD></TR><TR>$hdcell"; ?>
+<?php echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=4>&nbsp;</TD></TR><TR>$hdcell"; ?>
 <TD CLASS=h3 COLSPAN=3 ALIGN=RIGHT<?php echo " bgcolor=$colors[8]"; ?>><FONT SIZE=+1 color=<?php echo $colors[1]; ?>><B>Associated Notes</B></FONT></TD></TR>
 <TR VALIGN=TOP>
   <TH NOWRAP>&nbsp;</TH>
-  <TH ALIGN=LEFT class=cols>Noted By</TH>
+  <TH ALIGN=LEFT class=cols>Noted&nbsp;By</TH>
   <TH class=cols>Noted On</TH>
   <TH ALIGN=LEFT class=cols>Details</TH>
 </TR>
@@ -401,7 +401,7 @@
   $rows = pg_NumRows($stat_res);
   if ( $rows > 0 ) {
 ?>
-<?php echo "$tbldef><TR><TD CLASS=sml COLSPAN=4>&nbsp;</TD></TR><TR>$hdcell"; ?>
+<?php echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=4>&nbsp;</TD></TR><TR>$hdcell"; ?>
 <TD CLASS=h3 COLSPAN=3 ALIGN=RIGHT<?php echo " bgcolor=$colors[8]"; ?>><FONT SIZE=+1 color=<?php echo $colors[1]; ?>><B>Changes in Status</B></FONT></TD></TR>
 <TR VALIGN=TOP>
   <TH>&nbsp;</TH>
@@ -422,13 +422,11 @@
 
   if ( ! $plain ) {
 
-    echo "$tbldef><TR><TD CLASS=sml COLSPAN=4>&nbsp;</TD></TR>\n<TR>$hdcell";
+    echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=4>&nbsp;</TD></TR>\n<TR>$hdcell";
     echo "<TD CLASS=h3 COLSPAN=3 ALIGN=RIGHT bgcolor=$colors[8]><FONT SIZE=+1 color=$colors[1]><B>";
     /**** only update status & eta if they are administrator */
     if ( $statusable ) echo "Change Status or ";
     echo "Add Notes</B></FONT></TD></TR>\n";
-    echo "";
-    echo "<INPUT TYPE=\"hidden\" NAME=\"request_id\" VALUE=\"$request->request_id\">";
     if ( $statusable ) {
       echo "<TR>";
       echo "<TH ALIGN=RIGHT>New Status:</TH>";
@@ -455,7 +453,7 @@
   }  // if ! plain
 }  // isset($request) (way up there with the update details!)
 
-  echo "$tbldef><tr><td align=center class=mand>";
+  echo "$tbldef>\n<tr><td align=center class=mand>";
   echo "<B><INPUT TYPE=\"submit\" NAME=\"submit\" VALUE=\"";
   if ( isset($request) )
     echo " Apply Changes ";

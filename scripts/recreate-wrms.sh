@@ -13,14 +13,14 @@ createdb $DATABASE
 echo " Creating database structures..."
 psql -q -f create-wrms.sql -d $DATABASE 2>&1 | grep -v "will create implicit "
 
-echo -n " Loading database tables... "
+echo " Loading database tables... "
 cd dump
 for A in t-*.sql; do
   echo "    $A "
   psql -q -f $A -d $DATABASE 2>&1 | uniq
 done
 cd ..
-echo "."
+# echo "."
 
 echo "Finishing load..."
 psql -qxtf finish-load.sql -d $DATABASE | grep -v RECORD

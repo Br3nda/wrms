@@ -57,12 +57,12 @@ CREATE TABLE organisation (
 GRANT SELECT ON organisation TO PUBLIC;
 GRANT INSERT,UPDATE,SELECT ON organisation TO general;
 
-CREATE TABLE severity (
-  severity_code INT2 NOT NULL UNIQUE PRIMARY KEY,
-  severity_desc TEXT
-) ;
-GRANT SELECT ON severity TO PUBLIC;
-GRANT INSERT,UPDATE,SELECT ON severity TO general;
+-- CREATE TABLE severity (
+--   severity_code INT2 NOT NULL UNIQUE PRIMARY KEY,
+--   severity_desc TEXT
+-- ) ;
+-- GRANT SELECT ON severity TO PUBLIC;
+-- GRANT INSERT,UPDATE,SELECT ON severity TO general;
 
 -- CREATE TABLE status (
 --   status_code CHAR NOT NULL UNIQUE PRIMARY KEY,
@@ -111,10 +111,10 @@ GRANT INSERT,UPDATE,SELECT ON request TO general;
 GRANT SELECT,UPDATE ON request_request_id_seq TO PUBLIC;
 
 
--- CREATE TABLE request_fti ( string TEXT, id OID );
--- CREATE FUNCTION fti() RETURNS OPAQUE AS '/usr/lib/postgresql/modules/fti.so' LANGUAGE 'C';
--- CREATE TRIGGER request_fti_trigger AFTER UPDATE or INSERT or DELETE ON request
---     FOR EACH ROW EXECUTE PROCEDURE fti( request_fti, detailed);
+CREATE TABLE request_words ( string TEXT, id OID );
+CREATE FUNCTION keyword() RETURNS OPAQUE AS '/usr/lib/postgresql/modules/keyword.so' LANGUAGE 'C';
+CREATE TRIGGER request_kidx_trigger AFTER UPDATE or INSERT or DELETE ON request
+    FOR EACH ROW EXECUTE PROCEDURE keyword( request_words, detailed);
 
 
 CREATE FUNCTION active_request(INT4)
@@ -286,17 +286,17 @@ GRANT INSERT,UPDATE,SELECT ON request_update TO general;
 -- ' LANGUAGE 'plpgsql';
 
 
-CREATE TABLE awm_usr (
-   perorg_id INT4,
-   validated INT2 DEFAULT 0,
-   enabled INT2 DEFAULT 1,
-   access_level INT4 DEFAULT 100,
-   last_accessed DATETIME,
-   username TEXT NOT NULL UNIQUE PRIMARY KEY,
-   password TEXT
- );
- GRANT INSERT,UPDATE,SELECT ON awm_usr TO general;
- CREATE INDEX awm_usr_ak1 ON awm_usr ( perorg_id );
+-- CREATE TABLE awm_usr (
+--    perorg_id INT4,
+--    validated INT2 DEFAULT 0,
+--    enabled INT2 DEFAULT 1,
+--    access_level INT4 DEFAULT 100,
+--    last_accessed DATETIME,
+--    username TEXT NOT NULL UNIQUE PRIMARY KEY,
+--    password TEXT
+-- );
+-- GRANT INSERT,UPDATE,SELECT ON awm_usr TO general;
+-- CREATE INDEX awm_usr_ak1 ON awm_usr ( perorg_id );
 
 -- CREATE TABLE awm_usr_setting (
 --   username TEXT,
@@ -320,16 +320,16 @@ CREATE TABLE awm_usr (
 -- );
 -- GRANT INSERT,UPDATE,SELECT ON awm_group TO general;
 
-CREATE TABLE awm_perorg (
-  perorg_id SERIAL PRIMARY KEY,
-  perorg_name TEXT,
-  perorg_sort_key TEXT,
-  perorg_type TEXT
-);
-GRANT INSERT,UPDATE,SELECT ON awm_perorg TO general;
-GRANT SELECT ON awm_perorg_perorg_id_seq TO general;
-CREATE INDEX awm_perorg_ak1 ON awm_perorg ( perorg_sort_key, perorg_name, perorg_id );
-CREATE INDEX awm_perorg_ak2 ON awm_perorg ( perorg_type, perorg_sort_key );
+-- CREATE TABLE awm_perorg (
+--   perorg_id SERIAL PRIMARY KEY,
+--   perorg_name TEXT,
+--   perorg_sort_key TEXT,
+--   perorg_type TEXT
+-- );
+-- GRANT INSERT,UPDATE,SELECT ON awm_perorg TO general;
+-- GRANT SELECT ON awm_perorg_perorg_id_seq TO general;
+-- CREATE INDEX awm_perorg_ak1 ON awm_perorg ( perorg_sort_key, perorg_name, perorg_id );
+-- CREATE INDEX awm_perorg_ak2 ON awm_perorg ( perorg_type, perorg_sort_key );
 
 -- CREATE TABLE awm_perorg_rel (
 --   perorg_id INT4,

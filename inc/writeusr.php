@@ -43,8 +43,14 @@
       }
       else {
         $query = "UPDATE usr SET email=LOWER('$UserEmail'), fullname='$UserFullName', ";
-        $query .= " organisation='$UserOrganisation', phone='$UserPhone', fax='$UserFax', ";
-        $query .= " pager='$UserPager', username=LOWER('$UserName'), ";
+        $query .= " organisation='";
+        if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] )
+          $query .= "$UserOrganisation', ";
+        else
+          $query .= "$session->org_code', ";
+        $query .= " phone='$UserPhone', fax='$UserFax', ";
+        $query .= " pager='$UserPager', ";
+        if ( "$UserName" <> "" ) $query .= " username=LOWER('$UserName'), ";
         $query .= " mail_style='$UserMail', status='$UserStatus', last_update='now'";
         if ( $UserPassword <> "      " ) $query .= ", password='$UserPassword'";
         $query .= " WHERE user_no='$user_no' ";
@@ -83,7 +89,7 @@
 
       $query = "COMMIT TRANSACTION;";
       $result = pg_Exec( $wrms_db, $query );
-      $because = "<H3>User Record Written</H3>\n";
+      $because = "<H3>User Record Written for $UserFullName</H3>\n";
 
        // Write allowed systems
       if ( isset($UserCat) && is_array($UserCat) ) {

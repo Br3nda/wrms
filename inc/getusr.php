@@ -11,6 +11,8 @@
     else if ( pg_NumRows($usr_res ) > 0 ) {
       $usr = pg_Fetch_Object( $usr_res, 0 );
 
+      if ( "$submit" <> "" ) return;
+
       // Collect group requestships
       $query = "SELECT module_name, group_name ";
       $query .= " FROM group_member, ugroup";

@@ -23,12 +23,11 @@
     else
       $system_list = get_system_list( "CES", "$system_code", 35);
 ?>
-<table border=0 cellspacing=0 cellpadding=2 align=center>
+<table border=0 cellspacing=0 cellpadding=2 align=center bgcolor=<?php echo $colors[6]; ?>>
 <tr valign=middle>
-<th align=right>Name:</th><td><input TYPE="Text" Size="10" Name="search_for" Value="<?php echo "$search_for"; ?>"></td>
-<th align=right>&nbsp; System:</th><td><select NAME=system_code><?php echo "$system_list"; ?></select></td>
-<td><input TYPE="Image" src="images/in-go.gif" alt="go" WIDTH="44" BORDER="0" HEIGHT="26" name="submit"></td>
-</tr>
+<td class=smb align=right>Search:</td><td class=sml><input class=sml TYPE="Text" Size="10" Name="search_for" Value="<?php echo "$search_for"; ?>"></td>
+<td class=smb align=right>&nbsp; System:</td><td class=sml><select class=sml name=system_code><?php echo "$system_list"; ?></select></td>
+<td rowspan=2 valign=middle class=sml><input TYPE=Image src=images/in-go.gif alt=go WIDTH=44 BORDER=0 HEIGHT=26 name=submit></td></tr>
 <?php
   $query = "SELECT * FROM lookup_code WHERE source_table='request' ";
   $query .= " AND source_field='status_code' ";
@@ -38,7 +37,7 @@
     echo "<p>$query";
   }
   else if ( pg_NumRows($rid) > 1 ) {
-    echo "<tr valign=middle><th align=right>Statuses:</th><td colspan=4 class=sml valign=top>\n";
+    echo "<tr valign=middle><td class=smb align=right valign=top>Statuses:</td><td colspan=3 class=sml valign=top>\n";
     for ( $i=0; $i<pg_NumRows($rid); $i++ ) {
       $status = pg_Fetch_Object( $rid, $i );
       echo "<input type=checkbox name=incstat[$status->lookup_code]";
@@ -48,7 +47,7 @@
     echo "<input type=checkbox name=inactive";
     if ( isset($inactive) ) echo " checked";
     echo " value=1>&nbsp;Inactive";
-    echo "</td></tr>";
+    echo "</td>\n</tr>";
   }
 ?>
 </table>

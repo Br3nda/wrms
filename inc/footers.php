@@ -1,16 +1,17 @@
 <?php
-  echo "</td></tr></table>\n";
-  if ( $left_panel ) {
-    echo "</td>\n";
+  if ( "$style" != "stripped" ) {
+    echo "</td></tr></table>\n";
+    if ( $left_panel ) {
+      echo "</td>\n";
 
-    if ( $right_panel ) {
-      echo "<td width=\"10%\" bgcolor=\"$colors[bg1]\" valign=top>\n";
-      include("inc/sidebarright.php");
-      echo "\n</td>\n";
+      if ( $right_panel ) {
+        echo "<td width=\"10%\" bgcolor=\"$colors[bg1]\" valign=top>\n";
+        include("inc/sidebarright.php");
+        echo "\n</td>\n";
+      }
+
+      echo "</tr></table>\n";
     }
-
-    echo "</tr></table>\n";
-  }
 //  phpinfo();
 ?>
 <table width="100%" border="0" cellspacing="0" cellpadding="0" height="16" background="images/WRMSbottomTile.gif">
@@ -22,6 +23,7 @@
   </tr>
 </table>
 <?php
+  }
   echo "</body>\n</html>";
 
 if ( is_object ( $settings ) ) {

@@ -2,7 +2,7 @@
   $query = "SELECT help_hit($session->user_no, '" . tidy($topic) . "');";
   awm_pgexec( $dbconn, $query, "help", true, 5 );
   $query = "SELECT * FROM help WHERE topic = '" . tidy($topic) . "' ";
-  if ( isset($seq) ) $query .= "AND seq = " . intval($seq) . ";";
+  if ( isset($seq) ) $query .= "AND seq = " . intval($seq) . " ";
   $query .= "ORDER BY topic, seq;";
   $rid = awm_pgexec( $dbconn, $query, "help");
   if ( !$rid ) {
@@ -11,11 +11,24 @@
   }
   else {
     $rows = pg_NumRows($rid);
-    if ( 0 == $rows || ($action == "edit" && $rows == 1) ) {
+    if ( 0 == $rows || $action == "add" || ($action == "edit" && $rows == 1) ) {
       // No rows!  Maybe they want to add it?
       if ( "edit" == "$action" ) {
         $submitlabel = "Update Help";
         $help = pg_Fetch_Object($rid,0);
+      }
+      else if ( "add" == "$action" ) {
+        $submitlabel = "Add New Help";
+        echo "<h1>Help about $topic</h1>";
+        if ( $rows > 0 ) {
+          echo "<p>Existing help on this topic includes:</p>";
+          echo "<ol type=\"1\">";
+          for( $i = 0; $i < $rows; $i ++ ) {
+            $help = pg_Fetch_Object($rid,$i);
+            echo "<li><a href=\"/form.php?form=help&topic=" . htmlspecialchars($help->topic) . "\">$help->title</a></li>\n";
+          }
+          echo "</ol><hr>";
+        }
       }
       else {
         $submitlabel = "Add New Help";
@@ -38,7 +51,8 @@
       echo "<h1>$help->title</h1>\n";
       echo "$help->content\n";
       if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
-        echo "<p><br><p><br><a href=\"/form.php?form=help&action=edit&topic=" . htmlspecialchars($help->topic) . "\">click here to edit this help</a></li>\n";
+        echo "<p><br><p><br><a href=\"/form.php?form=help&action=edit&topic=" . htmlspecialchars($help->topic) . "&seq=$help->seq\">edit this help text</a>\n";
+        echo " &nbsp;| &nbsp;<a href=\"/form.php?form=help&action=add&topic=" . htmlspecialchars($help->topic) . "\">add new help text</a>\n";
       }
     }
     else {

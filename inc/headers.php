@@ -107,6 +107,7 @@ th.cols, th.rows, a.cols  {font: small-caps bold $fontsizes[1] $fonts[0], sans-s
   // Now start the body
   echo "</head>\n";
   echo "<body bgcolor=\"$colors[bg1]\" fgcolor=\"$colors[fg1]\" leftmargin=\"0\" marginheight=\"0\" marginwidth=\"0\" topmargin=\"0\" text=\"$colors[fg1]\" link=\"$colors[link1]\" vlink=\"$colors[link1]\" alink=\"$colors[link2]\" background=\"images/tanTile.gif\">\n";
+  if ( "$style" != "stripped" ) {
 //  echo "<basefont face=\"$fonts[0], sans-serif\" size=\"2\" color=\"$colors[fg1]\">\n";
 ?>
 <table width="100%" border="0" cellspacing="0" cellpadding="0">
@@ -127,7 +128,7 @@ th.cols, th.rows, a.cols  {font: small-caps bold $fontsizes[1] $fonts[0], sans-s
             </table>
           </td>
           <td width="28%"><font size=1>&nbsp;</font></td>
-          <td width="32%" align="right"><a href=/help.php><img src="images/help.gif" width="101" height="19" border=0></a></td>
+          <td width="32%" align="right"><a href="/help.php?h=<?php echo str_replace(".php","",$PHP_SELF); ?>"><img src="images/help.gif" width="101" height="19" border=0></a></td>
         </tr>
       </table>
     </td>
@@ -135,21 +136,21 @@ th.cols, th.rows, a.cols  {font: small-caps bold $fontsizes[1] $fonts[0], sans-s
 </table>
 <?php
 
-  // The left hand sidebar.
-  if ( $left_panel ) {
-    echo "<table border=\"0\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\"><tr bgcolor=$colors[bg1]>\n";
-    echo "<td width=\"10%\" valign=\"top\" class=sidebarleft>";
-    if ( "$error_qry" == "" ) {
-      include("inc/sidebarleft.php");
+    // The left hand sidebar.
+    if ( $left_panel ) {
+      echo "<table border=\"0\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\"><tr bgcolor=$colors[bg1]>\n";
+      echo "<td width=\"10%\" valign=\"top\" class=sidebarleft>";
+      if ( "$error_qry" == "" ) {
+        include("inc/sidebarleft.php");
+      }
+      echo "\n</td>\n";
+
+      echo "<td valign=top width=\"" . ($right_panel ? "80" : ($left_panel ? "90" : "100")) . "%\">";
     }
-    echo "\n</td>\n";
 
-    echo "<td valign=top width=\"" . ($right_panel ? "80" : ($left_panel ? "90" : "100")) . "%\">";
-  }
-
-  echo "<table border=\"0\" cellspacing=\"0\" cellpadding=\"7\" width=\"100%\">\n";
-  echo "<tr><td>\n";
-
+    echo "<table border=\"0\" cellspacing=\"0\" cellpadding=\"7\" width=\"100%\">\n";
+    echo "<tr><td>\n";
+  } // if style not stripped
 
   // Display errors / Warnings
   if ( (isset($error_message) && $error_message <> "") || (isset($warn_message) && $warn_message <> "") ) {

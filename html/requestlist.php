@@ -24,12 +24,15 @@
   if ( isset($org_code) ) $org_code = intval($org_code);
 
 function column_header( $ftext, $fname ) {
-  global $rlsort, $rlseq, $org_code, $system_code, $search_for;
+  global $rlsort, $rlseq, $org_code, $system_code, $search_for, $qry, $format, $style;
   echo "<th class=cols><a class=cols href=\"$PHP_SELF?rlsort=$fname&rlseq=";
   if ( "$rlsort" == "$fname" ) echo ( "$rlseq" == "DESC" ? "ASC" : "DESC");
   if ( isset($org_code) ) echo "&org_code=$org_code";
   if ( isset($system_code) ) echo "&system_code=$system_code";
   if ( isset($search_for) ) echo "&search_for=$search_for";
+  if ( "$qry" != "" ) echo "&qry=$qry";
+  if ( "$style" != "" ) echo "&style=$style";
+  if ( "$format" != "" ) echo "&format=$format";
   echo "\">$ftext";
   if ( "$rlsort" =="$fname" ) {
     echo "&nbsp;<img border=0 src=\"images/sort-$rlseq.png\">";
@@ -41,7 +44,7 @@ if ( ! $roles['wrms']['Request'] || "$error_msg$error_qry" != "" ) {
   include( "inc/error.php" );
 }
 else {
-  if ( !isset( $style ) || "$style" != "plain"  ) {
+  if ( !isset( $style ) || ($style != "plain" && $style != "stripped") ) {
     echo "<form Action=\"$base_url/requestlist.php";
     if ( "$org_code$qs" != "" ) {
       echo "?";
@@ -155,7 +158,7 @@ else {
 </form>
 
 <?php
-  } // if  not plain style
+  } // if  not plain  or stripped style
 
 
   /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -236,12 +239,16 @@ $query";
     $query .= " ORDER BY $rlsort $rlseq ";
     $query .= " LIMIT 100 ";
     $result = awm_pgexec( $wrms_db, $query, "requestlist", false, 7 );
-    if ( $result && pg_NumRows($result) > 0 )
-      echo "<small>" . pg_NumRows($result) . " requests found</small>"; // <p>$query</p>";
-    else
-      echo "<small>No requests found</small><p>$query</p>";
 
-    echo "<table border=\"0\" align=left>\n<tr>\n";
+    if ( "$style" != "stripped" ) {
+      if ( $result && pg_NumRows($result) > 0 )
+        echo "\n<small>" . pg_NumRows($result) . " requests found</small>"; // <p>$query</p>";
+      else
+        echo "\n<p><small>No requests found</small></p><p>$query</p>";
+    }
+
+function header_row() {
+    echo "<tr>\n";
     column_header("WR&nbsp;#", "request_id");
     column_header("Request By", "lfull" );
     column_header("Request On", "request_on" );
@@ -250,6 +257,15 @@ $query";
     column_header("Type", "request_type_desc" );
     column_header("Last Chng", "last_change");
     echo "</tr>";
+}
+    echo "<table border=\"0\" align=left width=100%>\n";
+
+    if ( "$format" == "detailed" ) {
+      include("inc/html-format.php");
+    }
+    else
+      header_row();
+
 
     if ( $result ) {
 
@@ -257,6 +273,7 @@ $query";
       for ( $i=0; $i < pg_NumRows($result); $i++ ) {
         $thisrequest = pg_Fetch_Object( $result, $i );
 
+        if ( "$format" == "detailed" ) header_row();
         printf( "<tr class=row%1d>\n", $i % 2);
 
         echo "<td class=sml align=center><a href=\"request.php?request_id=$thisrequest->request_id\">$thisrequest->request_id</a></td>\n";
@@ -271,9 +288,45 @@ $query";
         echo "<td class=sml align=center>$thisrequest->last_change</td>\n";
 
         echo "</tr>\n";
+
+        if ( "$format" == "detailed" ) {
+          printf( "<tr class=row%1d>\n", $i % 2);
+          echo "<td colspan=7>" . html_format($thisrequest->detailed) . "</td>\n";
+          echo "</tr>\n";
+          $subquery = "SELECT *, to_char( note_on, 'DD/MM/YYYY') AS nice_date ";
+          $subquery .= "FROM request_note, usr ";
+          $subquery .= "WHERE request_id = $thisrequest->request_id ";
+          $subquery .= "AND usr.user_no = request_note.note_by_id ";
+          $subquery .= "ORDER BY request_id, note_on ";
+          $subres = awm_pgexec( $dbconn, $subquery, "requestlist" );
+          for ( $j=0; $subres && $j < pg_NumRows($subres); $j++ ) {
+            $thisnote = pg_Fetch_Object( $subres, $j );
+            printf( "<tr class=row%1d valign=top>\n", $i % 2);
+            echo "<td>$thisnote->nice_date</td>\n";
+            echo "<td>$thisnote->fullname</td>\n";
+            echo "<td colspan=5>" . html_format($thisnote->note_detail) . "</td>\n";
+            echo "</tr>\n";
+          }
+
+          echo "<tr class=row3>\n<td colspan=7>&nbsp;</td></tr>\n";
+        }
       }
     }
     echo "</table>\n";
+
+    if ( "$style" != "stripped" ) {
+      $this_page = "$PHP_SELF?style=%s&format=%s";
+      if ( "$qry" != "" ) $this_page .= "&qry=$qry";
+      if ( "$search_for" != "" ) $this_page .= "&search_for=$search_for";
+      if ( "$org_code" != "" ) $this_page .= "&org_code=$org_code";
+      if ( "$system_code" != "" ) $this_page .= "&system_code=$system_code";
+
+      echo "<br clear=all><hr>\n<table cellpadding=5 cellspacing=5 align=right><tr><td>Rerun as report: </td>\n<td>\n";
+      printf( "<a href=\"$this_page\" target=_new>Brief</a>\n", "stripped", "brief");
+      printf( " &nbsp;|&nbsp; <a href=\"$this_page\" target=_new>Detailed</a>\n", "stripped", "detailed");
+      echo "</td></tr></table>\n";
+    }
+
   }
 
 } /* The end of the else ... clause waaay up there! */

@@ -395,6 +395,7 @@ function dates_equal( $date1, $date2 ) {
         return;
       }
       move_uploaded_file($HTTP_POST_FILES['new_attachment_file']['tmp_name'], "attachments/$attachment_id");
+      if ( $rid ) $because .= "<h3>File attachment \"$attachment->att_filename\" added to this request</h3>";
     }
 
     if ( $work_added ) {

@@ -199,7 +199,7 @@ function block_open(  $bgcolor="", $border_color="") {
   if ( $border_color == "" ) $border_color=$colors["blocksides"];
   echo "<table cellpadding=\"1\" cellspacing=\"0\" border=\"0\" width=\"100%\" bgcolor=\"$border_color\" style=\" margin: 0 1px;\">\n";
   echo "<tr><td>\n";
-  echo "<table width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" bgcolor=\"$bgcolor\">\n<br><br>";
+  echo "<table width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" bgcolor=\"$bgcolor\">\n";
 }
 
 //-----------------------------------------

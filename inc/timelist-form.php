@@ -115,7 +115,7 @@ function nice_time( $in_time ) {
       $query .= " AND request_timesheet.work_charged IS NULL ";
     }
     $query .= " ORDER BY $tlsort $tlseq ";
-    $query .= " LIMIT 100 ";
+    // $query .= " LIMIT 100 ";
     $result = awm_pgexec( $wrms_db, $query, 'timelist', FALSE, 7 );
     if ( $result ) {
 

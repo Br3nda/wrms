@@ -324,7 +324,7 @@ function dates_equal( $date1, $date2 ) {
       $requsr = $session;
 
     $sla_split = explode('|', $new_sla_code, 2);
-    $sla_type = toupper( $sla_split[1] );
+    $sla_type = strtoupper( $sla_split[1] );
     $query = "INSERT INTO request (request_id, request_by, brief, detailed, active, last_status, urgency, importance, ";
     $query .= "system_code, request_type, requester_id, last_activity, sla_response_time";
     if ( ereg( "[BEO]", $sla_type ) ) $query .= ", sla_response_type";

@@ -15,7 +15,7 @@
 <?php
   if ( !($roles['wrms']['Admin'] || $roles['wrms']['Support']) ) $org_code = $session->org_code;
   if ( "$search_for$org_code " != ""  && ( $roles['wrms']['Manage'] || $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) ) {
-    $query = "SELECT DISTINCT ON system_code * FROM work_system ";
+    $query = "SELECT DISTINCT system_code * FROM work_system ";
     if ( "$org_code" <> "" ) $query .= ", org_system ";
     if ( "$search_for$org_code" != "" ) $query .= "WHERE ";
     if ( "$search_for" <> "" ) {

@@ -124,8 +124,8 @@
 		echo "<td class=sml>$thisrequest->importance</td>";
 		echo "<td class=sml>$thisrequest->urgency</td>";
 		echo "<td class=sml>$thisrequest->by_date</td>";
-		echo "<td class=sml>$thisrequest->status</td>";
-		echo "<td class=sml>$thisrequest->type</td>";
+		echo "<td class=sml>".str_replace(' ', '&nbsp;',$thisrequest->status)."</td>";
+		echo "<td class=sml>".str_replace(' ', '&nbsp;',$thisrequest->type)."</td>";
 		echo "<td class=sml>$thisrequest->ranking</td>";
 		echo "</tr>\n";
 	}

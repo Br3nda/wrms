@@ -564,10 +564,10 @@ $query";
               echo "<td class=sml><select class=sml name=\"EditableRequests[$EditableRequests_count][1]\">$status_list</select></td>\n";
            }
            else //otherwise output plain text of the current request status
-              echo "<td class=sml>&nbsp;$thisrequest->status_desc&nbsp;</td>\n";
+              echo "<td class=sml>&nbsp;".str_replace(' ', '&nbsp;',$thisrequest->status_desc)."&nbsp;</td>\n";
         }
         else
-           echo "<td class=sml>&nbsp;$thisrequest->status_desc&nbsp;</td>\n";
+           echo "<td class=sml>&nbsp;".str_replace(' ', '&nbsp;',$thisrequest->status_desc)."&nbsp;</td>\n";
         echo "<td class=sml>&nbsp;" . str_replace( " ", "&nbsp;", $thisrequest->request_type_desc) . "&nbsp;</td>\n";
         echo "<td class=sml align=center>" . str_replace( " ", "&nbsp;", $thisrequest->last_change) . "</td>\n";
         if ( "$format" == "edit" ) //adds in the Active field for the Brief (editable) reports

@@ -577,7 +577,11 @@ if ( "$style" != "plain" ) {
     echo " Apply Changes ";
   else
     echo " Enter Request ";
-  echo "\"></b></td>\n</tr></table></form>";
+  echo "\"></b>";
+  if ( $roles['wrms']['Admin'] || $roles['wrms']['Support']  ) {
+    echo "&nbsp; &nbsp; <label><input type=checkbox name=send_no_mail value=1>Do not send e-mail update</label>";
+  }
+  echo "</td>\n</tr></table></form>";
 }
 
 ?>

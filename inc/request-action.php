@@ -93,9 +93,10 @@ function dates_equal( $date1, $date2 ) {
     $interest_added = isset($new_interest) && ($new_interest != "" );
     $allocation_added = isset($new_allocation) && ($new_allocation != "" );
     $eta_changed = !dates_equal($request->eta, $new_eta);
+    $brief_changed = (isset($new_brief) && trim($request->brief) != trim($new_brief));
     $requested_by_changed = !dates_equal($request->requested_by_date, $new_requested_by_date);
     $agreed_changed = !dates_equal($request->agreed_due_date, $new_agreed_due_date);
-    $changes =  (isset($new_brief) && $request->brief != $new_brief)
+    $changes =  $brief_changed
              || (isset($new_detail) && $request->detailed != $new_detail)
              || (isset($new_type) && $request->request_type != $new_type )
              || (isset($new_severity) && $request->severity_code != $new_severity )
@@ -108,7 +109,7 @@ function dates_equal( $date1, $date2 ) {
     $send_some_mail = $changes;
     $changes = $changes || $work_added || $interest_added;
     error_log( "$sysabbr request-action: $changes---"
-             . (isset($new_brief) && $request->brief != $new_brief) . "-"
+             . $brief_changed . "-"
              . (isset($new_detail) && $request->detailed != $new_detail) . "+"
              . (isset($new_type) && $request->request_type != $new_type ) . "-"
              . (isset($new_severity) && $request->severity_code != $new_severity ) . "+"
@@ -160,7 +161,7 @@ function dates_equal( $date1, $date2 ) {
 //    error_log( "$sysabbr request-action2: Active: $request->active, New: $new_active (statusable: $statusable, status_changed: $status_changed", 0);
 
     $query = "UPDATE request SET";
-    if ( isset($new_brief) && $request->brief != $new_brief )
+   if ( $brief_changed )
       $query .= " brief = '" . tidy($new_brief) . "',";
     if ( isset($new_detail) && $request->detailed != $new_detail )
       $query .= " detailed = '" . tidy( $new_detail ) . "',";
@@ -452,7 +453,7 @@ function dates_equal( $date1, $date2 ) {
 
   include("$base_dir/inc/getrequest.php");
 
-  if ( $send_some_mail ) {
+  if ( $send_some_mail && "$send_no_mail" == "" ) {
     //////////////////////////////////////////////
     // Work out what to tell and who to tell it to
     //////////////////////////////////////////////

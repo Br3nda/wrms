@@ -10,14 +10,14 @@ require_once("organisation-selectors-sql.php");
 // Random Joe Functions we use
 function simplify_string( $str ) {
 
-  $result = stripslashes($str);
+  $result = strtolower(stripslashes($str));
 
   if ( function_exists('html_entity_decode') ) {
     $result = html_entity_decode($result);
   }
   else {
     // Otherwise try and ensure some consistency the other way...
-    if ( ! strpos( $result, '&' ) ) {
+    if ( ! preg_match("/&(#[0-9]{2,5}|[a-z]{2,5});/", $result) ) {
       $result = htmlentities($result);
     }
   }
@@ -1329,7 +1329,7 @@ class Request {
     $db_errors = false;
     $save_detailed_description = $_POST['detailed'];
     $_POST['detailed'] = htmlspecialchars($save_detailed_description);
-    $_POST['last_activity'] = date('Y-m-d H:M:S');
+    $_POST['last_activity'] = date('Y-m-d H:i:s');
     $sql = sql_from_post( $this->chtype, "request", "WHERE request_id='$this->request_id'");
     $_POST['detailed'] = $save_detailed_description;
     $qry = new PgQuery($sql);
@@ -1576,7 +1576,7 @@ EOX
   // Detect if stuff on the request record needs notification
   /////////////////////////////////////////////////////////////
   function DetectEmailChanges( ) {
-    global $session, $client_messages, $sysabbr;
+    global $session, $debuggroups, $client_messages, $sysabbr;
 
     $tfmt = " * %s\n";
     $hfmt = "<p>%s</p>\n";
@@ -1598,13 +1598,19 @@ EOX
       $this->send_an_email = true;
     }
 
-    $previous = simplify_string($_POST['detailed']);
+    $newdesc = simplify_string($_POST['detailed']);
     $current  = simplify_string($this->detailed);
-    $detail_changed = ( $previous != $current );
+    $detail_changed = ( $newdesc != $current );
     if ( $this->chtype == "update" && $detail_changed ) {
       $session->Log("DBG: description has changed on W/R $this->request_id" );
-      $fh = fopen("/tmp/previous"); fwrite( $fh, $previous ); $fclose($fh);
-      $fh = fopen("/tmp/current"); fwrite( $fh, $current ); $fclose($fh);
+      if ( strlen($current) != 0 && abs(strlen($current) - strlen($newdesc)) < 20
+             && isset($debuggroups['Request']) && $debuggroups['Request'] ) {
+        $datestamp = date("Y-m-d H:i:s") . " ============================\n";
+        $fh = fopen("/tmp/WR$this->request_id","a");
+        fwrite( $fh, "<<<<<<<<<<< was <<<<<<<<<<<< " . $datestamp . $current . "\n" );
+        fwrite( $fh, ">>>>>>>>>>> now >>>>>>>>>>>> " . $datestamp . $newdesc . "\n" );
+        fclose($fh);
+      }
       $this->mail_message_data[]['text']
             = "Previous Description:\n"
             . "=====================\n"

@@ -219,10 +219,12 @@ class Organisation {
        $html .= '</table></td></tr>'."\n";
      }
 
-     // New tag - always force field value to blank - if we're rendering we've written it already...
-     $_POST['new_tag'] = '';
-     $html .= $ef->DataEntryLine( "New W/R Tag", '', "text", "new_tag",
-               array("size" => "20", "title" => "Enter a new tag to classify W/Rs for this organisation.") );
+     if ( $ef->editmode && ($session->AllowedTo('Admin') || $session->AllowedTo('Support')) ) {
+       // New tag - always force field value to blank - if we're rendering we've written it already...
+       $_POST['new_tag'] = '';
+       $html .= $ef->DataEntryLine( "New W/R Tag", '', "text", "new_tag",
+                 array("size" => "20", "title" => "Enter a new tag to classify W/Rs for this organisation.") );
+     }
 
      return $html;
    }

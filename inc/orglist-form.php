@@ -35,7 +35,7 @@
       $query .= " AND org_system.org_code = $org_code ";
     }
     $query .= " ORDER BY LOWER(organisation.org_name) ";
-    $query .= " LIMIT 100 ";
+    $query .= " LIMIT 500 ";
     $result = awm_pgexec( $dbconn, $query, "orglist-form", false, 7 );
     if ( ! $result ) {
       $error_loc = "orglist-form.php";

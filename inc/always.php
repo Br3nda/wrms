@@ -176,6 +176,7 @@ function link_writeups( $instr ) {
   if ( isset($current_node) ) $last_node = "&last=$current_node";
   if ( !$logged_on ) return $instr;
   $instr = ereg_replace("\[mailto:([^]|]+)\]", "<a class=wu href=\"mailto:\\1\">\\1</a>", $instr);
+  $instr = ereg_replace("\[(https?:[^]|]+)\]", "<a class=wu href=\"\\1\" target=\"_new\">\\1</a>", $instr);
   $instr = ereg_replace("\[([^]|]+)\|([^]|]+)\]", "<a class=wu href=\"/wu.php?wu=\\1$last_node\">\\2</a>", $instr);
   $instr = ereg_replace("\[([^]|]+)\]", "<a class=wu href=\"/wu.php?wu=\\1$last_node\">\\1</a>", $instr);
   return $instr;

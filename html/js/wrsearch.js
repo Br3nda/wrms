@@ -20,6 +20,7 @@ var alloc_sel;
 var subsc_sel;
 var orgtag_sel;
 
+var looks_like_ie = true;
 var xmlhttp=false;
 /*@cc_on @*/
 /*@if (@_jscript_version >= 5)
@@ -37,6 +38,7 @@ var xmlhttp=false;
 @end @*/
 if (!xmlhttp && typeof XMLHttpRequest!='undefined') {
   xmlhttp = new XMLHttpRequest();
+  looks_like_ie = false;
 }
 
 function CleanSelectOptions( sel ) {
@@ -100,7 +102,8 @@ function OrganisationChanged() {
             orgtag_sel.options[orgtag_sel.options.length] = new Option( lines[i].replace( orgtag_rx, "$2"), lines[i].replace( orgtag_rx, "$1") )
           }
         }
-        FixTagOptions(orgtag_sel);
+//        FixTagOptions(orgtag_sel);
+        w3_fix_taglists(orgtag_sel);
 
         document.forms.form.requester_id.value
       }
@@ -228,48 +231,28 @@ function AssignSelected(select_from, append_fname) {
 function CopyOptions( from_field, to_field ) {
   var currval = 'nothing is selected yet';
   if ( to_field.length > 0 && to_field.selectedIndex < to_field.length ) {
-    currval = to_field.options[to_field.selectedIndex].value;
+//    currval = to_field.options[to_field.selectedIndex].value;
+    currval = to_field.value;
   }
   CleanSelectOptions(to_field);
+  var found_currval = false;
   for ( var i=0 ; i < from_field.length ; i ++ ) {
     to_field.options[i] = new Option( from_field.options[i].text, from_field.options[i].value, false, false);
     if ( from_field.options[i].value == currval ) {
-      to_field.options[i].selected = true;
+      found_currval = true;
     }
+  }
+  if ( found_currval ) {
+    to_field.value = currval;
+  }
+  else {
+    if ( currval != 'nothing is selected yet' )
+      alert("Couldn't find current value in new list" );
   }
 }
 
-//////////////////////////////////////////////////////////
-// Construct the fields for a Tag selection stanza roughly
-// of the form:
-//    <AND / OR> <( or not><SELECT TAG> <) or not>
-//////////////////////////////////////////////////////////
-var stanza_count = 0;
-var tag_selections = new Array();
-function TagSelectionStanza() {
-  orgtag_sel = document.forms.form.orgtaglist;
-  var moretags = document.getElementById('moretags');
-  var stanza = '<span class="srchf" style="white-space: nowrap;">';
-  if ( stanza_count > 0 ) {
-    stanza += ' <select class="srchf" style=\"width: 4em\" name="tag_and['+stanza_count+']"><option value="AND">AND</option><option value="OR" checked>OR</option></select> ';
-  }
-  else {
-    stanza += ' <div class="srchp" style=\"display: block; clear: none; float: left; vertical-align: bottom; margin-top: 0.2em; font-weight: 700; height: 1.2em; width: 4.2em\">&nbsp; Tags: </div> ';
-  }
-  stanza += ' <select class="srchf" name="tag_lb['+stanza_count+']"><option value=" "> </option><option value="(">(</option><option value="((">((</option></select> ';
-  stanza += ' <select class="srchf" style=\"width: 12em\" name="taglist['+stanza_count+']"></select>';
-  stanza += ' <select class="srchf" name="tag_rb['+stanza_count+']"><option value=" "> </option><option value=")">)</option><option value="))">))</option></select> ';
-  stanza += '</span>';
-
-  SaveTagSettings();
-  moretags.innerHTML += stanza;
-  RestoreTagSettings();
-
-  tag_selections[stanza_count] = GetFieldFromName('taglist['+stanza_count+']');
-  CopyOptions( orgtag_sel, tag_selections[stanza_count] );
-
-  stanza_count++;
-  return '';
+function do_nothing(x,y) {
+ return x + y;
 }
 
 //////////////////////////////////////////////////////////
@@ -277,9 +260,30 @@ function TagSelectionStanza() {
 //////////////////////////////////////////////////////////
 function FixTagOptions(from_field) {
   var to_field;
+  window.offscreenBuffering = false;
   for( var i=0; i < stanza_count; i++ ) {
-    to_field = GetFieldFromName('taglist['+ i +']');
+    to_field = GetFieldFromName('tag_list['+ i +']');
     CopyOptions(from_field,to_field);
+  }
+  window.offscreenBuffering = true;
+}
+
+//////////////////////////////////////////////////////////
+// Fix the Tag options to make them match the organisation ones
+//////////////////////////////////////////////////////////
+function w3_fix_taglists(from_field) {
+  var old_field;
+  var new_field;
+  var the_parent;
+  var currval;
+  for( var i=0; i < stanza_count; i++ ) {
+    old_field = GetFieldFromName('tag_list['+ i +']');
+    currval = old_field.value;
+    the_parent = old_field.parentNode;
+    new_field = from_field.cloneNode(true);
+    new_field.setAttribute('name', 'tag_list[' + i + ']' );
+    new_field.value = currval;
+    the_parent.replaceChild( new_field, old_field );
   }
 }
 
@@ -301,8 +305,8 @@ function SaveTagSettings() {
     tag_lb_vals[i] = fld.value;
     fld = GetFieldFromName('tag_rb[' + i + ']');
     tag_rb_vals[i] = fld.value;
-    fld = GetFieldFromName('taglist['+ i +']');
-    tag_list_vals[i] = fld.selectedIndex;
+    fld = GetFieldFromName('tag_list['+ i +']');
+    tag_list_vals[i] = fld.value;
   }
 }
 
@@ -320,7 +324,65 @@ function RestoreTagSettings() {
     fld.value = tag_lb_vals[i];
     fld = GetFieldFromName('tag_rb[' + i + ']');
     fld.value = tag_rb_vals[i];
-    fld = GetFieldFromName('taglist['+ i +']');
-    fld.options[tag_list_vals[i]].selected = true;
+    fld = GetFieldFromName('tag_list['+ i +']');
+    fld.value = tag_list_vals[i];
   }
+}
+
+//////////////////////////////////////////////////////////
+// Construct the fields for a Tag selection stanza roughly
+// of the form:
+//    <AND / OR> <( or not><SELECT TAG> <) or not>
+//////////////////////////////////////////////////////////
+var stanza_count = 0;
+var tag_selections = new Array();
+function ExtendTagSelections() {
+  orgtag_sel = document.forms.form.orgtaglist;
+  var moretags = document.getElementById('moretags');
+  var stanza = '';
+  if ( looks_like_ie && stanza_count > 0 && (stanza_count % 2) == 0 ) {
+    stanza += '<br />';
+  }
+  stanza += '<span class="srchf" style="white-space: nowrap;">';
+  if ( stanza_count > 0 ) {
+    stanza += ' <select class="srchf" style=\"width: 4em\" name="tag_and['+stanza_count+']"><option value="AND">AND</option><option value="OR" checked>OR</option></select> ';
+  }
+  else {
+    stanza += ' <div class="srchp" style=\"display: block; clear: none; float: left; vertical-align: bottom; margin-top: 0.2em; font-weight: 700; height: 1.2em; width: 4.2em\">&nbsp; Tags: </div> ';
+  }
+  stanza += ' <select class="srchf" name="tag_lb['+stanza_count+']"><option value=" "> </option><option value="(">(</option><option value="((">((</option></select> ';
+  stanza += ' <select class="srchf" style=\"width: 12em\" name="tag_list['+stanza_count+']"></select>';
+  stanza += ' <select class="srchf" name="tag_rb['+stanza_count+']"><option value=" "> </option><option value=")">)</option><option value="))">))</option></select> ';
+  stanza += '</span> ';
+
+  SaveTagSettings();
+  moretags.innerHTML += stanza;
+  RestoreTagSettings();
+
+  tag_selections[stanza_count] = GetFieldFromName('tag_list['+stanza_count+']');
+  CopyOptions( orgtag_sel, tag_selections[stanza_count] );
+
+  stanza_count++;
+  document.forms.form.taglist_count.value = stanza_count;
+  return '';
+}
+
+
+//////////////////////////////////////////////////////////
+// Construct initial set of tag select stanzas and assign
+// starting positions based on comma-separated lists.
+function TagSelectionStanza(count,and_v,lb_v,list_v,rb_v) {
+  if ( count == 0 ) count++;
+  for ( var i=0; i < count; i++ ) {
+    ExtendTagSelections();
+  }
+
+  // Build the arrays of current values so we can RestoreTagSettings
+  tag_and_vals = and_v.split(',');
+  tag_lb_vals = lb_v.split(',');
+  tag_list_vals = list_v.split(',');
+  tag_rb_vals = rb_v.split(',');
+
+  RestoreTagSettings();
+
 }

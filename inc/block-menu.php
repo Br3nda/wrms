@@ -52,7 +52,7 @@
   if ( is_member_of('Admin', 'Support', 'Manage') ) {
     echo "<img class=blocksep src=\"/$images/menuBreak.gif\" width=\"130\" height=\"9\">";
     $tooltip = "Review and update details about your organisation.";
-    echo "<br>\n &nbsp;<a href=\"$base_url/form.php?form=organisation&org_code=$session->org_code\" class=block title=\"$tooltip\" alt=\"$tooltip\">My&nbsp;Organisation</a>";
+    echo "<br>\n &nbsp;<a href=\"$base_url/org.php?org_code=$session->org_code\" class=block title=\"$tooltip\" alt=\"$tooltip\">My&nbsp;Organisation</a>";
     $tooltip = "List the WRMS users for your organisation.";
     echo "<br>\n &nbsp;<a href=\"$base_url/usrsearch.php?org_code=$session->org_code\" class=block title=\"$tooltip\" alt=\"$tooltip\">Our&nbsp;Users</a>";
     $tooltip = "Create a new WRMS user for your organisation.";

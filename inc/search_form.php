@@ -186,13 +186,26 @@ function RenderSearchForm( $target_url ) {
 //   the search screen.
 /////////////////////////////////////////////////////////////
 function RenderTagsPanel( $ef ) {
-  global $session, $images;
+  global $session, $images, $taglist_count;
 
   $html = "";
+  $org_code = intval($GLOBALS['org_code']);
 
   // Tags List format is as simple as possible...
   $ef->TempLineFormat('<span class="srchf" style="white-space: nowrap">%s%s</span>' );
 
+  $sql = "SELECT tag_id, tag_description ";
+  if ( $org_code == 0 && ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) )
+    $sql .= " || ' (' || abbreviation || ')' AS tag_description ";
+
+  $sql .= "FROM organisation NATURAL JOIN organisation_tag ";
+  $sql .= "WHERE organisation.active AND organisation_tag.active ";
+  if ( $org_code != 0 && ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) )
+    $sql .= "AND organisation.org_code = $org_code ";
+  else if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) )
+    $sql .= "AND organisation.org_code = $session->org_code ";
+  $sql .= "ORDER BY lower(abbreviation), tag_sequence, lower(tag_description)";
+/*
   $sql = "SELECT tag_id, tag_description ";
   if ( ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) )
     $sql .= " || ' (' || abbreviation || ')' AS tag_description ";
@@ -202,24 +215,38 @@ function RenderTagsPanel( $ef ) {
   if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) )
     $sql .= "AND organisation.org_code IN ( $session->org_code ) ";
   $sql .= "ORDER BY lower(abbreviation), tag_sequence";
-  $html .= "<div id=\"tagselect\" style=\"display :none;\">";
-  $html .= $ef->DataEntryLine( "", "", "lookup", "orgtaglist",
-            array("_sql" => $sql, "_null" => "-- Any Tag --", "onchange" => "TagChanged();",
+*/
+  $html .= "<div id=\"tagselect\" style=\"display :non;\">";
+  $html .= $ef->DataEntryLine( "Tag List", "", "lookup", "orgtaglist",
+            array("_sql" => $sql, "_null" => "-- Any Tag --", /* "onchange" => "TagChanged();", */
                   "title" => "A tag that you want included or excluded from the report.",
                   "class" => "srchf",
+                  "id"    => "taglistselect",
                   "style" => "width: 12em" ) );
+  $html .= $ef->DataEntryLine( "Tag Search Fields", "%s", "text", "taglist_count", array("id"=>"taglistcount") );
   $html .= "</div>";
+
+  $tag_and_v = "";
+  $tag_lb_v = "";
+  $tag_list_v = "";
+  $tag_rb_v = "";
+  $taglist_count = intval($taglist_count);
+  for ( $i=0; $i < $taglist_count; $i++ ) {
+    $tag_and_v .= $GLOBALS['tag_and'][$i] . ',';
+    $tag_lb_v .= $GLOBALS['tag_lb'][$i] . ',';
+    $tag_list_v .= $GLOBALS['tag_list'][$i] . ',';
+    $tag_rb_v .= $GLOBALS['tag_rb'][$i] . ',';
+  }
+
   $html .= "<div id=\"moretags\" style=\"display :inline;\">";
-  $html .= "<script type='text/javascript'>TagSelectionStanza();</script>";
+  $html .= "<script type='text/javascript'>TagSelectionStanza($taglist_count,'$tag_and_v','$tag_lb_v','$tag_list_v','$tag_rb_v');</script>";
   $html .= "</div>";
 
   $html .= $ef->DataEntryLine( "", "", "button", "extend_tags",
             array("value" => "Extend",
-                  "onclick" => "TagSelectionStanza();",
+                  "onclick" => "ExtendTagSelections();",
                   "title" => "Click to add another tag for the search.",
                   "class" => "fsubmit" ) );
-
-//  $html .= "</div>";
 
   $ef->RevertLineFormat();
 

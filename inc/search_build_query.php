@@ -22,6 +22,7 @@
     }
   }
   else {
+    error_log("$sysabbr: DBG: Building fresh search query from fields...");
     $search_query .= "SELECT request.request_id, brief, usr.fullname, usr.email, request_on, status.lookup_desc AS status_desc, last_activity, detailed ";
     $search_query .= ", request_type.lookup_desc AS request_type_desc, lower(usr.fullname) AS lfull, lower(brief) AS lbrief ";
     $search_query .= ", to_char( request.last_activity, 'FMdd Mon yyyy') AS last_change ";
@@ -65,6 +66,26 @@
 
     if ( "$from_date" != "" )     $search_query .= " AND request.last_activity >= '$from_date' ";
     if ( "$to_date" != "" )     $search_query .= " AND request.last_activity<='$to_date' ";
+
+    $taglist_count = intval($taglist_count);
+    error_log( "$sysabbr: DBG: Tag List count: $taglist_count, " . is_array($tag_list) );
+    if ( isset($tag_list) && is_array($tag_list) ) {
+      $taglist_subquery = "";
+      for ( $i=0; $i < $taglist_count ; $i++ ) {
+        $tag_id = intval($tag_list[$i]);
+        error_log( "$sysabbr: DBG: Tag List[$i]: $tag_id" );
+        if ( $tag_id > 0 ) {
+          $taglist_subquery .= sprintf("%s %s EXISTS( SELECT 1 FROM request_tag WHERE request_id=request.request_id AND tag_id=%d) %s ",
+                                         ($i>0?$tag_and[$i]:''), $tag_lb[$i], $tag_id, $tag_rb[$i]);
+          error_log( "$sysabbr: DBG: Tag List subquery: $taglist_subquery" );
+        }
+      }
+      if ( $taglist_subquery != "" ) {
+        $taglist_subquery = str_replace("'","",str_replace("\\", "", $taglist_subquery ));
+        $search_query .= "AND (" . $taglist_subquery . ") ";
+        error_log( "$sysabbr: DBG: Tag List subquery: $taglist_subquery" );
+      }
+    }
 
     $search_query .= " AND status.source_table='request' AND status.source_field='status_code' AND status.lookup_code=request.last_status ";
     if ( $where_clause != "" ) {

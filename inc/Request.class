@@ -330,7 +330,7 @@ class Request {
    //   on the W/R.
    /////////////////////////////////////////////////////////////
    function Render( ) {
-     global $edit;
+     global $edit, $tmnu;
      $html = "";
 
      $ef = new EntryForm( $REQUEST_URI, $this, $edit );
@@ -356,11 +356,15 @@ class Request {
        $html .= $ef->DataEntryLine( "Quiet update", "%s", "checkbox", "send_no_email",
                array( "size" => 70, "title" => "Check the box if this update should not send e-mail notifications") );
        $html .= '<tr><th class="prompt">&nbsp;</th><td class="entry">';
-       $html .= $ef->SubmitButton( "submit", ($this->new_record ? "Create" : "Update") );
        $html .= "</td></tr>";
      }
      $html .= "</table>\n";
-     if ( $edit ) $html .= $ef->EndForm();
+     if ( $edit ) {
+       $html .= '<div id="footer">';
+       $html .= $ef->SubmitButton( "submit", ($this->new_record ? "Create" : "Update") );
+       $html .= '</div>';
+       $html .= $ef->EndForm();
+     }
 
      return $html;
    }

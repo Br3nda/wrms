@@ -75,13 +75,13 @@ class Organisation {
      $html .= $this->RenderTags($ef);
      $html .= $this->RenderActions($ef);
 
-     if ( $edit ) {
-       $html .= '<tr><th class="prompt">&nbsp;</th><td class="entry">';
-       $html .= $ef->SubmitButton( "submit", ($this->new_record ? "Create" : "Update") );
-       $html .= "</td></tr>";
-     }
      $html .= "</table>\n";
-     if ( $edit ) $html .= $ef->EndForm();
+     if ( $edit ) {
+       $html .= '<div id="footer">';
+       $html .= $ef->SubmitButton( "submit", ($this->new_record ? "Create" : "Update") );
+       $html .= '</div>';
+       $html .= $ef->EndForm();
+     }
 
      return $html;
    }

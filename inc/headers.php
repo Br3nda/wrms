@@ -6,6 +6,7 @@
   if ( eregi( "/usr.php/", $REQUEST_URI ) ) $then = 0;
   // Header("Expires: " . gmdate( "D, d M Y H:i:s T", $then) );
   // Header("Cache-Control: max-age=5, private");
+  Header("Cache-Control: private");
   Header("Pragma: no-cache");
 
   // Standard headers included everywhere.

@@ -138,6 +138,7 @@ UPDATE request_history SET requester_id=usr.user_no WHERE usr.username=LOWER(req
 UPDATE request_note SET note_by_id=usr.user_no WHERE usr.username=LOWER(request_note.note_by);
 UPDATE request_quote SET quote_by_id=usr.user_no WHERE usr.username=LOWER(request_quote.quoted_by);
 UPDATE request_status SET status_by_id=usr.user_no WHERE usr.username=LOWER(request_status.status_by);
+UPDATE request_timesheet SET work_by_id=usr.user_no WHERE usr.username=LOWER(awm_usr.username) AND awm_usr.perorg_id=work_by_id;
 UPDATE request_timesheet SET work_by_id=usr.user_no WHERE usr.username=LOWER(request_timesheet.work_by);
 UPDATE system_update SET update_by_id=usr.user_no WHERE usr.username=LOWER(system_update.update_by);
 

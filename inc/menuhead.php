@@ -22,7 +22,7 @@
       $module_menu .= "<span style=\"font-weight: 700; \"><b>Support:</b></span>&nbsp;";
       $module_menu .= "<a href=$base_url/form.php?form=orglist>Organisations</a> | ";
       $module_menu .= "<a href=$base_url/form.php?form=syslist>Systems</a> | ";
-      $module_menu .= "<a href=$base_url/form.php?form=timesheet>Work</a> &nbsp; ";
+      $module_menu .= "<a href=$base_url/form.php?form=timelist>Work</a> &nbsp; ";
     }
     if ( $roles[wrms][Manage] ) {
       $module_menu .= "<span style=\"font-weight: 700; \"><b>Manage:</b></span>&nbsp;";

@@ -124,16 +124,19 @@ function RenderSearchForm( $target_url ) {
 
 
   $html .= "<table border='0' cellspacing='0' cellpadding='0' width='100%'><tr>";
-  $html .= "<td style=\"vertical-align: top; padding-top: 0.3em;\"><span class=\"srchp\">Status:</span></td><td valign='top'>\n";
+  $html .= "<td style=\"vertical-align: top; padding-top: 0.3em; white-space:wrap;\"><span class=\"srchp\">Status:</span></td><td valign='top'>\n";
   $sql = "SELECT * FROM lookup_code WHERE source_table='request' ";
   $sql .= " AND source_field='status_code' ";
   $sql .= " ORDER BY source_table, source_field, lookup_seq, lookup_code ";
   $qry = new PgQuery( $sql );
   if ( $qry->Exec("RenderSearchForm") && $qry->rows > 0 ) {
+    $i = 0;
     while ( $status = $qry->Fetch() ) {
       $ef->record->incstat[$status->lookup_code] = (strpos($GLOBALS['default_search_statuses'],$status->lookup_code) != false?1:'');
+      if ( $i++ > 0 ) $html .= " ";
       $html .= $ef->DataEntryField( "%s", "checkbox", "incstat[$status->lookup_code]",
               array("_label" => $status->lookup_desc, "class" => "srchf", "value" => 1 ) );
+      // if ( $i++  == round($qry->rows / 2) ) $html .= "<br />";
     }
     $html .= $ef->DataEntryField( "%s", "checkbox", "inactive",
               array("_label" => "inactive", "class" => "srchf", "value" => 1 ) );

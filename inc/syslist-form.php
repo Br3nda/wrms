@@ -71,6 +71,7 @@
         if ( is_member_of('Admin','Support') ) {
           echo "<a class=submit href=\"form.php?system_code=$thissystem->system_code&form=timelist\">Work</a>\n";
           echo "<a class=submit href=\"form.php?form=orglist&system_code=$thissystem->system_code\">Organisations</a>\n";
+          echo "<a class=submit href=\"system_users.php?system_code=$thissystem->system_code\">Roles</a>\n";
         }
 
         echo "</td></tr>\n";

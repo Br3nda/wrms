@@ -79,7 +79,7 @@
 
     // Have to be pedantic here - the translation from database -> variable is basic.
     if ( $debuglevel >= 1 ) echo "<p>Active: $request->active, New: $new_active</p>";
-    if ( $new_active <> "TRUE" ) $new_active = "FALSE";
+    if ( isset($new_active) && $new_active <> "TRUE" ) $new_active = "FALSE";
     if ( strtolower( substr( $request->active, 0, 1)) == "t" )
       $request->active = "TRUE";
     else {
@@ -286,7 +286,7 @@
     if ( $statusable && $status_changed )
       $because .= "<br>Request status has been changed.\n";
 
-    if ( $request->active != $new_active ) {
+    if ( isset($new_active) && $request->active != $new_active ) {
       $because .= "<br>Request has been ";
       if ( $new_active == "TRUE" ) $because .= "re-"; else $because .= "de-";
       $because .= "activated\n";
@@ -526,7 +526,10 @@
     $msg .= "\nFull details of the request, with all changes and notes, can be reviewed and changed at:\n"
          .  "    http://$HTTP_HOST$base_url/request.php?request_id=$request_id\n";
 
-    mail( $send_to, $msub, $msg, "From: Catalyst Work Requests <wrms@catalyst.net.nz>\nReply-To: andrew@catalyst.net.nz\nErrors-To: wrmsadmin@catalys.net.nz" );
+     $other = "From: Catalyst Work Requests <wrms@catalyst.net.nz>\n";
+     $other .= "Reply-To: $session->fullname <$session->email>\n";
+     $other .= "Errors-To: wrmsadmin@catalyst.net.nz"
+    mail( $send_to, $msub, $msg,  );
   }
 ?>
 

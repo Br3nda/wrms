@@ -15,6 +15,7 @@ class Request {
      if ( !$session->logged_in ) return false;
      $loaded = false;
      $this->mail_message_data = array();
+
      $id = intval("$id");
      if ( $id > 0 ) {
        // Try and load it from file
@@ -73,7 +74,112 @@ class Request {
    // AllowedTo - Can the user do that to this request?
    /////////////////////////////////////////////////////////////
    function AllowedTo( $action ) {
+     switch( $action ) {
+       default:
+         error_log("$sysabbr WR::AllowedTo: WARNING: Unrecognised action: '$action'");
+     }
      return true;  // Of course they can!
+   }
+
+   /////////////////////////////////////////////////////////////
+   // Actions - Process the more unusual actions against the W/R
+   //   A separate function is called for each action and this
+   //   function is really only checking that permissions and
+   //   data are appropriate.
+   /////////////////////////////////////////////////////////////
+   function Actions( ) {
+     global $session, $action, $sysabbr, $client_messages;
+     switch( $action ) {
+       case 'removets':
+         $this->RemoveTimesheet(intval($GLOBALS['timesheet_id']));
+         break;
+       case 'unsubscribe':
+         $this->Unsubscribe(intval($GLOBALS['user_no']));
+         break;
+       case 'deallocate':
+         $this->Deallocate(intval($GLOBALS['user_no']));
+         break;
+       default:
+         error_log("$sysabbr WR::Actions: ERROR: Unrecognised action: '$action'");
+         $client_messages[] = "ERROR: Unrecognised action: '$action'";
+     }
+   }
+
+   /////////////////////////////////////////////////////////////
+   // RemoveTimesheet - Remove the specified timesheet from the W/R
+   /////////////////////////////////////////////////////////////
+   function RemoveTimesheet( $timesheet_id ) {
+     global $client_messages;
+     $sql = "SELECT *, to_char(work_on, 'DD-MM-YYYY') AS work_on ";
+     $sql .= "FROM request_timesheet JOIN usr ON (request_timesheet.work_by_id = usr.user_no ) ";
+     $sql .= "WHERE request_id = $this->request_id ";
+     $sql .= "AND timesheet_id = $timesheet_id ";
+     # Select the records
+     $q = new PgQuery($sql);
+     $q->Exec('WR::RemoveTimesheet') ;
+     if ( $q->rows > 0 ) {
+       $row = $q->Fetch();
+       $client_messages[] = "Timesheet for $row->fullname on $row->work_on: $row->work_quantity $row->work_units for '$row->work_description' removed from request.";
+
+       $sql = "DELETE FROM request_timesheet ";
+       $sql .= "WHERE request_id = $this->request_id ";
+       $sql .= "AND timesheet_id = $timesheet_id ";
+       # Select the records
+       $q = new PgQuery($sql);
+       $q->Exec('WR::RemoveTimesheet') ;
+     }
+   }
+
+   /////////////////////////////////////////////////////////////
+   // Unsubscribe - Unsubscribe the specified user from the W/R
+   /////////////////////////////////////////////////////////////
+   function Unsubscribe( $user_no ) {
+     global $client_messages;
+
+     $sql = "SELECT * FROM request_interested JOIN usr ON (request_interested.user_no = usr.user_no ) ";
+     $sql .= "WHERE request_id = $this->request_id ";
+     $sql .= "AND request_interested.user_no = $user_no ";
+     # Select the records
+     $q = new PgQuery($sql);
+     $q->Exec('WR::Unsubscribe') ;
+
+     if ( $q->rows > 0 ) {
+       $row = $q->Fetch();
+       $client_messages[] = "User '$row->fullname' unsubscribed from request.";
+
+       $sql = "DELETE FROM request_interested ";
+       $sql .= "WHERE request_id = $this->request_id ";
+       $sql .= "AND user_no = $user_no ";
+       # Select the records
+       $q = new PgQuery($sql);
+       $q->Exec('WR::Unsubscribe') ;
+     }
+   }
+
+   /////////////////////////////////////////////////////////////
+   // Deallocate - De-allocate the specified user from the W/R
+   /////////////////////////////////////////////////////////////
+   function Deallocate( $user_no ) {
+     global $client_messages;
+
+     $sql = "SELECT * FROM request_allocated JOIN usr ON (request_allocated.allocated_to_id = usr.user_no ) ";
+     $sql .= "WHERE request_id = $this->request_id ";
+     $sql .= "AND allocated_to_id = $user_no ";
+     # Select the records
+     $q = new PgQuery($sql);
+     $q->Exec('WR::Unsubscribe') ;
+
+     if ( $q->rows > 0 ) {
+       $row = $q->Fetch();
+       $client_messages[] = "User '$row->fullname' de-allocated from request.";
+
+       $sql = "DELETE FROM request_allocated ";
+       $sql .= "WHERE request_id = $this->request_id ";
+       $sql .= "AND allocated_to_id = $user_no ";
+       # Select the records
+       $q = new PgQuery($sql);
+       $q->Exec('WR::Unsubscribe') ;
+     }
    }
 
    /////////////////////////////////////////////////////////////
@@ -213,13 +319,15 @@ class Request {
        $html .= $ef->BreakLine("Attached Files");
      if ( $q->rows ) {
        $html .= '<tr><td colspan="2"><table width="100%">'."\n";
-       $html .= '<tr><th class="pcol">File</th><th class="pcol">Description</th><th class="pcol">By</th><th class="pcol">On</th><th class="pcol">Type</th></tr>'."\n";
+       $html .= '<tr><th class="pcol">File</th><th class="pcol">Description</th><th class="pcol">By</th><th class="pcol">On</th><th class="pcol">Type</th><th class="pcol">&nbsp;</th></tr>'."\n";
        $attachment_format = '<tr class="row%d"><td class="entry"><a href="/attachment.php/%s?id=%d">%s</a></td>';
-       $attachment_format .= '<td class="entry">%s</td><td class="entry" style="white-space: nowrap;">%s</td><td class="entry">%s</td><td class="entry">%s</td></tr>'."\n";
+       $attachment_format .= '<td class="entry">%s</td><td class="entry" style="white-space: nowrap;">%s</td><td class="entry">%s</td><td class="entry">%s</td><td class="entry" width="2%%">%s</td></tr>'."\n";
+       $delete_link_format = '<a href="/wr.php?request_id=%d&action=removeatt&attachment_id=%d&edit=1" title="Remove attachment from this request"><img src="'.$GLOBALS['images'].'/delete.png" border="none"></a>';
        while( $row = $q->Fetch() ) {
+         $delete_link = sprintf( $delete_link_format, $this->request_id, $row->attachment_id );
          $html .= sprintf( $attachment_format, ($q->rownum % 2),
                     $row->att_filename, $row->attachment_id, $row->att_filename, $row->att_brief,
-                    $row->fullname, $row->att_on, $row->type_desc
+                    $row->fullname, $row->att_on, $row->type_desc, $delete_link
                   );
        }
        $html .= '</table></td></tr>'."\n";
@@ -518,7 +626,9 @@ class Request {
        $line_format .= '<td class="entry" style="white-space: nowrap; text-align: right; ">%s %s</td>';
        $line_format .= '<td class="entry" style="white-space: nowrap; text-align: right; ">%s</td>';
        $line_format .= '<td class="entry" style="white-space: nowrap; text-align: right; ">%s</td>';
-       $line_format .= '<td class="entry" width="50%%">%s</td></tr>'."\n";
+       $line_format .= '<td class="entry" width="50%%">%s</td>';
+       $line_format .= '<td class="entry" width="2%%">%s</td></tr>'."\n";
+       $delete_link_format = '<a href="/wr.php?request_id=%d&action=removets&timesheet_id=%d&edit=1" title="Remove timesheet from this request"><img src="'.$GLOBALS['images'].'/delete.png" border="none"></a>';
 
        $html .= '<tr><td colspan="2"><table width="100%">'."\n";
        $html .= '<tr><th class="pcol">Done By</th>';
@@ -526,23 +636,27 @@ class Request {
        $html .= '<th class="pcol">Quantity</th>';
        $html .= '<th class="pcol">Rate</th>';
        $html .= '<th class="pcol">Cost</th>';
-       $html .= '<th class="pcol">Description</th></tr>'."\n";
+       $html .= '<th class="pcol">Description</th>';
+       $html .= '<th class="pcol">&nbsp;</th></tr>'."\n";
      }
      if ( $q->rows ) {
        $total = 0;
        while( $row = $q->Fetch() ) {
+         $delete_link = sprintf( $delete_link_format,
+                    $this->request_id, $row->timesheet_id );
          $html .= sprintf( $line_format,
                     ($q->rownum % 2), $row->fullname, $row->work_on, $row->work_quantity, $row->work_units,
-                    $row->work_rate, $row->work_quantity * $row->work_rate, $row->work_description
+                    $row->work_rate, $row->work_quantity * $row->work_rate, $row->work_description, $delete_link
                   );
          $total += ($row->work_quantity * $row->work_rate);
        }
        $html .= sprintf( $line_format,
-                    (($q->rownum + 1) % 2), "<b>Total</b>", "", "", "", "", "<b>$total</b>", "" );
+                    (($q->rownum + 1) % 2), "<b>Total</b>", "", "", "", "", "<b>$total</b>", "", "" );
      }
 
      if ( $ef->editmode ) {
 
+       if ( !isset($_POST['work_on']) ) $_POST['work_on'] = 'today';  // Default to Today
        if ( !isset($_POST['work_units']) ) $_POST['work_units'] = 'hours';  // Default to Hours
 
        $work_on = $ef->DataEntryField( "", "number", "work_on",
@@ -571,7 +685,8 @@ class Request {
                 "<br />$work_units",
                 $work_rate,
                 "",
-                $work_desc
+                $work_desc,
+                ""
                 );
 
      }

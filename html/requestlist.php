@@ -18,7 +18,10 @@
     echo "\" Method=\"POST\"></h3>\n";
 
     include("inc/system-list.php");
-    $system_list = get_system_list( "CES", "$system_code");
+    if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] )
+      $system_list = get_system_list( "", "$system_code", 35);
+    else
+      $system_list = get_system_list( "CES", "$system_code", 35);
 ?>
 <table border=0 cellspacing=0 cellpadding=2 align=center>
 <tr valign=middle>
@@ -103,7 +106,7 @@
 
         echo "</tr>\n";
       }
-      echo "</table><p>$query</p>\n";
+      echo "</table>\n";
     }
   }
 

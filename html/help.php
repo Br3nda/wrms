@@ -6,7 +6,6 @@
   $topic = str_replace("/", "", $topic );
   $topic = str_replace("'", "''", $topic );
 
-  error_log( "1", 0);
   if ( "$submit" <> "") {
     include("inc/$form-valid.php");
     if ( "$because" == "" ) include("inc/$form-action.php");
@@ -14,12 +13,9 @@
 
   $title = "$system_name - " . ucfirst($form);
   $right_panel = true;
-  error_log( "2", 0);
   include("inc/headers.php");
 
-  error_log( "3", 0);
   include("inc/$form-form.php");
-  error_log( "4", 0);
 
   include("inc/footers.php");
 

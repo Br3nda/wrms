@@ -394,7 +394,11 @@ class Request {
     $ef = new EntryForm( $REQUEST_URI, $this, $GLOBALS['edit'] );
     $ef->NoHelp();  // Prefer this style, for the moment
 
-    if ( $ef->editmode ) $html .= $ef->StartForm( array("autocomplete" => "off", "onsubmit" => "return CheckRequestForm();" ) );
+    if ( $ef->editmode ) {
+      $html .= $ef->StartForm( array("onsubmit" => "return CheckRequestForm();" ) );
+      if ( $this->request_id > 0 ) $html .= $ef->HiddenField( "request_id", $this->request_id );
+    }
+
 
     $html .= "<table width=\"100%\" class=\"data\" cellspacing=\"0\" cellpadding=\"0\">\n";
 
@@ -547,7 +551,7 @@ class Request {
       $html .= $ef->BreakLine("Attached Files");
     if ( $q->rows ) {
       $html .= '<tr>';
-      $html .= '<th colspan="2" class="prompt"><table width="100%" class="entry">'."\n";
+      $html .= '<td colspan="2" class="entry"><table width="100%" class="entry">'."\n";
       $html .= '<tr><th class="pcol">File</th>';
       $html .= '<th class="pcol">Description</th>';
       $html .= '<th class="pcol">By</th>';
@@ -556,7 +560,7 @@ class Request {
       if ( $ef->editmode ) $html .= '<th class="pcol">&nbsp;</th>';
       $html .= '</tr>'."\n";
       $attachment_format = '<tr class="row%d"><td class="entry"><a href="/attachment.php/%s?id=%d">%s</a></td>';
-      $attachment_format .= '<td class="entry">%s</td><td class="entry" style="white-space: nowrap;">%s</td><td class="entry">%s</td><td class="entry">%s</td>';
+      $attachment_format .= '<td class="entry" style="white-space: nowrap;">%s</td><td class="entry" style="white-space: nowrap;">%s</td><td class="entry" style="white-space: nowrap;">%s</td><td class="entry">%s</td>';
       $attachment_format .= ( $ef->editmode ? '<td class="entry" width="2%%">%s</td>' : '%s');
       $attachment_format .= '</tr>'."\n";
       $delete_link_format = '<a href="/wr.php?request_id=%d&action=removeatt&attachment_id=%d&edit=1" title="Remove attachment from this request"><img src="'.$GLOBALS['images'].'/delete.png" border="none"></a>';
@@ -567,7 +571,7 @@ class Request {
                     $row->fullname, $row->att_on, $row->type_desc, $delete_link
                   );
       }
-      $html .= '</table></th></tr>'."\n";
+      $html .= '</table></td></tr>'."\n";
     }
 
     if ( $ef->editmode ) {
@@ -610,7 +614,7 @@ class Request {
     if ( $ef->editmode || $q->rows )
       $html .= $ef->BreakLine("Quotations");
     if ( $q->rows ) {
-      $html .= '<tr><th colspan="2" class="prompt"><table width="100%" class="entry">'."\n";
+      $html .= '<tr><td colspan="2" class="entry"><table width="100%" class="entry">'."\n";
       $html .= '<tr><th class="pcol">Type</th>';
       $html .= '<th class="pcol">Quote On</th>';
       $html .= '<th class="pcol">By</th>';
@@ -633,7 +637,7 @@ class Request {
                   );
         }
       }
-      $html .= '</table></th></tr>'."\n";
+      $html .= '</table></td></tr>'."\n";
     }
 
     if ( $ef->editmode ) {
@@ -703,7 +707,7 @@ class Request {
       $header_done = true;
     }
     if ( $q->rows ) {
-      $html .= '<tr><th colspan="2" class="prompt"><table width="100%" class="entry">'."\n";
+      $html .= '<tr><td colspan="2" class="entry"><table width="100%" class="entry">'."\n";
       $html .= '<tr><th class="pcol">Parent</th>';
       $html .= '<th class="pcol">Brief</th>';
       $html .= '<th class="pcol">Status</th>';
@@ -725,7 +729,7 @@ class Request {
                     $this->request_id, $delete_link
                   );
       }
-      $html .= '</table></th></tr>'."\n";
+      $html .= '</table></td></tr>'."\n";
     }
 
     $sql = "SELECT child.*, request_request.*, child.request_id AS child_id, ";
@@ -745,7 +749,7 @@ class Request {
       $header_done = true;
     }
     if ( $q->rows ) {
-      $html .= '<tr><th colspan="2" class="prompt"><table width="100%" class="entry">'."\n";
+      $html .= '<tr><td colspan="2" class="entry"><table width="100%" class="entry">'."\n";
       $html .= '<tr><th class="pcol" style="white-space: nowrap;">This W/R</th>';
       $html .= '<th class="pcol">Link</th>';
       $html .= '<th class="pcol">Child</th>';
@@ -766,7 +770,7 @@ class Request {
                     $row->child_id, $row->child_id, $row->brief, $row->last_status_desc, $delete_link
                   );
       }
-      $html .= '</table></th></tr>'."\n";
+      $html .= '</table></td></tr>'."\n";
     }
 
     if ( $ef->editmode ) {
@@ -871,8 +875,8 @@ class Request {
     $q->Exec('WR::Timesheet') ;
     if ( $ef->editmode || $q->rows ) {
       $html .= $ef->BreakLine("Work Done");
-      $line_format = '<tr class="row%d"><td class="entry" width="10%%">%s</td>';
-      $line_format .= '<td class="entry">%s</td>';
+      $line_format = '<tr class="row%d"><td class="entry" width="15%%">%s</td>';
+      $line_format .= '<td class="entry" style="white-space: nowrap;">%s</td>';
       $line_format .= '<td class="entry" style="white-space: nowrap; text-align: right; ">%s %s</td>';
       $line_format .= '<td class="entry" style="white-space: nowrap; text-align: right; ">%s</td>';
       $entry_line_format = $line_format;
@@ -885,7 +889,7 @@ class Request {
       $bill_ok_format = '<td class="entry" style="text-align: center; ">%s</td>';
       $delete_link_format = '<td class="entry" width="2%%"><a href="/wr.php?request_id=%d&action=removets&timesheet_id=%d&edit=1" title="Remove timesheet from this request"><img src="'.$GLOBALS['images'].'/delete.png" border="none"></a></td>';
 
-      $html .= '<tr><th colspan="2" class="prompt"><table width="100%" class="entry">'."\n";
+      $html .= '<tr><td colspan="2" class="entry"><table width="100%" class="entry">'."\n";
       $html .= '<tr><th class="pcol">Done&nbsp;By</th>';
       $html .= '<th class="pcol">Done On</th>';
       $html .= '<th class="pcol">Quantity</th>';
@@ -988,7 +992,7 @@ class Request {
     }
 
     if ( $ef->editmode || $q->rows )
-      $html .= '</table></th></tr>'."\n";
+      $html .= '</table></td></tr>'."\n";
 
     return $html;
   }

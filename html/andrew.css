@@ -5,6 +5,7 @@
 body {
   padding: 0;
   margin: 0;
+  font-size: 36pt;
 }
 
 table.data {
@@ -56,10 +57,9 @@ th.pcol {
   vertical-align: bottom;
   padding: 0.1em 0.5em 0;
   color: black;
-  width: 8em;
   font-family: arial narrow, helvetica narrow, times new roman, times, sans-serif;
   font-weight: 700;
-  font-size: 80%;
+  font-size: 85%;
   border: none;
   line-height: 1.2em;
   background-image:none;
@@ -73,6 +73,7 @@ td.entry {
 
 table.entry {
   background-image: none;
+  width:100%;
 }
 
 span.prompt {
@@ -258,6 +259,7 @@ select.search_for {
   text-align: center;
   vertical-align: middle;
   background-image: url(/catimg/bar_red_tile.gif);
+  color:white;
 }
 #footer {
   position: fixed;

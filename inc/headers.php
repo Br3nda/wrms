@@ -8,13 +8,14 @@
   Header("Pragma: no-cache");
 
   // Standard headers included everywhere.
-  echo "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\" \"http://www.w3.org/TR/REC-html40/loose.dtd\">\n";
+  echo "<!DOC"."TYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\" \"http://www.w3.org/TR/REC-html40/loose.dtd\">\n";
   echo "<html>\n<head>\n<title>$title</title>\n";
 
   if ( !isset($stylesheet) ) $stylesheet = "main.css";
   echo '<link rel="stylesheet" type="text/css" href="'.$stylesheet.'" />' . "\n";
   echo '<script language="JavaScript" src="js/date-picker.js"></script>' . "\n";
 
+  $fontsizes = array( "xx-small", "x-small", "small", "medium" );
   if ( is_object($settings) )
     $BaseFontsize = intval($settings->get('fontsize'));
   else
@@ -25,7 +26,7 @@
     $fontsizes[$i] = sprintf( "%dpx", $BaseFontsize + (2 * $i));
   }
 
-  global $agent, $colors, $fontsizes, $fonts, $stylesheet, $error_message, $warn_message, $client_messages;
+  global $colors, $fontsizes, $fonts, $stylesheet, $error_message, $warn_message, $client_messages;
   global $title, $style, $left_panel, $right_panel, $images, $tmnu;
 
   // Style stuff
@@ -35,23 +36,12 @@
   $borders = "border: solid $colors[blocksides] 1px; ";
   echo ".msglink $linkstyle }\n";
 
-  if ( $agent == "moz4" ) {
-    echo ".menu, .bmenu $linkstyle font: bold $fontsizes[1] $fonts[1]; text-decoration: underline; background: $colors[bg3]; color: $colors[fg3]; }
-.block    {font: $fontsizes[1] $fonts[block], sans-serif; color: $colors[blockfront]; }
-.sml {font: $fontsizes[1] $fonts[narrow], sans-serif; }
-hr.block  {line-height: 0px; margin: -6px; padding: 0px 25px; width: 100px; }
-td.sidebarleft { color: white; background-color: $colors[blockback]; }
-th.h3, td.h3  {font: bold $fontsizes[3] $fonts[0], sans-serif; color: $colors[fg3]; background-color: $colors[blockback];margin: 6px 0px 0px 0px; }
-.sbutton, .r $linkstyle font: bold $fontsizes[0] $fonts[1]; text-decoration: underline; background: $colors[bg3]; color: $colors[fg3]; vertical-align: top; }
-.submit { font: small-caps bold $fontsizes[0] $fonts[1]; background: $colors[blocktitle]; color: #f0fff0; }\n";
-  }
-  else {
-    echo ".menu $linkstyle font: small-caps bold $fontsizes[1] $fonts[1]; background: $colors[bg3]; color: $colors[fg3]; padding: 0px 1px 1px; margin: 0px 1px; }\n";
-    echo "A.wu:hover { text-decoration: underline; color: #44cc44; }\n";
-    echo "A.wu { text-decoration: underline; color: #cc4444; }\n";
-    echo "A.block:hover, A.blockhead:hover { color: $colors[hv1]; }\n";
-    echo "A:hover { color: $colors[hv1];  }\n";
-    echo ".bmenu $linkstyle font: small-caps bold $fontsizes[1] $fonts[1]; background: $colors[bg3]; color: $colors[fg3]; padding: 0px 1px 1px; margin: 0px 1px; }
+  echo ".menu $linkstyle font: small-caps bold $fontsizes[1] $fonts[1]; background: $colors[bg3]; color: $colors[fg3]; padding: 0px 1px 1px; margin: 0px 1px; }\n";
+  echo "A.wu:hover { text-decoration: underline; color: #44cc44; }\n";
+  echo "A.wu { text-decoration: underline; color: #cc4444; }\n";
+  echo "A.block:hover, A.blockhead:hover { color: $colors[hv1]; }\n";
+  echo "A:hover { color: $colors[hv1];  }\n";
+  echo ".bmenu $linkstyle font: small-caps bold $fontsizes[1] $fonts[1]; background: $colors[bg3]; color: $colors[fg3]; padding: 0px 1px 1px; margin: 0px 1px; }
 .block    {font: $fontsizes[1] $fonts[block], sans-serif; color: $colors[blockfront]; }
 hr.block  {line-height: 9px; margin: 0px; padding: 0px; width: 130px; image: url(/$images/menuBreak.gif); }
 img.block {height: 9px; margin: 0px; padding: 0px; width: 130px; clear: both }
@@ -59,10 +49,9 @@ td.sidebarleft { color: white; background-color: $colors[blockback]; }
 .sml {font: $fontsizes[1] $fonts[narrow], sans-serif; }
 .sbutton, .r $linkstyle font: small-caps bold $fontsizes[0] $fonts[1]; background: $colors[bg2]; color: $colors[fg2]; padding: 0px 1px 1px 1px; margin: 0px 1px; }
 .sbutton:hover, .r:hover { background: $colors[bg2]; color: $colors[hv2]; }
-.submit {text-decoration: none; font: small-caps bold $fontsizes[0] $fonts[1], sans-serif; background: $colors[bg2]; color: #f0fff0; padding: 0px 1px 1px 1px; margin: 0px 1px; border: thin outset;}
-.submit:hover {text-decoration: none; font: small-caps bold $fontsizes[0] $fonts[1], sans-serif; background: $colors[bg2]; color: $colors[hv2]; padding: 0px 1px 1px 1px; margin: 0px 1px; border: thin inset;}
+.submit {text-decoration: none; font: small-caps bold $fontsizes[0] $fonts[1], sans-serif; background: $colors[bg2]; color: $colors[fg2]; padding: 0px 2px 1px 2px; margin: 0px 2px; border: thin outset;}
+.submit:hover {text-decoration: none; font: small-caps bold $fontsizes[0] $fonts[1], sans-serif; background: $colors[bg2]; color: $colors[hv2]; padding: 0px 2px 1px 2px; margin: 0px 2px; border: thin inset;}
 th.h3, td.h3  {font: bold $fontsizes[3] $fonts[0], sans-serif; color: $colors[fg3]; color: white; background-color: $colors[bg3];margin: 6px 0px 0px 0px; }\n";
-  }
 
   echo ".block { text-decoration: none; font: $fontsizes[1] $fonts[block], sans-serif; color: $colors[blockfront]; }\n";
   echo ".blockhead { text-decoration: none; font: $fontsizes[1] $fonts[block], sans-serif; color: $colors[blockfront]; font-weight: 700; }\n";

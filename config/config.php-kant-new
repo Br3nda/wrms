@@ -39,12 +39,12 @@ $colors = array(
   "bg1" => "#ffffff", // primary background
   "fg1" =>  "#000000", // text on primary background
   "link1" =>  "#880000", // Links on row0/row1
-  "bg2" =>  "#660000", // secondary background (behind menus)
+  "bg2" =>  "#b00000", // secondary background (behind menus)
   "fg2" =>  "#ffffff", // text on links
   "bg3" =>  "#404040", // tertiary background
   "fg3" =>  "#ffffff", // tertiary foreground
   "hv1" =>  "#660000", // text on hover
-  "hv2" =>  "#f0f0f0", // other text on hover
+  "hv2" =>  "#f8f400", // other text on hover
   "row0" =>  "#ffffff", // dark rows in listings
   "row1" =>  "#f0f0f0", // light rows in listings
   "link2" =>  "#333333", // Links on row0/row1
@@ -99,16 +99,16 @@ function block_close() {
 //-----------------------------------------
 // Function to do the page header, that is local to this installation
 //-----------------------------------------
-function x_local_inline_styles() {
-  //global $colors;
+function local_inline_styles() {
 
-  $colors['row0'] = '#f4f000';
-  $colors['row0'] = '#00f0f4';
-  $colors['link2'] = '#777777';
-  $colors['link2'] = '#555500';
   echo <<<EOSTYLE
-.row0 { background: $colors[row0]; color: $colors[link2]; }
-.row1 { background: $colors[row1]; color: $colors[link2]; }
+.submit {
+  background-image: url(/catimg/bar_red_tile.gif);
+}
+.submit:hover {
+  color: #f8f400;
+  border: thin inset;
+}
 EOSTYLE;
 
 }
@@ -140,6 +140,11 @@ function local_page_header() {
   }
 
   echo '<div id="top_menu">';
+  if ( $session->logged_in ) {
+    echo '<span style="float:right; margin-right:3px; margin-top:3px;">';
+    echo $session->fullname;
+    echo '</span>';
+  }
   if ( isset($tmnu) && is_object($tmnu) && $tmnu->Size() > 0 ) {
     echo $tmnu->Render();
   }
@@ -158,7 +163,14 @@ function local_menu_bar(&$tmnu) {
 //-----------------------------------------
 function local_page_footer() {
   global $session;
-  echo '<div id="page_footer">Logged in as '.$session->fullname.'</div>';
+  echo '<div id="page_footer">';
+/*
+  if ( $session->logged_in )
+    echo 'Logged in as '.$session->fullname;
+  else
+    echo 'Not logged in';
+*/
+  echo '</div>';
 }
 
 //-----------------------------------------

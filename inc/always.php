@@ -15,7 +15,7 @@ $right_panel = false;
 $hurl = "";
 if ( !isset($request_id) ) $request_id= 0;
 if ( !isset($style) ) $style = "";
-$request_id = intval($request_id);
+$request_id = intval(preg_replace('/[^0-9]/', '//', $request_id));
 
 
   if ( (! isset($L) || "$L" == "") && (!isset($E) || "$E" == "") && (! isset($M) || "$M" == "LC" ) ) {
@@ -24,31 +24,6 @@ $request_id = intval($request_id);
     unset($L);
     unset($E);
   }
-
-// Do some basic browser-detection here to default the font sizes
-// we actually do more browser detection than (may) be needed
-// because we haven't seen this on all browsers yet (if ever :-)
-  if ( eregi( "MSIE.*[4]\.", $HTTP_USER_AGENT) ) {
-    $fontsizes = array( "xx-small", "x-small", "small", "medium" );
-    $agent = "ie4";
-  }
-  else if ( eregi( "MSIE.*[5678]", $HTTP_USER_AGENT) ) {
-    $fontsizes = array( "xx-small", "x-small", "small", "medium" );
-    $agent = "ie5";
-  }
-  else if ( eregi( "ozilla.4", $HTTP_USER_AGENT) ) {
-    $fontsizes = array( "x-small", "small", "medium", "medium" );
-    $agent = "moz4";
-  }
-  else if ( eregi( "ozilla.[5678]", $HTTP_USER_AGENT) ) {
-    $fontsizes = array( "x-small", "small", "medium", "large" );
-    $agent = "moz5";
-  }
-  else {
-    $fontsizes = array( "xx-small", "x-small", "small", "medium" );
-    $agent = "default";
-  }
-
 
 class Setting {
   var $parameters;  // parameters we have set

@@ -126,8 +126,10 @@ class User {
     $ef = new EntryForm( $REQUEST_URI, $this, $GLOBALS['edit'] );
     $ef->NoHelp();  // Prefer this style, for the moment
 
-    if ( $ef->editmode ) $html .= $ef->StartForm( array("autocomplete" => "off"
-                               /*, "onsubmit" => "return CheckUserForm();" */ ) );
+    if ( $ef->editmode ) {
+      $html .= $ef->StartForm( array("autocomplete" => "off" ) );
+      if ( $this->user_no > 0 ) $html .= $ef->HiddenField( "user_no", $this->user_no );
+    }
 
     $html .= "<table width=\"100%\" class=\"data\" cellspacing=\"0\" cellpadding=\"0\">\n";
 
@@ -211,10 +213,6 @@ class User {
 
     $html .= $ef->DataEntryLine( "Send Email?", ($this->email_ok == 't' ? "Yes" : "No"), "checkbox", "email_ok",
               array("_label" => "Uncheck to ensure the user gets no e-mail.") );
-
-    // System Role drop-down
-    if ( $session->AllowedTo("Admin") || $session->AllowedTo("Support") ) {
-    }
 
     return $html;
   }

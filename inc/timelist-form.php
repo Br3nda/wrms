@@ -164,6 +164,11 @@ function nice_time( $in_time ) {
         if ( "$GLOBALS[uncharged]" == "" )
           column_header("Charged on", "work_charged");
         column_header("Description", "work_description" );
+        column_header("Request", "brief" );
+        column_header("OK to charge", "" );
+        column_header("Invoice", "charged_details" );
+        column_header("Amount", "charged_amount" );
+        column_header("Charged On", "work_charged" );
         echo "</tr>";
       }
       if (  "$style" != "stripped" ) {
@@ -194,10 +199,10 @@ function nice_time( $in_time ) {
         if ( "$GLOBALS[org_code]" == "" )
           echo "<td class=sml nowrap>$timesheet->abbreviation</td>\n";
         echo "<td class=sml align=center nowrap><a href=\"$base_url/request.php?request_id=$timesheet->request_id\">$timesheet->request_id</a></td>\n";
-        echo "<td class=sml nowrap>" . substr( nice_date($timesheet->work_on), 7) . "</td>\n";
-        echo "<td class=sml nowrap>$timesheet->work_quantity $timesheet->work_units</td>\n";
-        echo "<td class=sml align=right nowrap>$timesheet->work_rate&nbsp;</td>\n";
-        echo "<td class=sml nowrap>$timesheet->worker_name</td>\n";
+        echo "<td class=sml>" . substr( nice_date($timesheet->work_on), 7) . "</td>\n";
+        echo "<td class=sml>$timesheet->work_quantity $timesheet->work_units</td>\n";
+        echo "<td class=sml align=right>$timesheet->work_rate&nbsp;</td>\n";
+        echo "<td class=sml>$timesheet->worker_name</td>\n";
         if ( "$timesheet->work_charged" == "" ) {
           if ( "$uncharged" == "" ) echo "<td class=sml>uncharged</td>";
         }
@@ -206,12 +211,7 @@ function nice_time( $in_time ) {
         echo "<td class=sml>" . html_format( $timesheet->work_description) . "</td>";
 
         if ( "$uncharged" != "" ) {
-          echo "</tr>\n";
-          printf( "<tr class=row%1d>\n", ($i % 2));
-          echo "<td class=sml colspan=$numcols>&nbsp; &nbsp; &nbsp; <a href=\"$base_url/request.php?request_id=$timesheet->request_id\">$timesheet->brief</a></td>\n";
-          echo "</tr>\n";
-          printf( "<tr class=row%1d>\n", ($i % 2));
-          echo "<td colspan=$numcols><table align=right border=0 cellspacing=0 cellpadding=0 width=100%><tr>\n";
+          echo "<td class=sml <a href=\"$base_url/request.php?request_id=$timesheet->request_id\">$timesheet->brief</a></td>\n";
           echo "<td class=sml align=right>";
           printf("<input type=\"checkbox\" value=\"1\" id=\"$timesheet->timesheet_id\" name=\"chg_ok[$timesheet->timesheet_id]\"%s>", ( "$timesheet->ok_to_charge" == "t" ? " checked" : ""));
           printf("<input type=hidden name=\"chg_worker[$timesheet->timesheet_id]\" value=\"%s\">", htmlspecialchars($timesheet->worker_name));
@@ -219,14 +219,9 @@ function nice_time( $in_time ) {
           printf("<input type=hidden name=\"chg_request[$timesheet->timesheet_id]\" value=\"%s\">", htmlspecialchars($timesheet->request_id));
           printf("<input type=hidden name=\"chg_requester[$timesheet->timesheet_id]\" value=\"%s\">", htmlspecialchars($timesheet->requester_name));
           echo "</td>\n";
-          echo "<td class=smb><label for=\"$timesheet->timesheet_id\" class=smb>OK to Charge</label>&nbsp;</td>\n";
-          echo "<td class=smb align=right>&nbsp;Invoice:</td>\n";
           echo "<td class=sml><font size=2><input type=text size=6 name=\"chg_inv[$timesheet->timesheet_id]\" value=\"\"></font>&nbsp;</td>\n";
-          echo "<td class=smb align=right>&nbsp;Amount:</td>\n";
           echo "<td class=sml><font size=2><input type=text size=8 name=\"chg_amt[$timesheet->timesheet_id]\" value=\"\"></font>&nbsp;</td>\n";
-          echo "<td class=smb align=right>&nbsp;Charged&nbsp;On:</td>\n";
           echo "<td class=sml><font size=2><input type=text size=10 name=\"chg_on[$timesheet->timesheet_id]\" value=\"" . date( "d/m/Y" ) . "\"></font>&nbsp;</td>\n";
-          echo "</tr></table></td>\n";
         }
         echo "</tr>\n";
       }

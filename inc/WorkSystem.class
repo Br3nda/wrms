@@ -170,9 +170,9 @@ class WorkSystem {
      $sql .= "ORDER BY org_name";
 
      # Select the records
-     $q = new PgQuery($sql, $system_code, $system_code);
+     $q = new PgQuery($sql, $this->system_code, $this->system_code);
      $column = 0;
-     if ( $q && $q->Exec() && $q->rows ) {
+     if ( $q && $q->Exec("WS::RndrOrgs") && $q->rows ) {
        $html .= $ef->BreakLine("Active Organisations");
        $html .= '<tr><td colspan="2"><table>'."\n";
 

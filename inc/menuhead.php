@@ -22,7 +22,8 @@
       $module_menu .= "<span style=\"font-weight: 700; \"><b>Support:</b></span>&nbsp;";
       $module_menu .= "<a href=$base_url/form.php?form=orglist>Organisations</a> | ";
       $module_menu .= "<a href=$base_url/form.php?form=syslist>Systems</a> | ";
-      $module_menu .= "<a href=$base_url/form.php?form=timelist>Work</a> &nbsp; ";
+      $module_menu .= "<a href=$base_url/form.php?form=timelist&user_no=$session->user_no>My&nbsp;Work</a> | ";
+      $module_menu .= "<a href=$base_url/form.php?form=timelist&uncharged=1>Work</a> &nbsp; ";
     }
     if ( $roles[wrms][Manage] ) {
       $module_menu .= "<span style=\"font-weight: 700; \"><b>Manage:</b></span>&nbsp;";
@@ -33,6 +34,7 @@
     }
     if ( $roles[wrms][Request] ) {
       $module_menu .= "<span style=\"font-weight: 700; \"><b>Request:</b></span>&nbsp;";
+      $module_menu .= "<a href=$base_url/index.php>My&nbsp;Requests</a> | ";
       $module_menu .= "<a href=$base_url/requestlist.php>List&nbsp;Requests</a> | ";
       $module_menu .= "<a href=$base_url/request.php>New&nbsp;Request</a> ";
     }

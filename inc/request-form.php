@@ -10,13 +10,14 @@
     $urgencies = get_code_list( "request", "urgency", "$request->urgency" );
     $importances = get_code_list( "request", "importance", "$request->importance" );
 
-    if ( $roles[wrms][Admin] || $session->status == "S" || $session->status == "C" ) {
+    if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] || $roles['wrms']['Manage']  ) {
       include( "$base_dir/inc/user-list.php" );
-      if ( $session->status == "C" )
-        $user_list = get_user_list( "", $session->org_code, $session->user_no );
-      else
+      if ( $roles['wrms']['Admin'] || $roles['wrms']['Support']  ) {
         $user_list = get_user_list( "", "", $session->user_no );
-      $support_list = get_user_list( "S", "", $session->user_no );
+        $support_list = get_user_list( "S", "", $session->user_no );
+      }
+      else
+        $user_list = get_user_list( "", $session->org_code, $session->user_no );
     }
     if ( $allocated_to || $sysmgr ) {
       $quote_types = get_code_list( "request_quote", "quote_type", "Q" );
@@ -24,7 +25,7 @@
     }
 
     include("$base_dir/inc/system-list.php");
-    $system_codes = get_system_list("ACERS", "$request->system_code");
+    $system_codes = get_system_list("ASCE", "$request->system_code");
   }
 
   $hdcell = "<th width=7%><img src=images/clear.gif width=60 height=2></th>";
@@ -96,15 +97,17 @@
     echo "</TD>\n<TD ALIGN=LEFT>&nbsp;$request->last_status - $request->status_desc</TD></TR>\n";
   }
 
-  echo "<TR><TH ALIGN=RIGHT VALIGN=MIDDLE>System:</TH>\n";
-  if ( isset($request) )
-    echo "<TD ALIGN=CENTER>$request->system_code</TD>\n";
-  echo "<td align=left";
-  if ( !isset( $request ) ) echo " colspan=2";
-  if ( $editable )
-    echo "><SELECT NAME=\"new_system_code\">$system_codes</SELECT>"; 
-  else
-    echo ">$request->system_desc";
+  if ( ($editable && "$system_codes" <> "") || (! $editable && isset($request) ) ) {
+    echo "<TR><TH ALIGN=RIGHT VALIGN=MIDDLE>System:</TH>\n";
+    if ( isset($request) )
+      echo "<TD ALIGN=CENTER>$request->system_code</TD>\n";
+    echo "<td align=left";
+    if ( !isset( $request ) ) echo " colspan=2";
+    if ( $editable )
+      echo "><SELECT NAME=\"new_system_code\">$system_codes</SELECT>"; 
+    else
+      echo ">$request->system_desc";
+  }
 ?>
   </TD>
 </TR>

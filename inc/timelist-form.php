@@ -30,6 +30,10 @@ function nice_time( $in_time ) {
     $query .= " AND worker.user_no = work_by_id ";
     $query .= " AND requester.user_no = requester_id ";
 
+    if ( "$user_no" <> "" ) {
+      $query .= " AND work_by_id=$user_no ";
+    }
+
     if ( "$search_for" <> "" ) {
       $query .= " AND work_description ~* '$search_for' ";
     }

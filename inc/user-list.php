@@ -11,13 +11,13 @@ function get_user_list( $status="", $org="", $current ) {
   if ( "$status" <> "" )      $query .= " usr.status~*'[$status]' ";
   if ( "$status" <> "" && "$org" <> "" )  $query .= " AND ";
   if ( "$org" <> "" )         $query .= " usr.org_code='$org' ";
-  $query .= " ORDER BY usr.fullname";
+  $query .= " ORDER BY usr.fullname; ";
 
   $rid = pg_Exec( $wrms_db, $query);
   if ( ! $rid ) {
     echo "<p>$query";
   }
-  else if ( pg_NumRows($rid) > 1 ) {
+  else if ( pg_NumRows($rid) > 0 ) {
     // Build table of users found
     $rows = pg_NumRows( $rid );
     for ( $i=0; $i < $rows; $i++ ) {

@@ -55,7 +55,7 @@ function update_timesheet( $ts_finish ) {
         elseif ( $v != "" ) {
           list( $number, $description ) = split( '/', $v, 2);
           $number = intval($number);
-          if ( $number != $ts_no && $ts_no > 0 ) update_timesheet( substr($k,1));
+          if ( ($number != $ts_no && $ts_no > 0) ||  ( "$description" != "$ts_description" && "$description" != "") ) update_timesheet( substr($k,1));
           if ( $number > 0 ) {
             $ts_no = $number;
             if ( $ts_start == 0 ) $ts_start = intval(substr($k,1));

@@ -29,8 +29,9 @@ function safe_for_wap( $instr ) {
   $instr = ereg_replace( "[\x81-\xff]", "?", $instr);
   $instr = ereg_replace( "[" . chr(128) . "-" . chr(255) . "]", "?", $instr);
   if ( $wap_browser ) {
-    $instr = ereg_replace( "&copy;", "(c)", $instr);
+    $instr = ereg_replace( "aMpErSaNd-copy;", "(c)", $instr);
     $instr = ereg_replace( "[$]", "$$", $instr);
+    $instr = eregi_replace( "<br>", "<br/>", $instr);
   }
   return str_replace( "aMpErSaNd-", "&", $instr);
 }

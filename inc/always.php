@@ -130,7 +130,7 @@ awm_pgexec( $dbconn, "SET SQL_Inheritance TO OFF;", "always" );
 // Handle nicer date formatting.  Note global call to set
 // known DATESTYLE first.
 //-----------------------------------------
-awm_pgexec( $dbconn, "SET DATESTYLE TO 'ISO';", "always" );
+awm_pgexec( $dbconn, "SET DATESTYLE TO 'ISO,European';", "always" );
 function nice_date($str) {
   return substr($str, 11, 5) . ", " . substr($str, 8, 2) . "/" . substr($str, 5, 2) . "/" . substr($str, 0, 4);
 }

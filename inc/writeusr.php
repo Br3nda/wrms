@@ -60,7 +60,7 @@
 
       // Roles
       if ( isset($UserRole) && is_array($UserRole) ) {
-        $query = "DELETE FROM group_member WHERE user_no=$user_no;";
+        $query = "DELETE FROM group_member WHERE user_no=$user_no";
         $result = pg_Exec( $wrms_db, $query );
         /* if ( ! $result ) */ $because .= "<p>$query</p>";
         while ( is_array($UserRole) && list($k1, $val) = each($UserRole)) {
@@ -70,7 +70,7 @@
             while ( list($k2, $val2) = each($val) ) {
               $query = "INSERT INTO group_member (user_no, group_no) SELECT $user_no AS user_no, group_no FROM ugroup";
               $query .= " WHERE module_name='$k1' ";
-              $query .= " AND group_name='$k2'; ";
+              $query .= " AND group_name='$k2' ";
               $result = pg_Exec( $wrms_db, $query );
               /* if ( ! $result ) */ $because .= "<p>$query</p>";
             }
@@ -81,7 +81,7 @@
 //            echo "<p>Split: $k2, $val2</p>";
             $query = "INSERT INTO group_member (user_no, group_no) SELECT $user_no AS user_no, group_no FROM ugroup";
             $query .= " WHERE module_name='$k2' ";
-            $query .= " AND group_name='$val2'; ";
+            $query .= " AND group_name='$val2' ";
             $result = pg_Exec( $wrms_db, $query );
             /* if ( ! $result ) */ $because .= "<p>$query</p>";
           }
@@ -106,7 +106,7 @@
         }
         reset($UserCat);
       }
-    }  // valid user no
-  }  // validated OK
+    }
+  }
 
 ?>

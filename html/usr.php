@@ -114,6 +114,11 @@ echo "</td>\n</tr>\n";
 </tr>
 <?php
   echo "<tr>
+  <th align=right class=rows>Location</th>
+  <td><input type=text name=UserLocation Size=24 value=\"$usr->location\"></td>
+</tr>\n";
+
+  echo "<tr>
   <th align=right class=rows>Phone</th>
   <td><input type=text name=UserPhone Size=24 value=\"$usr->phone\"></td>
 </tr>\n";

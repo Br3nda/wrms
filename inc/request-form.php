@@ -164,7 +164,7 @@
     printf( "<td align=center>%s</td>\n", ( $use_sla && ($request->sla_response_time > 0) ? $request->sla_response_type . '-' . $request->sla_response_time : $request->urgency_desc));
   }
   printf( "<td align=left%s>",  ($is_request ?  "" : " colspan=2"));
-  if ( is_member_of('Admin', 'Support')  ) {
+  if ( is_member_of('Admin', 'Support', 'Manage')  ) {
     if ( $editable ) {
       echo "<select class=sml name=\"new_urgency\">$urgencies</select>";
       if ( !$is_request || $use_sla ) {

@@ -59,7 +59,7 @@
         }
         else
           $query .= " organisation='$session->org_code', ";
-        $query .= " phone='$UserPhone', mobile='$UserMobile', ";
+        $query .= " location='$UserLocation', phone='$UserPhone', mobile='$UserMobile', ";
         $query .= " mail_style='$UserNotifications', ";
         if ( "$UserName" <> "" ) $query .= " username=LOWER('$UserName'), ";
         $query .= " status='$UserStatus', last_update='now'";

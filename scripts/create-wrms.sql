@@ -158,7 +158,7 @@ CREATE TABLE request_allocated (
 CREATE TABLE request_timesheet (
   timesheet_id SERIAL PRIMARY KEY,
   request_id INT4,
-  work_on TIMESTAMP,
+  work_on TIMESTAMP WITHOUT TIME ZONE,
   ok_to_charge BOOL,
   work_quantity FLOAT8,
   work_duration INTERVAL,
@@ -166,7 +166,7 @@ CREATE TABLE request_timesheet (
   work_by TEXT,
   work_description TEXT,
   work_rate FLOAT8,
-  work_charged TIMESTAMP,
+  work_charged TIMESTAMP WITHOUT TIME ZONE,
   charged_amount FLOAT8,
   charged_by_id INT4,
   work_units TEXT,

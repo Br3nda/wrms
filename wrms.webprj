@@ -52,7 +52,6 @@
 <item url="inc/" />
 <item url="inc/CVS/" />
 <item url="inc/always.php" />
-<item url="inc/oldfuncs/" />
 <item url="inc/sidebarright.php" />
 <item url="inc/validateusr.php" />
 <item url="inc/error.php" />
@@ -116,14 +115,9 @@
 <item url="inc/help-form.php" />
 <item url="inc/timesheet-valid.php" />
 <item url="inc/timesheet-action.php" />
-<item url="inc/oldfuncs/CVS/" />
-<item url="inc/oldfuncs/.cvsignore" />
 <item url="inc/CVS/Root" />
 <item url="inc/CVS/Repository" />
 <item url="inc/CVS/Entries" />
-<item url="inc/oldfuncs/CVS/Root" />
-<item url="inc/oldfuncs/CVS/Repository" />
-<item url="inc/oldfuncs/CVS/Entries" />
 <item url="html/" />
 <item url="html/wap/" />
 <item url="html/wap/inc/" />
@@ -144,5 +138,20 @@
 <item url="scripts/conversion-200402.sql" />
 <item url="scripts/grant-perms.sh" />
 <item url="scripts/set_hours.sql" />
+<item url="html/wr.php" />
+<item url="inc/authorisation-page.php" />
+<item url="inc/maintenance-page.php" />
+<item url="inc/DataEntry.php" />
+<item url="inc/DataUpdate.php" />
+<item url="inc/FormHandler.php" />
+<item url="inc/MenuClass.php" />
+<item url="inc/Session.php" />
+<item url="inc/Request.class" />
+<item url="html/main.css" />
+<projectview name="request" >
+<viewitem url="inc/Request.class" />
+<viewitem url="inc/DataEntry.php" />
+</projectview>
+<item url="inc/Theme.php" />
 </project>
 </webproject>

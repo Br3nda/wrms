@@ -123,7 +123,7 @@ if (isset($user_no) && $user_no > 0 ) echo "      ";
 </tr> 
 <?php if ( $roles['wrms']['Admin'] ) { ?>
 <tr bgcolor=<?php echo $colors[6]; ?>> 
-	<th align=right>User Status</th> 
+	<th align=right>User Type</th> 
 	<td><font Size="2">
 	<input Type="Radio" Name="UserStatus" Value="S"<?php if ("$usr->status" == "S" ) echo " CHECKED"; ?>> System Support &nbsp; 
 	<input Type="Radio" Name="UserStatus" Value="C"<?php if ("$usr->status" == "C" ) echo " CHECKED"; ?>> Client Coordinator &nbsp;

@@ -68,7 +68,7 @@
   if ( !isset( $request ) ) echo " colspan=2";
   if ( $editable ) {
     echo "><INPUT TYPE=\"text\" NAME=\"new_brief\" SIZE=55 VALUE=\"";
-    echo htmlspecialchars($request->brief);
+    if ( isset($request) ) echo htmlspecialchars($request->brief);
     echo "\">"; 
   }
   else

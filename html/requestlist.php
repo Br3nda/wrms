@@ -58,10 +58,21 @@
 <?php
   if ( "$search_for$org_code$system_code " != "" ) {
     $query = "SELECT request_id, brief, fullname, email, lookup_desc AS status_desc FROM request, usr, lookup_code AS status ";
+
     $query .= " WHERE request.request_by=usr.username ";
     if ( "$inactive" == "" )        $query .= " AND active ";
-    if (! $roles['wrms']['Admin'] ) $query .= " AND org_code = '$session->org_code' ";
-    else if ( "$org_code" != "" )   $query .= " AND org_code='$org_code' ";
+    if (! ($roles['wrms']['Admin'] || $roles['wrms']['Admin']) )
+      $query .= " AND org_code = '$session->org_code' ";
+    else if ( "$org_code" != "" )
+      $query .= " AND org_code='$org_code' ";
+
+    if ( "$user_no" <> "" )
+      $query .= " AND requester_id = $user_no ";
+    else if ( "$interested" <> "" )
+      $query .= " AND request_interested.request_id=request.request_id AND request_interested.user_no = $interested ";
+    else if ( "$allocated_to" <> "" )
+      $query .= " AND request_allocated.request_id=request.request_id AND request_allocated.allocated_to_id = $allocated_to ";
+
     if ( "$search_for" != "" ) {
       $query .= " AND (brief ~* '$search_for' ";
       $query .= " OR detailed ~* '$search_for' ) ";

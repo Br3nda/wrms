@@ -63,7 +63,9 @@ with them.</P><?php
     echo "<input type=text size=10 maxlen=10 name=sys_code><input type=hidden name=M value=add>";
 ?></TD></TR>
 <TR><TH ALIGN=RIGHT>Description:</TH>
-<TD><input type=text size=50 maxlen=50 name=sys_desc value="<?php echo htmlspecialchars($sys->system_desc); ?>"></TD></TR>
+<TD><input type=text size=50 maxlen=50 name=sys_desc value="<?php
+ if ( isset($sys) ) echo htmlspecialchars($sys->system_desc); 
+?>"></TD></TR>
 <TR><TH ALIGN=RIGHT>Active:</TH>
 <TD><input type=checkbox value="t" name=active<?php if ( strtolower(substr("$sys->active",0,1)) == "t" ) echo " checked"; ?>></TD></TR>
 

@@ -17,7 +17,12 @@
 ?>
 <table align=center><tr valign=middle>
 <td><b>Name </b><input TYPE="Text" Size="20" Name="search_for" Value="<?php echo "$search_for"; ?>"></td>
-<td><b>Status</b><SELECT NAME="Status"><Option Value=".">All</Option><Option Value="N"> National &nbsp;</OPTION><Option Value="R"> Regional &nbsp;</OPTION><Option Value="C"> System &nbsp;</OPTION></SELECT></td>
+<td><b>Type </b><SELECT NAME="user_type">
+<Option Value="."> All </Option>
+<Option Value="S"<?php if ( "$user_type" == "S" ) echo " checked"; ?>> System Support </OPTION>
+<Option Value="C"<?php if ( "$user_type" == "S" ) echo " checked"; ?>> Client Coordinator </OPTION>
+<Option Value="U"<?php if ( "$user_type" == "S" ) echo " checked"; ?>> System User </OPTION>
+</SELECT></td>
 <td><input TYPE="Image" src="images/in-go.gif" alt="go" WIDTH="44" BORDER="0" HEIGHT="26" name="submit"></td>
 </tr></table>
 </form>  
@@ -39,6 +44,10 @@
       $query .= " AND usr.org_code='$session->org_code' ";
     else if ( isset( $org_code ) ) 
       $query .= " AND usr.org_code='$org_code' ";
+
+    if ( isset( $user_type ) ) {
+      $query .= " AND usr.status~'^$user_type'";
+    }
 
     if ( isset( $system_code ) ) {
       $query .= " AND system_usr.system_code='$system_code'";
@@ -66,6 +75,7 @@
       echo "<th class=cols>Updated</th>\n";
       if ( ! isset( $system_code ) )
         echo "<th class=cols>Accessed</th>\n";
+      echo "<th class=cols>Actions</th>\n";
       echo "</tr>\n";
 
       for ( $i=0; $i < pg_NumRows($result); $i++ ) {
@@ -86,7 +96,13 @@
         if ( ! isset( $system_code ) )
           echo "<td class=sml>" . substr($thisusr->last_accessed, 4, 7) . substr($thisusr->last_accessed, 20, 4) . " " . substr($thisusr->last_accessed, 11, 5) . "&nbsp;</td>\n";
 
-        echo "</tr>\n";
+        echo "<td class=menu><a class=r href=\"requestlist.php?user_no=$thisusr->user_no\">Requested</a> &nbsp; \n";
+        echo "<a class=r href=\"requestlist.php?allocated_to=$thisusr->user_no\">Allocated</a> &nbsp; \n";
+        echo "<a class=r href=\"requestlist.php?interested=$thisusr->user_no\">Interested</a>\n";
+        if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] )
+          echo " &nbsp; <a class=r href=\"form.php?user_no=$thisusr->user_no&form=timelist\">Work</a>\n";
+
+        echo "</td></tr>\n";
       }
       echo "</table>\n";
     }

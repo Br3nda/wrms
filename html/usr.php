@@ -31,13 +31,13 @@
 
   // Pre-build the list of systems
   if ( "$error_qry" == "" ) {
-    $query = "SELECT * FROM work_system, org_system ";
+    $query = "SELECT DISTINCT ON (work_system.system_code) * FROM work_system, org_system ";
     $query .= " WHERE work_system.system_code=org_system.system_code ";
     if ( ! ($roles['wrms']['Admin'] || $roles['wrms']['Support'] ) ) {
       $query .= " AND org_system.org_code='$session->org_code' ";
     }
     $query .= " ORDER BY work_system.system_code ";
-    $sys_res = awm_pgexec( $wrms_db, $query, "usr" );
+    $sys_res = awm_pgexec( $wrms_db, $query, "usr", false, 7 );
   }
 
   // Pre-build the list of user groups

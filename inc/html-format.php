@@ -20,15 +20,19 @@ global $colors;
   // A URL like " mailto:user@domain.name " also gets converted to a link
   $instr = ereg_replace(" mailto:([^ ]+@[^ ]+) ", " <a href=\"mailto:\\1\">\\1</a> ", $instr);
 
+  // A phrase like " W/R #99999 " (and variants) gets converted to a link
+//  $instr = preg_replace("/WR #([[:digit:]]{4,6})/i", " <a href=\"".$GLOBALS['base_dns']."/wr.php?request_id=\${1}\">W/R #\${1}</a> ", $instr);
+  $instr = preg_replace("/W\/?R ?#?([[:digit:]]{4,6})([^[:digit:]]|$)/i", " <a href=\"".$GLOBALS['base_dns']."/wr.php?request_id=\${1}\">W/R #\${1}</a> ", $instr);
+
   // Two consecutive newlines is a new paragraph
-  $instr = str_replace("\n\n", "<p>", $instr);
+  $instr = str_replace("\n\n", "</p><p>", $instr);
 
   // A single newline is a line break
   $instr = str_replace("\n", "<br>", $instr);
 
   // So we can read the HTML when we view source
   $instr = str_replace("<p>", "\n<p>", $instr);
-  $instr = str_replace("<br>", "<br>\n", $instr);
+  $instr = str_replace("<br>", "<br />\n", $instr);
 
   // Fancy stuff links to nodes in the help
   $instr = link_writeups($instr);

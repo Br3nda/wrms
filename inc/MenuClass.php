@@ -89,6 +89,8 @@ class MenuSet {
 
   // Add an option, which is a link.
   function &AddOption( $label, $target, $title="", $active=false, $sortkey=0 ) {
+    if ( $this->OptionExists( $label ) ) return false ;
+
     $new_option =& new MenuOption( $label, $target, $title, $this->main_class, $sortkey );
     array_push( $this->options, &$new_option );
     if ( is_bool($active) && $active == false && $_SERVER['REQUEST_URI'] == $target ) {
@@ -121,6 +123,16 @@ class MenuSet {
     reset($this->options);
     while( list($k,$v) = each($this->options) ) {
       if ( $v->IsActive() ) return true;
+    }
+    return false;
+  }
+
+  // This is called to see if a menu already has this option
+  // by AddOption - should possibly be private.
+  function OptionExists( $newlabel ) {
+    reset($this->options);
+    while( list($k,$v) = each($this->options) ) {
+      if ( $newlabel == $v->label ) return true ;
     }
     return false;
   }

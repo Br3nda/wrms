@@ -150,3 +150,30 @@ CREATE FUNCTION user_votes (int4, int4, int4 ) RETURNS int4 AS '
       RETURN votes;
     END;
 ' LANGUAGE 'plpgsql';
+
+-- The last date a request was made for a particular organisation
+DROP FUNCTION last_org_request ( int4 );
+CREATE FUNCTION last_org_request ( int4 ) RETURNS timestamp AS '
+   DECLARE
+      in_org_code ALIAS FOR $1;
+      out_date TIMESTAMP;
+   BEGIN
+      SELECT request_on INTO out_date FROM request, usr
+                WHERE usr.org_code = in_org_code AND request.requester_id = usr.user_no
+                ORDER BY request.request_on DESC LIMIT 1;
+      IF NOT FOUND THEN
+        RETURN NULL;
+      END IF;
+      RETURN out_date;
+   END;
+' LANGUAGE 'plpgsql';
+
+-- The number of requests active for a particular organisation
+DROP FUNCTION active_org_requests ( int4 );
+CREATE FUNCTION active_org_requests ( int4 ) RETURNS int4 AS '
+  SELECT count(request_id) FROM request, usr
+    WHERE usr.org_code = $1
+      AND request.requester_id = usr.user_no
+      AND request.active;
+' LANGUAGE 'sql';
+

@@ -282,7 +282,7 @@ function header_row() {
     column_header("Description", "lbrief");
     column_header("Status", "status_desc" );
     column_header("Type", "request_type_desc" );
-    column_header("Last Chng", "last_change");
+    column_header("Last Chng", "request.last_activity");
     echo "</tr>";
 }
     echo "<table border=\"0\" align=left width=100%>\n";

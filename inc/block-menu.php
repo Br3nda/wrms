@@ -19,10 +19,10 @@
 
   if ( $roles[wrms][Request] ) {
     echo "<br><img class=blocksep src=\"images/menuBreak.gif\" width=\"130\" height=\"9\">";
+    $tooltip = "Go to the WRMS home page";
+    echo "<br>\n &nbsp;<a href=$base_url/index.php class=block title=\"$tooltip\" alt=\"$tooltip\">WRMS&nbsp;Home</a>";
     $tooltip = "Enter a new work request into the system.";
     echo "<br>\n &nbsp;<a href=$base_url/request.php class=block>New&nbsp;Request</a>";
-    $tooltip = "Display work requests that you are notified about.";
-    echo "<br>\n &nbsp;<a href=$base_url/index.php class=block title=\"$tooltip\" alt=\"$tooltip\">My&nbsp;Requests</a>";
     $tooltip = "Search and list work requests";
     echo "<br>\n &nbsp;<a href=$base_url/requestlist.php class=block title=\"$tooltip\" alt=\"$tooltip\">List&nbsp;Requests</a>";
   }

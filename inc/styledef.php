@@ -12,7 +12,7 @@
 P		{font: x-small verdana, sans-serif; }
 P.sml		{font: xx-small verdana, sans-serif; }
 h3		{font: bold medium verdana, sans-serif; color: $colors[2];  }
-TH		{font: bold x-small verdana, sans-serif; background: $colors[5]; }
+TH		{font: bold x-small verdana, sans-serif; color: $colors[1]; background: $colors[5]; }
 TD		{font: small verdana, sans-serif; }
 td.menu		{font: x-small verdana, sans-serif; }
 TD.sml	{font: x-small verdana, sans-serif; }

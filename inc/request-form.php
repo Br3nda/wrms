@@ -1,22 +1,10 @@
 <?php
   include( "$base_dir/inc/code-list.php");
-  include( "$base_dir/inc/notify-emails.php");
-  include( "$base_dir/inc/nice-date.php");
   include( "$base_dir/inc/html-format.php");
   $status_list   = get_code_list( "request", "status_code", "$request->last_status" );
 
   include("$base_dir/inc/system-list.php");
   $system_codes = get_system_list("ACERS", "$request->system_code");
-
-  /* get the user's roles relative to the current request */
-  include( "$base_dir/inc/get-request-roles.php");
-
-  /* Current request is editable if the user requested it or user is sysmgr, cltmgr or allocated the job */
-  $plain = !strcmp( "$args->style", "plain");
-  $notable = isset($request) && ($author || $sysmgr || $cltmgr || $allocated_to);
-  $quotable = $notable;
-  $editable = ($sysmgr || $allocated_to);
-  if ( $editable ) $editable = ! $plain;
 
   if ( $editable ) {
     /* if it's editable then we'll need severity and request_type lists for drop-downs */
@@ -30,32 +18,38 @@
   else
     $tell = "Click here to receive updates to this request!";
 
-  $tell .= "<br>$notify_to";
+//  $tell .= "<br>$notify_to";
 
   $hdcell = "<th width=7%><img src=images/clear.gif width=50 height=2></th>";
-  $tbldef = "<table width=100% cellspacing=0 border=0 cellpadding=3>\n";
-  echo $tbldef;
-?>
-
-<TR><TD ALIGN=LEFT><P CLASS=helptext>Use this form to enter changes to details for the
-requests of your systems, or to enter details for new requests.</P><?php
+  $tbldef = "<table width=100% cellspacing=0 border=0 cellpadding=2>\n";
+  echo "$tbldef<tr><td align=left>\n";;
+  if ( "$because" != "" )
+    echo $because;
+  else {
+    ?><P CLASS=helptext>Use this form to enter changes to details for the
+    requests of your systems, or to enter details for new requests.</P><?php
+  }
   if ( "$request->request_id" != "" )
-    echo "</TD><TD ALIGN=RIGHT nowrap><font size=-1><A HREF=\"request.php?action=register&request_id=$request_id\">$tell</a></font>";
+    echo "</TD><TD ALIGN=RIGHT nowrap><font size=-2><A HREF=\"request.php?action=register&request_id=$request_id\">$tell</a></font>";
 ?></TD>
 </TR>
 </TABLE>
 
-<?php echo "$tbldef<TR>$hdcell"; ?><TD CLASS=h3 COLSPAN=3 ALIGN=RIGHT><FONT SIZE=+1><B>Request details</B></FONT></TD></TR>
+<?php echo "$tbldef<TR>$hdcell<th>";
+  if ( $editable ) {
+    echo "<FORM ACTION=\"request.php\" METHOD=POST>";
+    echo "<INPUT TYPE=\"hidden\" NAME=\"request_id\" VALUE=\"$request->request_id\">"; 
+  }
+?>&nbsp;</th>
+<TD CLASS=h3 COLSPAN=2 ALIGN=RIGHT><FONT SIZE=+1><B>Request details</B></FONT></TD></TR>
 <TR>
 <?php
   echo "<TH ALIGN=RIGHT>";
   if ( isset($request) ) echo "WR #:"; else echo "Request:";
   echo "</TH>\n";
-  if ( isset($request) ) echo "<TD ALIGN=CENTER><H2>$request->request_id</TH>\n";
+  if ( isset($request) ) echo "<td align=center class=h2>$request->request_id</td>\n";
   echo "<TD ALIGN=LEFT>\n";
   if ( $editable ) {
-    echo "<FORM ACTION=\"modify-request-done.php3\" METHOD=POST>";
-    echo "<INPUT TYPE=\"hidden\" NAME=\"request_id\" VALUE=\"$request->request_id\">"; 
     echo "<INPUT TYPE=\"text\" NAME=\"new_brief\" SIZE=55 VALUE=\"$request->brief\">"; 
   }
   else
@@ -72,27 +66,24 @@ requests of your systems, or to enter details for new requests.</P><?php
     if ( strcmp( $request->eta, "") )
       echo " &nbsp; &nbsp; &nbsp; <B>ETA:</B> " .  substr( nice_date($request->eta), 7);
     echo "</TD></TR>\n";
-  }
-?>
 
-<TR>
-  <TH ALIGN=RIGHT VALIGN=MIDDLE>Status:</TH>
-<?php
-  if ( isset($request) ) echo "<TD ALIGN=CENTER>"; else echo "<TD>";
-  if ( $editable ) {
-    echo "<LABEL><INPUT TYPE=\"checkbox\" NAME=\"new_active\" VALUE=\"TRUE\"";
-    if ( $request->active == "t" ) echo " CHECKED";
-    echo ">&nbsp;Active</LABEL>";
-  }
-  else if ( $request->active ) echo "Active";
-  else echo "Inactive";
-  if ( isset($request) ) {
+    echo "<TR><TH ALIGN=RIGHT VALIGN=MIDDLE>Status:</TH>\n";
+    echo "<TD ALIGN=CENTER>";
+    if ( $editable ) {
+      echo "<LABEL><INPUT TYPE=\"checkbox\" NAME=\"new_active\" VALUE=\"TRUE\"";
+      if ( $request->active == "t" ) echo " CHECKED";
+        echo ">&nbsp;Active</LABEL>";
+    }
+    else if ( $request->active ) echo "Active";
+    else echo "Inactive";
     echo "</TD><TD ALIGN=LEFT>";
-    echo "&nbsp;$request->last_status - $request->status_desc";
+    if ( $editable )
+      echo "<SELECT NAME=\"new_status\">$status_list</SELECT>";
+    else
+      echo "&nbsp;$request->last_status - $request->status_desc";
+    echo "</TD></TR>\n";
   }
-  echo "</TD>";
 ?>
-</TR>
 
 <TR>
   <TH ALIGN=RIGHT>System:</TH>
@@ -100,7 +91,7 @@ requests of your systems, or to enter details for new requests.</P><?php
     echo "<TD ALIGN=CENTER>$request->system_code</TD>\n";
   echo "<TD ALIGN=LEFT>";
   if ( $editable )
-    echo "&nbsp;<SELECT NAME=\"new_system_code\">$system_codes</SELECT>"; 
+    echo "<SELECT NAME=\"new_system_code\">$system_codes</SELECT>"; 
   else
     echo "$request->system_desc";
 ?>
@@ -113,7 +104,7 @@ requests of your systems, or to enter details for new requests.</P><?php
     echo "<TD ALIGN=CENTER>$request->request_type</TD>\n";
   echo "<TD ALIGN=LEFT>";
   if ( $editable )
-    echo "&nbsp;<SELECT NAME=\"new_type\">$request_types</SELECT>"; 
+    echo "<SELECT NAME=\"new_type\">$request_types</SELECT>"; 
   else
     echo "$request->request_type_desc";
 ?>
@@ -126,7 +117,7 @@ requests of your systems, or to enter details for new requests.</P><?php
     echo "<TD ALIGN=CENTER>$request->severity_code</TD>\n";
   echo "<TD ALIGN=LEFT>";
   if ( $editable )
-    echo "&nbsp;<SELECT NAME=\"new_severity\">$severities</SELECT>"; 
+    echo "<SELECT NAME=\"new_severity\">$severities</SELECT>"; 
   else
     echo "$request->severity_desc";
 ?>
@@ -198,6 +189,7 @@ requests of your systems, or to enter details for new requests.</P><?php
     $query .= "FROM request_quote, usr ";
     $query .= "WHERE request_quote.request_id = $request->request_id ";
     $query .= "AND request_quote.quote_by_id = usr.user_no ";
+    $query .= " ORDER BY request_quote.quote_id";
     $quoteq = pg_Exec( $wrms_db, $query);
     $rows = pg_NumRows($quoteq);
     if ( $rows > 0 ) {
@@ -235,6 +227,7 @@ requests of your systems, or to enter details for new requests.</P><?php
   $query .= "WHERE request_id = '$request->request_id' ";
   $query .= "AND usr.user_no=request_allocated.allocated_to_id ";
   $query .= "AND organisation.org_code = usr.org_code ";
+  $query .= "ORDER BY request_allocated.allocated_on ";
   $allocq = pg_Exec( $wrms_db, $query);
   $rows = pg_NumRows($allocq);
   if ( $rows > 0 ) {
@@ -258,6 +251,7 @@ requests of your systems, or to enter details for new requests.</P><?php
   $query .= "WHERE request_timesheet.request_id = $request->request_id ";
   $query .= "AND request_timesheet.work_by_id = awm_usr.perorg_id ";
   $query .= "AND awm_perorg.perorg_id = awm_usr.perorg_id ";
+  $query .= "ORDER BY request_timesheet.work_on ";
   $workq = pg_Exec( $wrms_db, $query);
   $rows = pg_NumRows($workq);
   if ( $rows > 0 ) {
@@ -311,8 +305,10 @@ requests of your systems, or to enter details for new requests.</P><?php
 
 
 <?php /***** Notes */
-  $noteq = pg_Exec( $wrms_db, "SELECT * FROM request_note WHERE request_note.request_id = '$request->request_id'");
-  $rows = pg_NumRows($noteq);
+  $noteq = "SELECT * FROM request_note WHERE request_note.request_id = '$request->request_id' ";
+  $noteq .= "ORDER BY note_on ";
+  $note_res = pg_Exec( $wrms_db, $noteq );
+  $rows = pg_NumRows($note_res);
   if ( $rows > 0 ) {
 ?>
 
@@ -326,7 +322,7 @@ requests of your systems, or to enter details for new requests.</P><?php
 </TR>
 <?php /*** the actual details of notes */
     for( $i=0; $i<$rows; $i++ ) {
-      $request_note = pg_Fetch_Object( $noteq, $i );
+      $request_note = pg_Fetch_Object( $note_res, $i );
       if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
       else echo "<tr bgcolor=$colors[7]>";
       echo "<TH NOWRAP>&nbsp; &nbsp; </TH>";
@@ -343,6 +339,7 @@ requests of your systems, or to enter details for new requests.</P><?php
   $statq .= " WHERE request_status.request_id = '$request->request_id' AND request_status.status_code = status.lookup_code ";
   $statq .= " AND status.source_table='request' AND status.source_field='status_code' ";
   $statq .= " AND usr.user_no=request_status.status_by_id ";
+  $statq .= " ORDER BY status_on ";
   $stat_res = pg_Exec( $wrms_db, $statq);
   $rows = pg_NumRows($stat_res);
   if ( $rows > 0 ) {
@@ -350,10 +347,10 @@ requests of your systems, or to enter details for new requests.</P><?php
 <?php echo "$tbldef<TR><TD CLASS=sml COLSPAN=4>&nbsp;</TD></TR><TR>$hdcell"; ?>
 <TD CLASS=h3 COLSPAN=3 ALIGN=RIGHT><FONT SIZE=+1><B>Changes in Status</B></FONT></TD></TR>
 <TR VALIGN=TOP>
-  <TH NOWRAP>&nbsp; &nbsp; &nbsp; </TH>
-  <TH ALIGN=LEFT WIDTH="15%">Changed By</TH>
-  <TH WIDTH="25%" ALIGN=LEFT>Changed On</TH>
-  <TH WIDTH="60%" ALIGN=LEFT>Changed To</TH>
+  <TH>&nbsp;</TH>
+  <TH class=cols ALIGN=LEFT WIDTH="15%">Changed By</TH>
+  <TH class=cols WIDTH="25%" ALIGN=LEFT>Changed On</TH>
+  <TH class=cols WIDTH="60%" ALIGN=LEFT>Changed To</TH>
 </TR>
 <?php /* the actual status stuff */
     for( $i=0; $i<$rows; $i++ ) {
@@ -368,18 +365,18 @@ requests of your systems, or to enter details for new requests.</P><?php
 
   if ( ! $plain ) {
 
-    echo "$tbldef<TR><TD CLASS=sml COLSPAN=4><FORM ACTION=\"request-changed.php3\" METHOD=POST></TD></TR><TR>$hdcell";
+    echo "$tbldef<TR><TD CLASS=sml COLSPAN=4><FORM ACTION=\"request.php\" METHOD=POST></TD></TR><TR>$hdcell";
     echo "<TD CLASS=h3 COLSPAN=3 ALIGN=RIGHT><FONT SIZE=+1><B>";
     /**** only update status & eta if they are administrator */
-    if ( $administrator ) echo "Change Status or ";
+    if ( $statusable ) echo "Change Status or ";
     echo "Add Notes</B></FONT></TD></TR>\n";
     echo "";
     echo "<INPUT TYPE=\"hidden\" NAME=\"request_id\" VALUE=\"$request->request_id\">";
-    if ( $administrator && $notable ) {
+    if ( $statusable ) {
       echo "<TR>";
       echo "<TH ALIGN=RIGHT>New Status:</TH>";
-      echo "<TD ALIGN=LEFT>&nbsp;<SELECT NAME=\"new_status\">$status_list</SELECT></TD>";
-      echo "<TH ALIGN=RIGHT>&nbsp;&nbsp;&nbsp;ETA:</TH>";
+      echo "<TD ALIGN=LEFT width=100><SELECT NAME=\"new_status\">$status_list</SELECT></TD>";
+      echo "<TH ALIGN=RIGHT>&nbsp; ETA:</TH>";
       echo "<TD ALIGN=LEFT>&nbsp;";
       if ( $sysmgr || $allocated_to ) echo "<INPUT TYPE=text NAME=\"new_eta\" SIZE=30 VALUE=\"";
       echo substr( nice_date( $request->eta ), 7);
@@ -388,12 +385,12 @@ requests of your systems, or to enter details for new requests.</P><?php
     }
 ?>
 
-<TR VALIGN=TOP border=0 cellspacing=0 cellpadding=4>
+<TR VALIGN=TOP>
   <TH ALIGN=RIGHT>New Note:</TH>
-  <TD ALIGN=LEFT COLSPAN=3><TEXTAREA NAME="new_note" ROWS=8 COLS=60  WRAP="SOFT"></TEXTAREA></TD>
+  <TD ALIGN=LEFT COLSPAN=3><TEXTAREA NAME="new_note" ROWS=8 COLS=65  WRAP="SOFT"></TEXTAREA></TD>
 </TR>
 <TR><TD CLASS=mand COLSPAN=4 ALIGN=CENTER><FONT SIZE=+1><B>
-<INPUT TYPE=submit VALUE="Update Request" NAME=submit></B></FONT></form></TD></TR>
+<INPUT TYPE=submit VALUE="Update Request" NAME=submit></B></FONT></TD></TR></form>
 </TABLE>
 
 <?php

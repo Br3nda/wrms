@@ -5,7 +5,7 @@
     $rows = 0;
     $query = "SELECT *";
     $query .= ", status.lookup_desc AS status_desc";
-    $query .= ", request_type.lookup_desc AS request_type";
+    $query .= ", request_type.lookup_desc AS request_desc";
     $query .= ", severity.lookup_desc AS severity_desc";
     $query .= ", system_desc ";
     $query .= " FROM request, usr";
@@ -37,9 +37,20 @@
         $error_qry = "$query";
         include("inc/error.php");
       }
+      echo "<p>$query</p>";
     }
-//    echo "<p>$query</p>";
     $request = pg_Fetch_Object( $rid, 0 );
 
   }
+
+  /* get the user's roles relative to the current request */
+  include( "$base_dir/inc/get-request-roles.php");
+
+  /* Current request is editable if the user requested it or user is sysmgr, cltmgr or allocated the job */
+  $plain = ("$style" == "plain");
+  $statusable = isset($request) && ($author || $sysmgr || $cltmgr || $allocated_to );
+  $quotable = $statusable;
+  $editable = ($sysmgr || $allocated_to);
+  if ( $editable ) $editable = ! $plain;
+
 ?>

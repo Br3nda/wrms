@@ -103,7 +103,7 @@ CREATE INDEX xak2_request ON request ( active int4_ops, severity_code, request_b
 CREATE INDEX xak3_request ON request ( active int4_ops, request_by );
 CREATE INDEX xak4_request ON request ( active int4_ops, last_status );
 GRANT INSERT,UPDATE,SELECT ON request TO general;
-GRANT SELECT ON request_request_id_seq TO PUBLIC;
+GRANT SELECT,UPDATE ON request_request_id_seq TO PUBLIC;
 
 CREATE FUNCTION active_request(INT4)
     RETURNS BOOL

@@ -17,7 +17,7 @@ $colors = array( "#ccb8a1", // primary background
 		 "#302080", // text on primary background
 		 "#802050", // text on secondary background
 		 "#5e486f", // text on links
-		 "#b0957c", // tertiary background
+		 "#886c50", // tertiary background, column headings
 		 "#e4d6c2", // dark rows in listings
 		 "#f4e8d6", // light rows in listings
 		 "#106020", // Form headings

@@ -44,6 +44,15 @@ UPDATE usr SET org_code=TEXT(awm_perorg_rel.perorg_id)
 --    VALUES('codes', 'menus', 'user|system_code', 1, 'Systems');
 --DROP TABLE work_system;
 
+
+DROP FUNCTION get_status_desc(CHAR);
+CREATE FUNCTION get_status_desc(CHAR)
+    RETURNS TEXT
+    AS 'SELECT lookup_desc AS status_desc FROM lookup_code
+            WHERE source_table=''request'' AND source_field=''status_code''
+						AND lower(lookup_code) = lower($1)'
+    LANGUAGE 'sql';
+
 DELETE FROM lookup_code WHERE source_table='request' AND source_field='status_code';
 INSERT INTO lookup_code ( source_table, source_field, lookup_code, lookup_desc, lookup_misc)
    SELECT 'request', 'status_code', status_code, status_desc, next_responsibility_is FROM status;
@@ -114,6 +123,39 @@ INSERT INTO group_member ( group_no, user_no )
 	        WHERE awm_usr.enabled>0 AND awm_usr.username=usr.username;
 
 \i dump/t-session.sql
+
+CREATE FUNCTION set_interested (int4, int4) RETURNS int4 AS '
+   DECLARE
+      u_no ALIAS FOR $1;
+      req_id ALIAS FOR $2;
+      curr_val TEXT;
+   BEGIN
+      SELECT username INTO curr_val FROM request_interested
+			                WHERE user_no = u_no AND request_id = req_id;
+      IF NOT FOUND THEN
+        INSERT INTO request_interested (user_no, request_id, username)
+				    SELECT user_no, req_id, username FROM usr WHERE user_no = u_no;
+      END IF;
+      RETURN u_no;
+   END;
+' LANGUAGE 'plpgsql';
+
+CREATE FUNCTION set_allocated (int4, int4) RETURNS int4 AS '
+   DECLARE
+      u_no ALIAS FOR $1;
+      req_id ALIAS FOR $2;
+      curr_val TEXT;
+   BEGIN
+      SELECT username INTO curr_val FROM request_allocated
+			                WHERE user_no = u_no AND request_id = req_id;
+      IF NOT FOUND THEN
+        INSERT INTO request_allocated (user_no, request_id, username)
+				    SELECT user_no, req_id, username FROM usr WHERE user_no = u_no;
+      END IF;
+      RETURN u_no;
+   END;
+' LANGUAGE 'plpgsql';
+DROP FUNCTION set_perreq_role(int4,int4,text);
 
 SELECT setval( 'usr_user_no_seq', max_usr() );
 SELECT setval( 'ugroup_group_no_seq', max_group() );

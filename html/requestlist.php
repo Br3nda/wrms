@@ -20,7 +20,7 @@
     include("inc/system-list.php");
     $system_list = get_system_list( "CES", "$system_code");
 ?>
-<table border=1 cellspacing=0 cellpadding=2>
+<table border=0 cellspacing=0 cellpadding=2 align=center>
 <tr valign=middle>
 <th align=right>Name:</th><td><input TYPE="Text" Size="10" Name="search_for" Value="<?php echo "$search_for"; ?>"></td>
 <th align=right>&nbsp; System:</th><td><select NAME=system_code><?php echo "$system_list"; ?></select></td>
@@ -81,8 +81,8 @@
     else {
       echo "<p>" . pg_NumRows($result) . " requests found</p>"; // <p>$query</p>";
       echo "<table border=\"0\" align=center><tr>\n";
-      echo "<th>WR &nbsp;#</th><th>Requested By</th>";
-      echo "<th>Description</th><th>Status</th><th>Actions</th></tr>";
+      echo "<th class=cols>WR&nbsp;#</th><th class=cols>Requested By</th>";
+      echo "<th class=cols>Description</th><th class=cols>Status</th><th class=cols>Actions</th></tr>";
 
       // Build table of requests found
       for ( $i=0; $i < pg_NumRows($result); $i++ ) {
@@ -92,12 +92,12 @@
         else echo "<tr bgcolor=$colors[7]>";
 
         echo "<td class=sml align=center><a href=\"request.php?request_id=$thisrequest->request_id\">$thisrequest->request_id</a></td>\n";
-        echo "<td class=sml><a href=\"mailto:$thisrequest->email\">$thisrequest->fullname</a></td>\n";
+        echo "<td class=sml nowrap><a href=\"mailto:$thisrequest->email\">$thisrequest->fullname</a></td>\n";
         echo "<td class=sml><a href=\"request.php?request_id=$thisrequest->request_id\">$thisrequest->brief";
         if ( "$thisrequest->brief" == "" ) echo "-- no description --";
         echo "</a></td>\n";
         echo "<td class=sml>$thisrequest->status_desc</td>\n";
-        echo "<td class=sml><a href=\"form.php?request_id=$thisrequest->request_id&form=note\">Note</a>&nbsp;\n";
+        echo "<td class=sml nowrap><a href=\"form.php?request_id=$thisrequest->request_id&form=quote\">Quote</a>&nbsp;\n";
         echo "<a href=\"form.php?request_id=$thisrequest->request_id&form=time\">Time</a></td>\n";
 
         echo "</tr>\n";

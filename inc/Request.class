@@ -1885,7 +1885,7 @@ EOX
     $sql .= "OR EXISTS(SELECT 1 FROM system_usr su ";
     $sql .=          "JOIN system_usr me USING(system_code) ";
     $sql .=          "WHERE me.user_no = $session->user_no AND su.user_no = usr.user_no AND su.role IN ('S','A') ) )";
-    $sql .= " AND usr.status != 'I' ";
+    $sql .= " AND usr.status != 'I'; ";
     if ( $this->chtype == 'create' ) {
       $sql .= "INSERT INTO request_interested ( request_id, user_no, username ) ";
       $sql .= "SELECT $this->request_id, u.user_no, username ";

@@ -1,4 +1,7 @@
 <?php
+  header("Location: http://wrms.catalyst.net.nz/index.php");  /* Redirect browser to login page */
+  exit; /* Make sure that code below does not get executed when we redirect. */
+
   require( "awm-auth.php3" );
   require( "$funcdir/parameters-func.php3");
   $args = parse_parameters($argv[0]);

@@ -1,4 +1,8 @@
 <?php
+  header("Location: http://wrms.catalyst.net.nz/index.php");  /* Redirect browser to login page */
+  exit; /* Make sure that code below does not get executed when we redirect. */
+
+// Dead code below...
   $title = "WRMS Home";
   include("apms-header.php3");
 ?>

@@ -1,4 +1,7 @@
 <?php
+  header("Location: http://wrms.catalyst.net.nz/index.php");  /* Redirect browser to login page */
+  exit; /* Make sure that code below does not get executed when we redirect. */
+
   include( "awm-auth.php3" );
   $title = "Create New Work Request";
   include("$homedir/apms-header.php3"); 

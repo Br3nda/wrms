@@ -173,7 +173,7 @@ function dates_equal( $date1, $date2 ) {
       $query .= " request_type = $new_type,";
     if (isset($new_sla_code) && $request->request_sla_code != $new_sla_code ) {
       $sla_split = explode('|', $new_sla_code, 2);
-      $sla_type = toupper( $sla_split[1] );
+      $sla_type = strtoupper( $sla_split[1] );
       $query .= " sla_response_time = '" . intval($sla_split[0]) . " hours', ";
       if ( ereg( "[BEO]", $sla_type ) ) $query .= " sla_response_type = '$sla_type',";
     }

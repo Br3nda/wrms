@@ -9,6 +9,11 @@ if ( isset($logout) || (isset($M) && $M=='LO') )
   error_log("$sysname: Session: DBG: Logging out");
   setcookie( 'sid', '', 0,'/');
   unset($sid);
+
+  if ( isset($forget) ) {
+    setcookie( 'lsid', '', 0,'/');
+    unset($lsid);
+  }
 }
 
 

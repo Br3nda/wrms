@@ -18,7 +18,10 @@ function menu_break_line() {
   if ( is_member_of('Admin', 'Support', 'Contractor' ) ) {
     menu_url_line("/timesheet.php", "", "Timesheet Entry", "head" );
   }
-  menu_url_line("/?M=LO$hurl", "Au revoir!", "Log Off", "head" );
+  if ( isset($lsid) )
+    menu_url_line("/?M=LO&forget=1$hurl", "Log me out and stop logging me in automatically", "Forget Me", "head" );
+  else
+    menu_url_line("/?M=LO$hurl", "Au revoir!", "Log Off", "head" );
 
   menu_break_line();
   echo '<form method="get" action="/wr.php" name="quickwr" id="quickwr" style="display:inline">';
@@ -44,7 +47,6 @@ function menu_break_line() {
   $tooltip = "Maintain your name, phone and e-mail details, or change your password";
   menu_url_line("user.php?edit=1&user_no=$session->user_no", $tooltip, "Edit My Info" );
 
-  menu_url_line("/?M=LO&forget=1$hurl", "Log me out and stop logging me in automatically", "Forget Me" );
 
   if ( is_member_of('Admin', 'Support', 'OrgMgr') ) {
 //    menu_break_line();

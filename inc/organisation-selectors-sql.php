@@ -20,7 +20,7 @@ function SqlSelectOrganisations( $org_code = 0 ) {
     }
   }
   $sql .= "WHERE (organisation.active ";
-  if ( $session->AllowedTo("Admin") || $session->AllowedTo("Support") ) {
+  if ( "$org_code" != "" && ($session->AllowedTo("Admin") || $session->AllowedTo("Support")) ) {
     $sql .= "OR organisation.org_code = $org_code ";
   }
   $sql .= ") AND abbreviation !~ '^ *$' ";

@@ -108,6 +108,7 @@ function dates_equal( $date1, $date2 ) {
     else
       $requsr = $session;
 
+    if ( ! isset( $new_status ) || "$new_status" == "" ) $new_status = "N";
     $sla_split = explode('|', $new_sla_code, 2);
     $sla_type = strtoupper( $sla_split[1] );
     $query = "INSERT INTO request (request_id, request_by, brief, detailed, active, last_status, urgency, importance, ";
@@ -117,7 +118,7 @@ function dates_equal( $date1, $date2 ) {
     if ( "$new_agreed_due_date" <> "" ) $query .= ", agreed_due_date";
     $query .= ") ";
     $query .= "VALUES( $request_id, '$requsr->username', '" . tidy($new_brief) . "','" . tidy($new_detail) . "', ";
-    $query .= "TRUE, 'N', '$new_urgency', $new_importance, '$new_system_code' , '$new_type', $requsr->user_no, 'now', ";
+    $query .= "TRUE, '$new_status', '$new_urgency', $new_importance, '$new_system_code' , '$new_type', $requsr->user_no, 'now', ";
     $query .= "'" . intval($sla_split[0]) . " hours'";
     if ( ereg( "[BEO]", $sla_type ) ) $query .= ", '$sla_type' ";
     if ( "$new_requested_by_date" <> "" ) $query .= ", '$new_requested_by_date'";
@@ -126,7 +127,6 @@ function dates_equal( $date1, $date2 ) {
     $rid = awm_pgexec( $wrms_db, $query, "req-action", true, 7 );
     if ( ! $rid ) return;
 
-    if ( ! isset( $new_status ) || "$new_status" == "" ) $new_status = "N";
     $query = "INSERT INTO request_status (request_id, status_by, status_on, status_code, status_by_id) ";
     $query .= "VALUES( $request_id, '$session->username', 'now', '$new_status', $session->user_no)";
     $rid = awm_pgexec( $wrms_db, $query, "req-action", true, 7 );

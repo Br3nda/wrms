@@ -98,5 +98,6 @@
   <item url="html/timesheet.php" />
   <item url="html/inc/timesheet-valid.php" />
   <item url="html/inc/timesheet-action.php" />
+  <item url="html/inc/PgQuery.php" />
  </project>
 </webproject>

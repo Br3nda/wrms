@@ -393,6 +393,7 @@ function dates_equal( $date1, $date2 ) {
         return;
       }
       move_uploaded_file($HTTP_POST_FILES['new_attachment_file']['tmp_name'], "attachments/$attachment_id");
+      chmod( "attachments/$attachment_id", 0644 );
       if ( $rid ) $because .= "<h3>File attachment \"$att_name\" added to this request</h3>";
     }
 

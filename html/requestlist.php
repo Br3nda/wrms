@@ -20,6 +20,7 @@
   if ( !isset($requested_by) ) $requested_by = "";
   if ( !isset($from_date) ) $from_date = "";
   if ( !isset($to_date) ) $to_date = "";
+  if ( !isset($where_clause) ) $where_clause = "";
 
 //Uses a URL variable format = edit in order to indicate that the report should be in the Brief (editable) format
 
@@ -361,7 +362,15 @@ else {
     echo "<td valign=middle class=smb align=center><input type=submit value=\"RUN QUERY\" alt=go name=submit class=\"submit\"></td>\n";
     echo "</tr></table>\n</td></tr>\n";
 
-    echo "<tr><td>\n";
+
+    if ( is_member_of('Admin') ) {
+      echo "<tr><td>\n";
+      echo "<table border=0 cellspacing=0 cellpadding=0 align=left>\n";
+      echo "<tr valign=middle>\n";
+      echo "<td valign=middle align=right class=smb>WHERE:</td><td class=sml valign=top><input type=text size=100 value=\"".htmlentities($where_clause)."\" name=where_clause class=\"sml\"></td>\n";
+      echo "</tr></table>\n</td></tr>\n";
+    }
+
     echo "<table border=0 cellspacing=0 cellpadding=0 align=center>\n";
     echo "<tr valign=middle>\n";
     echo "<td valign=middle align=right class=smb>Max results:</td><td class=sml valign=top><input type=text size=6 value=\"$maxresults\" name=maxresults class=\"sml\"></td>\n";
@@ -437,6 +446,11 @@ else {
       if ( "$from_date" != "" )     $query .= " AND request.last_activity >= '$from_date' ";
       if ( "$to_date" != "" )     $query .= " AND request.last_activity<='$to_date' ";
 
+      $query .= " AND status.source_table='request' AND status.source_field='status_code' AND status.lookup_code=request.last_status ";
+      if ( $where_clause != "" ) {
+        $query .= " AND $where_clause ";
+      }
+
       if ( isset($incstat) && is_array( $incstat ) ) {
         reset($incstat);
         $query .= " AND (request.last_status ~* '[";
@@ -455,9 +469,9 @@ $query";
       }
     }
 
-    $query .= " AND status.source_table='request' AND status.source_field='status_code' AND status.lookup_code=request.last_status ";
     $query .= " ORDER BY $rlsort $rlseq ";
     $query .= " LIMIT $maxresults ";
+
     $result = awm_pgexec( $wrms_db, $query, "requestlist", false, 7 );
 
     if ( "$style" != "stripped" ) {

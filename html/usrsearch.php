@@ -82,9 +82,7 @@
 
         printf("<tr class=row%1d>\n", $i % 2);
 
-        echo "<td class=sml><a href=\"index.php?M=LC&E=$thisusr->username&L=";
-        echo md5(strtolower($thisusr->password));
-        echo "\">$thisusr->username</a></td>\n";
+        echo "<td class=sml><a href=\"usr.php?user_no=$thisusr->user_no\">$thisusr->username</a></td>\n";
         echo "<td class=sml><a href=\"usr.php?user_no=$thisusr->user_no\">$thisusr->fullname</a></td>\n";
         if ( "$org_code" == "" )
           echo "<td class=sml><a href=\"form.php?form=organisation&org_code=$thisusr->org_code\">$thisusr->org_name</a></td>\n";

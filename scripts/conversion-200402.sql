@@ -43,6 +43,11 @@ update request
                                         where request_status.request_id = request.request_id
                                         order by status_on limit 1) ;
 
+-- Add some fields to the saved_queries table
+alter table saved_queries add column maxresults int;
+alter table saved_queries add column rlsort text;
+alter table saved_queries add column rlseq text;
+
 -- Change the indexes on request to be partial (where active)
 drop index xak0_request;
 drop index xak1_request;

@@ -506,6 +506,7 @@ else {
     echo "<table border=0 cellspacing=0 cellpadding=0 align=center>\n";
     echo "<tr valign=middle>\n";
     echo "<td valign=middle align=right class=smb>Max results:</td><td class=sml valign=top><input type=text size=6 value=\"$maxresults\" name=maxresults class=\"sml\"></td>\n";
+    echo "<td valign=middle align=right class=sml>&nbsp;&nbsp;&nbsp;&nbsp;<input type=\"checkbox\" id=\"save_query_order\" value=\"1\" name=\"save_query_order\" class=\"sml\" /></td><td class=\"smb\" valign=\"middle\"><label for=\"save_query_order\" >Save&nbsp;Order?&nbsp;&nbsp;&nbsp;</label></td>\n";
     echo "<td valign=middle align=right class=smb>&nbsp; &nbsp; Save query as:</td>\n";
     echo "<td valign=middle align=center><input type=text size=20 value=\"$savelist\" name=savelist class=\"sml\"></td>\n";
     echo "<td valign=middle align=left><input type=submit value=\"SAVE QUERY\" alt=save name=submit class=\"submit\"></td>\n";
@@ -526,8 +527,6 @@ else {
   /////////////////////////////////////////////////////////////////////////////////////////////////
 
   // if ( "$qry$search_for$org_code$system_code" != "" ) {
-    // Recommended way of limiting queries to not include sub-tables for 7.1
-    $result = awm_pgexec( $dbconn, "SET SQL_Inheritance TO OFF;" );
     $query = "";
     if ( isset($qry) && "$qry" != "" ) {
       $qry = tidy($qry);
@@ -535,6 +534,14 @@ else {
       $result = awm_pgexec( $dbconn, $qquery, "requestlist", false, 7);
       $thisquery = pg_Fetch_Object( $result, 0 );
       $query = $thisquery->query_sql ;
+      // If the maxresults they saved was non-default, use that, otherwise we
+      // increase the default anyway, because saved queries are more carefully
+      // crafted, and less likely to list the whole database
+      $maxresults = ( $maxresults == 100 && $thisquery->maxresults != 100 ? $thisquery->maxresults : 500 );
+      if ( $thisquery->rlsort ) {
+        $rlsort = $thisquery->rlsort;
+        $rlseq = $thisquery->rlseq;
+      }
     }
     else {
 
@@ -596,10 +603,19 @@ else {
         $query .= "]') ";
         error_log( "wrms requestlist: DBG: 1-> $query", 0);
         if ( eregi("save", "$submit") && "$savelist" != "" ) {
+          $saved_sort = "";
+          $saved_seq  = "";
+          if ( isset($save_query_order) && $save_query_order ) {
+            $saved_sort = $rlsort;
+            $saved_seq = $rlseq;
+          }
           $savelist = tidy($savelist);
-          $qquery = tidy($query);
+          $qquery   = tidy($query);
+          $rlsort   = tidy($rlsort);
+          $rlseq    = tidy($rlseq);
           $query = "DELETE FROM saved_queries WHERE user_no = '$session->user_no' AND LOWER(query_name) = LOWER('$savelist');
-INSERT INTO saved_queries (user_no, query_name, query_sql) VALUES( '$session->user_no', '$savelist', '$qquery');
+INSERT INTO saved_queries (user_no, query_name, query_sql, maxresults, rlsort, rlseq)
+   VALUES( '$session->user_no', '$savelist', '$qquery', $maxresults, '$rlsort', '$rlseq');
 $query";
         }
       }

@@ -26,7 +26,7 @@
     $because .= "</TABLE>\n";
 
     $because .= "\n<TT>$query</TT>";
-    $rid = pg_Exec( $wrms_db, $query );
+    $rid = awm_pgexec( $wrms_db, $query );
 
     $msg = "<HEAD>\n<TITLE>Timesheets Charged</TITLE>\n</HEAD>\n";
     $msg .= "<BODY BGCOLOR=#E7FFE7>\n";

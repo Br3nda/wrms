@@ -142,6 +142,16 @@ but that doesn't seem to be being applied correctly to TEXTAREA.</p>
 <p>Exactly the same problem occurs with the Windows
 builds.</p>
 
+<table cellpadding=0 cellspacing=0 border=0 bgcolor=#333333 width=20%>
+<tr>
+<td>
+&nbsp;
+<table cellpadding=0 cellspacing=0 border=0 bgcolor=#555555><tr><td>fives</td></tr></table><table cellpadding=0 cellspacing=0 border=0 bgcolor=#999999><tr><td>nines</td></tr></table>
+&nbsp;
+</td>
+</tr>
+</table>
+
 </body> 
 </html>
 

@@ -391,3 +391,5 @@ CREATE FUNCTION set_allocated (int4, int4) RETURNS int4 AS '
       RETURN u_no;
    END;
 ' LANGUAGE 'plpgsql';
+
+\i procedures.sql

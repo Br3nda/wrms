@@ -3,7 +3,7 @@
   $query = "SELECT lookup_code, lookup_desc FROM lookup_code ";
   $query .= " WHERE source_table='codes' AND source_field='menus' ";
   $query .= " ORDER BY lookup_seq";
-  $result = pg_Exec( $wrms_db, $query);
+  $result = awm_pgexec( $wrms_db, $query);
   if ( ! $result ) {
     $error_loc = "lookhead.php";
     $error_qry = "$query";

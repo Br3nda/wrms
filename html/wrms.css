@@ -1,8 +1,5 @@
-A {color: #5e486f; text-decoration: none;}
-.msglink  {color: #5e486f; text-decoration: none;}
-.msgunmod {color: #5e486f; text-decoration: none;}
-.menu {color: #5e486f; text-decoration: none; font: small-caps bold x-small verdana; background: #886c50; color: #f0fff0; padding: 0px 1px 1px; margin: 0px 1px;}
-.bmenu {color: #5e486f; text-decoration: none;  font: small-caps bold x-small verdana; background: #886c50; color: #f0fff0; padding: 0px 1px 1px; margin: 0px 1px;}
+A, .msglink, .msgunmod {color: #5e486f; text-decoration: none;}
+.menu, .bmenu {color: #5e486f; text-decoration: none; font: small-caps bold x-small verdana; background: #886c50; color: #f0fff0; padding: 0px 1px 1px; margin: 0px 1px;}
 .sbutton, .r {color: #5e486f; text-decoration: none; font: small-caps bold xx-small verdana; background: #886c50; color: #f0fff0; padding: 0px 1px 1px 1px; margin: 0px 1px;}
 .block {text-decoration: none; font: x-small tahoma, sans-serif; color: white;}
 .blockhead {text-decoration: none; font: x-small tahoma, sans-serif; color: white; font-weight: 700;}
@@ -11,8 +8,7 @@ tr.bgcolor1 {background-color: #f4f0dc }
 p, td {font: x-small  tahoma, sans-serif; color: #302080;}
 .sml {font: xx-small tahoma, sans-serif;}
 .help {font: italic x-small times, serif;}
-.block {font: x-small tahoma, sans-serif; color: white;}
-.blocka {font: x-small tahoma, sans-serif; color: white;}
+.block, .blocka {font: x-small tahoma, sans-serif; color: white;}
 .blockhead {font: x-small tahoma, sans-serif; font-weight: 700; color: white;}
 .msgtitle {font: bold x-small verdana, sans-serif; font-weight: 700; color: white; background: #876640; margin: 6px 0px 0px 0px;}
 .msginfo {font: xx-small verdana, sans-serif; margin: 0; text-align: right; color: #5e486f;}

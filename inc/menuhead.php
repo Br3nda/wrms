@@ -2,6 +2,7 @@
 <?php
   echo "<table width=\"100%\" border=\"0\" bgcolor=\"$colors[1]\" cellspacing=\"0\" cellpadding=\"0\">\n";
   echo "<tr><td class=menu><a href=\"$base_url/index.php\"><img src=\"$base_url/images/wrms.gif\" border=\"0\" alt=\"$system_name\" WIDTH=\"200\" HEIGHT=\"25\"></a></td>\n";
+/*
   echo "<td class=menu><font SIZE=1 COLOR=$colors[3]>\n";
   if ( $logged_on ) {
     echo "<span style=\"font-weight: 700; \"><b>$session->fullname</b></span> ($session->user_no)";
@@ -41,13 +42,12 @@
     }
     echo "index.php?M=LO>Logoff</a>\n &nbsp; $module_menu";
   }
-?>&nbsp;</font>
-		</TD>
+  echo "&nbsp;</font></TD>\n";
+*/
+?>
 	</tr>
 	<tr>
 		<td COLSPAN=2 HEIGHT="3" BGCOLOR="<?php echo $colors[5]; ?>"><img SRC="<?php echo $base_url; ?>/images/clear.gif" WIDTH="1" HEIGHT="3" BORDER="0" ALT=" "></td>
 	</tr>
 </table>
 </div>
-
-

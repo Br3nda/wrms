@@ -22,7 +22,7 @@
       $query .= " AND session.user_no = '$user_no' ";
     $query .= " ORDER BY session.session_start DESC";
     $query .= " LIMIT 30 ";
-    $result = pg_Exec( $wrms_db, $query );
+    $result = awm_pgexec( $wrms_db, $query );
     if ( ! $result ) {
       $error_loc = "sessionlist-form.php";
       $error_qry = "$query";

@@ -13,7 +13,7 @@ function nice_time( $in_time ) {
 // <P class=helptext>This page lists timesheets.</P>
 ?>
 
-<FORM METHOD=POST ACTION="<?php 
+<form method=post action="<?php 
 echo "$base_url/form.php?form=timelist";
 if ( isset($org_code) && $org_code != "" ) echo "&org_code=$org_code";
 if ( isset($system_code) && $system_code != "" ) echo "&system_code=$system_code";
@@ -65,7 +65,7 @@ if ( isset($user_no) && $user_no != "" ) echo "&user_no=$user_no";
       $query .= " ORDER BY organisation.org_code, request_timesheet.request_id, request_timesheet.work_on";
       $query .= " LIMIT 100 ";
     }
-    $result = pg_Exec( $wrms_db, $query );
+    $result = awm_pgexec( $wrms_db, $query );
     if ( ! $result ) {
       $error_loc = "timelist-form.php";
       $error_qry = "$query";
@@ -74,7 +74,7 @@ if ( isset($user_no) && $user_no != "" ) echo "&user_no=$user_no";
     else {
       echo "<p>&nbsp;" . pg_NumRows($result) . " timesheets found</p>\n"; // <p>$query</p>";
       if ( "$uncharged" != "" ) {
-        echo "<FORM METHOD=POST ACTION=\"$REQUEST_URI";
+        echo "<form method=post action=\"$REQUEST_URI";
         if ( ! strpos( $REQUEST_URI, "uncharged" ) ) echo "&uncharged=1";
         echo "\">\n";
       }
@@ -90,7 +90,7 @@ if ( isset($user_no) && $user_no != "" ) echo "&user_no=$user_no";
       for ( $i=0; $i < pg_NumRows($result); $i++ ) {
         $timesheet = pg_Fetch_Object( $result, $i );
 
-        if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
+        if ( ($i % 2) == 0 ) echo "<tr bgcolor=$colors[6]>";
         else echo "<tr bgcolor=$colors[7]>";
 
         echo "<td class=sml>$timesheet->requester_name ($timesheet->abbreviation, #$timesheet->debtor_no)</td>\n";
@@ -107,7 +107,7 @@ if ( isset($user_no) && $user_no != "" ) echo "&user_no=$user_no";
 
         if ( "$uncharged" != "" ) {
           echo "</tr>\n";
-          if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
+          if ( ($i % 2) == 0 ) echo "<tr bgcolor=$colors[6]>";
           else echo "<tr bgcolor=$colors[7]>";
           echo "<td colspan=6><table align=right border=0 width=100%><tr>\n";
           echo "<td class=cols valign=top align=right width=90%>$timesheet->brief<br>";

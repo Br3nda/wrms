@@ -13,7 +13,7 @@ function get_user_list( $status="", $org="", $current ) {
   if ( "$org" <> "" )         $query .= " usr.org_code='$org' ";
   $query .= " ORDER BY usr.fullname; ";
 
-  $rid = pg_Exec( $wrms_db, $query);
+  $rid = awm_pgexec( $wrms_db, $query);
   if ( ! $rid ) {
     echo "<p>$query";
   }

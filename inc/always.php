@@ -1,10 +1,10 @@
 <?php
 /******** File always included into application *********/
 
+$begin_processing = microtime();
 // Always connect to the database...
 $wrms_db = pg_Connect("dbname=wrms user=general");
 $dbconn = $wrms_db;
-pg_Exec( $dbconn, "SET DATESTYLE TO 'Postgres';");
 
 $admin_email = "wrmsadmin@catalyst.net.nz";
 $basefont = "verdana,sans-serif";
@@ -92,7 +92,7 @@ $fonts = array( "tahoma",		// primary font
 // Set the bebug variable initially to '0'. This variable is made available 
 // to all local routines for verbose printing. 
 
-$debuglevel = 0;
+if ( !isset($debuglevel) ) $debuglevel = 0;
 
 class Setting {
   var $parameters;  // parameters we have set
@@ -127,7 +127,7 @@ class Setting {
 //-----------------------------------------
 // Function to tell difference between two 'microtime()'s
 //-----------------------------------------
-function awm_duration( $t1, $t2 ) {
+function duration( $t1, $t2 ) {
   // Return a duration, given a "mS S" string such as returned from microtime()
   list( $ms1, $s1 ) = explode( " ", $t1 );
   list( $ms2, $s2 ) = explode( " ", $t2 );
@@ -143,16 +143,32 @@ function awm_duration( $t1, $t2 ) {
 // - successful queries are timed and logged to syslog.
 // - failed queries are logged and contain string "QF:"
 ///////////////////////////////////////////////////////////////////////////////////////////////
-function awm_pgexec( $dbconnection, $query ) {
-  global $sysabbr;
+$total_query_time = 0.0 ;
+function awm_pgexec( $myconn, $query, $location="", $abort_on_fail=false, $mydbg=0 ) {
+  global $sysabbr, $debuglevel, $total_query_time, $REQUEST_URI;
 
   $a1 = microtime();
-  $result = pg_Exec( $dbconnection, $query );
+  $result = pg_Exec( $myconn, $query );
   $a2 = microtime();
-  if ( !$result )
-    error_log( "$sysabbr QF: $query", 0);
-  else
-    error_log( "$sysabbr took " . awm_duration($a1, $a2) . " seconds to do: $query", 0);
+  $locn = sprintf( "%-12.12s", $location);
+  $taken = sprintf( "%2.06lf", duration( $a1, $a2 ));
+  $total_query_time += $taken;
+  if ( !$result && $abort_on_fail ) {
+    $result = pg_Exec( $dbconnection, "ABORT;" );
+    if ( $debuglevel > 4 || $mydbg > 4) error_log( "$sysabbr $locn QF-ABRT: $query", 0);
+  }
+  else if ( !$result )
+    error_log( "$sysabbr $locn QF: $query", 0);
+  else if ( $debuglevel > 4  || $mydbg > 4 ) {
+    error_log( "$sysabbr $locn URI: $REQUEST_URI", 0);
+    error_log( "$sysabbr $locn QT: $taken for: $query", 0);
+  }
+  else if ( $debuglevel > 2  || $mydbg > 2 ) {
+    error_log( "$sysabbr $locn QT: $taken for: " . substr( $query, 0,200), 0);
+  }
+  else if ( $taken > 20 ) {
+    error_log( "$sysabbr $locn SQ: $taken for: $query", 0);
+  }
 
   return $result;
 }
@@ -162,7 +178,7 @@ function awm_pgexec( $dbconnection, $query ) {
 // Handle nicer date formatting.  Note global call to set
 // known DATESTYLE first.
 //-----------------------------------------
-pg_Exec( $dbconn, "SET DATESTYLE TO 'ISO';" );
+awm_pgexec( $dbconn, "SET DATESTYLE TO 'ISO';", "always" );
 function nice_date($str) {
   return substr($str, 11, 5) . ", " . substr($str, 8, 2) . "/" . substr($str, 5, 2) . "/" . substr($str, 0, 4);
 }

@@ -2,6 +2,8 @@
   include("inc/always.php");
   include("inc/options.php");
   include("inc/tidy.php");
+  if ( isset($f) ) $form = $f;
+  $form = eregi_replace( "[^a-z0-9_]", "", $form);
 
   if ( "$submit" <> "") {
     include("inc/$form-valid.php");

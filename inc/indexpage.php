@@ -25,7 +25,7 @@ one of the recently modified requests from the list below.</H4>
     $query .= "ORDER BY last_activity DESC LIMIT 20 ";
   }
   error_log( "wrms indexpage query: $query", 0);
-  $result = pg_Exec( $wrms_db, $query );
+  $result = awm_pgexec( $wrms_db, $query );
   if ( ! $result ) {
     error_log( "wrms indexpage error: $query", 0);
     $error_loc = "indexpage.php";

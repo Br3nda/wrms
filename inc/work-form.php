@@ -16,7 +16,8 @@ function nice_time( $in_time ) {
 <?php
   if ( "$search_for$system_code " != "" ) {
     $query = "SELECT request.*, organisation.*, request_timesheet.*, ";
-    $query .= " worker.fullname AS worker_name, requester.fullname AS requester_name";
+    $query .= " worker.fullname AS worker_name, requester.fullname AS requester_name, ";
+    $query .= " last_status_on(request.request_id) AS status_on, last_status AS status, get_status_desc(last_status) AS status_desc";
     $query .= " FROM request, usr AS worker, usr AS requester, organisation, request_timesheet ";
     $query .= " WHERE request_timesheet.request_id = request.request_id";
     $query .= " AND worker.user_no = work_by_id ";
@@ -69,7 +70,7 @@ function nice_time( $in_time ) {
     $query .= " $order_by ";
     $query .= " LIMIT 100 ";
 
-    $result = pg_Exec( $wrms_db, $query );
+    $result = awm_pgexec( $wrms_db, $query );
     if ( ! $result ) {
       $error_loc = "timelist-form.php";
       $error_qry = "$query";
@@ -83,7 +84,7 @@ function nice_time( $in_time ) {
       for ( $i=0; $i < pg_NumRows($result); $i++ ) {
         $timesheet = pg_Fetch_Object( $result, $i );
 
-        if(floor($i/2)-($i/2)==0) echo "<tr class=bgcolor0>";
+        if ( ($i % 2) == 0 ) echo "<tr class=bgcolor0>";
  //       if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
         else echo "<tr class=bgcolor1>";
  //       else echo "<tr bgcolor=$colors[7]>";
@@ -93,7 +94,7 @@ function nice_time( $in_time ) {
  	echo "<td class=sml valign=top>$timesheet->abbreviation</td>\n";
  	echo "<td class=sml valign=top>$timesheet->debtor_no</td>\n";
         echo "<td class=sml valign=top><a href=\"/request.php?request_id=$timesheet->request_id\">$timesheet->request_id</a></td>\n";
-
+/*
         $sub_query = "SELECT status_on, status_code, lookup_code.lookup_desc ";
         $sub_query .= "  FROM request_status, lookup_code";
         $sub_query .= "   WHERE request_status.request_id = $timesheet->request_id ";
@@ -101,19 +102,21 @@ function nice_time( $in_time ) {
         $sub_query .= "   AND lookup_code.source_field = 'status_code'";
         $sub_query .= "   AND lookup_code.lookup_code = request_status.status_code";
         $sub_query .= "   ORDER BY status_on DESC LIMIT 1";
-        $sub_query_result = pg_Exec( $wrms_db, $sub_query );
+        $sub_query_result = awm_pgexec( $wrms_db, $sub_query );
         $sub_query_row = pg_Fetch_Object($sub_query_result, 0) ;
+*/
+        echo "<td class=sml valign=top>" ;
+//          if ( pg_NumRows($sub_query_result) > 0 ) echo $sub_query_row->lookup_desc ;
+        echo "$timesheet->status_desc";
+        echo  "</td>\n";
 
         echo "<td class=sml valign=top>" ;
-          if ( pg_NumRows($sub_query_result) > 0 ) echo $sub_query_row->lookup_desc ;
-        echo  "</td>";
+//          if ( pg_NumRows($sub_query_result) > 0 ) echo substr(nice_date($sub_query_row->status_on),7) ;
+        echo "$timesheet->status_on";
+        echo  "</td>\n";
 
-        echo "<td class=sml valign=top>" ;
-          if ( pg_NumRows($sub_query_result) > 0 ) echo substr(nice_date($sub_query_row->status_on),7) ;
-        echo  "</td>";
-
-        echo "<td class=sml valign=top>$timesheet->brief</td>";
-        echo "<td class=sml valign=top>" . html_format( $timesheet->work_description) . "</td>";
+        echo "<td class=sml valign=top>$timesheet->brief</td>\n";
+        echo "<td class=sml valign=top>" . html_format( $timesheet->work_description) . "</td>\n";
         echo "<td class=sml valign=top>$timesheet->worker_name</td>\n";
         echo "<td class=sml valign=top nowrap>" . substr( nice_date($timesheet->work_on), 7) . "</td>\n";
         echo "<td class=sml valign=top>$timesheet->work_quantity $timesheet->work_units</td>\n";
@@ -144,14 +147,14 @@ function nice_time( $in_time ) {
           echo "<input name=\"chg_on[$timesheet->timesheet_id]\" type=text size=10 value=\"" . date("d/m/Y") . "\">";
         }
         else echo substr( nice_date($timesheet->work_charged), 7) ;
-        echo "</td>";
+        echo "</td>\n";
 
         echo "<td class=sml valign=top>";
         if ( "$timesheet->work_charged" == "" && "$timesheet->ok_to_charge" == "t" ) {
           echo "<input name=\"chg_inv[$timesheet->timesheet_id]\" type=text size=6 >";
         }
         else echo $timesheet->charged_details ;
-        echo "</td>";
+        echo "</td>\n";
 
         echo "</tr>\n";
       }
@@ -160,14 +163,14 @@ function nice_time( $in_time ) {
         echo "</form>\n";
       }
 
-      echo "<FORM METHOD=POST ACTION=\"$REQUEST_URI\">\n";
+//      echo "<FORM METHOD=POST ACTION=\"$REQUEST_URI\">\n";
       echo "<thead><tr>";
 
       echo "<th class=cols>Requested by";
       echo '<select class=sml name="filter[request.requester_id]">' . "\n";
       echo "<option class=sml value=''>All</option>\n";
       $select_query = "SELECT user_no, fullname FROM usr ORDER BY fullname";
-      $select_result = pg_Exec( $wrms_db, $select_query );
+      $select_result = awm_pgexec( $wrms_db, $select_query );
       for ( $i=0; $i < pg_NumRows($select_result); $i++ ) {
         $select_option = pg_Fetch_Object( $select_result, $i );
         echo "<option class=sml value='$select_option->user_no'";
@@ -183,7 +186,7 @@ function nice_time( $in_time ) {
       echo '<select class=sml name="filter[organisation.org_code]">' . "\n";
       echo "<option class=sml value=''>All</option>\n";
       $select_query = "SELECT org_code, abbreviation FROM organisation ORDER BY abbreviation";
-      $select_result = pg_Exec( $wrms_db, $select_query );
+      $select_result = awm_pgexec( $wrms_db, $select_query );
       for ( $i=0; $i < pg_NumRows($select_result); $i++ ) {
         $select_option = pg_Fetch_Object( $select_result, $i );
         echo "<option class=sml value='$select_option->org_code'";
@@ -208,7 +211,7 @@ function nice_time( $in_time ) {
       $select_query .= " WHERE lookup_code.source_table = 'request' ";
       $select_query .= " AND lookup_code.source_field = 'status_code' ";
       $select_query .= " ORDER BY lookup_code.lookup_desc";
-      $select_result = pg_Exec( $wrms_db, $select_query );
+      $select_result = awm_pgexec( $wrms_db, $select_query );
       for ( $i=0; $i < pg_NumRows($select_result); $i++ ) {
         $select_option = pg_Fetch_Object( $select_result, $i );
         echo "<option class=sml value=\"'$select_option->lookup_code'\"";
@@ -238,7 +241,7 @@ function nice_time( $in_time ) {
       echo "</tr>\n";
       echo "</thead>\n";
 
-      echo "</form>\n";
+//      echo "</form>\n";
 
       echo "</table>\n";
     }

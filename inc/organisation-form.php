@@ -4,7 +4,7 @@
   if ( isset($org_code) && $org_code > 0 ) {
 
     $query = "SELECT * FROM organisation WHERE org_code='$org_code' ";
-    $rid = pg_Exec( $wrms_db, $query);
+    $rid = awm_pgexec( $wrms_db, $query);
     if ( ! $rid ) {
       $error_loc = "inc/organisation-form.php";
       $error_qry = "$query";
@@ -18,7 +18,7 @@
     // Pre-build the list of systems
     if ( "$error_qry" == "" ) {
       $query = "SELECT * FROM work_system";
-      $sys_res = pg_Exec( $wrms_db, $query );
+      $sys_res = awm_pgexec( $wrms_db, $query );
       if ( ! $sys_res ) {
         $error_loc = "inc/organisation-form.php";
         $error_qry = "$query";
@@ -29,7 +29,7 @@
   }
 
   $query = "SELECT system_code FROM org_system WHERE org_code='$org_code' ";
-  $result = pg_Exec( $wrms_db, $query );
+  $result = awm_pgexec( $wrms_db, $query );
   if ( ! $result ) {
     $error_loc = "inc/organisation-form.php";
     $error_qry = "$query";

@@ -35,7 +35,7 @@
     }
     $query .= " ORDER BY organisation.org_name ";
     $query .= " LIMIT 100 ";
-    $result = pg_Exec( $wrms_db, $query );
+    $result = awm_pgexec( $wrms_db, $query );
     if ( ! $result ) {
       $error_loc = "orglist-form.php";
       $error_qry = "$query";

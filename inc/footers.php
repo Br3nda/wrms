@@ -25,10 +25,20 @@ if ( is_object ( $settings ) ) {
   if ( $session->user_no > 0 )
     $query .= "UPDATE usr SET config_data='" . $settings->to_save() . "' WHERE user_no=$session->user_no; ";
 
-  $result = pg_Exec( $dbconn, $query );
+  $result = awm_pgexec( $dbconn, $query );
   if ( !$result ) {
     error_log( "$sysabbr footers QF: $query", 0);
   }
 */
+
+
+  error_reporting(7);
+  if ( $debuglevel > 0 ) {
+    $total_query_time = sprintf( "%3.06lf", $total_query_time );
+    error_log( "$sysabbr total_query_ TQ: $total_query_time URI: $REQUEST_URI", 0);
+    $total_time = sprintf( "%3.06lf", duration( $begin_processing, microtime() ));
+    error_log( "$sysabbr process_time TT: $total_time      $HTTP_USER_AGENT $HTTP_REFERER  ", 0);
+  }
+
 }
 ?>

@@ -28,7 +28,7 @@
     $query .= " AND work_system.system_code=request.system_code";
 
     /* now actually query the database... */
-    $rid = pg_Exec( $wrms_db, $query);
+    $rid = awm_pgexec( $wrms_db, $query);
     if ( ! $rid ) {
       $error_loc = "request-form.php";
       $error_qry = "$query";
@@ -38,7 +38,7 @@
     if ( ! $rows ) {
       /* We do a really basic query to make sure we actually get the request */
 //      $query = "SELECT * FROM request WHERE request_id='$request_id' ";
-//      $rid = pg_Exec( $wrms_db, $query);
+//      $rid = awm_pgexec( $wrms_db, $query);
 //      if ( ! $rid ) {
 //        $error_loc = "request-form.php";
 //        $error_qry = "$query";

@@ -6,7 +6,7 @@
     $query .= " AND (lookup_desc~*'$stext' OR lookup_code~*'$stext') ";
   $query .= " ORDER BY source_table, source_field, lookup_seq, lookup_code";
 
-  $result = pg_Exec( $wrms_db, $query );
+  $result = awm_pgexec( $wrms_db, $query );
   if ( ! $result ) {
     $error_loc = "inc/looklist.php";
     $error_qry = "$query";

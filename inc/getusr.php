@@ -3,7 +3,7 @@
     $query = "SELECT * ";
     $query .= " FROM usr ";
     $query .= " WHERE user_no='$user_no' ";
-    $usr_res = pg_Exec( $wrms_db, $query );
+    $usr_res = awm_pgexec( $wrms_db, $query );
     if ( ! $usr_res ) {
       $error_loc = "getusr.php";
       $error_qry = "$query";
@@ -16,7 +16,7 @@
       $query .= " FROM group_member, ugroup";
       $query .= " WHERE group_member.user_no=$user_no ";
       $query .= " AND group_member.group_no=ugroup.group_no";
-      $result = pg_Exec( $wrms_db, $query );
+      $result = awm_pgexec( $wrms_db, $query );
       if ( ! $result ) {
         $error_loc = "getusr.php";
         $error_qry = "$query";
@@ -33,7 +33,7 @@
       $query = "SELECT system_code, role FROM system_usr";
       $query .= " WHERE user_no=$user_no ";
       $query .= " ORDER BY role, system_code ";
-      $result = pg_Exec( $wrms_db, $query );
+      $result = awm_pgexec( $wrms_db, $query );
       if ( ! $result ) {
         $error_loc = "getusr.php";
         $error_qry = "$query";

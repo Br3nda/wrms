@@ -7,7 +7,7 @@ function get_organisation_list( $current="", $maxwidth=50 ) {
   $query = "SELECT * ";
   $query .= "FROM organisation ";
   $query .= " ORDER BY abbreviation";
-  $rid = pg_Exec( $wrms_db, $query);
+  $rid = awm_pgexec( $wrms_db, $query);
   if ( ! $rid ) {
     echo "<p>$query";
   }

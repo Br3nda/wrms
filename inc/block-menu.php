@@ -19,6 +19,7 @@
     echo "<br>\n &nbsp;<a href=$base_url/form.php?form=orglist class=block>All&nbsp;Organisations</a>";
     echo "<br>\n &nbsp;<a href=$base_url/form.php?form=syslist class=block>All&nbsp;Systems</a>";
     echo "<br>\n &nbsp;<a href=$base_url/form.php?form=timelist&user_no=$session->user_no&uncharged=1 class=block>My&nbsp;Work</a>";
+    echo "<br>\n &nbsp;<a href=$base_url/form.php?f=work&user_no=$session->user_no&uncharged=1 class=block>Gav's&nbsp;Work</a>";
     echo "<br>\n &nbsp;<a href=$base_url/form.php?form=timelist&uncharged=1 class=block>All&nbsp;Work</a>";
   }
 

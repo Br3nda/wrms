@@ -12,7 +12,7 @@
   if ( "$M" == "LC" ) {
     $query = "SELECT * FROM usr WHERE ";
     $query .= "username=LOWER('$E')";
-    $result = pg_Exec( $wrms_db, $query );
+    $result = awm_pgexec( $wrms_db, $query );
 
     if ( ! $result ) {
       $error_loc = "inc/options.php";
@@ -29,7 +29,7 @@
       }
       else {
         $query = "INSERT INTO session (user_no) VALUES( '$usr->user_no' )";
-        $result = pg_Exec( $wrms_db, $query );
+        $result = awm_pgexec( $wrms_db, $query );
         if ( ! $result ) {
           $error_loc = "index.php";
           $error_qry = "$query";
@@ -38,7 +38,7 @@
           $query = "SELECT * FROM session WHERE session.user_no='$usr->user_no' ";
           $query .= " ORDER BY session_id DESC";
 //          $query .= " LIMIT 1";
-          $result = pg_Exec( $wrms_db, $query );
+          $result = awm_pgexec( $wrms_db, $query );
           if ( ! $result ) {
             $error_loc = "index.php";
             $error_qry = "$query";
@@ -65,7 +65,7 @@
   else if ( "$M" == "forgot" ) {
     $query = "SELECT * FROM usr WHERE ";
     $query .= " username=LOWER('$E')";
-    $result = pg_Exec( $wrms_db, $query );
+    $result = awm_pgexec( $wrms_db, $query );
 
     if ( ! $result ) {
       $error_loc = "index.php";
@@ -97,7 +97,7 @@
   if ( "$M" <> "LO" && "$session_id" <> "" ) {
     list( $session_test, $session_hash) = explode( " ", $session_id);
     $query = "SELECT * FROM session, usr WHERE session_id='$session_test' AND session.user_no=usr.user_no ";
-    $result = pg_Exec( $wrms_db, $query );
+    $result = awm_pgexec( $wrms_db, $query );
     if ( ! $result ) {
       $error_loc = "index.php";
       $error_qry = "$query";
@@ -112,13 +112,13 @@
       else {
         $query = "UPDATE session SET session_end='now' WHERE session_id='$session_test'; ";
         $query .= "UPDATE usr SET last_accessed='now' WHERE user_no=$session->user_no; ";
-        $result = pg_Exec( $wrms_db, $query );
+        $result = awm_pgexec( $wrms_db, $query );
         $logged_on = true;
         $settings = new Setting( $session->config_data );
 
         $query = "SELECT * FROM group_member, ugroup WHERE group_member.group_no=ugroup.group_no ";
         $query .= " AND group_member.user_no='$session->user_no'";
-        $result = pg_Exec( $wrms_db, $query );
+        $result = awm_pgexec( $wrms_db, $query );
         if ( ! $result ) {
           $error_loc = "inc/options.php";
           $error_qry = "$query";
@@ -136,7 +136,7 @@
         }
         else
           $query = "SELECT system_code, role FROM system_usr WHERE user_no=$session->user_no ";
-        $result = pg_Exec( $wrms_db, $query );
+        $result = awm_pgexec( $wrms_db, $query );
         if ( ! $result ) {
           $error_loc = "inc/options.php";
           $error_qry = "$query";

@@ -31,7 +31,7 @@
     }
     $query .= " ORDER BY work_system.system_code ";
     $query .= " LIMIT 100 ";
-    $result = pg_Exec( $wrms_db, $query );
+    $result = awm_pgexec( $wrms_db, $query );
     if ( ! $result ) {
       $error_loc = "syslist-form.php";
       $error_qry = "$query";

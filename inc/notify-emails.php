@@ -8,7 +8,7 @@ function notify_emails( $dbid, $req_id ) {
   $query .= "WHERE (request_interested.user_no = usr.user_no";
   $query .=      " AND request_interested.request_id = $req_id) ";
 
-  $peopleq = pg_Exec( $dbid, $query);
+  $peopleq = awm_pgexec( $dbid, $query);
 
   if ( $peopleq ) {
     $rows = pg_NumRows($peopleq);

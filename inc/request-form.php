@@ -47,8 +47,8 @@
 
 <?php echo "$tbldef bgcolor=$colors[7]><TR>$hdcell<th bgcolor=$colors[8]>";
   if ( ! $plain ) {
-    echo "<FORM ACTION=\"request.php\" METHOD=POST>";
-    echo "<INPUT TYPE=\"hidden\" NAME=\"request_id\" VALUE=\"$request->request_id\">"; 
+    echo "<form action=\"request.php\" method=post enctype=\"multipart/form-data\">";
+    echo "<input type=\"hidden\" name=\"request_id\" value=\"$request->request_id\">"; 
   }
 ?>&nbsp;</th>
 <TD CLASS=h3 colspan=2 ALIGN=RIGHT<?php echo " bgcolor=$colors[8]"; ?>><FONT SIZE=+1 color=<?php echo $colors[1]; ?>><B>Request details</B></FONT></TD></TR>
@@ -182,7 +182,7 @@
 <?php /***** Update Details */
   if ( isset( $request ) ) {
     $query = "SELECT * FROM request_update, system_update WHERE request_update.request_id = $request->request_id AND request_update.update_id = system_update.update_id ORDER BY request_update.update_id DESC";
-    $updateq = pg_Exec( $wrms_db, $query);
+    $updateq = awm_pgexec( $wrms_db, $query);
     $rows = pg_NumRows($updateq);
     if ( $rows > 0 ) {
 ?>
@@ -225,7 +225,7 @@
     $query .= "WHERE request_quote.request_id = $request->request_id ";
     $query .= "AND request_quote.quote_by_id = usr.user_no ";
     $query .= " ORDER BY request_quote.quote_id";
-    $quoteq = pg_Exec( $wrms_db, $query);
+    $quoteq = awm_pgexec( $wrms_db, $query);
     $rows = pg_NumRows($quoteq);
     if ( $rows > 0 || (($allocated_to || $sysmgr) && !$plain) ) {
 ?>
@@ -292,7 +292,7 @@
   $query .= "AND usr.user_no=request_allocated.allocated_to_id ";
   $query .= "AND organisation.org_code = usr.org_code ";
   $query .= "ORDER BY request_allocated.allocated_on ";
-  $allocq = pg_Exec( $wrms_db, $query);
+  $allocq = awm_pgexec( $wrms_db, $query);
   $rows = pg_NumRows($allocq);
   if ( $rows > 0 || (! $plain && (($roles['wrms']['Admin'] || $roles['wrms']['Support'] ))) ) {
     echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=3>&nbsp;</TD></TR>\n";
@@ -323,7 +323,7 @@
   $query .= "WHERE request_timesheet.request_id = $request->request_id ";
   $query .= "AND request_timesheet.work_by_id = usr.user_no ";
   $query .= "ORDER BY request_timesheet.work_on ";
-  $workq = pg_Exec( $wrms_db, $query);
+  $workq = awm_pgexec( $wrms_db, $query);
   $rows = pg_NumRows($workq);
   if ( $rows > 0  || (($allocated_to || $sysmgr) && !$plain) ) {
 ?>
@@ -397,7 +397,7 @@
   $query .= "WHERE request_id = '$request->request_id' ";
   $query .= "AND request_interested.user_no = usr.user_no ";
   $query .= "AND organisation.org_code = usr.org_code ";
-  $peopleq = pg_Exec( $wrms_db, $query);
+  $peopleq = awm_pgexec( $wrms_db, $query);
   $rows = pg_NumRows($peopleq);
   if ( $rows > 0 ) {
     echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=3>&nbsp;</TD></TR>\n";
@@ -442,7 +442,7 @@
 <?php /***** Notes */
   $noteq = "SELECT * FROM request_note WHERE request_note.request_id = '$request->request_id' ";
   $noteq .= "ORDER BY note_on ";
-  $note_res = pg_Exec( $wrms_db, $noteq );
+  $note_res = awm_pgexec( $wrms_db, $noteq );
   $rows = pg_NumRows($note_res);
   if ( $rows > 0 ) {
 ?>
@@ -473,7 +473,7 @@
   $statq .= " AND status.source_table='request' AND status.source_field='status_code' ";
   $statq .= " AND usr.user_no=request_status.status_by_id ";
   $statq .= " ORDER BY status_on ";
-  $stat_res = pg_Exec( $wrms_db, $statq);
+  $stat_res = awm_pgexec( $wrms_db, $statq);
   $rows = pg_NumRows($stat_res);
   if ( $rows > 0 ) {
 ?>

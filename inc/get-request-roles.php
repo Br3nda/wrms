@@ -8,7 +8,7 @@
 
   /* Has the person been allocated this request? */
   $query = "SELECT * FROM request_allocated WHERE request_allocated.allocated_to_id= $session->user_no";
-  $rid = pg_Exec( $wrms_db, $query);
+  $rid = awm_pgexec( $wrms_db, $query);
   if ( ! $rid ) {
     $error_loc = "get-request-roles.php";
     $error_qry = "$query";
@@ -21,7 +21,7 @@
   $query .= " AND system_usr.role ~ '[CS]' ";
   if ( isset($request) )
     $query .= " AND system_usr.system_code = '$request->system_code' ";
-  $rid = pg_Exec( $wrms_db, $query);
+  $rid = awm_pgexec( $wrms_db, $query);
   if ( ! $rid ) {
     $error_loc = "get-request-roles.php";
     $error_qry = "$query";
@@ -34,7 +34,7 @@
   $query .= " AND org_usr.role~'[CS]' ";
   if ( isset($request) )
     $query .= " AND org_usr.org_code = '$request->org_code' ";
-  $rid = pg_Exec( $wrms_db, $query);
+  $rid = awm_pgexec( $wrms_db, $query);
   if ( ! $rid ) {
     $error_loc = "get-request-roles.php";
     $error_qry = "$query";

@@ -82,6 +82,7 @@ CREATE or REPLACE FUNCTION column_type( TEXT, TEXT ) RETURNS TEXT AS '
 ' LANGUAGE 'plpgsql';
 
 
+DROP FUNCTION last_status_on(int4);
 CREATE or REPLACE FUNCTION last_status_on( INT4 ) RETURNS TIMESTAMP AS '
   DECLARE
     res TIMESTAMP;
@@ -170,6 +171,7 @@ CREATE or REPLACE FUNCTION user_votes (int4, int4, int4 ) RETURNS int4 AS '
 ' LANGUAGE 'plpgsql';
 
 -- The last date a request was made for a particular organisation
+DROP FUNCTION last_org_request(int4);
 CREATE or REPLACE FUNCTION last_org_request ( int4 ) RETURNS timestamp AS '
    DECLARE
       in_org_code ALIAS FOR $1;
@@ -327,23 +329,24 @@ CREATE OR REPLACE FUNCTION request_sla_code(INTERVAL,CHAR)
     AS 'SELECT text( date_part( ''hour'', $1) ) || ''|'' || text(CASE WHEN $2 ='' '' THEN ''O'' ELSE $2 END)
     ' LANGUAGE 'sql';
 
-CREATE FUNCTION get_last_note_on(INT4)
+DROP FUNCTION get_last_note_on(int4);
+CREATE OR REPLACE FUNCTION get_last_note_on(INT4)
     RETURNS TIMESTAMP
-    AS 'SELECT max(note_on) FROM request_note WHERE request_note.request_id = $1
+    AS 'SELECT max(note_on)::timestamp FROM request_note WHERE request_note.request_id = $1
     ' LANGUAGE 'sql';
 
-CREATE FUNCTION get_lookup_desc( TEXT, TEXT, TEXT )
+CREATE OR REPLACE FUNCTION get_lookup_desc( TEXT, TEXT, TEXT )
     RETURNS TEXT
     AS 'SELECT lookup_desc AS RESULT FROM lookup_code
                WHERE source_table = $1 AND source_field = $2 AND lookup_code = $3;' LANGUAGE 'sql';
 
-CREATE FUNCTION get_lookup_misc( TEXT, TEXT, TEXT )
+CREATE OR REPLACE FUNCTION get_lookup_misc( TEXT, TEXT, TEXT )
     RETURNS TEXT
     AS 'SELECT lookup_misc AS RESULT FROM lookup_code
                WHERE source_table = $1 AND source_field = $2 AND lookup_code = $3;' LANGUAGE 'sql';
 
 
-CREATE FUNCTION get_status_desc(CHAR)
+CREATE OR REPLACE FUNCTION get_status_desc(CHAR)
     RETURNS TEXT
     AS 'SELECT lookup_desc AS status_desc FROM lookup_code
             WHERE source_table=''request'' AND source_field=''status_code''

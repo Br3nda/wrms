@@ -56,7 +56,7 @@
         $query .= " WHERE user_no='$user_no' ";
       }
       $result = pg_Exec( $wrms_db, $query );
-      /* if ( ! $result ) */ because .= "<p>$query</p>";
+      /* if ( ! $result ) */ $because .= "<p>$query</p>";
 
       // Roles
       if ( isset($UserRole) && is_array($UserRole) ) {
@@ -71,7 +71,7 @@
               $query .= " WHERE module_name='$k1' ";
               $query .= " AND group_name='$k2' ";
               $result = pg_Exec( $wrms_db, $query );
-              /* if ( ! $result ) */ because .= "<p>$query</p>";
+              /* if ( ! $result ) */ $because .= "<p>$query</p>";
             }
           }
           else {
@@ -82,7 +82,7 @@
             $query .= " WHERE module_name='$k2' ";
             $query .= " AND group_name='$val2' ";
             $result = pg_Exec( $wrms_db, $query );
-            /* if ( ! $result ) */ because .= "<p>$query</p>";
+            /* if ( ! $result ) */ $because .= "<p>$query</p>";
           }
         }
         reset($UserRole);

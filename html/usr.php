@@ -134,7 +134,7 @@ echo "</td>\n</tr>\n";
   </td>
 </tr>\n";
 
-  $UserFontsize = $usr->settings->get('fontsize');
+  if ( is_object( $usr->settings ) ) $UserFontsize = $usr->settings->get('fontsize');
   if ( "$UserFontsize" == "" ) $UserFontsize = "10";
   echo "<tr>
   <th align=right class=rows>Base Font Size</th>

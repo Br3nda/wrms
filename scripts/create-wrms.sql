@@ -1,3 +1,4 @@
+-- This is the table of users fir the system
 CREATE TABLE usr (
     user_no SERIAL,
     validated INT2 DEFAULT 0,
@@ -335,6 +336,7 @@ CREATE TABLE system_usr (
 GRANT SELECT,INSERT,UPDATE,DELETE ON system_usr TO general;
 GRANT ALL ON system_usr TO andrew;
 
+-- I think this is bogus and not used, if it ever was.
 CREATE TABLE org_usr (
     user_no INT4,
 		org_code INT4,

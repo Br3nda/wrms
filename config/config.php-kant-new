@@ -31,26 +31,26 @@ $base_url = "";
 $base_dir = $DOCUMENT_ROOT;
 $attachment_dir = "attachments"; // ***** CHANGE THIS  *****
 $module = "base";
-$images = "images";
-// $stylesheet = "andrew.css";
+$images = "catimg";
+// $images = "images";
+$stylesheet = "andrew.css";
+// $stylesheet = "main.css";
 $colors = array(
   "bg1" => "#ffffff", // primary background
   "fg1" =>  "#000000", // text on primary background
-  "link1" =>  "#660000", // Links on row0/row1
+  "link1" =>  "#880000", // Links on row0/row1
   "bg2" =>  "#660000", // secondary background (behind menus)
   "fg2" =>  "#ffffff", // text on links
   "bg3" =>  "#000000", // tertiary background
   "fg3" =>  "#ffffff", // tertiary foreground
   "hv1" =>  "#660000", // text on hover
-  "hv2" =>  "#f0ff4c", // other text on hover
+  "hv2" =>  "#f0f0f0", // other text on hover
   "row0" =>  "#ffffff", // dark rows in listings
-  "row1" =>  "#f0ece8", // light rows in listings
+  "row1" =>  "#f0f0f0", // light rows in listings
   "link2" =>  "#333333", // Links on row0/row1
   "bghelp" => "#ffffff", // help background
   "fghelp" =>  "#000000", // text on help background
-  8 =>  "#583818", // Form headings
-  9 =>  "#ccbea1", // Mandatory forms
-  10 =>  "#50a070", // whatever!
+  "mand" =>  "#c8c8c8", // Mandatory forms
 
 // Parts of a text block (default colors - some blocks might code around this
     "blockfront" => "black",
@@ -75,18 +75,26 @@ $fonts = array( "tahoma",   // primary font
 if ( !isset($debuglevel) ) $debuglevel = 2;
 
 function block_open(  $bgcolor="", $border_color="") {
+
+  echo '<div class="block">';
+  return;
+
   global $colors;
   if ( $bgcolor == "" ) $bgcolor=$colors["blockback"];
   if ( $border_color == "" ) $border_color=$colors["blocksides"];
   echo "<table cellpadding=\"1\" cellspacing=\"0\" border=\"0\" width=\"100%\" bgcolor=\"$border_color\" style=\" margin: 0 1px;\">\n";
   echo "<tr><td>\n";
   echo "<table width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" bgcolor=\"$bgcolor\">\n";
+  echo "<tr><td class=\"block\">\n";
 }
 
 //-----------------------------------------
 // Function to title a block of options / menus / whatever
 //-----------------------------------------
 function block_title( $title="&nbsp;", $bgcolor="", $border_color="") {
+  echo '<div class="blockhead">'.$title.'</div>';
+  return;
+
   global $colors;
   if ( $bgcolor == "" ) $bgcolor=$colors["blocktitle"];
   if ( $border_color == "" ) $border_color=$colors["blocksides"];
@@ -101,55 +109,77 @@ function block_title( $title="&nbsp;", $bgcolor="", $border_color="") {
 // Function to finish a block of options / menus / whatever
 //-----------------------------------------
 function block_close() {
+  echo '</div>';
+  return;
+  echo "</td></tr>\n";
+  echo "<img src=\"/images/clear.gif\" width=\"155\" height=\"50\" hspace=\"0\" vspace=\"2\" border=\"0\">\n";
   echo "</table>\n";
   echo "</td></tr>\n";
   echo "</table>\n";
 }
 
-/*
 require_once("organisation-selectors-sql.php");
 
 //-----------------------------------------
 // Function to do the page header, that is local to this installation
 //-----------------------------------------
-function local_page_header() {
-  global $system_name, $sysabbr, $session, $images;
+function x_local_inline_styles() {
+  //global $colors;
 
-  echo '<div id="topbar"><a href="/"><img src="'.$images.'/logo_main.gif" border="0"></a></div>';
+  $colors['row0'] = '#f4f000';
+  $colors['row0'] = '#00f0f4';
+  $colors['link2'] = '#777777';
+  $colors['link2'] = '#555500';
+  echo <<<EOSTYLE
+.row0 { background: $colors[row0]; color: $colors[link2]; }
+.row1 { background: $colors[row1]; color: $colors[link2]; }
+EOSTYLE;
+
+}
+
+//-----------------------------------------
+// Function to do the page header, that is local to this installation
+//-----------------------------------------
+function local_page_header() {
+  global $system_name, $sysabbr, $session, $images, $tmnu;
+
+  echo '<div id="topbar"><a href="/"><img src="'.$images.'/logo_main.gif" border="0"></a></div>'."\n";
   if ( $session->logged_in && !preg_match( "/(requestlist|wrsearch)\.php/i", $GLOBALS['REQUEST_URI'] ) ) {
     echo '<div id="searchbar">';
-    echo '<form action="/requestlist.php" method="post" style="display:inline;" name="search">';
+    echo '<form action="/requestlist.php" method="post" name="search">';
 
-    echo '<span class="prompt">Search:</span>';
-    echo '<span class="entry"><input type="text" name="search_for" /></span>';
+    echo '<span class="prompt" style="vertical-align: 0%;">Find:</span>';
+    echo '<span class="entry"><input class="search_for" type="text" name="search_for" /></span>';
 
     $systems = new PgQuery(SqlSelectSystems($GLOBALS['org_code']));
     $system_list = $systems->BuildOptionList($GLOBALS['system_code'],'Config::LocPgHdr');
-    echo '<span class="prompt">Systems</span>';
-    echo '<span class="entry"> <select name="system_code" class="flookup"><option value="0">-- select --</option>'.$system_list;
+    echo '<span class="prompt" style="vertical-align: 0%;">Systems:</span>';
+    echo '<span class="entry"><select name="system_code" class="search_for"><option value="0">-- select --</option>'.$system_list;
     echo '</select></span>';
-    echo '<span class="entry"><input type="submit" alt="go" /></span>';
-    echo '</form></div>';
-
+    echo '<span class="entry""><input type="submit" alt="go" class="fsubmit" value="Search" /></span>';
+    echo '</form>';
+    echo '</div>'."\n";
   }
+
+  echo '<div id="top_menu">';
+  if ( isset($tmnu) && is_object($tmnu) && $tmnu->Size() > 0 ) {
+    echo $tmnu->Render();
+  }
+  echo '</div>'."\n";
 
 }
 
 //-----------------------------------------
 // Function to do the page footer, that is local to this installation
 //-----------------------------------------
-function local_menu_bar() {
-  global $system_name, $sysabbr, $session, $images;
-
-  echo '<div id="top_menu">';
-  echo '</div>';
+function local_menu_bar(&$tmnu) {
 }
 
 //-----------------------------------------
 // Function to do the page footer, that is local to this installation
 //-----------------------------------------
 function local_page_footer() {
-  global $sysabbr;
+  echo '<div id="page_footer">&nbsp;</div>';
 }
 
 //-----------------------------------------
@@ -169,5 +199,4 @@ on Catalyst, please visit  <a href="http://www.catalyst.net.nz">www.catalyst.net
 <?php
 }
 
-*/
 ?>

@@ -183,7 +183,7 @@
   }
   else {
     if ( $editable || $prioritisable  ) {
-      printf( "<SELECT class=sml name=\"new_urgency\">$urgencies</SELECT>", ($use_sla ? "sla_code" : "urgency"));
+      printf( "<SELECT class=sml name=\"new_%s\">$urgencies</SELECT>", ($use_sla ? "sla_code" : "urgency"));
       if ( $session->current_sla ) {
         echo " <b>OR</b> ";
         echo "<select class=sml name=\"new_sla_code\">$sla_urgencies</select>";
@@ -313,8 +313,10 @@
   /* we only show quote details if it is 'quotable' (i.e. requestor, administrator or catalyst owner) */
   if ( $quotable ) {
     if ( $is_request ) {
-      $query = "SELECT *, get_lookup_desc('request_quote','quote_type', request_quote.quote_type) AS type_desc ";
-      $query .= "FROM request_quote, usr ";
+      $query = "SELECT *, au.fullname AS approved_by_fullname , get_lookup_desc('request_quote','quote_type', request_quote.quote_type) AS type_desc ";
+      $query .= "FROM request_quote ";
+      $query .= "LEFT JOIN usr au ON (au.user_no = request_quote.approved_by_id) ";
+      $query .= ", usr ";
       $query .= "WHERE request_quote.request_id = $request->request_id ";
       $query .= "AND request_quote.quote_by_id = usr.user_no ";
       $query .= " ORDER BY request_quote.quote_id";
@@ -324,44 +326,50 @@
     else
       $rows = 0;
     if ( $rows > 0 || (($allocated_to || $sysmgr || is_member_of('Support') ) && !$plain) ) {
-      echo "$tbldef><tr><td class=sml colspan=6>&nbsp;</td></tr><tr>$hdcell";
-      echo "<td class=h3 colspan=6 align=right>Quotations</td></tr>\n";
-
+      echo "$tbldef><tr><td class=sml colspan=10>&nbsp;</td></tr><tr>$hdcell";
+      echo "<td class=h3 colspan=10 align=right>Quotations</td></tr>\n";
       echo "<TR>";
-      if ( $rows > 0 ) echo "<th class=smb>Quote</th><th class=smb>Done By</th><th class=smb>";
-      else echo "<th class=smb colspan=3>";
-      echo "Brief</th>";
-      if ( $rows > 0 ) echo "<th class=smb>Done On</th>";
-      echo "<th class=smb>Type</th><th class=smb>Amount</th>";
-      if ( $rows <= 0 ) echo "<th class=smb>Units</th>";
+      echo "<th class=cols>Quote</th><th class=cols>Quoted By</th><th class=cols>Brief</th>";
+      echo "<th class=cols>Quoted On</th>";
+      echo "<th class=cols>Type</th><th class=cols>Quantity</th><th class=cols>Units</th><th class=cols>Approved By</th>"; 
+      echo "<th class=cols>Approved</th><th class=cols>Inv No</th>";
       echo "</tr>\n";
 
       for ( $i=0; $i < $rows; $i++ ) {
         $quote = pg_Fetch_Object( $quoteq, $i );
-        if ( $i % 2 == 0 ) echo "<tr bgcolor=$colors[row1]>";
-        else echo "<tr bgcolor=$colors[row2]>";
+        printf("<tr class=row%1d>", ($i % 2) );
         echo "<TD ALIGN=CENTER>$quote->quote_id</TD>\n";
-        echo "<TD ALIGN=CENTER>$quote->fullname</TD>\n";
+        echo "<TD>$quote->fullname</TD>\n"; 
         echo "<TD>$quote->quote_brief</TD>\n";
-        echo "<TD ALIGN=CENTER>" . nice_date($quote->quoted_on) . "</TD>\n";
-        echo "<TD ALIGN=CENTER>$quote->quote_type - $quote->type_desc</TD>\n";
-        echo "<TD ALIGN=RIGHT>" . number_format($quote->quote_amount, 2) . " $quote->quote_units</TD>\n</tr>";
+        echo "<TD ALIGN=CENTER>" . substr(nice_date($quote->quoted_on),7) . "</TD>";
+        echo "<TD>$quote->type_desc</TD>";
+        echo "<TD ALIGN=RIGHT>" . number_format($quote->quote_amount, 2) . "</td><td>$quote->quote_units</TD>\n";
+        if ($quote->approved_by_id == '')
+	      echo "<td>$session->fullname</td>" .
+		   "<td align=center><input type=checkbox name=quote_approved_$quote->quote_id></td>";
+	else echo "<TD>$quote->approved_by_fullname</TD>" .
+		  "<td>" . substr(nice_date($quote->approved_on),7) . "</td>";
+        if ( $quote->inv_no == '' &&  (is_member_of('Admin','Support'))) 
+		echo "<TD ALIGN=CENTER><input size=6 type=text name=quote_inv_no_$quote->quote_id></TD>";
+        else echo "<TD ALIGN=CENTER>$quote->inv_no</TD>";
+        echo "</tr>\n";
 
-        if ( $i % 2 == 0 ) echo "<tr bgcolor=$colors[row1]>";
-        else echo "<tr bgcolor=$colors[row2]>";
-        echo "<TD COLSPAN=6>";
+        printf("<tr class=row%1d>", ($i % 2) );
+        echo "<TD COLSPAN=10>";
         echo html_format($quote->quote_details) . "</A></TD></TR>\n";
       }
     }
+
     if ( ($allocated_to || $sysmgr  || is_member_of('Support') ) && ! $plain ) {
       printf("<tr class=row%1d>", ($i % 2) );
-      echo "<TD colspan=3><input name=new_quote_brief size=35 type=text></TD>\n";
+      echo "<TD></td><td>$session->fullname</td>\n";
+      echo "<TD><input name=new_quote_brief size=35 type=text></TD><td></td>\n";
       echo "<TD><select class=sml name=new_quote_type>$quote_types</select></TD>\n";
       echo "<TD ALIGN=RIGHT><input name=new_quote_amount size=10 type=text></td>";
-      echo "<TD ALIGN=LEFT><select class=sml name=new_quote_unit>$quote_units</select></TD></tr>\n";
-      if ( $i % 2 == 0 ) echo "<tr bgcolor=$colors[row1]>";
-      else echo "<tr bgcolor=$colors[row2]>";
-      echo "<TD COLSPAN=6><textarea class=sml name=new_quote_details rows=4 cols=60 wrap=soft></textarea></TD></TR>\n";
+      echo "<TD ALIGN=LEFT><select class=sml name=new_quote_unit>$quote_units</select></TD>" .
+           "<td colspan=3></td></tr>\n";
+      printf("<tr class=row%1d>", ($i % 2) );
+      echo "<TD COLSPAN=10><textarea class=sml name=new_quote_details rows=4 cols=60 wrap=soft></textarea></TD></TR>\n";
     }
     echo "</TABLE>";
   }  // if quotable
@@ -512,7 +520,7 @@
           echo "</a>\n";
       }
     }
-
+  
     if ( !$plain ) {
       $notify_to = notify_emails( $dbconn, $request_id );
       if ( strstr( $notify_to, $session->email ) ) {
@@ -523,7 +531,7 @@
         $tell = "Inform me about updates to this request!";
         $action = "register";
       }
-
+  
       echo "</TD>\n<TD ALIGN=RIGHT nowrap>";
       if ( is_member_of('Admin', 'Support', 'Manage') ) {
         echo "Add:&nbsp;<select class=sml name=\"new_interest\">$user_list</SELECT>\n";
@@ -536,134 +544,122 @@
   }
 
 
-  if ( $is_request ) {
-    /***** Linked Work Requests */
-    $link_wr_query  = "SELECT ";
-    $link_wr_query .= "rr.request_id    AS parent_request_id, ";
-    $link_wr_query .= "r.brief          AS parent_brief, ";
-    $link_wr_query .= "lcs.lookup_desc  AS parent_status, ";
-    $link_wr_query .= "lc.lookup_desc   AS parent_link_desc, ";
-    $link_wr_query .= "null             AS child_link_desc, ";
-    $link_wr_query .= "null             AS child_request_id, ";
-    $link_wr_query .= "null             AS child_brief, ";
-    $link_wr_query .= "null             AS child_status ";
-    $link_wr_query .= "FROM request_request rr ";
-    $link_wr_query .= "JOIN request r USING (request_id) ";
-    $link_wr_query .= "JOIN lookup_code lc ON lc.source_table = 'request_request' AND lc.source_field = 'link_type' AND lc.lookup_code = rr.link_type ";
-    $link_wr_query .= "JOIN lookup_code lcs ON lcs.source_table = 'request' AND lcs.source_field = 'status_code' AND lcs.lookup_code = r.last_status ";
-    $link_wr_query .= "WHERE rr.to_request_id = '$request->request_id' ";
+  /***** Linked Work Requests */
+  $link_wr_query  = "SELECT ";
+  $link_wr_query .= "rr.request_id    AS parent_request_id, ";
+  $link_wr_query .= "r.brief          AS parent_brief, ";
+  $link_wr_query .= "lcs.lookup_desc  AS parent_status, ";
+  $link_wr_query .= "lc.lookup_desc   AS parent_link_desc, ";
+  $link_wr_query .= "null             AS child_link_desc, ";
+  $link_wr_query .= "null             AS child_request_id, ";
+  $link_wr_query .= "null             AS child_brief, ";
+  $link_wr_query .= "null             AS child_status ";
+  $link_wr_query .= "FROM request_request rr ";
+  $link_wr_query .= "JOIN request r USING (request_id) ";
+  $link_wr_query .= "JOIN lookup_code lc ON lc.source_table = 'request_request' AND lc.source_field = 'link_type' AND lc.lookup_code = rr.link_type ";
+  $link_wr_query .= "JOIN lookup_code lcs ON lcs.source_table = 'request' AND lcs.source_field = 'status_code' AND lcs.lookup_code = r.last_status ";
+  $link_wr_query .= "WHERE rr.to_request_id = '$request->request_id' ";
 
-    $link_wr_query .= "UNION SELECT ";
-    $link_wr_query .= "null             AS parent_request_id, ";
-    $link_wr_query .= "null             AS parent_brief, ";
-    $link_wr_query .= "null             AS parent_status, ";
-    $link_wr_query .= "null             AS parent_link_desc, ";
-    $link_wr_query .= "lc.lookup_desc   AS child_link_desc, ";
-    $link_wr_query .= "rr.to_request_id AS child_request_id, ";
-    $link_wr_query .= "r.brief          AS child_brief, ";
-    $link_wr_query .= "lcs.lookup_desc  AS child_status ";
-    $link_wr_query .= "FROM request_request rr ";
-    $link_wr_query .= "JOIN request r ON r.request_id = rr.to_request_id ";
-    $link_wr_query .= "JOIN lookup_code lc ON lc.source_table = 'request_request' AND lc.source_field = 'link_type' AND lc.lookup_code = rr.link_type ";
-    $link_wr_query .= "JOIN lookup_code lcs ON lcs.source_table = 'request' AND lcs.source_field = 'status_code' AND lcs.lookup_code = r.last_status ";
-    $link_wr_query .= "WHERE rr.request_id = '$request->request_id' ";
+  $link_wr_query .= "UNION SELECT ";
+  $link_wr_query .= "null             AS parent_request_id, ";
+  $link_wr_query .= "null             AS parent_brief, ";
+  $link_wr_query .= "null             AS parent_status, ";
+  $link_wr_query .= "null             AS parent_link_desc, ";
+  $link_wr_query .= "lc.lookup_desc   AS child_link_desc, ";
+  $link_wr_query .= "rr.to_request_id AS child_request_id, ";
+  $link_wr_query .= "r.brief          AS child_brief, ";
+  $link_wr_query .= "lcs.lookup_desc  AS child_status ";
+  $link_wr_query .= "FROM request_request rr ";
+  $link_wr_query .= "JOIN request r ON r.request_id = rr.to_request_id ";
+  $link_wr_query .= "JOIN lookup_code lc ON lc.source_table = 'request_request' AND lc.source_field = 'link_type' AND lc.lookup_code = rr.link_type ";
+  $link_wr_query .= "JOIN lookup_code lcs ON lcs.source_table = 'request' AND lcs.source_field = 'status_code' AND lcs.lookup_code = r.last_status ";
+  $link_wr_query .= "WHERE rr.request_id = '$request->request_id' ";
 
-    $link_wr_result = awm_pgexec( $dbconn, $link_wr_query, 'requestlist-rr' );
+  $link_wr_result = awm_pgexec( $dbconn, $link_wr_query );
 
-    $rows = pg_NumRows($link_wr_result);
-    if ( $rows > 0 ) {
-      echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=7>&nbsp;</TD></TR>\n";
-      echo "<TR>$hdcell<TD CLASS=h3 COLSPAN=7 align=right>Linked Work Requests</TD></TR>\n";
-      echo "<TR><TH ALIGN=LEFT class=cols>Parent WR</TH><TH ALIGN=LEFT class=cols>Brief</TH>";
-      echo "<TH ALIGN=LEFT class=cols>Status</TH>";
-      echo "<TH ALIGN=LEFT class=cols>Link Description</TH><TH ALIGN=LEFT class=cols>This WR</TH>";
-      echo "<TH ALIGN=LEFT class=cols>Link Description</TH><TH ALIGN=LEFT class=cols>Child WR</TH>";
-      echo "<TH ALIGN=LEFT class=cols>Brief</TH>";
-      echo "<TH ALIGN=LEFT class=cols>Status</TH></TR>\n";
+  $rows = pg_NumRows($link_wr_result);
+  if ( $rows > 0 ) {
+    echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=7>&nbsp;</TD></TR>\n";
+    echo "<TR>$hdcell<TD CLASS=h3 COLSPAN=7 align=right>Linked Work Requests</TD></TR>\n";
+    echo "<TR><TH ALIGN=LEFT class=cols>Parent WR</TH><TH ALIGN=LEFT class=cols>Brief</TH>";
+    echo "<TH ALIGN=LEFT class=cols>Status</TH>";
+    echo "<TH ALIGN=LEFT class=cols>Link Description</TH><TH ALIGN=LEFT class=cols>This WR</TH>";
+    echo "<TH ALIGN=LEFT class=cols>Link Description</TH><TH ALIGN=LEFT class=cols>Child WR</TH>";
+    echo "<TH ALIGN=LEFT class=cols>Brief</TH>";
+    echo "<TH ALIGN=LEFT class=cols>Status</TH></TR>\n";
 
-      /*** details of linked WRs */
-      for( $i=0; $i<$rows; $i++ ) {
-        $link_wr = pg_Fetch_Object( $link_wr_result, $i );
-        printf("<tr class=row%1d>", ($i % 2) );
-        echo "<TD><A href=request.php?request_id=$link_wr->parent_request_id>$link_wr->parent_request_id</A></TD>";
-        echo "<TD>$link_wr->parent_brief</TD>";
-        echo "<TD>$link_wr->parent_status</TD>";
-        echo "<TD>$link_wr->parent_link_desc</TD>";
-        echo "<TD>$request->request_id</TD>";
-        echo "<TD>$link_wr->child_link_desc</TD>";
-        echo "<TD><A href=request.php?request_id=$link_wr->child_request_id>$link_wr->child_request_id</A></TD>";
-        echo "<TD>$link_wr->child_brief</TD>";
-        echo "<TD>$link_wr->child_status</TD></TR>\n";
-      }
+    /*** details of linked WRs */
+    for( $i=0; $i<$rows; $i++ ) {
+      $link_wr = pg_Fetch_Object( $link_wr_result, $i );
+      printf("<tr class=row%1d>", ($i % 2) );
+      echo "<TD><A href=request.php?request_id=$link_wr->parent_request_id>$link_wr->parent_request_id</A></TD>";
+      echo "<TD>$link_wr->parent_brief</TD>";
+      echo "<TD>$link_wr->parent_status</TD>";
+      echo "<TD>$link_wr->parent_link_desc</TD>";
+      echo "<TD>$request->request_id</TD>";
+      echo "<TD>$link_wr->child_link_desc</TD>";
+      echo "<TD><A href=request.php?request_id=$link_wr->child_request_id>$link_wr->child_request_id</A></TD>";
+      echo "<TD>$link_wr->child_brief</TD>";
+      echo "<TD>$link_wr->child_status</TD></TR>\n";
+    }
+    echo "</TABLE>\n";
+  }  // if rows > 0
 
-      if ( !$plain && is_member_of('Admin', 'Support', 'Manage') ) {
-        $types = new PgQuery("SELECT lookup_code, lookup_desc FROM lookup_code WHERE source_table = 'request_request' AND source_field = 'link_type';");
-        $type_options = $types->BuildOptionList( 'I' );
-        printf("<tr class=\"row%1d\">", ($i % 2) );
-        echo "<TD colspan=\"3\">&nbsp;</TD>";
-        echo "<TD>$request_id</TD>";
-        echo "<TD><select name=\"rr_link_type\">$type_options</select></TD>";
-        echo "<TD colspan=\"2\"><input size=\"7\" type=\"text\" name=\"rr_other_request\"></TD>";
-        echo "</TR>\n";
-      }
-      echo "</TABLE>\n";
-    }  // if rows > 0
 
-    /***** Notes */
-    $noteq = "SELECT * FROM request_note WHERE request_note.request_id = '$request->request_id' ";
-    $noteq .= "ORDER BY note_on ";
-    $note_res = awm_pgexec( $dbconn, $noteq );
-    $rows = pg_NumRows($note_res);
-    if ( $rows > 0 ) {
-      echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=4>&nbsp;</TD></TR><TR>$hdcell";
+  /***** Notes */
+  $noteq = "SELECT * FROM request_note WHERE request_note.request_id = '$request->request_id' ";
+  $noteq .= "ORDER BY note_on ";
+  $note_res = awm_pgexec( $dbconn, $noteq );
+  $rows = pg_NumRows($note_res);
+  if ( $rows > 0 ) {
+    echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=4>&nbsp;</TD></TR><TR>$hdcell";
 
-      echo "<TD CLASS=h3 COLSPAN=3 align=right>Associated Notes</TD></TR>\n";
-      echo "<TR VALIGN=TOP>\n";
-      echo "<TH ALIGN=LEFT class=cols>Noted&nbsp;By</TH>\n";
-      echo "<TH class=cols>Noted On</TH>\n";
-      echo "<TH ALIGN=LEFT class=cols>Details</TH>\n";
-      echo "</TR>\n";
+    echo "<TD CLASS=h3 COLSPAN=3 align=right>Associated Notes</TD></TR>\n";
+    echo "<TR VALIGN=TOP>\n";
+    echo "<TH ALIGN=LEFT class=cols>Noted&nbsp;By</TH>\n";
+    echo "<TH class=cols>Noted On</TH>\n";
+    echo "<TH ALIGN=LEFT class=cols>Details</TH>\n";
+    echo "</TR>\n";
 
-      /*** the actual details of notes */
-      for( $i=0; $i<$rows; $i++ ) {
-        $request_note = pg_Fetch_Object( $note_res, $i );
-        printf("<tr class=row%1d>", ($i % 2) );
-        echo "<TD>$request_note->note_by</TD><TD>";
-        echo nice_date($request_note->note_on);
-        echo "</TD>\n<TD>" . html_format($request_note->note_detail) . "</TD></TR>\n";
-      }
-      echo "</TABLE>\n";
-    }  // if rows > 0
+    /*** the actual details of notes */
+    for( $i=0; $i<$rows; $i++ ) {
+      $request_note = pg_Fetch_Object( $note_res, $i );
+      printf("<tr class=row%1d>", ($i % 2) );
+      echo "<TD>$request_note->note_by</TD><TD>";
+      echo nice_date($request_note->note_on);
+      echo "</TD>\n<TD>" . html_format($request_note->note_detail) . "</TD></TR>\n";
+    }
+    echo "</TABLE>\n";
+  }  // if rows > 0
 
 
 
-    /***** Status Changes */
-    $statq = "SELECT * FROM request_status, lookup_code AS status, usr ";
-    $statq .= " WHERE request_status.request_id = '$request->request_id' AND request_status.status_code = status.lookup_code ";
-    $statq .= " AND status.source_table='request' AND status.source_field='status_code' ";
-    $statq .= " AND usr.user_no=request_status.status_by_id ";
-    $statq .= " ORDER BY status_on ";
-    $stat_res = awm_pgexec( $dbconn, $statq);
-    $rows = pg_NumRows($stat_res);
-    if ( $rows > 0 ) {
-      echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=4>&nbsp;</TD></TR><TR>$hdcell";
+  /***** Status Changes */
+  $statq = "SELECT * FROM request_status, lookup_code AS status, usr ";
+  $statq .= " WHERE request_status.request_id = '$request->request_id' AND request_status.status_code = status.lookup_code ";
+  $statq .= " AND status.source_table='request' AND status.source_field='status_code' ";
+  $statq .= " AND usr.user_no=request_status.status_by_id ";
+  $statq .= " ORDER BY status_on ";
+  $stat_res = awm_pgexec( $dbconn, $statq);
+  $rows = pg_NumRows($stat_res);
+  if ( $rows > 0 ) {
+    echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=4>&nbsp;</TD></TR><TR>$hdcell";
 
-      echo "<td class=h3 colspan=3 align=right>Changes in Status</TD></TR>\n";
-      echo "<tr valign=top>\n";
-      echo "<th class=smb width=\"15%\" align=left>Changed By</th>\n";
-      echo "<th class=smb width=\"25%\" align=left>Changed On</th>\n";
-      echo "<th class=smb width=\"60%\" align=left>Changed To</th>\n";
-      echo "</tr>\n";
+    echo "<td class=h3 colspan=3 align=right>Changes in Status</TD></TR>\n";
+    echo "<tr valign=top>\n";
+    echo "<th class=smb width=\"15%\" align=left>Changed By</th>\n";
+    echo "<th class=smb width=\"25%\" align=left>Changed On</th>\n";
+    echo "<th class=smb width=\"60%\" align=left>Changed To</th>\n";
+    echo "</tr>\n";
 
-      /* the actual status stuff */
-      for( $i=0; $i<$rows; $i++ ) {
-        $request_status = pg_Fetch_Object( $stat_res, $i );
-        printf("<tr class=row%1d>", ($i % 2) );
-        echo "<TD>$request_status->fullname</TD>\n<TD>" . nice_date($request_status->status_on) . "</TD> <TD>$request_status->status_code - $request_status->lookup_desc</TD></TR>\n";
-      }
-      echo "</TABLE>\n";
-    }  // if rows > 0
-  }
+    /* the actual status stuff */
+    for( $i=0; $i<$rows; $i++ ) {
+      $request_status = pg_Fetch_Object( $stat_res, $i );
+      printf("<tr class=row%1d>", ($i % 2) );
+      echo "<TD>$request_status->fullname</TD>\n<TD>" . nice_date($request_status->status_on) . "</TD> <TD>$request_status->status_code - $request_status->lookup_desc</TD></TR>\n";
+    }
+    echo "</TABLE>\n";
+  }  // if rows > 0
 
   if ( ! $plain ) {
 

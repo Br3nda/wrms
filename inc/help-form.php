@@ -30,7 +30,7 @@
           echo "<ol type=\"1\">";
           for( $i = 0; $i < $rows; $i ++ ) {
             $help = pg_Fetch_Object($rid,$i);
-            echo "<li><a href=\"/form.php?form=help&topic=" . htmlspecialchars($help->topic) . "\">$help->title</a></li>\n";
+            echo "<li><a href=\"/help.php?h=" . htmlspecialchars($help->topic) . "\">$help->title</a></li>\n";
           }
           echo "</ol><hr>";
         }
@@ -42,7 +42,7 @@
       }
       if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
         $seq = intval($seq);
-        echo "<form method=post action=\"/form.php?form=help&topic=" . htmlspecialchars($topic) . "&seq=$seq\" enctype=\"multipart/form-data\">\n";
+        echo "<form method=post action=\"/help.php?h=" . htmlspecialchars($topic) . "&seq=$seq\" enctype=\"multipart/form-data\">\n";
         echo "<table>\n";
         echo "<tr><th>Topic</th><td>$topic</td></tr>\n";
         echo "<tr><th>Sequence</th><td><input type=text size=5 value=\"$help->seq\" name=\"new[seq]\"></td></tr>\n";
@@ -59,8 +59,8 @@
       echo "<h1>$help->title</h1>\n";
       echo "$help->content\n";
       if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
-        echo "<p><br><p><br><a href=\"/form.php?form=help&action=edit&topic=" . htmlspecialchars($help->topic) . "&seq=$help->seq\">edit this help text</a>\n";
-        echo " &nbsp;| &nbsp;<a href=\"/form.php?form=help&action=add&topic=" . htmlspecialchars($help->topic) . "\">add new help text</a>\n";
+        echo "<p><br><p><br><a href=\"/help.php?action=edit&h=" . htmlspecialchars($help->topic) . "&seq=$help->seq\">edit this help text</a>\n";
+        echo " &nbsp;| &nbsp;<a href=\"/help.php?action=add&h=" . htmlspecialchars($help->topic) . "\">add new help text</a>\n";
       }
     }
     else {
@@ -69,11 +69,11 @@
       echo "<ol type=\"1\">";
       for( $i = 0; $i < $rows; $i ++ ) {
         $help = pg_Fetch_Object($rid,$i);
-        echo "<li><a href=\"/form.php?form=help&topic=" . htmlspecialchars($help->topic) . "&seq=$help->seq\">$help->title</a></li>\n";
+        echo "<li><a href=\"/help.php?h=" . htmlspecialchars($help->topic) . "&seq=$help->seq\">$help->title</a></li>\n";
       }
       echo "</ol>";
       if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
-        echo "<p><br><a href=\"/form.php?form=help&action=add&topic=" . htmlspecialchars($topic) . "\">add new help text</a>\n";
+        echo "<p><br><a href=\"/help.php?action=add&h=" . htmlspecialchars($topic) . "\">add new help text</a>\n";
       }
     }
   }

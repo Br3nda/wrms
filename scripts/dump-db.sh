@@ -1,6 +1,15 @@
 #!/bin/bash
 DATABASE=wrms
-DUMPDIR=dump
+DUMPDIR=/tmp/wrms-dump
+
+if [ ! -e ${DUMPDIR} ]
+then
+   mkdir -p ${DUMPDIR}
+elif [ ! -d ${DUMPDIR} ]
+then
+   rm -f ${DUMPDIR}
+   mkdir -p ${DUMPDIR}
+fi
 
 rm ${DUMPDIR}/*.sql
 echo "Dumping schema"

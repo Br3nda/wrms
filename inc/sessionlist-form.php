@@ -1,6 +1,6 @@
 <?php
 //  include("$base_dir/inc/code-list.php");
-  include("$base_dir/inc/nice-date.php");
+//  include("$base_dir/inc/nice-date.php");
 // <P class=helptext>Use this form to select sessions for maintenance or review.</P>
 ?>
 

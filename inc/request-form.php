@@ -305,6 +305,12 @@
       $alloc = pg_Fetch_Object( $allocq, $i );
       if ( $i > 0 ) echo ", ";
       echo "$alloc->fullname ($alloc->abbreviation)";
+
+      if ( ($allocated_to || $sysmgr) && ! $plain )
+        echo "<a href=\"request.php?submit=deallocate&user_no=$interested->user_no&request_id=$request_id\">\n";
+      echo "$interested->fullname ($interested->abbreviation)\n";
+      if ( ($allocated_to || $sysmgr) && ! $plain )
+        echo "</a>\n";
     }
 
     if ( $plain || !($roles['wrms']['Admin'] || $roles['wrms']['Support'] ) )

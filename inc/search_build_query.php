@@ -79,7 +79,7 @@
       $search_query .= " OR detailed ~* '$search_for' ";
       $search_query .= " OR EXISTS(SELECT 1 FROM request_note WHERE request_id = request.request_id AND note_detail ~* '$search_for')) ";
     }
-    if ( "$system_code" != "" )     $search_query .= " AND system_code='$system_code' ";
+    if ( "$system_code" != "" )     $search_query .= " AND request.system_code='$system_code' ";
     if ( "$type_code" != "" )     $search_query .= " AND request_type=" . intval($type_code);
 
     if ( "$from_date" != "" )     $search_query .= " AND request.last_activity >= '$from_date' ";

@@ -67,6 +67,11 @@
 	}
 ?>
 		</tr>
+		<tr>
+			<td class=sml><input type=radio value=invoiced name=invoiced<?php if ("$invoiced" == "invoiced") echo " checked";?>>Invoiced</td>
+			<td class=sml><input type=radio value=uninvoiced name=invoiced<?php if ("$invoiced" == "uninvoiced") echo " checked";?>>Uninvoiced</td>
+			<td class=sml><input type=radio value=both name=invoiced<?php if ("$invoiced" == "both") echo " checked";?>>Both</td>
+		</tr>
 	</table>
 </form>
 
@@ -83,18 +88,6 @@
 	$query .= ", rq.quote_type                        AS \"quote type\"";
 	$query .= ", rq.quote_brief                       AS \"quote brief\"";
 	$query .= ", rq.quoted_by                         AS \"quoted by\"";
-/*
-        // Add quote_units to list of select fields.
-
-	$wt_query = "SELECT lookup_code FROM lookup_code WHERE source_table = 'request_quote' AND source_field = 'quote_units'";
-	$wt_result = awm_pgexec( $dbconn, $wt_query, "billing.quote_units");
-
- 	for ( $i=0; $i < pg_NumRows($wt_result); $i++ ) {
-		$wt_row = pg_fetch_row( $wt_result, $i );
-		$query .= ", (SELECT SUM(q.quote_amount) FROM request_quote q WHERE q.request_id = r.request_id AND q.quote_units = '$wt_row[0]' ) AS $wt_row[0]";
-	}
-	*/
-
 	$query .= ", to_char(rq.quoted_on,'DD/MM/YYYY')   AS \"quoted on\"" ;
 	$query .= ", usr.username                         AS \"approved by\"" ;
 	$query .= ", to_char(rq.approved_on,'DD/MM/YYYY') AS \"approved on\"" ;
@@ -109,7 +102,6 @@
 	$query .= " LEFT OUTER JOIN usr ON usr.user_no = rq.approved_by_id ";
 
 	// Build WHERE clause
-
         if ( isset($system_code)    && "$system_code"    != "(All)" ) $where .= " AND r.system_code='$system_code' ";
         if ( isset($request_type) && "$request_type" != "(All)" ) $where .= " AND r.request_type='$request_type' ";
 
@@ -125,9 +117,7 @@
 	}
 
 	// Build ORDER BY clause
-
  	$query .= " ORDER BY r.system_code, r.request_id ;";
-
 	
 	// Execute query
 
@@ -148,31 +138,58 @@
 	// Print result rows.
 
  	for ( $i=0; $i < pg_NumRows($result); $i++ ) {
-		printf( "<tr class=row%1d>", $i % 2);
 		$row = pg_fetch_array( $result, $i );
+ 
+		$numrows_w_result = 0;
+		$numrows_lw_result = 0;
 
 		// Print work totals for first instance on any WR
 		if ($row["id"] <> $prev_id) {
 		  // work on this WR
 		  $w_query  = "SELECT sum(rt.work_quantity) AS quantity, rt.work_units AS units, rt.charged_details AS \"inv no\"";
 		  $w_query .= " FROM request_timesheet rt WHERE rt.request_id = " . $row["id"] ;
-		  $w_query .= " GROUP BY rt.work_units, rt.charged_details";		  
+		  if ("$invoiced" == "invoiced") $w_query .= " AND rt.charged_details IS NOT null ";
+		  else if ("$invoiced" == "uninvoiced") $w_query .= " AND rt.charged_details IS null ";
+		  $w_query .= " GROUP BY rt.work_units, rt.charged_details ";		  
 		  $w_result = awm_pgexec( $dbconn, $w_query, "billing.work", false, 7 );
+		  $numrows_w_result = pg_numrows($w_result) ;
 
 		  // work on linked WRs
 		  $lw_query  = "SELECT rr.to_request_id, rr.link_type, sum(rt.work_quantity) AS quantity, rt.work_units AS units, lc.lookup_desc, rt.charged_details AS \"inv no\"";
                   $lw_query .= " FROM request_request rr ";
-      		  $lw_query .= " LEFT OUTER JOIN request_timesheet rt ON rt.request_id = rr.to_request_id ";
+		  if ("$invoiced" <> "invoiced") $lw_query .= " LEFT OUTER";
+      		  $lw_query .= " JOIN request_timesheet rt ON rt.request_id = rr.to_request_id ";
+		  if ("$invoiced" == "invoiced") $lw_query .= " AND rt.charged_details IS NOT null ";
+		  else if ("$invoiced" == "uninvoiced") $lw_query .= " AND rt.charged_details IS null ";
       		  $lw_query .= " LEFT OUTER JOIN request r ON r.request_id = rr.to_request_id ";
                   $lw_query .= " LEFT OUTER JOIN lookup_code lc ON lc.source_table = 'request' AND lc.source_field = 'status_code' AND lc.lookup_code  = r.last_status";
 		  $lw_query .= " WHERE rr.request_id = " . $row["id"] ;
 		  $lw_query .= " GROUP BY rr.to_request_id, rr.link_type, rt.work_units, lc.lookup_desc, rt.charged_details";
 		  $lw_result = awm_pgexec( $dbconn, $lw_query, "billing.linkedwork", false, 7 );
+		  $numrows_lw_result = pg_numrows($lw_result) ;
 
 		  $prev_id = $row["id"] ;
 		}
 
-		$max_res = max(pg_numrows($w_result),pg_numrows($lw_result));
+                
+		$max_res = max($numrows_w_result, $numrows_lw_result);
+
+                // echo " id: " . $row["id"] ." " . $max_res . " " . $row["inv no"] . " " . $numrows_w_result . " " . $numrows_lw_result .  " " ;
+
+                // If looking for invoiced only, and there are no invoice numbers for work done, or any quote, then skip it.
+                if ($max_res == 0 && "$invoiced" == "invoiced" && $row["inv no"] == "" ) continue;
+
+                // looking for un-invoiced stuff.
+                if ("$invoiced" == "uninvoiced") {
+		    // If there is a 'Q' type quote with an invoice no, skip it.
+		    if ($row["quote type"] == "Q" && $row["inv no"] <> "") continue;
+
+		    // If there are invoice numbers for all work done, and only invoiced quotes, or no quote, then skip it.
+		    if ($max_res == 0 && ($row["quote type"] == "" || $row["inv no"] <> "") ) continue;
+		}
+
+                $printed_rows++;
+		printf( "<tr class=row%1d>", $printed_rows % 2);
 
 		for ($j = 0; $j < pg_numfields($result) ; $j++) {
 			echo "<td class=sml";
@@ -190,7 +207,7 @@
                 // Work or linked WR found.
 		else for ($j = 0; $j < $max_res; $j++) {
                   // Display work for this WR
-		  if ($j < pg_numrows($w_result)) { 
+		  if ($j < $numrows_w_result) { 
 		    $w_row = pg_fetch_row($w_result);
 
 		    for ($k = 0; $k < pg_numfields($w_result) ; $k++) {
@@ -199,14 +216,14 @@
 		  }
 		  else echo "<td class=sml></td><td class=sml></td><td class=sml></td>";		  
 		  
-		  if ($j < pg_numrows($lw_result)) {
+		  if ($j < $numrows_lw_result) {
                     // Display work on linked WR
 		    $lw_row = pg_fetch_row($lw_result);
 
 		    for ($k = 0; $k < pg_numfields($lw_result) ; $k++) {
 		      echo "<td class=sml>";
 		      if ($k == 0) echo "<a href=request.php?request_id=" . $lw_row[$k] . ">";
-                      echo  $lw_row[$k] ;
+                      echo  $lw_row[$k];
                       if ($k == 0) echo "</a>";
          	      echo "</td>";
 		    }
@@ -214,12 +231,13 @@
                   else echo "<td class=sml></td><td class=sml></td><td class=sml></td><td class=sml></td><td class=sml></td><td class=sml></td>"; 
 		  echo "</tr>\n";
 		  if ($j < $max_res) printf( "<tr class=row%1d>", $i % 2);
+
 		}
 	}
 
 	echo "</table>";
 
-	echo "\n<small>" . pg_NumRows($result) . " requests found</small>";
+	echo "\n<small>" . $printed_rows . " requests found</small>";
     }
 
     include("footers.php");

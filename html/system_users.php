@@ -63,21 +63,20 @@ function write_system_roles( $roles, $system_code ) {
   // Select the users that we may want to include here.
   $sql = "SELECT usr.user_no, fullname, usr.org_code, org_name, system_usr.role, ";
   $sql .= "lookup_code AS role_code, lookup_desc AS role_desc, ";
-  $sql .= "internal.group_no AS internal_group, contractor.group_no AS contractor_group ";
+  $sql .= "EXISTS (SELECT 1 FROM group_member WHERE usr.user_no = group_member.user_no ";
+  $sql .=                 "AND group_member.group_no IN (SELECT group_no FROM ugroup WHERE group_name IN ('Admin','Support'))) ";
+  $sql .= "AS internal_group, ";
+  $sql .= "EXISTS (SELECT 1 FROM group_member WHERE usr.user_no = group_member.user_no ";
+  $sql .=                 "AND group_member.group_no IN (SELECT group_no FROM ugroup WHERE group_name IN ('Contractor'))) ";
+  $sql .= "AS contractor_group ";
   $sql .= "FROM usr NATURAL JOIN organisation ";
   $sql .= "LEFT JOIN system_usr ON (usr.user_no = system_usr.user_no AND system_usr.system_code = ?) ";
   $sql .= "LEFT JOIN lookup_code roles ON (source_table='system_usr' AND source_field='role' AND lookup_code=system_usr.role) ";
-  $sql .= "LEFT JOIN group_member AS internal ON (usr.user_no = internal.user_no ";
-  $sql .=                 "AND internal.group_no IN (SELECT group_no FROM ugroup WHERE group_name IN ('Admin','Support'))) ";
-  $sql .= "LEFT JOIN group_member AS contractor ON (usr.user_no = contractor.user_no ";
-  $sql .=                 "AND contractor.group_no IN (SELECT group_no FROM ugroup WHERE group_name IN ('Contractor'))) ";
-  $sql .= "WHERE TRUE ";
+  $sql .= "WHERE usr.status != 'I' ";
   if ( isset( $org_code ) || $org_code == "" )
     $sql .= "AND usr.org_code=organisation.org_code ";
   else
     $sql .= "AND organisation.active ";
-
-  $sql .= "AND usr.status != 'I' ";
 
   $sql .= "AND ( EXISTS(SELECT 1 FROM org_system WHERE organisation.org_code = org_system.org_code AND org_system.system_code = ".qpg($system_code) .") ";
   if ( ( $session->AllowedTo("Admin") || $session->AllowedTo("Support") ) ) {
@@ -132,8 +131,8 @@ $role_colours = array( 'A' => '#ff5010', 'S' => '#e03000', 'C' => '#60a000',
                                      $ef->DataEntryField( "", "select", "role[$row->user_no]", $options ) );
       $colour = '#e8ffe0';
       $type   = "This is a client";
-      if ( $row->internal_group > 0 )        { $colour = '#ffe8e0'; $type = "This is an internal person"; }
-      else if ( $row->contractor_group > 0 ) { $colour = '#e0e8ff'; $type = "This is an external support person"; }
+      if ( $row->internal_group == 't' )        { $colour = '#ffe8e0'; $type = "This is an internal person"; }
+      else if ( $row->contractor_group == 't' ) { $colour = '#e0e8ff'; $type = "This is an external support person"; }
       printf( $line_format, $i++%2, $type, $row->user_no, $row->fullname, $row->org_code, $row->org_name,
                             $colour, $html );
     }

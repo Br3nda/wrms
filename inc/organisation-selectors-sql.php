@@ -76,12 +76,9 @@ function SqlSelectSubscribers( $org_code = 0 ) {
   $sql = "SELECT usr.user_no, fullname || ' (' || abbreviation || ')' AS name, lower(fullname) ";
   $sql .= "FROM usr JOIN organisation USING(org_code) ";
   $sql .= "WHERE EXISTS(SELECT 1 FROM system_usr su ";
-  $sql .= "JOIN system_usr me USING(system_code) ";
-  $sql .= "WHERE (me.user_no = $session->user_no AND su.user_no = usr.user_no AND su.role IN ('S','A') ) ";
-  if ( $session->AllowedTo("Admin") || $session->AllowedTo("Support") ) {
-    $sql .= "OR usr.org_code = $session->org_code ";
-  }
-  $sql .= ") AND usr.status != 'I' ";
+  $sql .=          "JOIN system_usr me USING(system_code) ";
+  $sql .=          "WHERE me.user_no = $session->user_no AND su.user_no = usr.user_no AND su.role IN ('S','A') ) ";
+  $sql .= "AND usr.status != 'I' ";
   $sql .= "UNION ";
   $sql .= SqlSelectRequesters($org_code);
 

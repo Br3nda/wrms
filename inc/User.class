@@ -211,6 +211,10 @@ class User {
     $html .= $ef->DataEntryLine( "Send Email?", ($this->email_ok == 't' ? "Yes" : "No"), "checkbox", "email_ok",
               array("_label" => "Uncheck to ensure the user gets no e-mail.") );
 
+    // System Role drop-down
+    if ( $session->AllowedTo("Admin") || $session->AllowedTo("Support") ) {
+    }
+
     return $html;
   }
 
@@ -332,6 +336,42 @@ class User {
     if ( $q && $q->Exec("User::RenderSystemRoles2") && $q->rows ) {
       $html .= $ef->BreakLine("Active System Roles");
       $html .= '<tr><th class="prompt">&nbsp;</th><td class="entry"><table width="100%">'."\n";
+
+      if ( $ef->editmode  && ($session->AllowedTo('Admin') || $session->AllowedTo('Support') || $session->AllowedTo('OrgMgr')) ) {
+        $html .= '<tr class="row1">';
+        $html .= <<<SCRIPT
+<th class="prompt" style="width:auto;">
+<script language="javascript">
+//////////////////////////////////////////////////////////
+// Since PHP wants a field returning multiple values to
+// be named like "variable[]"
+//////////////////////////////////////////////////////////
+function ApplyToRoles() {
+  for ( var i=0; i < document.forms.form.elements.length ; i++ ) {
+    if ( document.forms.form.elements[i].name.match( /^role/ ) ) {
+      document.forms.form.elements[i].value = document.forms.form.default_role.value;
+    }
+  }
+  return true;
+}
+</script>
+Choose a default and
+SCRIPT;
+        $ef->TempLineFormat('<span class="srchf" style="white-space: nowrap">%s%s</span>' );
+        $html .= $ef->DataEntryLine( "", "", "button", "apply_default",
+                    array("value" => "Apply It",
+                          "onclick" => "ApplyToRoles();",
+                          "title" => "Click to apply the default to all systems for this user.",
+                          "class" => "fsubmit" ) );
+        $ef->RevertLineFormat( );
+        $html .= 'to all possible systems</th>';
+
+        $html .= '<td class="entry">';
+        $options = array_merge($roles, array("title" => "Select the role this person has in relation to this system"));
+        $this->role[$row->system_code] = $row->role;
+        $html .= $ef->DataEntryField( "", "select", "default_role", $options );
+        $html .= "</td></tr>";
+      }
 
       while( $row = $q->Fetch() ) {
         $html .= sprintf( '<tr class="row%d">', $q->rownum % 2);

@@ -220,13 +220,15 @@ function dates_equal( $date1, $date2 ) {
     if ( isset( $new_brief) ) $new_brief = str_replace( "\r\n", "\n", $new_brief);
     if ( isset( $new_detail) ) $new_detail = str_replace( "\r\n", "\n", $new_detail);
     $brief_changed = (isset($new_brief) && $new_brief != "" && trim($request->brief) != trim($new_brief));
-    $detail_changed = (isset($new_detail) && $new_detail != "" && trim($request->detailed) != trim($new_detail));
+    $old_detail = str_replace( "\r", "", str_replace( "\r\n", "\n", trim($request->detailed) ) );
+    $old_detail = str_replace( "\r", "", str_replace( "\r\n", "\n", trim($new_detail) ) );
+    $detail_changed = (isset($new_detail) && $new_detail != "" && $old_detail != $new_detail );
     if ( $detail_changed ) {
       $fh = fopen( "/tmp/wrms.$request_id.RD", "w" );
-      fwrite( $fh, trim($request->detailed) );
+      fwrite( $fh, $old_detail );
       fclose($fh);
       $fh = fopen( "/tmp/wrms.$request_id.ND", "w" );
-      fwrite( $fh, trim($new_detail) );
+      fwrite( $fh, $new_detail );
       fclose($fh);
     }
     $requested_by_changed = !dates_equal($request->requested_by_date, $new_requested_by_date);

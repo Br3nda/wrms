@@ -31,7 +31,7 @@ if ( isset($user_no) && $user_no != "" ) echo "&user_no=$user_no";
   if ( "$search_for$system_code " != "" ) {
     $query = "SELECT request.*, request_timesheet.*, organisation.*,";
     $query .= " worker.fullname AS worker_name, requester.fullname AS requester_name";
-    $query .= " FROM request_timesheet, request, usr AS worker, usr AS requester, organisation ";
+    $query .= " FROM request, usr AS worker, usr AS requester, organisation, request_timesheet ";
     $query .= " WHERE request_timesheet.request_id = request.request_id";
     $query .= " AND worker.user_no = work_by_id ";
     $query .= " AND requester.user_no = requester_id ";
@@ -55,10 +55,14 @@ if ( isset($user_no) && $user_no != "" ) echo "&user_no=$user_no";
       $query .= " AND request_timesheet.work_on>'$after' ";
     if ( "$before" != "" )
       $query .= " AND request_timesheet.work_on<'$before' ";
-    if ( "$uncharged" != "" )
+    if ( "$uncharged" != "" ) {
       $query .= " AND request_timesheet.work_charged IS NULL ";
-    $query .= " ORDER BY work_on DESC";
-    $query .= " LIMIT 100 ";
+      $query .= " ORDER BY org_code, work_on";
+    }
+    else {
+      $query .= " ORDER BY work_on DESC";
+      $query .= " LIMIT 100 ";
+    }
     $result = pg_Exec( $wrms_db, $query );
     if ( ! $result ) {
       $error_loc = "timelist-form.php";

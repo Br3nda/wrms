@@ -3,7 +3,7 @@
 $dbconn = pg_Connect("dbname=opwrms user=general");
 $pg_version = 7.2;
 
-$admin_email = "andrew@catalyst.net.nz";
+$admin_email = "moodlehost@catalyst.net.nz";
 $basefont = "verdana,sans-serif";
 $system_name = "Eduforge Support: ";
 $sysabbr = "wrms";
@@ -11,6 +11,7 @@ $debuglevel = 3;
 
 $base_dns = "http://$HTTP_HOST";
 $base_url = "";
+$external_base_url = $base_dns;
 $base_dir = $DOCUMENT_ROOT;
 $module = "base";
 $images = "images/eduforge";
@@ -161,7 +162,7 @@ td.h3, th.h3 {
 // Function to do the page header, that is local to this installation
 //-----------------------------------------
 function local_page_header() {
-  global $sysabbr;
+  global $sysabbr, $session;
 ?>
 <table summary="" class="standardtable" cellpadding="0" cellspacing="0" width="100%">
   <tr>
@@ -201,7 +202,7 @@ function local_page_header() {
    $sql .= "ORDER BY system_desc;";
 
    $qry = new PgQuery( $sql );
-   if ( $qry->Exec() && $qry->rows > 0 ) {
+   if ( $qry->Exec('Config::LocalPageHeader') && $qry->rows > 0 ) {
      echo '<td width="10%" align="center" nowrap="nowrap">or Systems</td>
           <td width="20%" align="right"> <select name="system_code" size="1">
            <option value="0">-- select --</option>';

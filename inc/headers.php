@@ -70,7 +70,8 @@ h3, th.h3, th.cols, th.rows  {font: bold $fontsizes[1] $fonts[0], sans-serif; co
 
   // Now start the body
   echo "</head>\n";
-  echo "<body bgcolor=\"$colors[bg1]\" fgcolor=\"$colors[fg1]\" leftmargin=\"0\" marginheight=\"0\" marginwidth=\"0\" topmargin=\"0\" text=\"$colors[fg1]\" link=\"$colors[fg2]\" vlink=\"$colors[fg2]\" alink=\"$colors[fg2]\" background=\"$images/page-tile.jpg\">\n";
+  echo "<body bgcolor=\"$colors[bg1]\" fgcolor=\"$colors[fg1]\" leftmargin=\"0\" marginheight=\"0\" marginwidth=\"0\" topmargin=\"0\" text=\"$colors[fg1]\" link=\"$colors[fg2]\" vlink=\"$colors[fg2]\" alink=\"$colors[fg2]\">\n";
+//  echo "<body bgcolor=\"$colors[bg1]\" fgcolor=\"$colors[fg1]\" leftmargin=\"0\" marginheight=\"0\" marginwidth=\"0\" topmargin=\"0\" text=\"$colors[fg1]\" link=\"$colors[fg2]\" vlink=\"$colors[fg2]\" alink=\"$colors[fg2]\" background=\"$images/page-tile.jpg\">\n";
   echo "<basefont face=\"$fonts[0], sans-serif\" size=\"2\" color=\"$colors[fg1]\">\n";
 
   include("inc/menuhead.php");

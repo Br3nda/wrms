@@ -226,6 +226,7 @@ function dates_equal( $date1, $date2 ) {
 
     $status_changed = isset($new_status) && ($request->last_status != $new_status );
     $eta_changed = !dates_equal($request->eta, $new_eta);
+    $new_brief = str_replace( "\r\n", "\n", $new_brief);
     $brief_changed = (isset($new_brief) && trim($request->brief) != trim($new_brief));
     $requested_by_changed = !dates_equal($request->requested_by_date, $new_requested_by_date);
     $agreed_changed = !dates_equal($request->agreed_due_date, $new_agreed_due_date);

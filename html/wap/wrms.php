@@ -15,6 +15,7 @@ require("inc/wap.php");
 
     WMLCardInit("showrequest", "false", safe_for_wap("$title") ); 
     WMLdo("prev", "", "List", "", "<prev/>");
+    WMLdo("accept", "", "Submit", "wrms.php?l=\$(lo)&amp;p=\$(pw)&amp;id=\$(id)&amp;active=\$(active)", "");
     WMLCardBody( safe_for_wap($request) );
   }
 

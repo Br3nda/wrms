@@ -25,7 +25,8 @@ CREATE TABLE usr (
     organisation TEXT,
     mail_style CHAR,
     config_data TEXT,
-    note CHAR );
+    note CHAR,
+    location TEXT );
 CREATE FUNCTION max_usr() RETURNS INT4 AS 'SELECT max(user_no) FROM usr' LANGUAGE 'sql';
 CREATE INDEX xak1_usr ON usr ( org_code, username );
 

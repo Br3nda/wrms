@@ -1,166 +1,319 @@
 <!DOCTYPE webproject>
 <webproject>
-<project usePreviewPrefix="0" preview="http://mywrms/" previewPrefix="file:file%3A" type="Local" newfiles="php" name="WRMS" encoding="iso 8859-1" >
-<upload/>
-<author>Andrew McMillan</author>
-<email>wrms@catalyst.net.nz</email>
-<item url="html/images/clear.gif" />
-<item url="html/images/date-picker.gif" />
-<item url="html/images/down.gif" />
-<item url="html/images/hide.gif" />
-<item url="html/images/in-go.gif" />
-<item url="html/images/up.gif" />
-<item url="html/js/date-picker.js" />
-<item url="html/wap/inc/always.php" />
-<item url="html/wap/inc/getRequests.php" />
-<item url="html/wap/inc/login.php" />
-<item url="html/wap/inc/showRequest.php" />
-<item url="html/wap/inc/tidy.php" />
-<item url="html/wap/inc/wap-andrew.php" />
-<item url="html/wap/inc/wap.php" />
-<item url="html/wap/index.php" />
-<item url="html/wap/wrms.php" />
-<item url="html/form.php" />
-<item url="html/index.php" />
-<item url="html/lookups.php" />
-<item url="html/request.php" />
-<item url="html/requestlist.php" />
-<item url="html/usr.php" />
-<item url="html/usrsearch.php" />
-<item url="scripts/create-wrms.sql" />
-<item url="scripts/dump-db.sh" />
-<item url="scripts/finish-load.sql" />
-<item url="scripts/get-latest.sh" />
-<item url="scripts/procedures.sql" />
-<item url="scripts/recreate-wrms.sh" />
-<item url="scripts/retire-tested.pl" />
-<item url="html/attachment.php" />
-<item url="html/help.php" />
-<item url="html/wu.php" />
-<item url="html/timesheet.php" />
-<templates>templates/</templates>
-<toolbars>toolbars/</toolbars>
-<defaultDTD>-//w3c//dtd xhtml 1.0 transitional//en</defaultDTD>
-<item url="config/" />
-<item url="config/config-example.php" />
-<item url="config/config.php" />
-<item url="config/CVS/" />
-<item url="config/.cvsignore" />
-<item url="config/CVS/Root" />
-<item url="config/CVS/Repository" />
-<item url="config/CVS/Entries" />
-<item url="inc/" />
-<item url="inc/CVS/" />
-<item url="inc/always.php" />
-<item url="inc/sidebarright.php" />
-<item url="inc/validateusr.php" />
-<item url="inc/error.php" />
-<item url="inc/deleteusr.php" />
-<item url="inc/help-action.php" />
-<item url="inc/getusr.php" />
-<item url="inc/options.php" />
-<item url="inc/PgQuery.php" />
-<item url="inc/request-form.php" />
-<item url="inc/writeusr.php" />
-<item url="inc/lookhead.php" />
-<item url="inc/.cvsignore" />
-<item url="inc/looklist.php" />
-<item url="inc/request-action.php" />
-<item url="inc/code-list.php" />
-<item url="inc/login-page.php" />
-<item url="inc/getrequest.php" />
-<item url="inc/tidy.php" />
-<item url="inc/system-action.php" />
-<item url="inc/orglist-form.php" />
-<item url="inc/system-list.php" />
-<item url="inc/system-form.php" />
-<item url="inc/system-valid.php" />
-<item url="inc/organisation-valid.php" />
-<item url="inc/syslist-form.php" />
-<item url="inc/orglist-action.php" />
-<item url="inc/organisation-form.php" />
-<item url="inc/organisation-action.php" />
-<item url="inc/looksearch.php" />
-<item url="inc/lookwrite.php" />
-<item url="inc/orglist-valid.php" />
-<item url="inc/request-valid.php" />
-<item url="inc/syslist-action.php" />
-<item url="inc/block-menu.php" />
-<item url="inc/get-request-roles.php" />
-<item url="inc/notify-emails.php" />
-<item url="inc/syslist-valid.php" />
-<item url="inc/headers.php" />
-<item url="inc/html-format.php" />
-<item url="inc/indexpage.php" />
-<item url="inc/timelist-form.php" />
-<item url="inc/timelist-valid.php" />
-<item url="inc/organisation-list.php" />
-<item url="inc/user-list.php" />
-<item url="inc/wu-valid.php" />
-<item url="inc/timelist-action.php" />
-<item url="inc/sessionlist-action.php" />
-<item url="inc/sessionlist-form.php" />
-<item url="inc/sessionlist-valid.php" />
-<item url="inc/wu-form.php" />
-<item url="inc/footers.php" />
-<item url="inc/sidebarleft.php" />
-<item url="inc/help-valid.php" />
-<item url="inc/block-login.php" />
-<item url="inc/wu-action.php" />
-<item url="inc/block-newnodes.php" />
-<item url="inc/work-form.php" />
-<item url="inc/block-wusearch.php" />
-<item url="inc/indexclients.php" />
-<item url="inc/indexsupport.php" />
-<item url="inc/help-form.php" />
-<item url="inc/timesheet-valid.php" />
-<item url="inc/timesheet-action.php" />
-<item url="inc/CVS/Root" />
-<item url="inc/CVS/Repository" />
-<item url="inc/CVS/Entries" />
-<item url="html/" />
-<item url="html/wap/" />
-<item url="html/wap/inc/" />
-<item url="html/wap/inc/styledef.php" />
-<item url="html/wap/.cvsignore" />
-<item url="html/.cvsignore" />
-<item url="html/requestrank.php" />
-<item url="html/robots.txt" />
-<item url="scripts/" />
-<item url="scripts/backup_wrms.sh" />
-<item url=".cvsignore" />
-<item url="config/wrms.vhost.kant" />
-<item url="config/wrms.vhost.popper" />
-<item url="html/js/" />
-<item url="html/js/overlib.js" />
-<item url="html/billing.php" />
-<item url="html/requestchange.php" />
-<item url="scripts/conversion-200402.sql" />
-<item url="scripts/grant-perms.sh" />
-<item url="scripts/set_hours.sql" />
-<item url="html/wr.php" />
-<item url="inc/authorisation-page.php" />
-<item url="inc/maintenance-page.php" />
-<item url="inc/DataEntry.php" />
-<item url="inc/DataUpdate.php" />
-<item url="inc/FormHandler.php" />
-<item url="inc/MenuClass.php" />
-<item url="inc/Session.php" />
-<item url="inc/Request.class" />
-<item url="html/main.css" />
-<projectview name="request" >
-<viewitem url="inc/Request.class" />
-<viewitem url="inc/DataEntry.php" />
-</projectview>
-<item url="inc/Theme.php" />
-<item url="html/js/request.js" />
-<item url="html/js.php" />
-<item url="inc/Organisation.class" />
-<item url="html/org.php" />
-<item url="html/system.php" />
-<item url="inc/WorkSystem.class" />
-<item url="inc/guess-file-type.php" />
-<item url="inc/AttachmentType.class" />
-<item url="html/attachment_type.php" />
-</project>
+  <project usePreviewPrefix="0" preview="http://mywrms/" type="Local" previewPrefix="file:file%3A" newfiles="php" name="WRMS" encoding="iso 8859-1" >
+    <upload/>
+    <author>Andrew McMillan</author>
+    <email>wrms@catalyst.net.nz</email>
+    <item url="html/images/clear.gif" uploadstatus="0" />
+    <item url="html/images/date-picker.gif" uploadstatus="0" />
+    <item url="html/images/down.gif" uploadstatus="0" />
+    <item url="html/images/hide.gif" uploadstatus="0" />
+    <item url="html/images/in-go.gif" uploadstatus="0" />
+    <item url="html/images/up.gif" uploadstatus="0" />
+    <item url="html/js/date-picker.js" uploadstatus="0" />
+    <item url="html/wap/inc/always.php" uploadstatus="0" />
+    <item url="html/wap/inc/getRequests.php" uploadstatus="0" />
+    <item url="html/wap/inc/login.php" uploadstatus="0" />
+    <item url="html/wap/inc/showRequest.php" uploadstatus="0" />
+    <item url="html/wap/inc/tidy.php" uploadstatus="0" />
+    <item url="html/wap/inc/wap-andrew.php" uploadstatus="0" />
+    <item url="html/wap/inc/wap.php" uploadstatus="0" />
+    <item url="html/wap/index.php" uploadstatus="0" />
+    <item url="html/wap/wrms.php" uploadstatus="0" />
+    <item url="html/form.php" uploadstatus="0" />
+    <item url="html/index.php" uploadstatus="0" />
+    <item url="html/lookups.php" uploadstatus="0" />
+    <item url="html/request.php" uploadstatus="0" />
+    <item url="html/requestlist.php" uploadstatus="0" />
+    <item url="html/usr.php" uploadstatus="0" />
+    <item url="html/usrsearch.php" uploadstatus="0" />
+    <item url="scripts/create-wrms.sql" uploadstatus="0" />
+    <item url="scripts/dump-db.sh" uploadstatus="0" />
+    <item url="scripts/finish-load.sql" uploadstatus="0" />
+    <item url="scripts/get-latest.sh" uploadstatus="0" />
+    <item url="scripts/procedures.sql" uploadstatus="0" />
+    <item url="scripts/recreate-wrms.sh" uploadstatus="0" />
+    <item url="scripts/retire-tested.pl" uploadstatus="0" />
+    <item url="html/attachment.php" uploadstatus="0" />
+    <item url="html/help.php" uploadstatus="0" />
+    <item url="html/wu.php" uploadstatus="0" />
+    <item url="html/timesheet.php" uploadstatus="0" />
+    <templates>templates/</templates>
+    <toolbars>toolbars/</toolbars>
+    <defaultDTD>-//w3c//dtd xhtml 1.0 transitional//en</defaultDTD>
+    <item url="config/" uploadstatus="0" />
+    <item url="config/config-example.php" uploadstatus="0" />
+    <item url="config/CVS/" uploadstatus="0" />
+    <item url="config/.cvsignore" uploadstatus="0" />
+    <item url="config/CVS/Root" uploadstatus="0" />
+    <item url="config/CVS/Repository" uploadstatus="0" />
+    <item url="config/CVS/Entries" uploadstatus="0" />
+    <item url="inc/" uploadstatus="0" />
+    <item url="inc/CVS/" uploadstatus="0" />
+    <item url="inc/always.php" uploadstatus="0" />
+    <item url="inc/sidebarright.php" uploadstatus="0" />
+    <item url="inc/validateusr.php" uploadstatus="0" />
+    <item url="inc/error.php" uploadstatus="0" />
+    <item url="inc/deleteusr.php" uploadstatus="0" />
+    <item url="inc/help-action.php" uploadstatus="0" />
+    <item url="inc/getusr.php" uploadstatus="0" />
+    <item url="inc/options.php" uploadstatus="0" />
+    <item url="inc/PgQuery.php" uploadstatus="0" />
+    <item url="inc/request-form.php" uploadstatus="0" />
+    <item url="inc/writeusr.php" uploadstatus="0" />
+    <item url="inc/lookhead.php" uploadstatus="0" />
+    <item url="inc/.cvsignore" uploadstatus="0" />
+    <item url="inc/looklist.php" uploadstatus="0" />
+    <item url="inc/request-action.php" uploadstatus="0" />
+    <item url="inc/code-list.php" uploadstatus="0" />
+    <item url="inc/login-page.php" uploadstatus="0" />
+    <item url="inc/getrequest.php" uploadstatus="0" />
+    <item url="inc/tidy.php" uploadstatus="0" />
+    <item url="inc/system-action.php" uploadstatus="0" />
+    <item url="inc/orglist-form.php" uploadstatus="0" />
+    <item url="inc/system-list.php" uploadstatus="0" />
+    <item url="inc/system-form.php" uploadstatus="0" />
+    <item url="inc/system-valid.php" uploadstatus="0" />
+    <item url="inc/organisation-valid.php" uploadstatus="0" />
+    <item url="inc/syslist-form.php" uploadstatus="0" />
+    <item url="inc/orglist-action.php" uploadstatus="0" />
+    <item url="inc/organisation-form.php" uploadstatus="0" />
+    <item url="inc/organisation-action.php" uploadstatus="0" />
+    <item url="inc/looksearch.php" uploadstatus="0" />
+    <item url="inc/lookwrite.php" uploadstatus="0" />
+    <item url="inc/orglist-valid.php" uploadstatus="0" />
+    <item url="inc/request-valid.php" uploadstatus="0" />
+    <item url="inc/syslist-action.php" uploadstatus="0" />
+    <item url="inc/block-menu.php" uploadstatus="0" />
+    <item url="inc/get-request-roles.php" uploadstatus="0" />
+    <item url="inc/notify-emails.php" uploadstatus="0" />
+    <item url="inc/syslist-valid.php" uploadstatus="0" />
+    <item url="inc/headers.php" uploadstatus="0" />
+    <item url="inc/html-format.php" uploadstatus="0" />
+    <item url="inc/indexpage.php" uploadstatus="0" />
+    <item url="inc/timelist-form.php" uploadstatus="0" />
+    <item url="inc/timelist-valid.php" uploadstatus="0" />
+    <item url="inc/organisation-list.php" uploadstatus="0" />
+    <item url="inc/user-list.php" uploadstatus="0" />
+    <item url="inc/wu-valid.php" uploadstatus="0" />
+    <item url="inc/timelist-action.php" uploadstatus="0" />
+    <item url="inc/sessionlist-action.php" uploadstatus="0" />
+    <item url="inc/sessionlist-form.php" uploadstatus="0" />
+    <item url="inc/sessionlist-valid.php" uploadstatus="0" />
+    <item url="inc/wu-form.php" uploadstatus="0" />
+    <item url="inc/footers.php" uploadstatus="0" />
+    <item url="inc/sidebarleft.php" uploadstatus="0" />
+    <item url="inc/help-valid.php" uploadstatus="0" />
+    <item url="inc/block-login.php" uploadstatus="0" />
+    <item url="inc/wu-action.php" uploadstatus="0" />
+    <item url="inc/block-newnodes.php" uploadstatus="0" />
+    <item url="inc/work-form.php" uploadstatus="0" />
+    <item url="inc/block-wusearch.php" uploadstatus="0" />
+    <item url="inc/indexclients.php" uploadstatus="0" />
+    <item url="inc/indexsupport.php" uploadstatus="0" />
+    <item url="inc/help-form.php" uploadstatus="0" />
+    <item url="inc/timesheet-valid.php" uploadstatus="0" />
+    <item url="inc/timesheet-action.php" uploadstatus="0" />
+    <item url="inc/CVS/Root" uploadstatus="0" />
+    <item url="inc/CVS/Repository" uploadstatus="0" />
+    <item url="inc/CVS/Entries" uploadstatus="0" />
+    <item url="html/" uploadstatus="0" />
+    <item url="html/wap/" uploadstatus="0" />
+    <item url="html/wap/inc/" uploadstatus="0" />
+    <item url="html/wap/inc/styledef.php" uploadstatus="0" />
+    <item url="html/wap/.cvsignore" uploadstatus="0" />
+    <item url="html/.cvsignore" uploadstatus="0" />
+    <item url="html/requestrank.php" uploadstatus="0" />
+    <item url="html/robots.txt" uploadstatus="0" />
+    <item url="scripts/" uploadstatus="0" />
+    <item url="scripts/backup_wrms.sh" uploadstatus="0" />
+    <item url=".cvsignore" uploadstatus="0" />
+    <item url="config/wrms.vhost.kant" uploadstatus="0" />
+    <item url="config/wrms.vhost.popper" uploadstatus="0" />
+    <item url="html/js/" uploadstatus="0" />
+    <item url="html/js/overlib.js" uploadstatus="0" />
+    <item url="html/billing.php" uploadstatus="0" />
+    <item url="html/requestchange.php" uploadstatus="0" />
+    <item url="scripts/conversion-200402.sql" uploadstatus="0" />
+    <item url="scripts/grant-perms.sh" uploadstatus="0" />
+    <item url="html/wr.php" uploadstatus="0" />
+    <item url="inc/authorisation-page.php" uploadstatus="0" />
+    <item url="inc/maintenance-page.php" uploadstatus="0" />
+    <item url="inc/DataEntry.php" uploadstatus="0" />
+    <item url="inc/DataUpdate.php" uploadstatus="0" />
+    <item url="inc/FormHandler.php" uploadstatus="0" />
+    <item url="inc/MenuClass.php" uploadstatus="0" />
+    <item url="inc/Session.php" uploadstatus="0" />
+    <item url="inc/Request.class" uploadstatus="0" />
+    <item url="html/main.css" uploadstatus="0" />
+    <projectview name="request" >
+      <viewitem url="inc/Request.class" />
+      <viewitem url="inc/DataEntry.php" />
+    </projectview>
+    <item url="inc/Theme.php" uploadstatus="0" />
+    <item url="html/js/request.js" uploadstatus="0" />
+    <item url="html/js.php" uploadstatus="0" />
+    <item url="inc/Organisation.class" uploadstatus="0" />
+    <item url="html/org.php" uploadstatus="0" />
+    <item url="html/system.php" uploadstatus="0" />
+    <item url="inc/WorkSystem.class" uploadstatus="0" />
+    <item url="inc/guess-file-type.php" uploadstatus="0" />
+    <item url="inc/AttachmentType.class" uploadstatus="0" />
+    <item url="html/attachment_type.php" uploadstatus="0" />
+    <item url="" uploadstatus="1" />
+    <item url="CVS/" uploadstatus="0" />
+    <item url="CVS/Entries" uploadstatus="0" />
+    <item url="CVS/Repository" uploadstatus="0" />
+    <item url="CVS/Root" uploadstatus="0" />
+    <item url="CVS/Tag" uploadstatus="0" />
+    <item url="config/CVS/Tag" uploadstatus="0" />
+    <item url="config/config.php-default" uploadstatus="0" />
+    <item url="config/config.php-opwrms" uploadstatus="0" />
+    <item url="html/CVS/" uploadstatus="0" />
+    <item url="html/CVS/Entries" uploadstatus="0" />
+    <item url="html/CVS/Repository" uploadstatus="0" />
+    <item url="html/CVS/Root" uploadstatus="0" />
+    <item url="html/CVS/Tag" uploadstatus="0" />
+    <item url="html/eecimg/" uploadstatus="0" />
+    <item url="html/eecimg/CVS/" uploadstatus="0" />
+    <item url="html/eecimg/CVS/Entries" uploadstatus="0" />
+    <item url="html/eecimg/CVS/Repository" uploadstatus="0" />
+    <item url="html/eecimg/CVS/Root" uploadstatus="0" />
+    <item url="html/eecimg/CVS/Tag" uploadstatus="0" />
+    <item url="html/eecimg/.cvsignore" uploadstatus="0" />
+    <item url="html/eecimg/WRMSbottom.gif" uploadstatus="0" />
+    <item url="html/eecimg/WRMSbottom1.gif" uploadstatus="0" />
+    <item url="html/eecimg/WRMSbottomTile.gif" uploadstatus="0" />
+    <item url="html/eecimg/WRMSheader.gif" uploadstatus="0" />
+    <item url="html/eecimg/clear.gif" uploadstatus="0" />
+    <item url="html/eecimg/date-picker.gif" uploadstatus="0" />
+    <item url="html/eecimg/down.gif" uploadstatus="0" />
+    <item url="html/eecimg/help.gif" uploadstatus="0" />
+    <item url="html/eecimg/hide.gif" uploadstatus="0" />
+    <item url="html/eecimg/in-go.gif" uploadstatus="0" />
+    <item url="html/eecimg/menuBreak.gif" uploadstatus="0" />
+    <item url="html/eecimg/midTile.gif" uploadstatus="0" />
+    <item url="html/eecimg/sort-ASC.png" uploadstatus="0" />
+    <item url="html/eecimg/sort-DESC.png" uploadstatus="0" />
+    <item url="html/eecimg/tanTile.gif" uploadstatus="0" />
+    <item url="html/eecimg/up.gif" uploadstatus="0" />
+    <item url="html/eecimg/wrmsTOP.gif" uploadstatus="0" />
+    <item url="html/images/" uploadstatus="0" />
+    <item url="html/images/CVS/" uploadstatus="0" />
+    <item url="html/images/CVS/Entries" uploadstatus="0" />
+    <item url="html/images/CVS/Repository" uploadstatus="0" />
+    <item url="html/images/CVS/Root" uploadstatus="0" />
+    <item url="html/images/CVS/Tag" uploadstatus="0" />
+    <item url="html/images/eduforge/" uploadstatus="0" />
+    <item url="html/images/eduforge/CVS/" uploadstatus="0" />
+    <item url="html/images/eduforge/CVS/Entries" uploadstatus="0" />
+    <item url="html/images/eduforge/CVS/Repository" uploadstatus="0" />
+    <item url="html/images/eduforge/CVS/Root" uploadstatus="0" />
+    <item url="html/images/eduforge/CVS/Tag" uploadstatus="0" />
+    <item url="html/images/eduforge/aquaTile.gif" uploadstatus="0" />
+    <item url="html/images/eduforge/aquaTileSolid.gif" uploadstatus="0" />
+    <item url="html/images/eduforge/clear.gif" uploadstatus="0" />
+    <item url="html/images/eduforge/date-picker.gif" uploadstatus="0" />
+    <item url="html/images/eduforge/eduforge_logo.gif" uploadstatus="0" />
+    <item url="html/images/eduforge/eduforge_paua.jpg" uploadstatus="0" />
+    <item url="html/images/eduforge/go.gif" uploadstatus="0" />
+    <item url="html/images/eduforge/greyTile.gif" uploadstatus="0" />
+    <item url="html/images/eduforge/help.gif" uploadstatus="0" />
+    <item url="html/images/eduforge/hide.gif" uploadstatus="0" />
+    <item url="html/images/eduforge/in-go.gif" uploadstatus="0" />
+    <item url="html/images/eduforge/menuBreak.gif" uploadstatus="0" />
+    <item url="html/images/eduforge/midTile.gif" uploadstatus="0" />
+    <item url="html/images/eduforge/pwLogo.gif" uploadstatus="0" />
+    <item url="html/images/eduforge/sort-ASC.png" uploadstatus="0" />
+    <item url="html/images/eduforge/sort-DESC.png" uploadstatus="0" />
+    <item url="html/images/eduforge/tanTile.gif" uploadstatus="0" />
+    <item url="html/images/.cvsignore" uploadstatus="0" />
+    <item url="html/images/WRMSbottom.gif" uploadstatus="0" />
+    <item url="html/images/WRMSbottom1.gif" uploadstatus="0" />
+    <item url="html/images/WRMSbottomTile.gif" uploadstatus="0" />
+    <item url="html/images/WRMSheader.gif" uploadstatus="0" />
+    <item url="html/images/cxmenuleft-sel.png" uploadstatus="0" />
+    <item url="html/images/cxmenuleft.png" uploadstatus="0" />
+    <item url="html/images/cxmenumid-hover.png" uploadstatus="0" />
+    <item url="html/images/cxmenumid-sel.png" uploadstatus="0" />
+    <item url="html/images/cxmenumid.png" uploadstatus="0" />
+    <item url="html/images/cxmenuright-sel.png" uploadstatus="0" />
+    <item url="html/images/cxmenuright.png" uploadstatus="0" />
+    <item url="html/images/delete.png" uploadstatus="0" />
+    <item url="html/images/help.gif" uploadstatus="0" />
+    <item url="html/images/menuBreak.gif" uploadstatus="0" />
+    <item url="html/images/midTile.gif" uploadstatus="0" />
+    <item url="html/images/sort-ASC.png" uploadstatus="0" />
+    <item url="html/images/sort-DESC.png" uploadstatus="0" />
+    <item url="html/images/tanTile.gif" uploadstatus="0" />
+    <item url="html/images/wrmsTOP.gif" uploadstatus="0" />
+    <item url="html/js/CVS/" uploadstatus="0" />
+    <item url="html/js/CVS/Entries" uploadstatus="0" />
+    <item url="html/js/CVS/Repository" uploadstatus="0" />
+    <item url="html/js/CVS/Root" uploadstatus="0" />
+    <item url="html/js/CVS/Tag" uploadstatus="0" />
+    <item url="html/pwimg/" uploadstatus="0" />
+    <item url="html/pwimg/CVS/" uploadstatus="0" />
+    <item url="html/pwimg/CVS/Entries" uploadstatus="0" />
+    <item url="html/pwimg/CVS/Repository" uploadstatus="0" />
+    <item url="html/pwimg/CVS/Root" uploadstatus="0" />
+    <item url="html/pwimg/CVS/Tag" uploadstatus="0" />
+    <item url="html/pwimg/WRMSbottom.gif" uploadstatus="0" />
+    <item url="html/pwimg/WRMSbottom1.gif" uploadstatus="0" />
+    <item url="html/pwimg/WRMSbottomTile.gif" uploadstatus="0" />
+    <item url="html/pwimg/WRMSheader.gif" uploadstatus="0" />
+    <item url="html/pwimg/clear.gif" uploadstatus="0" />
+    <item url="html/pwimg/date-picker.gif" uploadstatus="0" />
+    <item url="html/pwimg/down.gif" uploadstatus="0" />
+    <item url="html/pwimg/help.gif" uploadstatus="0" />
+    <item url="html/pwimg/hide.gif" uploadstatus="0" />
+    <item url="html/pwimg/in-go.gif" uploadstatus="0" />
+    <item url="html/pwimg/masterCUT_01.gif" uploadstatus="0" />
+    <item url="html/pwimg/menuBreak.gif" uploadstatus="0" />
+    <item url="html/pwimg/midTile.gif" uploadstatus="0" />
+    <item url="html/pwimg/sort-ASC.png" uploadstatus="0" />
+    <item url="html/pwimg/sort-DESC.png" uploadstatus="0" />
+    <item url="html/pwimg/tanTile.gif" uploadstatus="0" />
+    <item url="html/pwimg/up.gif" uploadstatus="0" />
+    <item url="html/pwimg/wrmsTOP.gif" uploadstatus="0" />
+    <item url="html/wap/CVS/" uploadstatus="0" />
+    <item url="html/wap/CVS/Entries" uploadstatus="0" />
+    <item url="html/wap/CVS/Repository" uploadstatus="0" />
+    <item url="html/wap/CVS/Root" uploadstatus="0" />
+    <item url="html/wap/CVS/Tag" uploadstatus="0" />
+    <item url="html/wap/inc/CVS/" uploadstatus="0" />
+    <item url="html/wap/inc/CVS/Entries" uploadstatus="0" />
+    <item url="html/wap/inc/CVS/Repository" uploadstatus="0" />
+    <item url="html/wap/inc/CVS/Root" uploadstatus="0" />
+    <item url="html/wap/inc/CVS/Tag" uploadstatus="0" />
+    <item url="inc/CVS/Tag" uploadstatus="0" />
+    <item url="inc/oldfuncs/" uploadstatus="0" />
+    <item url="inc/oldfuncs/CVS/" uploadstatus="0" />
+    <item url="inc/oldfuncs/CVS/Entries" uploadstatus="0" />
+    <item url="inc/oldfuncs/CVS/Repository" uploadstatus="0" />
+    <item url="inc/oldfuncs/CVS/Root" uploadstatus="0" />
+    <item url="inc/oldfuncs/CVS/Tag" uploadstatus="0" />
+    <item url="inc/oldfuncs/.cvsignore" uploadstatus="0" />
+    <item url="scripts/CVS/" uploadstatus="0" />
+    <item url="scripts/CVS/Entries" uploadstatus="0" />
+    <item url="scripts/CVS/Repository" uploadstatus="0" />
+    <item url="scripts/CVS/Root" uploadstatus="0" />
+    <item url="scripts/CVS/Tag" uploadstatus="0" />
+    <item url="scripts/pages/" uploadstatus="0" />
+    <item url="scripts/pages/CVS/" uploadstatus="0" />
+    <item url="scripts/pages/CVS/Entries" uploadstatus="0" />
+    <item url="scripts/pages/CVS/Repository" uploadstatus="0" />
+    <item url="scripts/pages/CVS/Root" uploadstatus="0" />
+    <item url="scripts/pages/CVS/Tag" uploadstatus="0" />
+    <item url="scripts/pages/.cvsignore" uploadstatus="0" />
+    <item url="scripts/.cvsignore" uploadstatus="0" />
+    <item url="scripts/conversion-200410.sql" uploadstatus="0" />
+    <item url="wrms.webprj" uploadstatus="0" />
+    <item url="config/config.php" uploadstatus="0" />
+    <item url="inc/simpletimelist-form.php" uploadstatus="0" />
+    <treestatus>
+      <openfolder url="html" />
+      <openfolder url="inc" />
+    </treestatus>
+  </project>
 </webproject>

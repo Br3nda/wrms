@@ -71,6 +71,7 @@
     echo "<br>\n &nbsp;<a href=$base_url/form.php?f=syslist class=block>All&nbsp;Systems</a>";
     echo "<br>\n &nbsp;<a href=$base_url/form.php?f=timelist&user_no=$session->user_no&uncharged=1 class=block>My&nbsp;Uncharged&nbsp;Work</a>";
     echo "<br>\n &nbsp;<a href=$base_url/form.php?f=timelist&uncharged=1 class=block>All&nbsp;Work</a>";
+    echo "<br>\n &nbsp;<a href=$base_url/form.php?f=simpletimelist class=block>Work by Person</a>";
     echo "<br>\n &nbsp;<a href=$base_url/form.php?f=timelist&uncharged=1&charge=1 class=block>Work&nbsp;To&nbsp;Charge</a>";
     $tooltip = "A report showing the activity in the WRMS.";
     echo "<br>\n &nbsp;<a href=$base_url/requestchange.php class=block>WRMS&nbsp;Activity</a>";

@@ -126,6 +126,7 @@ function build_time_list( $name, $from, $current, $delta ) {
 
       for ( $j = 0, $base = intval($start_tod / $period_minutes) * $period_minutes; $j < $duration; $j += $period_minutes ) {
         $tm[$our_dow][sprintf("m%d", $base + $j)] = "$ts->request_id/$ts->work_description" . ("$ts->entry_details" == "$ts->request_id" ? "" : "@|@$sow" );
+        // echo "<p>\$tm[$our_dow][" . sprintf("m%d", $base + $j) . "] = $ts->request_id/$ts->work_description" . ("$ts->entry_details" == "$ts->request_id" ? "" : "@|@$sow" );
       }
     }
   }

@@ -381,7 +381,7 @@ GRANT SELECT ON module, ugroup TO general;
 GRANT INSERT, UPDATE, SELECT ON
   request, request_request_id_seq,
   request_quote, request_quote_quote_id_seq,
-  request_status, request_note, request_interested,
+  request_status, request_note,
   request_request, request_history,
   request_attachment,
   lookup_code,
@@ -400,7 +400,7 @@ GRANT INSERT, UPDATE, SELECT ON request_attac_attachment_id_seq TO general;
 
 GRANT INSERT,UPDATE,SELECT, DELETE ON
   request_timesheet,
-  request_allocated,
+  request_allocated, request_interested,
   org_system,
   timesheet_note,
   group_member,

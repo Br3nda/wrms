@@ -4,7 +4,7 @@
 SITE=$1
 DUMPDIR=/tmp/wrms-dump
 
-[ "$SITE" == "" ] && SITE=sartre.catalyst.net.nz
+[ "$SITE" == "" ] && SITE=wrms@levy.catalyst.net.nz
 
 if [ ! -e ~/wrms/scripts/dump ]
 then

@@ -70,7 +70,7 @@
 <a href="javascript:show_calendar('forms[0].to_date');" onmouseover="window.status='Date Picker';return true;" onmouseout="window.status='';return true;"><img valign="middle" src="/images/date-picker.gif" border=0></a>
 </td>
 <td class=smb align=right>&nbsp;Type:</td>
-<td nowrap class=smb><select name="type_code"><option value="">-- All Types --</option><?php echo "$request_types"; ?></select></td>
+<td nowrap class=smb><select name="type_code" class=sml><option value="">-- All Types --</option><?php echo "$request_types"; ?></select></td>
 <td valign=middle class=smb align=center><input type=submit value="RUN QUERY" alt=go name=submit class="submit"></td>
 </tr></table>
 </td>

@@ -8,7 +8,7 @@
 
   /* Has the person been allocated this request? */
   $query = "SELECT * FROM request_allocated WHERE request_allocated.allocated_to_id= $session->user_no ";
-  if ( isset($request) )
+  if ( $is_request )
     $query .= "AND request_id = $request->request_id ";
   $rid = awm_pgexec( $wrms_db, $query);
   if ( ! $rid ) {
@@ -21,7 +21,7 @@
   /* Is the person client or support manager for this (or any?) system? */
   $query = "SELECT * FROM system_usr WHERE system_usr.user_no=$session->user_no";
   $query .= " AND system_usr.role ~ '[CS]' ";
-  if ( isset($request) )
+  if ( $is_request )
     $query .= " AND system_usr.system_code = '$request->system_code' ";
   $rid = awm_pgexec( $wrms_db, $query);
   if ( ! $rid ) {

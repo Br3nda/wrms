@@ -2,8 +2,6 @@
 $begin_processing = microtime();
 
 error_log( "=============================================== $PHP_SELF" );
-// $appdir = ereg_replace("/html$", "", $DOCUMENT_ROOT );
-// include_once("$appdir/config/config.php");
 include_once("../config/config.php");
 
 include_once("PgQuery.php");

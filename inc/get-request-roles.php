@@ -10,7 +10,7 @@
   $query = "SELECT * FROM request_allocated WHERE request_allocated.allocated_to_id= $session->user_no ";
   if ( $is_request )
     $query .= "AND request_id = $request->request_id ";
-  $rid = awm_pgexec( $dbconn, $query);
+  $rid = awm_pgexec( $dbconn, $query, "req-roles1");
   if ( ! $rid ) {
     $error_loc = "get-request-roles.php";
     $error_qry = "$query";
@@ -23,7 +23,7 @@
   $query .= " AND system_usr.role ~ '[CS]' ";
   if ( $is_request )
     $query .= " AND system_usr.system_code = '$request->system_code' ";
-  $rid = awm_pgexec( $dbconn, $query);
+  $rid = awm_pgexec( $dbconn, $query, "req-roles2");
   if ( ! $rid ) {
     $error_loc = "get-request-roles.php";
     $error_qry = "$query";

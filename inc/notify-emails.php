@@ -14,7 +14,8 @@ function notify_emails( $dbid, $req_id ) {
   $query .=  " AND request_allocated.request_id = $req_id ";
   $query .=  " AND usr.status != 'I' ";
 
-  $peopleq = awm_pgexec( $dbid, $query);
+  $peopleq = awm_pgexec( $dbid, $query, "notify-eml");
+  $to = "";
 
   if ( $peopleq ) {
     $rows = pg_NumRows($peopleq);
@@ -26,4 +27,4 @@ function notify_emails( $dbid, $req_id ) {
   }
   return $to;
 }
-
+?>

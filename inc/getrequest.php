@@ -47,10 +47,10 @@
     $request = "";
   }
 
+  if ( isset( $request->active ) && strtolower("$request->active") == "t" ) $request->active = "TRUE";
+
   /* get the user's roles relative to the current request */
   include( "get-request-roles.php");
-
-  if ( isset( $request->active ) && strtolower("$request->active") == "t" ) $request->active = "TRUE";
 
   /* Current request is editable if the user requested it or user is sysmgr, cltmgr or allocated the job */
   if ( ! isset($style) ) $style = "";

@@ -422,7 +422,7 @@ class User {
       unset($_POST['password']);
     }
 
-    if ( isset($_POST['base_rate']) ) $_POST['base_rate'] = floatval($_POST['base_rate']);
+    if ( isset($_POST['base_rate']) ) $_POST['base_rate'] = doubleval($_POST['base_rate']);
     $this->chtype = strtolower($_POST['submit']);
 
     $sql = sql_from_post( $this->chtype, "usr", "WHERE user_no='$this->user_no'");

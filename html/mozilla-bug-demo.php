@@ -22,7 +22,7 @@ select		{font: xx-small tahoma, sans-serif; }
 <th>Text Input</th><td>&nbsp;<input TYPE="Text" Size="10" Name="search_for" Value="Some Text"></td>
 </tr>
 <tr>
-<th>Textarea</th><td>&nbsp;<textarea NAME=system_code wrap rows=5 cols=30>Text in a text area before we play with it</textarea></td>
+<th>Textarea</th><td>&nbsp;<textarea NAME=system_code wrap=soft rows=5 cols=30>Text in a text area before we play with it</textarea></td>
 </tr>
 <tr>
 <th>Select</th><td>&nbsp;<select NAME=select_code>
@@ -49,8 +49,9 @@ but bits of those (notably typeface) don't seem to be being applied correctly.</
 seems to be <i>sized</i> to fit a smaller font. Then when you click in it 
 the font suddenly shrinks... to a fixed pitch one which now fits in the cell size.</p>
 
-<p>I guess that the font shrinkage is actually more related to a TTF vs Type 1 font switch
-and the metrics changing.</p>
+<p>I thought that the font shrinkage might actually more related to a TTF vs Type 1 font switch
+and the metrics changing, but it isn't - exactly the same problem occurs with the Windows
+builds.</p>
 
 <p>The TEXTAREA is simply not shown in the correct typeface to start with.</p>
 

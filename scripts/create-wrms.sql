@@ -14,7 +14,7 @@ CREATE TABLE usr (
     status CHAR,
     help BOOL,
     phone TEXT,
-    fax TEXT,
+    mobile TEXT,
     pager TEXT,
     org_code INT4,
     email_ok BOOL DEFAULT TRUE,
@@ -25,11 +25,9 @@ CREATE TABLE usr (
     mail_style CHAR,
     config_data TEXT,
     note CHAR );
-GRANT SELECT,INSERT,UPDATE ON usr TO PUBLIC;
-GRANT ALL ON usr TO andrew;
+GRANT SELECT,INSERT,UPDATE ON usr, usr_usr_no_seq TO PUBLIC;
+GRANT ALL ON usr, usr_usr_no_seq TO andrew;
 CREATE FUNCTION max_usr() RETURNS INT4 AS 'SELECT max(user_no) FROM usr' LANGUAGE 'sql';
-GRANT SELECT,UPDATE ON usr_user_no_seq TO general;
-GRANT ALL ON usr_user_no_seq TO andrew;
 CREATE INDEX xak1_usr ON usr ( org_code, username );
 
 CREATE TABLE usr_setting (
@@ -60,10 +58,9 @@ CREATE TABLE organisation (
   org_name TEXT,
   admin_usr TEXT
 ) ;
-GRANT SELECT ON organisation TO PUBLIC;
-GRANT INSERT,UPDATE,SELECT ON organisation TO general;
+GRANT SELECT ON organisation, organisation_org_code_seq TO PUBLIC;
+GRANT INSERT,UPDATE,SELECT ON organisation, organisation_org_code_seq TO general;
 CREATE FUNCTION max_organisation() RETURNS INT4 AS 'SELECT max(org_code) FROM organisation' LANGUAGE 'sql';
-GRANT SELECT,UPDATE ON organisation_org_code_seq TO general;
 
 
 CREATE TABLE request (
@@ -94,9 +91,7 @@ CREATE INDEX xak1_request ON request ( active, severity_code );
 CREATE INDEX xak2_request ON request ( active, severity_code, request_by );
 CREATE INDEX xak3_request ON request ( active, request_by );
 CREATE INDEX xak4_request ON request ( active, last_status );
-GRANT INSERT,UPDATE,SELECT ON request TO general;
-GRANT SELECT,UPDATE ON request_request_id_seq TO PUBLIC;
-
+GRANT INSERT,UPDATE,SELECT ON request, request_request_id_seq TO general;
 
 CREATE FUNCTION active_request(INT4)
     RETURNS BOOL
@@ -122,7 +117,6 @@ CREATE TABLE work_system (
   support_user_no INT4,
   notify_usr TEXT
 ) ;
-GRANT SELECT ON work_system TO PUBLIC;
 GRANT INSERT,UPDATE,SELECT ON work_system TO general;
 
 CREATE TABLE org_system (
@@ -131,7 +125,6 @@ CREATE TABLE org_system (
   support_user_no INT4,
   system_code TEXT
 ) ;
-GRANT SELECT ON org_system TO PUBLIC;
 GRANT DELETE,INSERT,UPDATE,SELECT ON org_system TO general;
 CREATE INDEX xpk_org_system ON org_system ( org_code, system_code );
 CREATE INDEX xak1_org_system ON org_system ( system_code, org_code );
@@ -159,8 +152,7 @@ CREATE TABLE request_quote (
   quote_details TEXT
 );
 CREATE INDEX xak1_request_quote ON request_quote ( request_id );
-GRANT INSERT,UPDATE,SELECT ON request_quote TO general;
-GRANT SELECT,UPDATE ON request_quote_quote_id_seq TO PUBLIC;
+GRANT INSERT,UPDATE,SELECT ON request_quote, request_quote_quote_id_seq TO general;
 
 CREATE FUNCTION max_quote() RETURNS INT4 AS 'SELECT max(quote_id) FROM request_quote' LANGUAGE 'sql';
 
@@ -192,7 +184,7 @@ CREATE TABLE request_timesheet (
 );
 CREATE INDEX request_timesheet_skey1 ON request_timesheet ( work_on, work_by_id, request_id );
 CREATE INDEX request_timesheet_skey2 ON request_timesheet ( ok_to_charge, request_id );
-GRANT INSERT,UPDATE,SELECT ON request_timesheet TO general;
+GRANT INSERT,UPDATE,SELECT ON request_timesheet, request_timesheet_timesheet_id_seq TO general;
 CREATE FUNCTION max_timesheet() RETURNS INT4 AS 'SELECT max(timesheet_id) FROM request_timesheet' LANGUAGE 'sql';
 
 
@@ -253,8 +245,7 @@ CREATE TABLE system_update (
   system_code TEXT
 ) ;
 CREATE INDEX xak1_system_update ON system_update ( system_code, update_id );
-GRANT INSERT,UPDATE,SELECT ON system_update TO general;
-GRANT SELECT,UPDATE ON system_update_update_id_seq TO PUBLIC;
+GRANT INSERT,UPDATE,SELECT ON system_update, system_update_update_id_seq TO general;
 
 CREATE FUNCTION max_update() RETURNS INT4 AS 'SELECT max(update_id) FROM system_update' LANGUAGE 'sql';
 
@@ -322,15 +313,15 @@ CREATE TABLE ugroup (
     group_no SERIAL,
 		module_name TEXT,
     group_name TEXT );
-GRANT SELECT ON ugroup TO PUBLIC;
-GRANT ALL ON ugroup TO andrew;
+GRANT SELECT ON ugroup TO general;
+GRANT ALL ON ugroup, ugroup_group_no_seq TO andrew;
 CREATE FUNCTION max_group() RETURNS INT4 AS 'SELECT max(group_no) FROM ugroup' LANGUAGE 'sql';
 
 
 CREATE TABLE group_member (
     group_no INT4,
     user_no INT4 );
-GRANT SELECT,INSERT,UPDATE,DELETE ON group_member TO PUBLIC;
+GRANT SELECT,INSERT,UPDATE,DELETE ON group_member TO general;
 GRANT ALL ON group_member TO andrew;
 
 
@@ -341,7 +332,7 @@ CREATE TABLE session (
     session_start TIMESTAMP DEFAULT TEXT 'now',
     session_end TIMESTAMP DEFAULT TEXT 'now',
     session_config TEXT );
-GRANT SELECT,INSERT,UPDATE ON session, session_session_id_seq TO PUBLIC;
+GRANT SELECT,INSERT,UPDATE ON session, session_session_id_seq TO general;
 GRANT ALL ON session, session_session_id_seq TO andrew;
 CREATE FUNCTION max_session() RETURNS INT4 AS 'SELECT max(session_id) FROM session' LANGUAGE 'sql';
 

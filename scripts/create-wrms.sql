@@ -10,7 +10,7 @@ CREATE TABLE usr (
     password TEXT,
     email TEXT,
     fullname TEXT,
-    joined TIMESTAMP DEFAULT TEXT 'now',
+    joined TIMESTAMP DEFAULT current_timestamp,
     last_update TIMESTAMP,
     status CHAR,
     help BOOL,
@@ -40,8 +40,7 @@ CREATE FUNCTION get_usr_setting(TEXT,TEXT)
     RETURNS TEXT
     AS 'SELECT setting_value FROM usr_setting
             WHERE usr_setting.username = $1
-            AND usr_setting.setting_name = $2 '
-    LANGUAGE 'sql';
+            AND usr_setting.setting_name = $2 ' LANGUAGE 'sql';
 
 CREATE TABLE organisation (
   org_code SERIAL PRIMARY KEY,
@@ -60,7 +59,7 @@ CREATE FUNCTION max_organisation() RETURNS INT4 AS 'SELECT max(org_code) FROM or
 
 CREATE TABLE request (
   request_id SERIAL PRIMARY KEY,
-  request_on TIMESTAMP DEFAULT TEXT 'now',
+  request_on TIMESTAMP DEFAULT current_timestamp,
   active BOOL DEFAULT TRUE,
   last_status CHAR DEFAULT 'N',
   wap_status INT2 DEFAULT 0,
@@ -71,7 +70,7 @@ CREATE TABLE request (
   request_type INT2,
   requester_id INT4,
   eta TIMESTAMP,
-  last_activity TIMESTAMP DEFAULT TEXT 'now',
+  last_activity TIMESTAMP DEFAULT current_timestamp,
   sla_response_time INTERVAL DEFAULT '0:00',
   sla_response_type CHAR DEFAULT 'O',
   requested_by_date TIMESTAMP,
@@ -89,20 +88,18 @@ CREATE INDEX xak4_request ON request ( active, last_status );
 
 CREATE FUNCTION active_request(INT4)
     RETURNS BOOL
-    AS 'SELECT active FROM request WHERE request.request_id = $1'
-    LANGUAGE 'sql';
+    AS 'SELECT active FROM request WHERE request.request_id = $1' LANGUAGE 'sql';
 CREATE FUNCTION max_request()
     RETURNS INT4
-    AS 'SELECT max(request_id) FROM request'
-    LANGUAGE 'sql';
+    AS 'SELECT max(request_id) FROM request' LANGUAGE 'sql';
 CREATE FUNCTION get_request_org(INT4)
     RETURNS INT4
-    AS 'SELECT usr.org_code FROM request, usr WHERE request.request_id = $1 AND request.request_by = usr.username'
-    LANGUAGE 'sql';
+    AS 'SELECT usr.org_code FROM request, usr WHERE request.request_id = $1 AND request.request_by = usr.username
+    ' LANGUAGE 'sql';
 CREATE FUNCTION request_sla_code(INTERVAL,CHAR)
     RETURNS TEXT
-    AS 'SELECT text( date_part( ''hour'', $1) ) || ''|'' || text(CASE WHEN $2 ='' '' THEN ''O'' ELSE $2 END) '
-    LANGUAGE 'sql';
+    AS 'SELECT text( date_part( ''hour'', $1) ) || ''|'' || text(CASE WHEN $2 ='' '' THEN ''O'' ELSE $2 END)
+    ' LANGUAGE 'sql';
 
 CREATE TABLE work_system (
   system_code TEXT NOT NULL UNIQUE PRIMARY KEY,
@@ -133,7 +130,7 @@ CREATE UNIQUE INDEX xpk_request_status ON request_status ( request_id, status_on
 CREATE TABLE request_quote (
   quote_id SERIAL PRIMARY KEY,
   request_id INT4,
-  quoted_on TIMESTAMP DEFAULT TEXT 'now',
+  quoted_on TIMESTAMP DEFAULT current_timestamp,
   quote_amount FLOAT8,
   quote_by_id INT4,
   quoted_by TEXT,
@@ -149,7 +146,7 @@ CREATE FUNCTION max_quote() RETURNS INT4 AS 'SELECT max(quote_id) FROM request_q
 
 CREATE TABLE request_allocated (
   request_id INT4,
-  allocated_on TIMESTAMP DEFAULT TEXT 'now',
+  allocated_on TIMESTAMP DEFAULT current_timestamp,
 	allocated_to_id INT4,
   allocated_to TEXT
 );
@@ -185,7 +182,7 @@ CREATE TABLE timesheet_note (
 
 CREATE TABLE request_note (
   request_id INT4,
-  note_on TIMESTAMP DEFAULT TEXT 'now',
+  note_on TIMESTAMP DEFAULT current_timestamp,
   note_by_id INT4,
   note_by TEXT,
   note_detail TEXT,
@@ -194,8 +191,8 @@ CREATE TABLE request_note (
 
 CREATE FUNCTION get_last_note_on(INT4)
     RETURNS TIMESTAMP
-    AS 'SELECT max(note_on) FROM request_note WHERE request_note.request_id = $1'
-    LANGUAGE 'sql';
+    AS 'SELECT max(note_on) FROM request_note WHERE request_note.request_id = $1
+    ' LANGUAGE 'sql';
 
 CREATE TABLE request_interested (
   request_id INT4,
@@ -215,7 +212,7 @@ CREATE INDEX request_request_sk1 ON request_request ( to_request_id );
 
 
 CREATE TABLE request_history (
-  modified_on TIMESTAMP DEFAULT TEXT 'now'
+  modified_on TIMESTAMP DEFAULT current_timestamp
 ) INHERITS (request );
 CREATE INDEX xpk_request_history ON request_history ( request_id, modified_on );
 
@@ -226,7 +223,7 @@ CREATE INDEX xpk_request_history ON request_history ( request_id, modified_on );
 CREATE TABLE request_attachment (
   attachment_id SERIAL PRIMARY KEY,
   request_id INT4,
-  attached_on TIMESTAMP DEFAULT TEXT 'now',
+  attached_on TIMESTAMP DEFAULT current_timestamp,
   attached_by INT4,
   att_brief TEXT,
   att_description TEXT,
@@ -259,22 +256,20 @@ CREATE UNIQUE INDEX lookup_code_ak1 ON lookup_code ( source_table, source_field,
 CREATE FUNCTION get_lookup_desc( TEXT, TEXT, TEXT )
     RETURNS TEXT
     AS 'SELECT lookup_desc AS RESULT FROM lookup_code
-               WHERE source_table = $1 AND source_field = $2 AND lookup_code = $3;'
-    LANGUAGE 'sql';
+               WHERE source_table = $1 AND source_field = $2 AND lookup_code = $3;' LANGUAGE 'sql';
 
 CREATE FUNCTION get_lookup_misc( TEXT, TEXT, TEXT )
     RETURNS TEXT
     AS 'SELECT lookup_misc AS RESULT FROM lookup_code
-               WHERE source_table = $1 AND source_field = $2 AND lookup_code = $3;'
-    LANGUAGE 'sql';
+               WHERE source_table = $1 AND source_field = $2 AND lookup_code = $3;' LANGUAGE 'sql';
 
 
 CREATE FUNCTION get_status_desc(CHAR)
     RETURNS TEXT
     AS 'SELECT lookup_desc AS status_desc FROM lookup_code
             WHERE source_table=''request'' AND source_field=''status_code''
-						AND lower(lookup_code) = lower($1)'
-    LANGUAGE 'sql';
+						AND lower(lookup_code) = lower($1)
+    ' LANGUAGE 'sql';
 
 
 
@@ -303,8 +298,8 @@ CREATE TABLE session (
     session_id SERIAL,
     user_no INT4,
     help BOOL,
-    session_start TIMESTAMP DEFAULT TEXT 'now',
-    session_end TIMESTAMP DEFAULT TEXT 'now',
+    session_start TIMESTAMP DEFAULT current_timestamp,
+    session_end TIMESTAMP DEFAULT current_timestamp,
     session_config TEXT );
 CREATE FUNCTION max_session() RETURNS INT4 AS 'SELECT max(session_id) FROM session' LANGUAGE 'sql';
 
@@ -336,14 +331,14 @@ CREATE TABLE help (
     topic TEXT,
     seq INT4,
     title TEXT,
-    content LZTEXT,
+    content TEXT,
     PRIMARY KEY (topic, seq)
 );
 
 CREATE TABLE infonode (
     node_id SERIAL PRIMARY KEY,
     nodename TEXT,
-    created_on TIMESTAMP DEFAULT 'now',
+    created_on TIMESTAMP DEFAULT current_timestamp,
     created_by INT4,
     node_type INT4 DEFAULT 0
 );
@@ -353,11 +348,11 @@ CREATE INDEX infonode_skey2 ON infonode (created_on);
 CREATE TABLE wu (
     node_id INT4,
     wu_by INT4,
-    wu_on TIMESTAMP DEFAULT 'now',
+    wu_on TIMESTAMP DEFAULT current_timestamp,
     votes_plus INT4 DEFAULT 0,
     votes_minus INT4 DEFAULT 0,
     flags TEXT DEFAULT '',
-    content LZTEXT,
+    content TEXT,
     PRIMARY KEY (node_id, wu_by)
 );
 CREATE INDEX wu_skey1 ON wu (wu_by, wu_on);
@@ -369,7 +364,7 @@ CREATE TABLE wu_vote (
     vote_by INT4,
     vote_amount INT4,
     flag CHAR,
-    vote_on TIMESTAMP DEFAULT 'now',
+    vote_on TIMESTAMP DEFAULT current_timestamp,
     PRIMARY KEY ( node_id, wu_by, vote_by )
 );
 
@@ -399,7 +394,7 @@ GRANT INSERT, UPDATE, SELECT ON
 
 
 GRANT INSERT,UPDATE,SELECT, DELETE ON
-  request_timesheet, request_timesh_timesheet_id_seq,
+  request_timesheet,
   request_allocated,
   org_system,
   timesheet_note,
@@ -407,5 +402,10 @@ GRANT INSERT,UPDATE,SELECT, DELETE ON
   system_usr,
   saved_queries
   TO general;
+
+  -- Backward compatibility with 7.2...
+GRANT INSERT,UPDATE,SELECT, DELETE ON request_timesh_timesheet_id_seq TO general;
+  -- Forward compatibility with 7.2...
+GRANT INSERT,UPDATE,SELECT, DELETE ON request_timesheet_timesheet_id_seq TO general;
 
 \i procedures.sql

@@ -23,8 +23,10 @@
     $tooltip = "A comprehensive search facility for reporting on work requests";
     echo "<br>\n &nbsp;<a href=$base_url/requestlist.php?qs=complex class=block title=\"$tooltip\" alt=\"$tooltip\">Request&nbsp;Search</a>";
 
-    $tooltip = "A ranked list of work requests, most important and urgent at the top";
-    echo "<br>\n &nbsp;<a href=$base_url/requestrank.php?qs=complex class=block title=\"$tooltip\" alt=\"$tooltip\">Request&nbsp;Ranking</a>";
+    if ( is_member_of('Admin', 'Support') || $rank_report_anyone ) {
+      $tooltip = "A ranked list of work requests, most important and urgent at the top";
+      echo "<br>\n &nbsp;<a href=$base_url/requestrank.php?qs=complex class=block title=\"$tooltip\" alt=\"$tooltip\">Request&nbsp;Ranking</a>";
+    }
   }
 
   if ( $PHP_SELF == "/request.php" && $request_id > 0 ) {

@@ -92,3 +92,16 @@ li.messages {
   margin-left: 8em;
   padding: 6px 0;
 }
+
+caption {
+  color: white;
+  background: black;
+  text-align: right;
+  margin-top: 1em;
+  padding-right: 2px;
+  font-weight: bold;
+}
+
+.w100 {
+  width:100%;
+}

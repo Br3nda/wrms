@@ -1,15 +1,14 @@
 <?php
 if ( $logged_on ) {
   if ( is_member_of('Admin','Support') ) {
-    include("indexextsupport.php");
-//    include("indexsupport.php");
-  }
-  else if ( is_member_of('ExtSupport') ) {
-    include("indexextsupport.php");
+    include("indexsupport.php");
   }
   else {
     include("indexclients.php");
   }
+}
+else if ( function_exists("local_index_not_logged_in") ) {
+  local_index_not_logged_in();
 }
 else { ?>
 

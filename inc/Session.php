@@ -234,7 +234,7 @@ class Session
         }
       }
       else {
-        $client_messages[] = 'WARN: Invalid username or password.';
+        $client_messages[] = 'Invalid username or password.';
         if ( $debuggroups['Login'] )
           $this->cause = 'WARN: Invalid password.';
         else
@@ -242,7 +242,7 @@ class Session
       }
     }
     else {
-    $client_messages[] = 'WARN: Invalid username or password.';
+    $client_messages[] = 'Invalid username or password.';
     if ( $debuggroups['Login'] )
       $this->cause = 'WARN: Invalid username.';
     else
@@ -253,23 +253,34 @@ class Session
     return false;
   }
 
-  function LoginRequired() {
+  function LoginRequired( $groups = "" ) {
     global $system_name, $admin_email, $session, $images, $colors;
 
-    if ( $this->logged_in ) return;
-
-    include("headers.php");
-    if ( function_exists("local_index_not_logged_in") ) {
-      local_index_not_logged_in();
-    }
-    else {
-      echo <<<EOTEXT
+    if ( $this->logged_in && $groups == "" ) return;
+    if ( ! $this->logged_in ) {
+      $client_messages[] = "You must log in to use this system.";
+      if ( function_exists("local_index_not_logged_in") ) {
+        include("headers.php");
+        local_index_not_logged_in();
+      }
+      else {
+        echo <<<EOTEXT
 <H4>For access to the $system_name you should log on with
 the username and password that have been issued to you.</H4>
 
 <h4>If you would like to request access, please e-mail $admin_email.</h4>
 EOTEXT;
+      }
     }
+    else {
+      $valid_groups = split(",", $groups);
+      foreach( $valid_groups AS $k => $v ) {
+        if ( $this->AllowedTo($v) ) return;
+      }
+      include("headers.php");
+      $client_messages[] = "You are not authorised to use this function.";
+    }
+
     include("footers.php");
     exit;
   }

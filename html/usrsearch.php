@@ -74,7 +74,6 @@
         echo "<th class=cols>Email</th>\n";
         if ( isset( $system_code )  && $system_code <> "")
           echo "<th class=cols>User Role</th>\n";
-        echo "<th class=cols>Updated</th>\n";
         echo "<th class=cols>Accessed</th>\n";
         echo "<th class=cols>Actions</th>\n";
         echo "</tr>\n";
@@ -91,7 +90,6 @@
         echo "<td class=sml><a href=\"mailto:$thisusr->email\">$thisusr->email</a>&nbsp;</td>\n";
         if ( isset( $system_code ) && $system_code <> "" )
           echo "<td class=sml>$thisusr->lookup_desc ($thisusr->role)&nbsp;</td>\n";
-        echo "<td class=sml>$thisusr->last_update&nbsp;</td>\n";
         echo "<td class=sml>$thisusr->last_accessed&nbsp;</td>\n";
 
         echo "<td class=sml><a class=submit href=\"requestlist.php?user_no=$thisusr->user_no\">Requested</a>\n";

@@ -62,6 +62,7 @@ function system_menus(&$tmnu,$system) {
   $tmnu->AddOption("Requests","/requestlist.php?system_code=$system->system_code","List current requests for this system");
   $tmnu->AddOption("Organisations","/form.php?system_code=$system->system_code&form=orglist","List organisations for this system");
   $tmnu->AddOption("Users","/usrsearch.php?system_code=$system->system_code","List users associated with this system");
+  $tmnu->AddOption("Roles","/system_users.php?system_code=$system->system_code","Maintain roles of users associated with this system");
 
   if ( $session->AllowedTo('Admin') || $session->AllowedTo('Support') ) {
     $tmnu->AddOption("Uncharged","/form.php?system_code=$system->system_code&form=timelist&uncharged=1","List users for this system");
@@ -102,6 +103,7 @@ function system_code_menus(&$tmnu,$system_code) {
   $tmnu->AddOption("Requests","/requestlist.php?system_code=$system_code","List current requests for this system");
   $tmnu->AddOption("Organisations","/form.php?system_code=$system_code&form=orglist","List organisations for this system");
   $tmnu->AddOption("Users","/usrsearch.php?system_code=$system_code","List users associated with this system");
+  $tmnu->AddOption("Roles","/system_users.php?system_code=$system_code","Maintain roles of users associated with this system");
 
   if ( $session->AllowedTo('Admin') || $session->AllowedTo('Support') ) {
     $tmnu->AddOption("Uncharged","/form.php?system_code=$system_code&form=timelist&uncharged=1","List users for this system");

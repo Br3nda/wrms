@@ -1,71 +1,39 @@
 <?php
-  $because = "";
 
-  if ( ! $logged_on ) {
-    $because .= "You must log on with a valid password and maintainer ID\n";
-  }
-
-  // Validate that they are only maintaining a request for a system_code they
-  if ( ! is_member_of('Admin') ) {
-    $because = "This function is only available to administrators";
-  }
-
-  if ( "$because" <> "" ) {
-    $because = "<H2>Errors with request:</H2>\n" . nl2br( $because ) . "<HR>\n";
-    $because .= "<P><B>Changes have not been processed - please correct and re-submit</B></P>\n";
-  }
-  else {
-    if ( "$action" == "edit" || "$action" == "delete" ) {
+  switch ( $action ) {
+    case "edit":
+    case "delete":
       // Read the record first and set the screen values so the user can edit it and re-add it.
-      $query = "SELECT * FROM lookup_code WHERE source_table='$table' AND source_field='$field'";
-      $query .= " AND lookup_code='$lookup_code'";
-      $result = awm_pgexec( $dbconn, $query );
-      if ( ! $result ) {
-        echo "<p>Error in query<BR>$query</p>";
-        exit;
+      $sql = "SELECT * FROM lookup_code WHERE source_table=? AND source_field=? AND lookup_code=?;";
+      $q = new PgQuery($sql, $table, $field, $lookup_code);
+      if ( $q->Exec("lookwrite") && $q->rows > 0 && $old = $q->Fetch() ) {
+        $lookup_seq  = $old->lookup_seq;
+        $lookup_desc = $old->lookup_desc;
+        $lookup_misc = $old->lookup_misc;
       }
-
-      $deleted = pg_Fetch_Object( $result, 0);
-      $lookup_seq  = $deleted->lookup_seq;
-      $lookup_desc = $deleted->lookup_desc;
-      $lookup_misc = $deleted->lookup_misc;
 
       if ( "$action" == "delete" ) {
-        $query = "DELETE FROM lookup_code WHERE source_table='$table' AND source_field='$field'";
-        $query .= " AND lookup_code='$lookup_code'";
-        $result = awm_pgexec( $dbconn, $query );
-        if ( ! $result ) {
-          echo "<p>Error in query<BR>$query</p>";
-          exit;
-        }
-        $because .= "<h3>Lookup Code deleted</h3>";
+        $sql = "DELETE FROM lookup_code WHERE source_table=? AND source_field=? AND lookup_code=?;";
+        $q = new PgQuery($sql, $table, $field, $lookup_code);
+        if ( $q->Exec("lookwrite") )
+          $client_messages[] = "Lookup Code deleted.";
       }
-    }
-    else if ( "$action" == "insert" ) {
-      $query = "INSERT INTO lookup_code (source_table, source_field, lookup_code, ";
-      $query .= " lookup_seq, lookup_desc, lookup_misc) ";
-      $query .= " VALUES('$table', '$field', '$lookup_code', ";
-      $query .= " '$lookup_seq', '$lookup_desc', '$lookup_misc') ";
-      $result = awm_pgexec( $dbconn, $query );
-      if ( ! $result ) {
-        echo "<p>Error in query<BR>$query</p>";
-        exit;
-      }
-      $because .= "<h3>Lookup Code added</h3>";
-    }
-    else if ( "$action" == "update" ) {
-      $query = "UPDATE lookup_code SET lookup_code='$lookup_code', ";
-      $query .= " lookup_seq ='$lookup_seq' , ";
-      $query .= " lookup_desc='$lookup_desc', ";
-      $query .= " lookup_misc='$lookup_misc' ";
-      $query .= " WHERE source_table='$table' AND source_field='$field'";
-      $query .= " AND lookup_code='$old_lookup_code'";
-      $result = awm_pgexec( $dbconn, $query );
-      if ( ! $result ) {
-        echo "<p>Error in query<BR>$query</p>";
-        exit;
-      }
-      $because .= "<h3>Lookup Code updated</h3>";
-    }
+      break;
+
+    case "insert":
+      $sql = "INSERT INTO lookup_code (source_table, source_field, lookup_code, ";
+      $sql .= " lookup_seq, lookup_desc, lookup_misc) VALUES(?, ?, ?, ?, ?, ?);";
+      $q = new PgQuery($sql, $table, $field, $lookup_code, $lookup_seq, $lookup_desc, $lookup_misc);
+      if ( $q->Exec("lookwrite") )
+        $client_messages[] = "Lookup Code added.";
+      break;
+
+    case "update":
+      $sql = "UPDATE lookup_code SET lookup_code=?, lookup_seq=?, lookup_desc=?, lookup_misc=? ";
+      $sql .= "WHERE source_table=? AND source_field=? AND lookup_code=?;";
+      $q = new PgQuery($sql, $lookup_code, $lookup_seq, $lookup_desc, $lookup_misc, $table, $field, $old_lookup_code );
+      if ( $q->Exec("lookwrite") )
+        $client_messages[] = "Lookup Code updated.";
+      break;
   }
 ?>

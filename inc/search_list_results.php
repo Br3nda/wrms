@@ -6,7 +6,7 @@
   if ( "$style" != "stripped" ) {
     if ( $result && $qry->rows > 0 ) {
       echo "\n<small>$qry->rows requests found";
-      if ( isset($savedquery) && $savedquery != "" ) echo " for <b>$savedquery</b>";
+      if ( isset($saved_query) && $saved_query != "" ) echo " for <b>$saved_query</b>";
       echo "</small>";
     }
     else {
@@ -16,8 +16,8 @@
 
   if ( "$style" != "stripped" || ("$style" == "stripped" && "$format" == "edit")) {
     $this_page = "$PHP_SELF?style=%s&format=%s";
-    if ( isset($savedquery) ) $usavedquery = str_replace('%','%%',urlencode($savedquery));
-    if ( "$savedquery" != "" ) $this_page .= "&savedquery=$usavedquery";
+    if ( isset($saved_query) ) $usaved_query = str_replace('%','%%',urlencode($saved_query));
+    if ( "$saved_query" != "" ) $this_page .= "&saved_query=$usaved_query";
     if ( "$search_for" != "" ) $this_page .= "&search_for=" . urlencode($search_for);
     if ( "$org_code" != "" ) $this_page .= "&org_code=$org_code";
     if ( "$system_code" != "" ) $this_page .= "&system_code=$system_code";
@@ -44,7 +44,7 @@
 
   if ( $style == "stripped" ) {
     echo "<table border=\"0\" cellspacing=\"0\" cellpadding=\"2\" width=\"100%\">\n<tr>\n";
-    echo "<th class=cols style=\"text-align: left\">$savedquery</th>";
+    echo "<th class=cols style=\"text-align: left\">$saved_query</th>";
     echo "<th class=cols style=\"text-align: right\">" . pg_NumRows($result) . " requests at " . date("H:i j M y") . "</th>";
     echo "</tr></table>\n";
   }
@@ -204,8 +204,8 @@
     if ( is_member_of('Admin', 'Support') ) {
       printf( " &nbsp;|&nbsp; <a href=\"$this_page\" target=_new>Brief (editable)</a>\n", "stripped", "edit");  //uses the format = edit setting in this link for the Brief (editable) report
     }
-    if ( "$savedquery" != "" ) {
-      echo "</td><td>|&nbsp; &nbsp; or <a href=\"$PHP_SELF?qs=complex&savedquery=".urlencode($savedquery)."&action=delete\" class=sbutton>Delete</a> it\n";
+    if ( "$saved_query" != "" ) {
+      echo "</td><td>|&nbsp; &nbsp; or <a href=\"$PHP_SELF?qs=complex&saved_query=".urlencode($saved_query)."&action=delete\" class=sbutton>Delete</a> it\n";
     }
     echo "</td></tr></table>\n";
   }

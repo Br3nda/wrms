@@ -1,16 +1,13 @@
 <?php
-  include("always.php");
-  include("options.php");
+  require_once("always.php");
+  require_once("authorisation-page.php");
+  $session->LoginRequired("Admin");
 
-  if ( $logged_on && "$action" <> "" ) {
-    include("lookwrite.php");
-  }
+  include("lookwrite.php");
 
   $title = "$system_name - " . ucfirst("$table") . ", " . ucfirst("$field");
   include("headers.php");
   include("lookhead.php");
-
-  if ( "$because" <> "" ) echo "$because";
 
   if ( $logged_on && "$error_loc$error_msg" == "" ) {
     $look_href = "$SCRIPT_NAME?table=$table&field=$field&stext=$stext";

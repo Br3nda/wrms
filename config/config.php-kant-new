@@ -157,7 +157,8 @@ function local_menu_bar(&$tmnu) {
 // Function to do the page footer, that is local to this installation
 //-----------------------------------------
 function local_page_footer() {
-  echo '<div id="page_footer">&nbsp;</div>';
+  global $session;
+  echo '<div id="page_footer">Logged in as '.$session->fullname.'</div>';
 }
 
 //-----------------------------------------

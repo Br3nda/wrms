@@ -334,7 +334,7 @@ function data_row( $row, $rc ) {
       $header_cell .= "&incstat[$k]=$v";
     }
   }
-  if ( "$saved_query" != "" ) $header_cell .= "&qry=$saved_query";
+  if ( "$saved_query" != "" ) $header_cell .= "&saved_query=$saved_query";
   if ( "$style" != "" ) $header_cell .= "&style=$style";
   if ( "$format" != "" ) $header_cell .= "&format=$format";
   if ( isset($choose_columns) && $choose_columns ) $header_cell .= "&choose_columns=1";
@@ -635,7 +635,7 @@ $query";
     if ( "$style" != "stripped" || ("$style" == "stripped" && "$format" == "edit")) {
       $this_page = "$PHP_SELF?style=%s&format=%s";
       if ( isset($saved_query) ) $uqry = str_replace('%','%%',urlencode($saved_query));
-      if ( "$saved_query" != "" ) $this_page .= "&qry=$uqry";
+      if ( "$saved_query" != "" ) $this_page .= "&saved_query=$uqry";
       if ( "$search_for" != "" ) $this_page .= "&search_for=" . urlencode($search_for);
       if ( "$org_code" != "" ) $this_page .= "&org_code=$org_code";
       if ( "$system_code" != "" ) $this_page .= "&system_code=$system_code";

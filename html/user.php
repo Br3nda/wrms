@@ -3,12 +3,6 @@
   require_once("authorisation-page.php");
 
   $session->LoginRequired();
-  if ( !$session->logged_in ) {
-    include("headers.php");
-    echo "<h3>Please log on for access to work requests</h3>\n";
-    include("footers.php");
-    exit;
-  }
 
   require_once("maintenance-page.php");
   require_once("User.class");

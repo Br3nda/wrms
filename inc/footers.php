@@ -16,16 +16,16 @@
       local_page_footer();
     }
     else {
-?>
-<table width="100%" border="0" cellspacing="0" cellpadding="0" height="16" background="/<?php echo $images; ?>/WRMSbottomTile.gif">
+      echo <<<FOOTERTABLE
+<table width="100%" border="0" cellspacing="0" cellpadding="0" height="16" background="/$images/WRMSbottomTile.gif">
   <tr>
-    <td width="41%" height="10" valign="top"><img src="/<?php echo $images; ?>/WRMSbottom.gif" width="473" height="16">
+    <td width="41%" height="10" valign="top"><img src="/$images/WRMSbottom.gif" width="473" height="16">
     </td>
     <td width="37%" height="10">&nbsp;</td>
-    <td width="22%" align="right" height="10" valign="top"><img src="/<?php echo $images; ?>/WRMSbottom1.gif" width="155" height="16"></td>
+    <td width="22%" align="right" height="10" valign="top"><img src="/$images/WRMSbottom1.gif" width="155" height="16"></td>
   </tr>
 </table>
-<?php
+FOOTERTABLE;
     }
   }
 if ( is_object ( $settings ) && $settings->is_modified() ) {
@@ -35,9 +35,14 @@ if ( is_object ( $settings ) && $settings->is_modified() ) {
   else
     $settings->set('counter', $settings->get('counter') + 1 );
 
-  $query = "UPDATE session SET session_config='" . $settings->to_save() . "' WHERE session_id=$session->session_id; ";
-  if ( $session->user_no > 0 )
-    $query .= "UPDATE usr SET config_data='" . $settings->to_save() . "' WHERE user_no=$session->user_no; ";
+  $config_data_string = qpg($settings->to_save());
+  $query = "UPDATE session SET session_config=$config_data_string ";
+  $query .= "WHERE session_id=$session->session_id; ";
+  $query .= "AND session_config != $config_data_string; ";
+  if ( $session->user_no > 0 ) {
+    $query .= "UPDATE usr SET config_data=$config_data_string WHERE user_no=$session->user_no; ";
+    $query .= "AND config_data != $config_data_string; ";
+  }
 
   $result = awm_pgexec( $dbconn, $query );
 }

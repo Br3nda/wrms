@@ -1400,6 +1400,7 @@ hr.footerline {line-height: 1em; margin: 1em; padding: 2px; height: 2px; width: 
 <tr><th width='10%' align='left' class='eth'>Request No</th><td class='etd'>$this->request_id</td></tr>
 <tr><th width='10%' align='left' class='eth'>Overview</th><td class='etd'>$this->brief</td></tr>
 <tr><th width='10%' align='left' class='eth'>Type</th><td class='etd'>$this->request_type_desc</td></tr>
+<tr><th width='10%' align='left' class='eth'>Status</th><td class='etd'>$this->status_desc</td></tr>
 <tr><th width='10%' align='left' class='eth'>Importance</th><td class='etd'>$this->importance_desc</td></tr>
 <tr><th width='10%' align='left' class='eth'>Urgency</th><td class='etd'>$this->urgency_desc</td></tr>
 EOX
@@ -1514,7 +1515,7 @@ EOX
       $this->send_an_email = true;
     }
 
-    if ( $this->chtype == "create" || ( $this->chtype == "change" && $detail_changed ) ) {
+    if ( $this->chtype == "create" || ( $this->chtype == "update" && $detail_changed ) ) {
       $this->mail_message_data[]['text']
             = "Detailed Description:\n"
             . "=====================\n"

@@ -73,21 +73,21 @@ function RenderSearchForm( $target_url ) {
                   "class" => "srchf",
                   "style" => "width: 18em") );
 
-  $html .= $ef->DataEntryLine( "By", "", "lookup", "requester_id",
+  $html .= $ef->DataEntryLine( "By", "", "lookup", "requested_by",
             array("_sql" => SqlSelectRequesters($org_code),
                   "_null" => "-- Any Requester --", "onchange" => "PersonChanged();",
                   "title" => "The client who is requesting this, or who is in charge of ensuring it happens.",
                   "class" => "srchf",
                   "style" => "width: 12em" ) );
 
-  $html .= $ef->DataEntryLine( "Watching", "", "lookup", "subscribable",
+  $html .= $ef->DataEntryLine( "Watching", "", "lookup", "interested_in",
             array("_sql" => SqlSelectSubscribers($org_code), "_null" => "-- Any Interested User --",
                   "title" => "The client who is requesting this, or who is in charge of ensuring it happens.",
                   "class" => "srchf",
                   "style" => "width: 12em" ) );
 
   // Person Assigned to W/R
-  $html .= $ef->DataEntryLine( "ToDo", "", "lookup", "allocatable",
+  $html .= $ef->DataEntryLine( "ToDo", "", "lookup", "allocated_to",
             array("_sql" => SqlSelectSubscribers($org_code),
                   "_null" => "-- Any Assigned User --",
                   "_all" => "-- Not Yet Allocated --",

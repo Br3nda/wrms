@@ -272,9 +272,12 @@ select.search_for {
 #page_footer {
   width: auto;
   height: 14px;
-  text-align: center;
+  text-align: left;
   margin-top: 5px;
+  padding-left: 3px;
   background-color: #606060;
+  color: white;
+  font-size:10px;
 }
 
 #columnselect {

@@ -60,7 +60,7 @@
         $result = awm_pgexec( $wrms_db, "SET SQL_Inheritance TO OFF;" );
         $query = "SELECT last_status, active FROM request WHERE request_id = $ReturnedRequestId;";
         $rid = awm_pgexec( $wrms_db, $query, "requestlist", TRUE, 7 );
-        if ( !$rid || pg_num_rows($rid) > 1 || pg_num_rows($rid) == 0 )
+        if ( !$rid || pg_numrows($rid) > 1 || pg_numrows($rid) == 0 )
         {
            $because .= "<P>Request $ReturnedRequestId: Error updating request! - query 1</P>\n";
            continue;

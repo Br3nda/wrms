@@ -70,10 +70,10 @@
 </form>
 
 <?php
-	$query  = "SELECT r.request_id, r.brief, r.detailed, lci.lookup_desc AS importance, lcu.lookup_desc AS urgency, lcs.lookup_desc AS status, lct.lookup_desc AS type, r.requested_by_date, ";
+	$query  = "SELECT r.request_id, r.brief, r.detailed, lci.lookup_desc AS importance, lcu.lookup_desc AS urgency, lcs.lookup_desc AS status, lct.lookup_desc AS type, COALESCE(r.agreed_due_date, r.requested_by_date)::DATE AS by_date, ";
 	$query .= "(CASE ";
-  	$query .= "WHEN r.urgency = 20 THEN (date_part('day',now() - r.requested_by_date) + 20) * (r.importance * 2 + 10) ";
-  	$query .= "WHEN r.urgency = 40 THEN (date_part('day',now() - r.requested_by_date) + 10) * (r.importance * 2 + 10) ";
+  	$query .= "WHEN r.urgency = 20 THEN (date_part('day',now() - COALESCE(r.agreed_due_date, r.requested_by_date)) + 20) * (r.importance * 2 + 10) ";
+  	$query .= "WHEN r.urgency = 40 THEN (date_part('day',now() - COALESCE(r.agreed_due_date, r.requested_by_date)) + 10) * (r.importance * 2 + 10) ";
   	$query .= "ELSE (r.urgency + 10) * (r.importance * 2 + 10) ";
 	$query .= "END ) AS ranking ";
 	$query .= "FROM request r, usr u, lookup_code lcu, lookup_code lci, lookup_code lcs, lookup_code lct ";
@@ -109,7 +109,7 @@
 		echo "<th class=cols>Brief</th>";
 		echo "<th class=cols>Importance</th>";
 		echo "<th class=cols>Urgency</th>";
-		echo "<th class=cols>Requested By Date</th>";
+		echo "<th class=cols>By Date</th>";
 		echo "<th class=cols>Status</th>";
 		echo "<th class=cols>Type</th>";
 		echo "<th class=cols>Ranking</th>";
@@ -123,7 +123,7 @@
 		echo "<td class=sml>$thisrequest->brief</td>";
 		echo "<td class=sml>$thisrequest->importance</td>";
 		echo "<td class=sml>$thisrequest->urgency</td>";
-		echo "<td class=sml>$thisrequest->requested_by_date</td>";
+		echo "<td class=sml>$thisrequest->by_date</td>";
 		echo "<td class=sml>$thisrequest->status</td>";
 		echo "<td class=sml>$thisrequest->type</td>";
 		echo "<td class=sml>$thisrequest->ranking</td>";

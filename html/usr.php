@@ -129,22 +129,24 @@ echo "</td>\n</tr>\n";
 </tr>\n";
 
 
+  if ( "$UserNotifications" == "" ) $UserNotifications = "$usr->mail_style";
+  if ( "$UserNotifications" == "" ) $UserNotifications = "A";
   echo "<tr>
   <th align=right class=rows>Email Changes</th>
   <td>
     <table border=0 cellspacing=0 cellpadding=3><tr>
       <td>
-        <label><input type=radio name=\"UserNotifications\"" . ( !isset($usr->mail_style) || trim($usr->mail_style) == "" ? " CHECKED" : "" ) . " value=\"A\"> Always</label>
-        <label><input type=radio name=\"UserNotifications\"" . ( "$usr->mail_style" == "S" ? " CHECKED" : "" ) . " value=\"S\"> Sometimes</label>
-        <label><input type=radio name=\"UserNotifications\"" . ( "$usr->mail_style" == "O" ? " CHECKED" : "" ) . " value=\"O\"> Occasionally</label>
-        <label><input type=radio name=\"UserNotifications\"" . ( "$usr->mail_style" == "N" ? " CHECKED" : "" ) . " value=\"N\"> Never</label>
+        <label><input type=radio name=\"UserNotifications\"" . ( $UserNotifications == "A" ? " CHECKED" : "" ) . " value=\"A\"> Always</label>
+        <label><input type=radio name=\"UserNotifications\"" . ( $UserNotifications == "S" ? " CHECKED" : "" ) . " value=\"S\"> Sometimes</label>
+        <label><input type=radio name=\"UserNotifications\"" . ( $UserNotifications == "O" ? " CHECKED" : "" ) . " value=\"O\"> Occasionally</label>
+        <label><input type=radio name=\"UserNotifications\"" . ( $UserNotifications == "N" ? " CHECKED" : "" ) . " value=\"N\"> Never</label>
       </td>
     </tr></table>
   </td>
 </tr>\n";
 
   if ( is_object( $usr->settings ) ) $UserFontsize = $usr->settings->get('fontsize');
-  if ( "$UserFontsize" == "" ) $UserFontsize = "10";
+  if ( "$UserFontsize" == "" ) $UserFontsize = "11";
   echo "<tr>
   <th align=right class=rows>Base Font Size</th>
   <td>
@@ -210,7 +212,12 @@ echo "</td>\n</tr>\n";
       if ( "$grp->group_name" == "Manage" && ! is_member_of('Admin','Support','Manage') ) continue;
       if ( $j > 0 && ($j % 3) == 0 ) echo "</tr><tr>";
       echo "<td><input type=checkbox name=\"NewUserRole[$grp->module_name][$grp->group_name]\"";
-      if ( isset($UserRole) && is_array($UserRole) && $UserRole[$grp->module_name][$grp->group_name] ) echo " CHECKED";
+      if ( isset($NewUserRole) ) {
+        if ( is_array($NewUserRole) && $NewUserRole[$grp->module_name][$grp->group_name] ) echo " CHECKED";
+      }
+      else if ( isset($UserRole) ) {
+        if ( is_array($UserRole) && $UserRole[$grp->module_name][$grp->group_name] ) echo " CHECKED";
+      }
       else if ( !isset($UserRole) && ("$grp->group_name" == "Request") ) echo " CHECKED";
       echo "> " . ucfirst($grp->module_name) . " $grp->group_name\n";
       echo " &nbsp; </td>\n";

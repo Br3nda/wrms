@@ -5,12 +5,13 @@ if ( $logged_on ) { ?>
 Please select an action from the menus at the top of the page, or select
 one of the recently modified requests from the list below.<br></p>
 <?php
-  $query = "SELECT DISTINCT request.request_id, brief, fullname, email, last_activity, lookup_desc AS status_desc, request.system_code ";
+  $query = "SELECT DISTINCT request.request_id, brief, fullname, email, last_activity, status.lookup_desc AS status_desc, ";
+  $query .= "request.system_code, request_type.lookup_desc AS request_type_desc ";
   if ( $roles['wrms']['Admin'] || $roles['wrms']['Support']  ) {
     // Satisfy v7 requirement for order field in target list
     $query .= ", request.urgency, request.importance ";
   }
-  $query .= "FROM request, request_interested, usr, lookup_code AS status ";
+  $query .= "FROM request, request_interested, usr, lookup_code AS status, lookup_code AS request_type ";
   $query .= "WHERE request.request_id=request_interested.request_id ";
   if ( $roles['wrms']['Manage'] && ! ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] )  ) {
 //    $query .= "AND EXISTS (SELECT system_usr.system_code FROM system_usr, work_system WHERE system_usr.system_code=work_system.system_code";
@@ -24,6 +25,7 @@ one of the recently modified requests from the list below.<br></p>
   }
   $query .= "AND request.requester_id=usr.user_no ";
   $query .= "AND status.source_table='request' AND status.source_field='status_code' AND status.lookup_code=request.last_status ";
+  $query .= "AND request_type.source_table='request' AND request_type.source_field='request_type' AND request.request_type = request_type.lookup_code ";
   if ( $roles['wrms']['Admin'] || $roles['wrms']['Support']  ) {
     $query .= "AND request.active AND request.last_status~*'[AILNRQAT]' ";
 //    $query .= "ORDER BY request.importance DESC, request.urgency DESC, request.request_id LIMIT 50 ";
@@ -40,6 +42,7 @@ one of the recently modified requests from the list below.<br></p>
     echo "<th class=cols>Requested By</th>";
     echo "<th class=cols>Description</th>";
     echo "<th class=cols>Status</th>";
+    echo "<th class=cols>Type</th>";
     echo "<th class=cols>Last&nbsp;Activity</th>";
     echo "</tr>\n";
     echo "<tr class=row0 height=5><td colspan=5></td></tr>\n";
@@ -54,6 +57,7 @@ one of the recently modified requests from the list below.<br></p>
       if ( "$thisrequest->brief" == "" ) echo "-- no description --";
       echo "</a></td>\n";
       echo "<td class=sml>$thisrequest->status_desc</td>\n";
+      echo "<td class=sml>$thisrequest->request_type_desc</td>\n";
       echo "<td class=sml nowrap>" . nice_date($thisrequest->last_activity) . "</td>\n";
 
       echo "</tr>\n";

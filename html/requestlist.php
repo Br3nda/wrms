@@ -43,7 +43,11 @@ if ( ! $roles['wrms']['Request'] || "$error_msg$error_qry" != "" ) {
 else {
   if ( !isset( $style ) || "$style" != "plain"  ) {
     echo "<form Action=\"$base_url/requestlist.php";
-    if ( "$org_code" != "" ) echo "?org_code=$org_code";
+    if ( "$org_code$qs" != "" ) {
+      echo "?";
+      if ( "$org_code" != "" ) echo "org_code=$org_code" . ( "$qs" == "" ? "" : "&");
+      if ( "$qs" != "" ) echo "qs=$qs";
+    }
     echo "\" Method=\"POST\">";
     echo "</h3>\n";
 
@@ -179,7 +183,7 @@ else {
     if ( "$inactive" == "" )        $query .= " AND active ";
     if (! ($roles['wrms']['Admin'] || $roles['wrms']['Support']) )
       $query .= " AND org_code = '$session->org_code' ";
-    else if ( "$org_code" != "" )
+    else if ( isset($org_code) && intval($org_code) > 0 )
       $query .= " AND org_code='$org_code' ";
 
     if ( intval("$user_no") > 0 )
@@ -216,10 +220,10 @@ else {
     $query .= " ORDER BY $rlsort $rlseq ";
     $query .= " LIMIT 100 ";
     $result = awm_pgexec( $wrms_db, $query, "requestlist", false, 7 );
-    if ( $result )
+    if ( $result && pg_NumRows($result) > 0 )
       echo "<small>" . pg_NumRows($result) . " requests found</small>"; // <p>$query</p>";
     else
-      echo "<small>No requests found</small>"; // <p>$query</p>";
+      echo "<small>No requests found</small><p>$query</p>";
 
     echo "<table border=\"0\" align=left>\n<tr>\n";
     column_header("WR&nbsp;#", "request_id");

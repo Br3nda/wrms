@@ -1371,6 +1371,7 @@ class Request {
     $tbody  = "Request No:  $this->request_id\n"
             . "Overview:    $this->brief\n"
             . "Type:        $this->request_type_desc\n"
+            . "Status:      $this->status_desc\n"
             . "Importance:  $this->importance_desc\n"
             . "Urgency:     $this->urgency_desc\n";
 
@@ -1905,19 +1906,25 @@ EOX
   /////////////////////////////////////////////////////////////
   function NewStatusCode( ) {
     global $session, $client_messages;
-    error_log( "$sysabbr Request::NewStatusCode: DBG: Status changed from '$this->last_status' to '" . $_POST['status_code']."'", 0);
 
-    $sql = "INSERT INTO request_status ( request_id, status_on, status_by_id, status_code ) ";
-    $sql .= "VALUES( ?, current_timestamp, ?, ? );";
-    $qry = new PgQuery( $sql, $this->request_id, $session->user_no, $_POST['status_code'] ) ;
-    if ( ! $qry->Exec('WR::NewStatusCode') ) {
-      $client_messages[] = "$qry->errorstring";
-      return false;
-    }
     if ( $this->last_status != $_POST['status_code'] ) {
-      $client_messages[] = "Status changed from '$this->last_status' to '".$_POST['status_code']."'";
-      $this->mail_message_data[]['html'] = "<h4>The status was changed from &quot;{$this->last_status}&quot; to &quot;" . $_POST['status_code'] . "&quot;</h4>\n";
-      $this->mail_message_data[]['text'] = " * The status was changed from \"{$this->last_status}\" to \"" . $_POST['status_code'] . "\"\n";
+      error_log( "$sysabbr Request::NewStatusCode: DBG: Status changed from '$this->last_status' to '" . $_POST['status_code']."'", 0);
+
+      $sql = "INSERT INTO request_status ( request_id, status_on, status_by_id, status_code ) ";
+      $sql .= "VALUES( ?, current_timestamp, ?, ? );";
+      $qry = new PgQuery( $sql, $this->request_id, $session->user_no, $_POST['status_code'] ) ;
+      if ( ! $qry->Exec('WR::NewStatusCode') ) {
+        $client_messages[] = "$qry->errorstring";
+        return false;
+      }
+      $sql = "SELECT lookup_desc FROM lookup_code WHERE source_table='request' AND source_field='status_code' AND lookup_code = ?";
+      $q = new PgQuery($sql, $this->last_status);
+      $q->Exec("WR::NewStatusCode"); $old_status = $q->Fetch();
+      $q = new PgQuery($sql, $_POST['status_code']);
+      $q->Exec("WR::NewStatusCode"); $new_status = $q->Fetch();
+      $client_messages[] = "Status changed from '$old_status->lookup_desc' to '".$new_status->lookup_desc."'";
+      $this->mail_message_data[]['html'] = "<h4>The status was changed from &quot;{$old_status->lookup_desc}&quot; to &quot;" . $new_status->lookup_desc . "&quot;</h4>\n";
+      $this->mail_message_data[]['text'] = " * The status was changed from \"{$old_status->lookup_desc}\" to \"" . $new_status->lookup_desc . "\"\n";
     }
 
     $_POST['last_status'] = $_POST['status_code'];

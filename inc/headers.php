@@ -12,7 +12,7 @@
   echo '<script language="JavaScript" src="js/date-picker.js"></script>' . "\n";
 
   // Style sheet
-  $style_sheets = true;
+  $style_sheets = false;
   if ( $style_sheets ) {
     if ( $agent == "moz4" )
       echo '<link rel="stylesheet" type="text/css" href="/wrmsmoz4.css">' . "\n";
@@ -35,6 +35,8 @@
       echo ".menu $linkstyle font: small-caps bold $fontsizes[1] $fonts[1]; background: $colors[bg3]; color: $colors[fg3]; padding: 0px 1px 1px; margin: 0px 1px; }\n";
       echo ".bmenu $linkstyle font: small-caps bold $fontsizes[1] $fonts[1]; background: $colors[bg3]; color: $colors[fg3]; padding: 0px 1px 1px; margin: 0px 1px; }\n";
       echo ".sbutton, .r $linkstyle font: small-caps bold $fontsizes[0] $fonts[1]; background: $colors[bg3]; color: $colors[fg3]; padding: 0px 1px 1px 1px; margin: 0px 1px; }\n";
+      echo ".submit {text-decoration: none; font: small-caps bold xx-small verdana; background: #886c50; color: #f0fff0; padding: 0px 1px 1px 1px; margin: 0px 1px; border: thin outset;}\n";
+      echo ".submit:hover {text-decoration: none; font: small-caps bold xx-small verdana; background: #886c50; color: yellow; padding: 0px 1px 1px 1px; margin: 0px 1px; border: thin inset;}\n";
     }
 
     echo ".block { text-decoration: none; font: $fontsizes[1] $fonts[block], sans-serif; color: " . $colors["blockfront"] . "; }\n";
@@ -93,7 +95,7 @@ h3, th.h3, th.cols, th.rows  {font: bold $fontsizes[1] $fonts[0], sans-serif; co
   echo "<td class=blockhead align=right width=\"5%\"><a href=\"$help_uri\" class=sbutton>&nbsp;HELP".( "$session->help" == "t" ?"&nbsp;OFF":"")."&nbsp;</a></td>\n";
   echo "</tr>\n</table>";
 
-  echo "<table border=\"0\" cellspacing=\"0\" cellpadding=\"10\" width=\"100%\" height=\"100%\">\n";
+  echo "<table border=\"0\" cellspacing=\"0\" cellpadding=\"7\" width=\"100%\" height=\"100%\">\n";
   echo "<tr><td>\n";
 
 

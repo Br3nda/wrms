@@ -109,5 +109,7 @@
   <item url="scripts/seed-awm.sql" />
   <item url="scripts/set_hours.sql" />
   <item url="scripts/usr-to-awm_usr.sql" />
+  <item url="html/inc/help-action.php" />
+  <item url="html/inc/help-valid.php" />
  </project>
 </webproject>

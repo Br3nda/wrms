@@ -11,11 +11,7 @@
     include( "inc/error.php" );
   }
   else {
-    echo "<h3>Request List";
-    if ( isset( $style ) && "$style" == "plain"  ) {
-      echo "</h3>\n";
-    }
-    else {
+    if ( !isset( $style ) || "$style" != "plain"  ) {
       echo "<form Action=\"$base_url/requestlist.php";
       if ( "$org_code" != "" ) echo "?org_code=$org_code";
       echo "\" Method=\"POST\">";
@@ -23,50 +19,58 @@
 
       include("inc/system-list.php");
       if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] )
-        $system_list = get_system_list( "", "$system_code", 50);
+        $system_list = get_system_list( "", "$system_code", 35);
       else
-        $system_list = get_system_list( "CES", "$system_code", 50);
+        $system_list = get_system_list( "CES", "$system_code", 35);
 ?>
-<table border=0 cellspacing=0 cellpadding=2 align=center bgcolor=<?php echo $colors[6]; ?>>
-<tr valign=middle>
-<td class=smb align=right>Search:</td><td class=sml><font size=1><input class=sml TYPE="Text" Size="10" Name="search_for" Value="<?php echo "$search_for"; ?>"></font></td>
-<td class=smb align=right>&nbsp;System:</td><td class=sml><font size=1><select class=sml name=system_code><option value=".">All Systems</option><?php echo "$system_list"; ?></select></font></td>
-
-<td class=smb align=right>Last&nbsp;Activity&nbsp;From:</td>
-<td nowrap class=smb><input type=text size=10 name=from_date class=sml value="<?php echo "$from_date"; ?>">
-<a href="javascript:show_calendar('forms[0].from_date');" onmouseover="window.status='Date Picker';return true;" onmouseout="window.status='';return true;"><img valign="middle" src="/images/date-picker.gif" border=0></a>
-</td>
-
-
-<td class=smb align=right>&nbsp;To:</td>
-<td nowrap class=smb><input type=text size=10 name=to_date class=sml value="<?php echo "$to_date"; ?>">
-<a href="javascript:show_calendar('forms[0].to_date');" onmouseover="window.status='Date Picker';return true;" onmouseout="window.status='';return true;"><img valign="middle" src="/images/date-picker.gif" border=0></a>
-</td>
-
-<td rowspan=2 valign=middle class=sml>&nbsp;<BR><input TYPE=Image src=images/in-go.gif alt=go WIDTH=44 BORDER=0 HEIGHT=26 name=submit></td></tr>
+<table border=0 cellspacing=0 cellpadding=2 align=center bgcolor="<?php echo $colors[6]; ?>">
+<tr>
+<td><table border=0 cellspacing=0 cellpadding=0><tr valign=middle><td class=smb>Find:</td><td class=sml><font size=1><input class=sml TYPE="Text" Size="8" Name="search_for" Value="<?php echo "$search_for"; ?>"></font></td>
+<td class=smb>&nbsp;System:</td><td class=sml><font size=1><select class=sml name=system_code><option value=".">--- All Systems ---</option><?php echo "$system_list"; ?></select></font></td>
+<?php
+    if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
+      include( "inc/organisation-list.php" );
+      $orglist = "<option value=\"\">--- All Organisations ---</option>\n" . get_organisation_list( "$org_code", 30 );
+      echo "<td class=smb>&nbsp;Organisation:</td><td class=sml><select class=sml name=\"org_code\">\n$orglist</select></td>\n";
+    }
+?>
+</tr></table></td></tr>
+<tr><td>
 <?php
   $query = "SELECT * FROM lookup_code WHERE source_table='request' ";
   $query .= " AND source_field='status_code' ";
   $query .= " ORDER BY source_table, source_field, lookup_seq, lookup_code ";
   $rid = pg_Exec( $wrms_db, $query);
-  if ( ! $rid ) {
-    echo "<p>$query";
-  }
-  else if ( pg_NumRows($rid) > 1 ) {
-    echo "<tr valign=middle><td class=smb align=right valign=top>Statuses:</td><td colspan=7 class=sml valign=top>\n";
+  if ( $rid && pg_NumRows($rid) > 1 ) {
+    echo "\n<table border=0 cellspacing=0 cellpadding=0><tr valign=middle><td class=smb align=right valign=top>When:</td><td class=sml valign=top>\n";
     for ( $i=0; $i<pg_NumRows($rid); $i++ ) {
       $status = pg_Fetch_Object( $rid, $i );
       echo "<input type=checkbox name=incstat[$status->lookup_code]";
       if ( !isset( $incstat) || $incstat[$status->lookup_code] <> "" ) echo " checked";
-      echo " value=1>&nbsp;" . str_replace( " ", "&nbsp;", $status->lookup_desc) . " &nbsp; ";
+      echo " value=1>" . str_replace( " ", "&nbsp;", $status->lookup_desc) . " ";
     }
     echo "<input type=checkbox name=inactive";
     if ( isset($inactive) ) echo " checked";
-    echo " value=1>&nbsp;Inactive";
-    echo "</td>\n</tr>";
+    echo " value=1>Inactive";
+//    echo "</td>\n</tr></table></td></tr>";
+    echo "</td></tr></table>";
   }
 ?>
-</table>
+</td></tr>
+<tr><td><table border=0 cellspacing=0 cellpadding=0><tr valign=middle>
+<td class=smb align=right>Last&nbsp;Action&nbsp;From:</td>
+<td nowrap class=smb><input type=text size=10 name=from_date class=sml value="<?php echo "$from_date"; ?>">
+<a href="javascript:show_calendar('forms[0].from_date');" onmouseover="window.status='Date Picker';return true;" onmouseout="window.status='';return true;"><img valign="middle" src="/images/date-picker.gif" border=0></a>
+</td>
+
+<td class=smb align=right>&nbsp;To:</td>
+<td nowrap class=smb><input type=text size=10 name=to_date class=sml value="<?php echo "$to_date"; ?>">
+<a href="javascript:show_calendar('forms[0].to_date');" onmouseover="window.status='Date Picker';return true;" onmouseout="window.status='';return true;"><img valign="middle" src="/images/date-picker.gif" border=0></a>
+</td>
+<td valign=middle class=smb><input type=submit value="DO QUERY" alt=go name=submit class="submit"></td>
+</tr></table>
+</td>
+</tr></table>
 </form>
 
 <?php
@@ -76,7 +80,7 @@
     // Recommended way of limiting queries to not include sub-tables for 7.1
     $result = awm_pgexec( $wrms_db, "SET SQL_Inheritance TO OFF;" );
 
-    $query = "SELECT request_id, brief, fullname, email, lookup_desc AS status_desc, last_activity ";
+    $query = "SELECT request_id, brief, fullname, email, lookup_desc AS status_desc, last_activity, detailed ";
     $query .= "FROM request, usr, lookup_code AS status ";
 
     $query .= " WHERE request.request_by=usr.username ";
@@ -134,7 +138,8 @@
         echo "<td class=sml align=center><a href=\"request.php?request_id=$thisrequest->request_id\">$thisrequest->request_id</a></td>\n";
         echo "<td class=sml nowrap><a href=\"mailto:$thisrequest->email\">$thisrequest->fullname</a></td>\n";
         echo "<td class=sml><a href=\"request.php?request_id=$thisrequest->request_id\">$thisrequest->brief";
-        if ( "$thisrequest->brief" == "" ) echo "-- no description --";
+//        if ( "$thisrequest->brief" == "" ) echo "-- no description --";
+        if ( "$thisrequest->brief" == "" ) echo substr( $thisrequest->detailed, 0, 50) . "...";
         echo "</a></td>\n";
         echo "<td class=sml>$thisrequest->status_desc</td>\n";
         echo "<td class=sml nowrap>&nbsp;</td>\n";

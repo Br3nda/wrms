@@ -1,6 +1,8 @@
 A, .msglink, .msgunmod {color: #5e486f; text-decoration: none;}
 .menu, .bmenu {color: #5e486f; text-decoration: none; font: small-caps bold x-small verdana; background: #886c50; color: #f0fff0; padding: 0px 1px 1px; margin: 0px 1px;}
 .sbutton, .r {color: #5e486f; text-decoration: none; font: small-caps bold xx-small verdana; background: #886c50; color: #f0fff0; padding: 0px 1px 1px 1px; margin: 0px 1px;}
+.submit {text-decoration: none; font: small-caps bold xx-small verdana; background: #886c50; color: #f0fff0; padding: 0px 1px 1px 1px; margin: 0px 1px; border: thin outset;}
+.submit:hover {text-decoration: none; font: small-caps bold xx-small verdana; background: #886c50; color: yellow; padding: 0px 1px 1px 1px; margin: 0px 1px; border: thin inset;}
 .block {text-decoration: none; font: x-small tahoma, sans-serif; color: white;}
 .blockhead {text-decoration: none; font: x-small tahoma, sans-serif; color: white; font-weight: 700;}
 tr.bgcolor0 {background-color: #e4ddc2 }

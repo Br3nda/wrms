@@ -81,9 +81,13 @@ function build_time_list( $name, $from, $current, $delta ) {
 
 
   // Read the timesheets from the file and build reasonable bits from them
+  // The funky "AT TIME ZONE 'GMT'" weirdness is required from the switch to 7.4.1
+  // although now we're doing this, the CAST ... could be removed.
+  //    $pg_version should be in the config.php
+  $at_time_zone = ( isset($pg_version) && $pg_version >= 7.4 ? "AT TIME ZONE 'GMT'" : "" );
   $ts_user = intval($session->user_no);
-  $query = "SELECT *, EXTRACT( EPOCH FROM CAST ( work_on AS TIMESTAMP WITHOUT TIME ZONE ) ) AS started, ";
-  $query .= "EXTRACT( EPOCH FROM CAST ( (work_on + work_duration) AS TIMESTAMP WITHOUT TIME ZONE ) ) AS finished, ";
+  $query = "SELECT *, EXTRACT( EPOCH FROM CAST ( work_on $at_time_zone AS TIMESTAMP WITHOUT TIME ZONE ) ) AS started, ";
+  $query .= "EXTRACT( EPOCH FROM CAST ( (work_on $at_time_zone + work_duration) AS TIMESTAMP WITHOUT TIME ZONE ) ) AS finished, ";
   $query .= "EXTRACT( DOW FROM work_on ) AS dow, 0 AS offset ";
   $query .= "FROM request_timesheet WHERE work_by_id = $ts_user ";
   $query .= "AND work_on >= '" . date( 'Y-M-d', $sow ) . "' ";
@@ -126,6 +130,7 @@ function build_time_list( $name, $from, $current, $delta ) {
 
       // Normalise that to always start on a period boundary...
       $start_tod = $sod + $period_minutes * intval(( $start_tod - $sod ) / $period_minutes ) ;
+      // error_log( "timesheet: DBG: ts_start=$ts->started, start_tod=$start_tod, sod=$sod, period=$period_minutes" );
 
       // Force time later than start of person's day
       if ( $start_tod < $sod ) {
@@ -136,7 +141,7 @@ function build_time_list( $name, $from, $current, $delta ) {
       //
       for ( $j = 0; $j < $duration; $j += $period_minutes ) {
         $tm[$our_dow][sprintf("m%d", $start_tod + $j)] = "$ts->request_id/$ts->work_description" . ("$ts->entry_details" == "$ts->request_id" ? "" : "@|@$sow" );
-        // echo "<p>\$tm[$our_dow][" . sprintf("m%d", $start_tod + $j) . "] = $ts->request_id/$ts->work_description" . ("$ts->entry_details" == "$ts->request_id" ? "" : "@|@$sow" );
+        // error_log( "timesheet: DBG: \$" . "tm[$our_dow][" . sprintf("m%d", $start_tod + $j) . "] = $ts->request_id/$ts->work_description" . ("$ts->entry_details" == "$ts->request_id" ? "" : "@|@$sow" ) );
       }
     }
   }
@@ -166,6 +171,9 @@ function build_time_list( $name, $from, $current, $delta ) {
       echo "<td><input tabindex=$tabindex type=text size=14 name=\"tm[$dow][m$tod]\" value=\"";
       echo $tm[$dow]["m$tod"];
       echo "\">&nbsp;</td>\n";
+      // if ( $tm[$dow]["m$tod"] != "" ) {
+        // error_log( "timesheet: DBG: tm[$dow][m$tod] == " . $tm[$dow]["m$tod"] );
+      // }
     }
     echo "</tr>\n";
   }

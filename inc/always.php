@@ -160,7 +160,7 @@ function awm_pgexec( $myconn, $query, $location="", $abort_on_fail=false, $mydbg
   $total_query_time += $taken;
   if ( !$result && $abort_on_fail ) {
     $result = pg_Exec( $dbconnection, "ABORT;" );
-    if ( $debuglevel > 4 || $mydbg > 4) error_log( "$sysabbr $locn QF-ABRT: $query", 0);
+    error_log( "$sysabbr $locn QF-ABRT: $query", 0);
   }
   else if ( !$result )
     error_log( "$sysabbr $locn QF: $query", 0);

@@ -10,7 +10,7 @@ $tmnu = new MenuSet('tmnu', 'tmnu', 'tmnu_active');
 if ( (isset($request_id) && $request_id > 0) ) {
   $tmnu->AddOption("WR#$request_id","/wr.php?request_id=$request_id","View the details for this work request");
 }
-if ( strstr($REQUEST_URI,"/org.php") || (isset($org_code) && $org_code > 0) ) {
+if ( strstr($REQUEST_URI,"/org.php") || (isset($org_code) && $org_code > 0 && !isset($request_id)) ) {
   $tmnu->AddOption("Organisation","/org.php?org_code=$org_code","View the details for this organisation");
   if ( strstr($REQUEST_URI, "/org.php") ) {
     $tmnu->AddOption("Edit","/org.php?edit=1&org_code=$org_code","Edit the details for this organisation");

@@ -1554,7 +1554,7 @@ EOX
        $sql .= "SELECT $this->request_id, u.user_no, username ";
        $sql .= "FROM system_usr s ";
        $sql .= "JOIN usr u ON s.user_no = u.user_no ";
-       $sql .= "WHERE s.system_code = '$this->system_code' AND s.role IN ( 'A', 'S', 'C' ) ";
+       $sql .= "WHERE s.system_code = '$this->system_code' AND s.role IN ( 'S', 'C' ) ";
        $sql .= "AND NOT EXISTS( SELECT 1 FROM request_interested WHERE request_id = $this->request_id ";
        $sql .=                  "AND request_interested.user_no = u.user_no) ";
        $sql .= "AND u.org_code IN ( $this->org_code, $session->org_code ); ";

@@ -47,6 +47,8 @@ CREATE FUNCTION get_usr_setting(TEXT,TEXT)
 
 CREATE TABLE organisation (
   org_code TEXT NOT NULL UNIQUE PRIMARY KEY,
+	active BOOL DEFAULT TRUE,
+	debtor_no INT4,
   org_name TEXT,
   admin_usr TEXT
 ) ;

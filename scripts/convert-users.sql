@@ -22,9 +22,17 @@ INSERT INTO system_usr ( user_no, system_code, role )
 				 AND awm_usr.perorg_id=perorg_system.perorg_id
 				 AND perorg_system.persys_role='USER';
 
+INSERT INTO system_usr ( user_no, system_code, role )
+   SELECT user_no, system_code, 'S' FROM usr, work_system
+	       WHERE usr.username=work_system.notify_usr;
+
 INSERT INTO org_usr ( user_no, org_code, role )
    SELECT user_no, org_code, 'C' FROM usr
 	       WHERE usr.org_code=organisation.org_code AND organisation.admin_usr=usr.username;
+
+UPDATE usr SET org_code=TEXT(awm_perorg_rel.perorg_id)
+    WHERE usr.username=awm_usr.username
+		  AND awm_perorg_rel.perorg_rel_id=awm_usr.perorg_id;
 
 
 DELETE FROM lookup_code WHERE source_table='user' AND source_field='system_code';
@@ -81,7 +89,7 @@ INSERT INTO group_member ( group_no, user_no )
 
 INSERT INTO group_member ( group_no, user_no )
   SELECT '2', user_no FROM awm_usr, usr
-	        WHERE awm_usr.access_level>=5000 AND awm_usr.username=usr.username;
+	        WHERE awm_usr.enabled>0 AND awm_usr.username=usr.username;
 
 \i dump/t-session.sql
 

@@ -4,7 +4,7 @@ function get_system_list( $access="*", $current="" ) {
   global $session;
   $lookup_code_list = "";
 
-  $query = "SELECT lookup_code, lookup_desc FROM lookup_code ";
+  $query = "SELECT DISTINCT ON lookup_code lookup_code, lookup_desc FROM lookup_code ";
   if ( $access <> "*" ) $query .= ", system_usr";
   $query .= " WHERE source_table='user' AND source_field='system_code' ";
   if ( $access <> "*" ) {
@@ -12,7 +12,7 @@ function get_system_list( $access="*", $current="" ) {
     $query .= " AND user_no=$session->user_no ";
     $query .= " AND role~*'[$access]'";
   }
-  $query .= " ORDER BY source_table, source_field";
+  $query .= " ORDER BY source_table, source_field, lookup_seq, lookup_code";
   if ( $access <> "*" ) $query .= ", role";
   $query .= ", lookup_seq";
   $rid = pg_Exec( $wrms_db, $query);
@@ -26,6 +26,7 @@ function get_system_list( $access="*", $current="" ) {
       $lookup_code = pg_Fetch_Object( $rid, $i );
       $lookup_code_list .= "<OPTION VALUE=\"$lookup_code->lookup_code\"";
       if ( "$lookup_code->lookup_code" == "$current" ) $lookup_code_list .= " SELECTED";
+      $lookup_code->lookup_desc = substr( $lookup_code->lookup_desc, 0, 35);
       $lookup_code_list .= ">$lookup_code->lookup_desc";
     }
   }

@@ -3,6 +3,7 @@
 # Recreate the WRMS database from scratch
 #
 DATABASE=wrms
+pg_dump -a -n -D -d $DATABASE -t session >dump/t-session.sql
 echo " Destroying old database..."
 destroydb $DATABASE
 echo " Creating new database..."
@@ -18,14 +19,14 @@ psql -q -t -f load-codes.sql wrms
 echo " Loading dumped codes (may show errors)..."
 psql -q -t -f dumped_codes.sql wrms
 
-echo -n " Loading page definitions:"
-cd pages
-for A in *.sql; do
-  echo -n " $A"
-  psql -q -f $A wrms
-done
-cd ..
-echo "."
+# echo -n " Loading page definitions:"
+# cd pages
+# for A in *.sql; do
+#   echo -n " $A"
+#   psql -q -f $A wrms
+# done
+# cd ..
+# echo "."
 
 echo " Loading dumped requests..."
 psql -q -t -f dumped_requests.sql -d $DATABASE

@@ -12,6 +12,7 @@
 P	{font: x-small tahoma, sans-serif; }
 P.sml		{font: xx-small tahoma, sans-serif; }
 P.helptext	{font: small verdana, sans-serif; margin: 4px 12px; }
+TABLE.mgn	{margin: 2px 10px; }
 h2		{font: bold medium tahoma, sans-serif; color: $colors[2];  }
 th		{font: bold x-small tahoma, sans-serif; color: white; text-align: right; background: $colors[8]; }
 th.left		{font: bold x-small tahoma, sans-serif; color: white; text-align: left; background: $colors[8]; margin: 2px 10px; }
@@ -21,10 +22,10 @@ td.mand		{font: bold x-small tahoma, sans-serif; background: $colors[9];}
 td.sml	{font: x-small tahoma, sans-serif; }
 td.menu		{font: x-small verdana, sans-serif; }
 TD.lge		{font: medium tahoma, sans-serif; }
-INPUT		{font: small tahoma, sans-serif; }
+INPUT		{font: x-small tahoma, sans-serif; }
 INPUT.sml	{font: x-small tahoma, sans-serif; }
-TEXTAREA	{font: small tahoma, sans-serif; }
-FORM		{clear: both; }
+TEXTAREA	{font: x-small tahoma, sans-serif; }
+FORM		{font: x-small tahoma, sans-serif; clear: both; }
 SELECT	{font: small tahoma, sans-serif; }";
 ?>
 --></style>

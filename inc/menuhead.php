@@ -17,15 +17,13 @@
     if ( $roles[wrms][Admin] ) {
       $module_menu .= "<span style=\"font-weight: 700; \"><b>Admin:</b></span> <a href=$base_url/usrsearch.php>User Search</a> | ";
       $module_menu .= "<a href=$base_url/usr.php>New User</a> | ";
+      $module_menu .= "<a href=$base_url/form.php?form=orglist>Organisations</a> | ";
       $module_menu .= "<a href=$base_url/lookups.php>Lookup Codes</a> &nbsp; ";
     }
     if ( $roles[wrms][Request] ) {
       $module_menu .= "<span style=\"font-weight: 700; \"><b>Requests:</b></span> <a href=$base_url/requestlist.php>List Requests</a> | ";
       $module_menu .= "<a href=$base_url/request.php>New Request</a> | ";
-      $module_menu .= "<a href=$base_url/form.php?form=listreq>Reporting</a> | ";
-      $module_menu .= "<a href=$base_url/form.php?form=transfer>Transfer</a> | ";
-      $module_menu .= "<a href=$base_url/form.php?form=training>Training</a> | ";
-      $module_menu .= "<a href=$base_url/form.php?form=deceased>Deceased</a> ";
+      $module_menu .= "<a href=$base_url/form.php?form=timesheet>Timesheets</a> ";
     }
     echo "index.php?M=LO>Logoff</a>\n &nbsp; $module_menu";
   }

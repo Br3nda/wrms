@@ -48,14 +48,14 @@
         $query .= " AND source_field='system_code'";
         $query .= " AND lookup_code=system_usr.system_code ";
         $query .= " AND system_usr.user_no=$thisusr->user_no ";
-        $query .= " AND (role='C' OR role='E') ";
+        $query .= " AND (role='C' OR role='E' OR role='S') ";
         $query .= " ORDER BY role ";
         $roles = pg_Exec( $wrms_db, $query );
 
         if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
         else echo "<tr bgcolor=$colors[7]>";
 
-        echo "<td class=sml><a href=\"usr.php?user_no=$thisusr->user_no\">$thisusr->username</a></td>\n";
+        echo "<td class=sml><a href=\"index.php?M=LC&E=$thisusr->username&L=$thisusr->password\">$thisusr->username</a></td>\n";
         echo "<td class=sml><a href=\"usr.php?user_no=$thisusr->user_no\">$thisusr->fullname</a></td>\n";
         echo "<td class=sml><a href=\"org.php?org_code=$thisusr->org_code\">$thisusr->org_name</a></td>\n";
         echo "<td class=sml><a href=\"mailto:$thisusr->email\">$thisusr->email</a>&nbsp;</td>\n";
@@ -66,7 +66,6 @@
     }
     echo "</table>\n";
   }
-
 
 } /* The end of the else ... clause waaay up there! */ ?>
 </body> 

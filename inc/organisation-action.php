@@ -1,6 +1,6 @@
 <?php
   $query = "BEGIN; ";
-  $sys_desc = tidy( $sys_desc );
+  $org_name = tidy( $org_name );
   if ( "$active" == "" ) $active = "FALSE";
   if ( "$M" == "add" ) {
     $query .= "select nextval('organisation_org_code_seq');";
@@ -10,7 +10,7 @@
       return;
     }
     $org_code = pg_Result( $rid, 0, 0);
-    $query .= "INSERT INTO organisation ( org_code, debtor_no, org_name, work_rate, active )";
+    $query = "INSERT INTO organisation ( org_code, debtor_no, org_name, work_rate, active )";
     $query .= " VALUES( $org_code, $debtor_no, '$org_name', '$work_rate', '$active' );";
   }
   else {

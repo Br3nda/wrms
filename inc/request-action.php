@@ -362,7 +362,7 @@
   // Assignment of work request happens to new or old jobs
   ////////////////////////////////////////////////////////
   if ( isset( $new_assigned ) && $new_assigned != "" ) {
-    $query = "SELECT set_interested( $new_assigned, $request_id );";
+    $query = "SELECT set_interested( $new_assigned, $request_id ); ";
     $query .= "SELECT set_allocated( $new_assigned, $request_id )";
     $rid = pg_exec( $wrms_db, $query );
     if ( ! $rid ) {
@@ -388,7 +388,7 @@
     $msg = "Request No.:  $request_id\n"
          . "Overview:     $request->brief\n";
 
-    if ( $request->brief != $previous->brief ) {
+    if ( "$request->brief" != "$previous->brief" ) {
       $msg .= "          (was: $previous->brief)\n";
     }
 
@@ -414,7 +414,7 @@
       $msg .= "activated\n";
     }
 
-    if ( $request->eta <> $previous->eta )  {
+    if ( "$request->eta" <> "$previous->eta" )  {
       $msg .= "New ETA:      $new_eta";
       if ( "$request->eta" != "" ) $msg .= "  (previous ETA was " . substr( nice_date($previous->eta), 7) . ")";
       $msg .= "\n";

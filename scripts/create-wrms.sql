@@ -192,6 +192,7 @@ CREATE TABLE request_timesheet (
   timesheet_id SERIAL PRIMARY KEY,
   request_id INT4,
   work_on DATETIME,
+	work_quantity FLOAT8,
   work_duration INTERVAL,
   work_by_id INT4,
   work_by TEXT,
@@ -199,7 +200,9 @@ CREATE TABLE request_timesheet (
   work_rate FLOAT8,
   work_charged DATETIME,
 	charged_amount FLOAT8,
-	charged_by_id INT4
+	charged_by_id INT4,
+	work_units TEXT,
+	charged_details TEXT
 );
 CREATE UNIQUE INDEX request_timesheet_skey1 ON request_timesheet ( work_on, work_by_id, request_id );
 GRANT INSERT,UPDATE,SELECT ON request_timesheet TO general;

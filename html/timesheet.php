@@ -92,14 +92,14 @@ function build_time_list( $name, $from, $current, $delta ) {
 
   // The query above requires 7.2, so the below (including hacks with $ts->offset) works with 7.0
   // currently in production...
-  $query = "SELECT *, date_part( 'epoch', work_on ) AS started, ";
-  $query .= "date_part( 'epoch', (work_on + work_duration)) AS finished, ";
-  $query .= "date_part( 'dow', work_on ) AS dow, ";
-  $query .= "date_part( 'epoch', '1970-1-1'::timestamp) AS offset ";
-  $query .= "FROM request_timesheet WHERE work_by_id = $ts_user ";
-  $query .= "AND work_on >= '" . date( 'Y-M-d', $sow ) . "' ";
-  $query .= "AND work_on < '" . date( 'Y-M-d', $sow + (7 * 86400) ) . "' ";
-  $query .= "ORDER BY work_on ASC; ";
+  // $query = "SELECT *, date_part( 'epoch', work_on ) AS started, ";
+  // $query .= "date_part( 'epoch', (work_on + work_duration)) AS finished, ";
+  // $query .= "date_part( 'dow', work_on ) AS dow, ";
+  // $query .= "date_part( 'epoch', '1970-1-1'::timestamp) AS offset ";
+  // $query .= "FROM request_timesheet WHERE work_by_id = $ts_user ";
+  // $query .= "AND work_on >= '" . date( 'Y-M-d', $sow ) . "' ";
+  // $query .= "AND work_on < '" . date( 'Y-M-d', $sow + (7 * 86400) ) . "' ";
+  // $query .= "ORDER BY work_on ASC; ";
   $result = awm_pgexec( $dbconn, $query, 'timesheet' );
   if ( $result && pg_NumRows($result) ) {
 

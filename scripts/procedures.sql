@@ -1,6 +1,5 @@
 -- Set a user as interested in a request
-DROP FUNCTION set_interested (int4, int4);
-CREATE FUNCTION set_interested (int4, int4) RETURNS int4 AS '
+CREATE or REPLACE FUNCTION set_interested (int4, int4) RETURNS int4 AS '
    DECLARE
       u_no ALIAS FOR $1;
       req_id ALIAS FOR $2;
@@ -17,8 +16,7 @@ CREATE FUNCTION set_interested (int4, int4) RETURNS int4 AS '
 ' LANGUAGE 'plpgsql';
 
 -- Set a user as allocated to a request
-DROP FUNCTION set_allocated (int4, int4);
-CREATE FUNCTION set_allocated (int4, int4) RETURNS int4 AS '
+CREATE or REPLACE FUNCTION set_allocated (int4, int4) RETURNS int4 AS '
    DECLARE
       u_no ALIAS FOR $1;
       req_id ALIAS FOR $2;
@@ -35,8 +33,7 @@ CREATE FUNCTION set_allocated (int4, int4) RETURNS int4 AS '
 ' LANGUAGE 'plpgsql';
 
 -- Get the type of a column
-DROP FUNCTION column_type( TEXT, TEXT );
-CREATE FUNCTION column_type( TEXT, TEXT ) RETURNS TEXT AS '
+CREATE or REPLACE FUNCTION column_type( TEXT, TEXT ) RETURNS TEXT AS '
   DECLARE
     t_name ALIAS FOR $1;
     c_name ALIAS FOR $2;
@@ -60,8 +57,7 @@ CREATE FUNCTION column_type( TEXT, TEXT ) RETURNS TEXT AS '
 ' LANGUAGE 'plpgsql';
 
 
-DROP FUNCTION last_status_on( INT4 );
-CREATE FUNCTION last_status_on( INT4 ) RETURNS TIMESTAMP AS '
+CREATE or REPLACE FUNCTION last_status_on( INT4 ) RETURNS TIMESTAMP AS '
   DECLARE
     res TIMESTAMP;
   BEGIN
@@ -74,8 +70,7 @@ CREATE FUNCTION last_status_on( INT4 ) RETURNS TIMESTAMP AS '
 ' LANGUAGE 'plpgsql';
 
 
-DROP FUNCTION help_hit( INT4, TEXT );
-CREATE FUNCTION help_hit( INT4, TEXT ) RETURNS INT4 AS '
+CREATE or REPLACE FUNCTION help_hit( INT4, TEXT ) RETURNS INT4 AS '
   DECLARE
     in_user_no ALIAS FOR $1;
     in_topic ALIAS FOR $2;
@@ -94,8 +89,7 @@ CREATE FUNCTION help_hit( INT4, TEXT ) RETURNS INT4 AS '
 ' LANGUAGE 'plpgsql';
 
 
-DROP FUNCTION cast_vote (int4, int4, int4, text);
-CREATE FUNCTION cast_vote (int4, int4, int4, text) RETURNS int4 AS '
+CREATE or REPLACE FUNCTION cast_vote (int4, int4, int4, text) RETURNS int4 AS '
     DECLARE
       n_id ALIAS FOR $1;
       w_u_id ALIAS FOR $2;
@@ -134,8 +128,7 @@ CREATE FUNCTION cast_vote (int4, int4, int4, text) RETURNS int4 AS '
     END;
 ' LANGUAGE 'plpgsql';
 
-DROP FUNCTION user_votes (int4, int4, int4 );
-CREATE FUNCTION user_votes (int4, int4, int4 ) RETURNS int4 AS '
+CREATE or REPLACE FUNCTION user_votes (int4, int4, int4 ) RETURNS int4 AS '
     DECLARE
       n_id ALIAS FOR $1;
       w_u_id ALIAS FOR $2;
@@ -152,8 +145,7 @@ CREATE FUNCTION user_votes (int4, int4, int4 ) RETURNS int4 AS '
 ' LANGUAGE 'plpgsql';
 
 -- The last date a request was made for a particular organisation
-DROP FUNCTION last_org_request ( int4 );
-CREATE FUNCTION last_org_request ( int4 ) RETURNS timestamp AS '
+CREATE or REPLACE FUNCTION last_org_request ( int4 ) RETURNS timestamp AS '
    DECLARE
       in_org_code ALIAS FOR $1;
       out_date TIMESTAMP;
@@ -169,8 +161,7 @@ CREATE FUNCTION last_org_request ( int4 ) RETURNS timestamp AS '
 ' LANGUAGE 'plpgsql';
 
 -- The number of requests active for a particular organisation
-DROP FUNCTION active_org_requests ( int4 );
-CREATE FUNCTION active_org_requests ( int4 ) RETURNS int4 AS '
+CREATE or REPLACE FUNCTION active_org_requests ( int4 ) RETURNS int4 AS '
   SELECT count(request_id)::int4 FROM request, usr
     WHERE usr.org_code = $1
       AND request.requester_id = usr.user_no

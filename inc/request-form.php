@@ -60,17 +60,14 @@
 
   if ( !$is_request  ) {
     if ( $roles[wrms][Admin] || $roles[wrms][Support] || $roles[wrms][Manage] ) {
-      echo "<tr><th class=rows align=right>On Behalf Of:</th>";
-      echo "<td colspan=2 valign=middle align=left><select class=sml name=\"new_user_no\">$user_list</select>\n";
-      if ( !$is_request ) {
-        echo " &nbsp; <label><input class=sml type=checkbox name=\"in_notify\" value=1 checked>&nbsp;update user on the status of this request.</label></td></tr>\n";
-      }
+      echo "<tr><th class=rows align=right>On Behalf Of:</th><td colspan=2 valign=middle align=left>";
+      echo "<select class=sml name=\"new_user_no\">$user_list</select>\n";
+      echo " &nbsp; <label><input class=sml type=checkbox name=\"in_notify\" value=1 checked>&nbsp;update user on the status of this request.</label>\n";
       echo "</td></tr>\n";
     }
     if ( $roles[wrms][Admin] || $roles[wrms][Support] ) {
       echo "<TR><TH align=right class=rows>Assign to:</TH>";
       echo "<TD colspan=2 ALIGN=LEFT><SELECT class=sml NAME=\"new_assigned\">$support_list</SELECT></TD></TR>";
-      echo "</TD></TR>\n";
     }
   }
 
@@ -96,9 +93,13 @@
     if ( $roles['wrms']['Admin'] || $roles['wrms']['Support']  ) {
       echo "<TR><th class=rows align=right>On Behalf Of:</TH>";
       echo "<td align=center>" . nice_date($request->request_on) . "</td>";
-//      echo "<TD ALIGN=CENTER>$request->fullname</TD>\n";
       echo "<TD ALIGN=LEFT COLSPAN=2>\n";
-      echo "<select class=sml name=\"new_user_no\">" . get_user_list( "", "", $request->requester_id ) . "</select>\n";
+      if ( $editable && ($roles[wrms][Admin] || $roles[wrms][Support] || $roles[wrms][Manage] ) ) {
+        echo "<select class=sml name=\"new_user_no\">" . get_user_list( "", "", $request->requester_id ) . "</select>\n";
+      }
+      else {
+        echo "$request->fullname\n";
+      }
       if ( strcmp( $request->eta, "") )
         echo " &nbsp; &nbsp; &nbsp; <b class=smb>ETA:</b> " .  substr( nice_date($request->eta), 7);
       echo "</TD></TR>\n";

@@ -4,14 +4,17 @@
 /////////////////////////////////////////////////////////////
 require_once("html-format.php");
 require_once("guess-file-type.php");
+require_once('class.phpmailer.php');
 class Request {
    var $request_id;      // Which WR is this
    var $new_record;
+   var $mail_message_data;
 
    function Request( $id = 0 ) {
      global $session, $tmnu;
      if ( !$session->logged_in ) return false;
      $loaded = false;
+     $this->mail_message_data = array();
      $id = intval("$id");
      if ( $id > 0 ) {
        // Try and load it from file
@@ -469,7 +472,12 @@ class Request {
        // Select the file
        $usr_sql = "SELECT user_no, abbreviation || ': ' || fullname ";
        $usr_sql .= "FROM usr JOIN organisation ON ( usr.org_code = organisation.org_code) ";
-       $usr_sql .= "WHERE status != 'I' AND organisation.org_code IN ( $this->org_code, $session->org_code )";
+       if ( isset($this->org_code) ) {
+         $usr_sql .= "WHERE status != 'I' AND organisation.org_code IN ( $this->org_code, $session->org_code )";
+       }
+       else {
+          $usr_sql .= "WHERE status != 'I' AND organisation.org_code = $session->org_code ";
+       }
        $usr_sql .= " ORDER BY organisation.org_code, fullname;";
        $html .= '<td class="entry">';
        $html .= $ef->DataEntryField( "", "lookup", "allocatable",
@@ -815,12 +823,70 @@ class Request {
      }
      else {
        $client_messages[] = "Request details written.";
+
+   //
+   // Add here calls to phpmailer??
+   //
+
+   $mail = &new phpmailer ();
+   $mail->IsSMTP();
+   $mail->From = 'wrms@catalyst.net.nz';
+   $mail->FromName = 'Catalyst IT WRMS';
+
+   $body = 'You are recieving this message because an update has occured to a work request at Catalyst IT.';
+   $textbody = "You are recieving this message because an update has occured to a work request at Catalyst IT.";
+   // Build rest of body here from $this->mail_message_data
+   $mail->Body = $body;
+   $mail->AltBody = $textbody;
+
+   $send_to = $this->GetRecipients();
+
+   foreach ( $send_to as $email => $name )
+   {
+    //$mail->AddAddress($email, $name);
+   }
+   $mail->AddAddress('nigel@catalyst.net.nz', 'Nigel McNie');
+
+   if ( !$mail->Send() )
+   {
+    // Put here error message
+    echo 'got here2';
+   }
+
+   $result = mail('nigel@catalyst.net.nz', 'tester', 'testing...');
+   if ( !$result ) die ('mail error');
+
+
        // Since we wrote it all successfully, clear the $_POST array
        // so that the posted data isn't all re-used in the form fields,
        // and we use the on-disk data instead.
        $_POST = array();
      }
      return true;
+   }
+
+   function GetRecipients ()
+   {
+
+  $query = "SELECT email, fullname FROM usr, request_interested ";
+  $query .= "WHERE request_interested.user_no = usr.user_no ";
+  $query .=  " AND request_interested.request_id = {$this->request_id}";
+  $query .=  " AND usr.status != 'I' ";
+  $query .= "UNION ";
+  $query .= "SELECT email, fullname FROM usr, request_allocated ";
+  $query .= "WHERE request_allocated.allocated_to_id = usr.user_no ";
+  $query .=  " AND request_allocated.request_id = {$this->request_id}";
+  $query .=  " AND usr.status != 'I' ";
+
+  $peopleq = new PgQuery($query);
+  $peopleq->Exec("notify-eml");
+  $to = array();
+
+  while ( $row = $peopleq->Fetch() )
+  {
+    $to[$row->email] = $row->fullname;
+  }
+  return $to;
    }
 
    /////////////////////////////////////////////////////////////
@@ -854,6 +920,8 @@ class Request {
 
      chmod( "attachments/$attachment_id", 0644 );
      $client_messages[] = "File attachment \"$att_name\" added to this request</h3>";
+     $this->mail_message_data[]['html'] = "File attachment &quot;" . htmlspecialchars($att_name) . "&quot; was added.<br />\n";
+     $this->mail_message_data[]['text'] = "File attachment \"$att_name\" was added.\n";
      return true;
    }
 
@@ -881,6 +949,9 @@ class Request {
        return false;
      }
      $client_messages[] = "Quote added to this request";
+     $this->mail_message_data[]['html'] = "A quote was added.<br />\n";
+     $this->mail_message_data[]['text'] = "A quote was added.\n";
+
      return true;
    }
 
@@ -908,6 +979,9 @@ class Request {
        return false;
      }
      $client_messages[] = "Work added to this request";
+     $this->mail_message_data[]['html'] = "Work to do was added.<br />\n";
+     $this->mail_message_data[]['text'] = "Work to do was added.\n";
+
      return true;
    }
 
@@ -925,6 +999,9 @@ class Request {
        return false;
      }
      $client_messages[] = "W/R linked to this request";
+     $this->mail_message_data[]['html'] = "W/R was linked to this request<br />\n";
+     $this->mail_message_data[]['text'] = "W/R was linked to this request.\n";
+
      return true;
    }
 
@@ -947,6 +1024,9 @@ class Request {
        return false;
      }
      $client_messages[] = sprintf("Request allocated to %d people.", count($_POST['new_allocations']));
+     $this->mail_message_data[]['html'] = "The request was allocated to " . count($_POST['new_allocations']) . " people.<br />\n";
+     $this->mail_message_data[]['text'] = "The request was allocated to " . count($_POST['new_allocations']) . " people.\n";
+
      return true;
    }
 
@@ -969,6 +1049,9 @@ class Request {
        return false;
      }
      $client_messages[] = sprintf("Request subscription added for %d people.", count($_POST['new_subscriptions']));
+     $this->mail_message_data[]['html'] = "Request subscription was added for " . count($_POST['new_subscriptions']) . " people.<br />\n";
+     $this->mail_message_data[]['text'] = "Request subscription was added for " . count($_POST['new_subscriptions']) . " people.\n";
+
      return true;
    }
 
@@ -986,6 +1069,9 @@ class Request {
        return false;
      }
      $client_messages[] = "Status changed from '$this->last_status' to '".$_POST['status_code']."'";
+     $this->mail_message_data[]['html'] = "The status was changed from &quot;{$this->last_status}&quot; to " . $_POST['status_code'] . "<br />\n";
+     $this->mail_message_data[]['text'] = "The status was changed from \"{$this->last_status}\" to " . $_POST['status_code'] . "\n";
+
      $_POST['last_status'] = $_POST['status_code'];
      return true;
    }
@@ -1009,6 +1095,9 @@ class Request {
        return false;
      }
      $client_messages[] = "Note added to request";
+     $this->mail_message_data[]['html'] = "A note was added.<br />\n";
+     $this->mail_message_data[]['text'] = "A note was added.\n";
+
      return true;
    }
 

@@ -140,7 +140,7 @@ class PgQuery
     {
       log_error( $this->location, 'query', $this->querystring );
     }
-
+//echo $this->querystring;
     $t1 = microtime();
     $this->result = pg_exec( $dbconn, $this->querystring );
     $this->rows = pg_numrows($this->result);

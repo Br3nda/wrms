@@ -23,9 +23,10 @@ else {
 $show = 0;
 $new = isset($edit) && intval($edit) && !isset($id);
 
-if ( $M != "LC" && $org->AllowedTo("update") && isset($_POST['submit']) ) {
+if ( $org->AllowedTo("update") && isset($_POST['submit']) ) {
   if ( $org->Validate($orgf) ) {
     $org->Write($orgf);
+    $org = new Organisation($org_code);
   }
 }
 

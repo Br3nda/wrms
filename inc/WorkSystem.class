@@ -6,6 +6,7 @@ require_once("html-format.php");
 class WorkSystem {
   var $system_code;
   var $new_record;
+  var $chtype;
 
   function WorkSystem( $id ) {
     global $session;
@@ -96,38 +97,41 @@ class WorkSystem {
     return $answer;
   }
 
-   /////////////////////////////////////////////////////////////
-   // Render - Return HTML to show the W/R
-   //   A separate function is called for each logical area
-   //   on the W/R.
-   /////////////////////////////////////////////////////////////
-   function Render( ) {
+  /////////////////////////////////////////////////////////////
+  // Render - Return HTML to show the W/R
+  //   A separate function is called for each logical area
+  //   on the W/R.
+  /////////////////////////////////////////////////////////////
+  function Render( ) {
 
-     if ( ! $this->AllowedTo('view') ) {
-       return;
-     }
+    if ( ! $this->AllowedTo('view') ) {
+      return;
+    }
 
-     $ef = new EntryForm( $REQUEST_URI, $this, $GLOBALS['edit'] );
-     $ef->NoHelp();  // Prefer this style, for the moment
+    $ef = new EntryForm( $REQUEST_URI, $this, $GLOBALS['edit'] );
+    $ef->NoHelp();  // Prefer this style, for the moment
 
-     $html = "";
-     if ( $ef->editmode ) $html .= $ef->StartForm( array("autocomplete" => "off", "onsubmit" => "return CheckWorkSystemForm();" ) );
+    $html = "";
+    if ( $ef->editmode ) {
+      $html .= $ef->StartForm( array( /*"onsubmit" => "return CheckWorkSystemForm();" */ ) );
+//      if ( $this->org_code > 0 ) $html .= $ef->HiddenField( "org_code", $this->org_code );
+    }
 
-     $html .= "<table width=\"100%\" class=\"data\" cellspacing=\"0\" cellpadding=\"0\">\n";
+    $html .= "<table width=\"100%\" class=\"data\" cellspacing=\"0\" cellpadding=\"0\">\n";
 
-     $html .= $this->RenderDetails($ef);
-     $html .= $this->RenderOrganisations($ef);
+    $html .= $this->RenderDetails($ef);
+    $html .= $this->RenderOrganisations($ef);
 
-     $html .= "</table>\n";
-     if ( $ef->editmode ) {
-       $html .= '<div id="footer">';
-       $html .= $ef->SubmitButton( "submit", ($this->new_record ? "Create" : "Update") );
-       $html .= '</div>';
-       $html .= $ef->EndForm();
-     }
+    $html .= "</table>\n";
+    if ( $ef->editmode ) {
+      $html .= '<div id="footer">';
+      $html .= $ef->SubmitButton( "submit", ($this->new_record ? "Create" : "Update") );
+      $html .= '</div>';
+      $html .= $ef->EndForm();
+    }
 
-     return $html;
-   }
+    return $html;
+  }
 
 
    function RenderDetails( $ef ) {
@@ -238,15 +242,20 @@ class WorkSystem {
      global $client_messages;
      error_log("$system_name: vpw: DBG: Writing work_system form details to database");
      $client_messages[] = "Writing system details to database.";
+     $this->chtype = strtolower($_POST['submit']);
 
      $qry = new PgQuery("BEGIN");              $qry->Exec("Sys::Write");
 
-     $sql = sql_from_post( $_POST['submit'], "work_system", "WHERE system_code='$this->system_code'");
+     $sql = sql_from_post( $this->chtype, "work_system", "WHERE system_code='$this->system_code'");
      $qry = new PgQuery($sql);
-     if ( !$qry->Exec("Sys::Write") ) $client_messages[] = "ERROR: $qry->errorstring";
+     if ( !$qry->Exec("Sys::Write") )       $client_messages[] = "ERROR: $qry->errorstring";
+     else if ( "create" == $this->chtype ) {
+       $this->system_code = $_POST['system_code'];
+       $GLOBALS['system_code'] = $this->system_code;
+     }
 
      $organisations = "";
-     while( list($k,$v) = each($_POST['applies']) ) {
+     foreach( $_POST['applies'] AS $k => $v ) {
        if ( $v ) {
          $organisations .= ( "$organisations" == "" ? "" : ", " );
          $organisations .= "'" . str_replace("'","''",str_replace('\\','', $k)) . "'";

@@ -23,6 +23,7 @@ else {
 if ( $M != "LC" && $ws->AllowedTo("update") && isset($_POST['submit']) ) {
   if ( $ws->Validate($wsf) ) {
     $ws->Write($wsf);
+    $ws = new WorkSystem($system_code);
   }
 }
 

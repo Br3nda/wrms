@@ -56,7 +56,7 @@ class Organisation {
         $this->new_record = false;
         while( list($k,$v) = each($row) ) {
           if ( isset($debuggroups['Organisation']) && $debuggroups['Organisation'] ) {
-            error_log( sprintf("%s: DBG: \$this->{'%-25.25s = %s", $sysabbr, "$k'}", $v) );
+            $session->Log( "DBG: \$this->{'%-25.25s = %s", "$k'}", $v);
           }
           $this->{$k} = $v;
         }
@@ -114,7 +114,10 @@ class Organisation {
     $ef = new EntryForm( $REQUEST_URI, $this, $GLOBALS['edit'] );
     $ef->NoHelp();  // Prefer this style, for the moment
 
-    if ( $ef->editmode ) $html .= $ef->StartForm( array("autocomplete" => "off", "onsubmit" => "return CheckOrganisationForm();" ) );
+    if ( $ef->editmode ) {
+      $html .= $ef->StartForm( array("autocomplete" => "off", "onsubmit" => "return CheckOrganisationForm();" ) );
+      if ( $this->org_code > 0 ) $html .= $ef->HiddenField( "org_code", $this->org_code );
+    }
 
     $html .= "<table width=\"100%\" class=\"data\" cellspacing=\"0\" cellpadding=\"0\">\n";
 
@@ -245,7 +248,7 @@ class Organisation {
         $html .= "<td width=\"33%\">";
         if ( $ef->editmode  && ($session->AllowedTo('Admin') || $session->AllowedTo('Support')) ) {
           $ef->record->tag_active[$row->tag_id] = "$row->active";
-          error_log( "Tag active: $row->tag_id, $row->active" );
+          $session->Log( "DBG: Tag active: $row->tag_id, $row->active" );
           $_POST['tag_active'][$row->tag_id] = $row->active;
           $html .= sprintf("<label style=\"color: %s\">", ( "$row->active" != "t" ? "darkgrey" : "black") );
           $html .= $ef->DataEntryField( "", "checkbox", "tag_active[$row->tag_id]",
@@ -304,7 +307,7 @@ class Organisation {
         $html .= "<td width=\"33%\">";
         if ( $ef->editmode  && ($session->AllowedTo('Admin') || $session->AllowedTo('Support')) ) {
           $ef->record->action_active[$row->action_id] = "$row->active";
-          error_log( "Action active: $row->action_id, $row->active" );
+          $session->Log( "DBG: Action active: $row->action_id, $row->active" );
           $_POST['action_active'][$row->action_id] = $row->active;
           $html .= sprintf("<label style=\"color: %s\">", ( "$row->active" != "t" ? "darkgrey" : "black") );
           $html .= $ef->DataEntryField( "", "checkbox", "action_active[$row->action_id]",
@@ -347,7 +350,7 @@ class Organisation {
 
   function Validate( $ef ) {
     global $session, $client_messages;
-    error_log("$system_name: vpw: DBG: Validating organisation");
+    $session->Log("DBG: Validating organisation");
 
     if ( isset($_POST) ) {
       $valid = true;
@@ -381,8 +384,8 @@ class Organisation {
   }
 
   function Write( $ef ) {
-    global $client_messages;
-    error_log("$system_name: Org::Write: DBG: Writing organisation form details to database");
+    global $session, $client_messages;
+    $session->Log("Org::Write: DBG: Writing organisation form details to database");
     $client_messages[] = "Writing organisation details to database.";
 
     $db_errors = false;
@@ -398,14 +401,15 @@ class Organisation {
 
       // If we are creating a new record, we need to grab the ID that it got
       if ( eregi("create",$_POST['submit']) ) {
-        $sql = "SELECT currval('organisation_org_code_seq';";
+        $sql = "SELECT currval('organisation_org_code_seq');";
         $qry = new PgQuery($sql);                 $qry->Exec("Org::Write");
         $row = $qry->Fetch(true);    // Fetch results as array
         $this->org_code = $row[0];
+        $GLOBALS['org_code'] = $this->org_code;
       }
 
       // If the organisation is inactive, ensure all users are also inactive
-      if ( $_POST['active'] == 'f' ) {
+      if ( $_POST['active'] != 'on' ) {
         $qry = new PgQuery("UPDATE usr SET status = 'I' WHERE org_code = $this->org_code;" );
         $qry->Exec("Org::Write");
       }

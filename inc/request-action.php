@@ -221,7 +221,7 @@ function dates_equal( $date1, $date2 ) {
     if ( isset( $new_detail) ) $new_detail = str_replace( "\r\n", "\n", $new_detail);
     $brief_changed = (isset($new_brief) && $new_brief != "" && trim($request->brief) != trim($new_brief));
     $old_detail = str_replace( "\r", "", str_replace( "\r\n", "\n", trim($request->detailed) ) );
-    $old_detail = str_replace( "\r", "", str_replace( "\r\n", "\n", trim($new_detail) ) );
+    $new_detail = str_replace( "\r", "", str_replace( "\r\n", "\n", trim($new_detail) ) );
     $detail_changed = (isset($new_detail) && $new_detail != "" && $old_detail != $new_detail );
     if ( $detail_changed ) {
       $fh = fopen( "/tmp/wrms.$request_id.RD", "w" );

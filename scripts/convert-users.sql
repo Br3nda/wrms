@@ -107,6 +107,7 @@ INSERT INTO lookup_code ( source_table, source_field, lookup_seq, lookup_code, l
 
 ALTER TABLE request ADD COLUMN urgency INT;
 UPDATE request SET urgency=(severity_code/10)*10;
+UPDATE request SET urgency=urgency+30 WHERE urgency >= 20 AND urgency<50;
 
 INSERT INTO lookup_code (source_table, source_field, lookup_code, lookup_seq, lookup_desc )
     VALUES('codes', 'menus', 'request|importance', 5, 'Importance');

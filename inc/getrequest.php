@@ -43,6 +43,7 @@
       exit; /* Make sure that code below does not get executed when we redirect. */
     }
     $request = pg_Fetch_Object( $rid, 0 );
+    $is_request = true;
   }
   else {
     $is_request = false ;

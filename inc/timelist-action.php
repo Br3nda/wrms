@@ -1,13 +1,14 @@
 <?php
 
   if ( $logged_on && isset( $chg_on ) && is_array( $chg_on ) && is_array( $chg_amt ) ) {
-    $because = "<TABLE BORDER=1 WIDTH=50% ALIGN=CENTER>";
+    $because = "<TABLE BORDER=1 WIDTH=50% ALIGN=CENTER>\n";
+    $because .= "<tr><th>Timesheet</th><th>Date</th><th>Invoice</th><th align=right>Amount</th></tr>\n";
     $query = "";
     while( list( $k, $v ) = each ( $chg_on ) ) {
       $amount = doubleval( $chg_amt[$k] );
       $invoice = doubleval( $chg_inv[$k] );
-      if ( $amount == 0 ) continue;
-      $because .= "<tr><td>$k</td><td>$v</td></tr>";
+      if ( "$amount" == "" ) continue;
+      $because .= "<tr><td>$k</td><td>$v</td><td>$invoice</td><td align=right>" . sprintf( "%10.2f", $amount) . "</td></tr>\n";
       $query .= "UPDATE request_timesheet SET";
       $query .= " work_charged='$v',";
       $query .= " charged_by_id=$session->user_no,";
@@ -16,9 +17,9 @@
       $query .= " WHERE timesheet_id=$k;";
     }
     if ( "$query" == "" ) return;
-    $because .= "</TABLE>";
+    $because .= "</TABLE>\n";
 
-    $because .= "<TT>$query</TT>";
+    # $because .= "<TT>$query</TT>";
     $rid = pg_Exec( $wrms_db, $query );
     if ( ! $rid ) error_log( "wrms: Query Error: $query", 0);
 

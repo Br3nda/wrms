@@ -1,5 +1,6 @@
 <?php
   include("always.php");
+  include("authorisation-page.php");
   include("options.php");
   include("code-list.php");
   include( "user-list.php" );
@@ -8,7 +9,7 @@
   // Force some variables to have values.
   if ( !isset($format) ) $format = "";
   if ( !isset($style) ) $style = "";
-  if ( !isset($qry) ) $qry = "";
+  if ( !isset($saved_query) ) $saved_query = "";
   if ( !isset($qs) ) $qs = "";
   if ( !isset($org_code) ) $org_code = "";
   if ( !isset($system_code) ) $system_code = "";
@@ -340,7 +341,7 @@ function data_row( $row, $rc ) {
       $header_cell .= "&incstat[$k]=$v";
     }
   }
-  if ( "$qry" != "" ) $header_cell .= "&qry=$qry";
+  if ( "$saved_query" != "" ) $header_cell .= "&qry=$saved_query";
   if ( "$style" != "" ) $header_cell .= "&style=$style";
   if ( "$format" != "" ) $header_cell .= "&format=$format";
   if ( isset($choose_columns) && $choose_columns ) $header_cell .= "&choose_columns=1";
@@ -359,10 +360,10 @@ function column_header( $ftext, $fname ) {
   printf( $header_cell, $fname, $fseq, $ftext, $seq_image );
 }
 
-  if ( "$qry" != "" && "$action" == "delete" ) {
-    $query = "DELETE FROM saved_queries WHERE user_no = '$session->user_no' AND LOWER(query_name) = LOWER('".tidy($qry)."');";
+  if ( "$saved_query" != "" && "$action" == "delete" ) {
+    $query = "DELETE FROM saved_queries WHERE user_no = '$session->user_no' AND LOWER(query_name) = LOWER('".tidy($saved_query)."');";
     $result = awm_pgexec( $dbconn, $query, "requestlist", false, 7);
-    unset($qry);
+    unset($saved_query);
   }
 
   include("headers.php");
@@ -526,10 +527,10 @@ else {
   //
   /////////////////////////////////////////////////////////////////////////////////////////////////
 
-  // if ( "$qry$search_for$org_code$system_code" != "" ) {
+  // if ( "$saved_query$search_for$org_code$system_code" != "" ) {
     $query = "";
-    if ( isset($qry) && "$qry" != "" ) {
-      $qquery = "SELECT * FROM saved_queries WHERE user_no = '$session->user_no' AND query_name = '".tidy($qry)."';";
+    if ( isset($saved_query) && "$saved_query" != "" ) {
+      $qquery = "SELECT * FROM saved_queries WHERE user_no = '$session->user_no' AND query_name = '".tidy($saved_query)."';";
       $result = awm_pgexec( $dbconn, $qquery, "requestlist", false, 7);
       $thisquery = pg_Fetch_Object( $result, 0 );
       $query = $thisquery->query_sql ;
@@ -628,7 +629,7 @@ $query";
       if ( $result && pg_NumRows($result) > 0 ) {
         echo "\n<small>";
         echo pg_NumRows($result) . " requests found";
-        if ( isset($qry) && $qry != "" ) echo " for <b>$qry</b>";
+        if ( isset($saved_query) && $saved_query != "" ) echo " for <b>$saved_query</b>";
         echo "</small>";
       }
       else {
@@ -638,8 +639,8 @@ $query";
 
     if ( "$style" != "stripped" || ("$style" == "stripped" && "$format" == "edit")) {
       $this_page = "$PHP_SELF?style=%s&format=%s";
-      if ( isset($qry) ) $uqry = str_replace('%','%%',urlencode($qry));
-      if ( "$qry" != "" ) $this_page .= "&qry=$uqry";
+      if ( isset($saved_query) ) $uqry = str_replace('%','%%',urlencode($saved_query));
+      if ( "$saved_query" != "" ) $this_page .= "&qry=$uqry";
       if ( "$search_for" != "" ) $this_page .= "&search_for=" . urlencode($search_for);
       if ( "$org_code" != "" ) $this_page .= "&org_code=$org_code";
       if ( "$system_code" != "" ) $this_page .= "&system_code=$system_code";
@@ -666,7 +667,7 @@ $query";
 
     if ( $style == "stripped" ) {
       echo "<table border=\"0\" cellspacing=\"0\" cellpadding=\"2\" width=\"100%\">\n<tr>\n";
-      echo "<th class=cols style=\"text-align: left\">$qry</th>";
+      echo "<th class=cols style=\"text-align: left\">$saved_query</th>";
       echo "<th class=cols style=\"text-align: right\">" . pg_NumRows($result) . " requests at " . date("H:i j M y") . "</th>";
       echo "</tr></table>\n";
     }
@@ -823,8 +824,8 @@ $query";
       if ( is_member_of('Admin', 'Support') ) {
         printf( " &nbsp;|&nbsp; <a href=\"$this_page\" target=_new>Brief (editable)</a>\n", "stripped", "edit");  //uses the format = edit setting in this link for the Brief (editable) report
       }
-      if ( "$qry" != "" ) {
-        echo "</td><td>|&nbsp; &nbsp; or <a href=\"$PHP_SELF?qs=complex&qry=".urlencode($qry)."&action=delete\" class=sbutton>Delete</a> it\n";
+      if ( "$saved_query" != "" ) {
+        echo "</td><td>|&nbsp; &nbsp; or <a href=\"$PHP_SELF?qs=complex&qry=".urlencode($saved_query)."&action=delete\" class=sbutton>Delete</a> it\n";
       }
       echo "</td></tr></table>\n";
     }

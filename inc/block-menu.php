@@ -38,7 +38,7 @@
     if ( $qry->Exec("block-menu") && $qry->rows > 0) {
       echo "<br><img class=blocksep src=\"/$images/menuBreak.gif\" width=\"130\" height=\"9\">";
       while ( $thisquery = $qry->Fetch() ) {
-        echo "<br>\n &nbsp;<a href=\"$base_url/requestlist.php?style=plain&qry=" . urlencode($thisquery->query_name) . "\" class=block title=\"$tooltip\" alt=\"$tooltip\"><b>&raquo;</b>$thisquery->query_name</a>";
+        echo "<br>\n &nbsp;<a href=\"$base_url/requestlist.php?style=plain&saved_query=" . urlencode($thisquery->query_name) . "\" class=block title=\"$tooltip\" alt=\"$tooltip\"><b>&raquo;</b>$thisquery->query_name</a>";
       }
     }
   }

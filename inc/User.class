@@ -65,6 +65,8 @@ class User {
   /////////////////////////////////////////////////////////////
   function AllowedTo ( $whatever )
   {
+    // fixme: We need to change this to abstract the logic in here of
+    // whether the current user can create, update, view things.
     return ( isset($this->roles[$whatever]) && $this->roles[$whatever] );
   }
 

@@ -255,13 +255,30 @@ function dates_equal( $date1, $date2 ) {
              || (isset($new_importance) && $request->importance != $new_importance )
              || (isset($new_system_code) && $request->system_code != $new_system_code )
              || (isset($new_active) && $request->active != $new_active )
-             || isset($quote_approved)
+             || isset($quote_approved) 
              || $eta_changed || $status_changed || $note_added || $quote_added || $allocation_added || $attachment_added ;
     $send_some_mail = $changes;
-    $changes = $changes || $work_added || $interest_added;
+    $changes = $changes || $work_added || $interest_added ;
 
     if ( isset($quote_invoice_no) ) {
         foreach($quote_invoice_no as $quote_id => $invoice_no) $changes = $changes || ($invoice_no != "");
+    }
+
+    if ( isset($old_timesheet_charge_amount) ) {
+        foreach($old_timesheet_charge_amount as $timesheet_id => $old_charge_amount) 
+            $changes = $changes || ($new_timesheet_charge_amount[$timesheet_id] != $old_charge_amount);
+    }
+    
+    // Charge info (Ok to Charge) changed
+    if (isset($old_timesheet_ok_to_charge)) foreach($old_timesheet_ok_to_charge as $timesheet_id => $old_ok_to_charge) {
+        $changes = $changes || 
+           (($old_ok_to_charge == "false" &&   isset($new_timesheet_ok_to_charge[$timesheet_id])) ||
+            ($old_ok_to_charge == "true"  && ! isset($new_timesheet_ok_to_charge[$timesheet_id]))) ;
+    }
+    
+    // Charge details (Inv No) added
+    if (isset($charged_details)) foreach($charged_details as $timesheet_id => $charged_detail) {
+        $changes = $changes || $charged_detail != "" ;
     }
 
     error_log( "$sysabbr request-action: DBG: $changes---"
@@ -441,7 +458,67 @@ function dates_equal( $date1, $date2 ) {
       chmod( "attachments/$attachment_id", 0644 );
       if ( $rid ) $because .= "<h3>File attachment \"$att_name\" added to this request</h3>";
     }
+         
+    
+    // Existing timesheets(s) charge amount updated
+    if (isset($old_timesheet_charge_amount)) foreach($old_timesheet_charge_amount as $timesheet_id => $old_charge_amount) {
+        if ($new_timesheet_charge_amount[$timesheet_id] != $old_charge_amount) {
+                            
+            $query = "UPDATE request_timesheet SET charged_amount = " .
+                    number_format($new_timesheet_charge_amount[$timesheet_id],2) .
+                    " WHERE timesheet_id = $timesheet_id" ;
+            
+            $rid = awm_pgexec( $dbconn, $query, "req-action" );
+            if ( ! $rid ) {
+                $because .= "<H3>Update Charge Amount Failed</H3>";
+                $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $dbconn ) . "</TT>";
+                $because .= "<P>The failed query was:</P><TT>$query</TT>";
+                awm_pgexec( $dbconn, "ROLLBACK;" );
+            return;
+            }
+        }
+    }  
+    
+    // Existing timesheet(s) ok to charge
+    if (isset($old_timesheet_ok_to_charge)) foreach($old_timesheet_ok_to_charge as $timesheet_id => $old_ok_to_charge) {
+        if (($old_ok_to_charge == "false" &&   isset($new_timesheet_ok_to_charge[$timesheet_id])) ||
+            ($old_ok_to_charge == "true"  && ! isset($new_timesheet_ok_to_charge[$timesheet_id]))) {
+                                           
+            $query = "UPDATE request_timesheet SET ok_to_charge = ";
+             
+            if (isset($new_timesheet_ok_to_charge[$timesheet_id])) $query .= "true";
+            else $query .= "false";
+            $query .= " WHERE timesheet_id = $timesheet_id" ;
+            $rid = awm_pgexec( $dbconn, $query, "req-action" );
+            if ( ! $rid ) {
+                $because .= "<H3>Update Ok to Charge Failed</H3>";
+                $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $dbconn ) . "</TT>";
+                $because .= "<P>The failed query was:</P><TT>$query</TT>";
+                awm_pgexec( $dbconn, "ROLLBACK;" );
+                return;
+            }
+        }
+    }
+ 
+    // Charge details (Inv No) added
+    if (isset($charged_details)) foreach($charged_details as $timesheet_id => $charged_detail) {
+        $query = "UPDATE request_timesheet SET " .
+                 "ok_to_charge = true, " .
+                 "charged_details = '$charged_detail', " .
+                 "work_charged = 'now', " .
+                 "charged_by_id = $session->user_no " .
+                 "WHERE timesheet_id = $timesheet_id" ;
+        $rid = awm_pgexec( $dbconn, $query, "req-action" );
+        if ( ! $rid ) {
+            $because .= "<H3>Update Charge Detail Inv No Failed</H3>";
+            $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $dbconn ) . "</TT>";
+            $because .= "<P>The failed query was:</P><TT>$query</TT>";
+            awm_pgexec( $dbconn, "ROLLBACK;" );
+            return;
+        }
+    }
 
+        
     if ( $work_added ) {
       /* non-null timesheet was entered */
       $new_work_details = tidy( $new_work_details );

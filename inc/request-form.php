@@ -82,7 +82,7 @@
   echo "<td";
   if ( ! $is_request ) echo " colspan=2";
   if ( $editable ) {
-    echo "><input class=sml type=\"text\" name=\"new_brief\" size=40 value=\"";
+    echo "><input class='sml' type=text name=new_brief size=40 value=\"" ;
     if ( $is_request ) echo htmlspecialchars($request->brief);
     echo "\">";
   }
@@ -307,9 +307,8 @@
   }
   if ( ! $plain || $rows > 0 )
     echo "</table>";
-
-
-  /***** Quote Details */
+ 
+ /***** Quote Details */
   /* we only show quote details if it is 'quotable' (i.e. requestor, administrator or catalyst owner) */
   if ( $quotable ) {
     if ( $is_request ) {
@@ -326,14 +325,13 @@
     else
       $rows = 0;
     if ( $rows > 0 || (($allocated_to || $sysmgr || is_member_of('Support') ) && !$plain) ) {
-      echo "$tbldef><tr><td class=sml colspan=10>&nbsp;</td></tr><tr>$hdcell";
-      echo "<td class=h3 colspan=10 align=right>Quotations</td></tr>\n";
-      echo "<TR>";
-      echo "<th class=cols>Quote</th><th class=cols>Quoted By</th><th class=cols>Brief</th>";
-      echo "<th class=cols>Quoted On</th>";
-      echo "<th class=cols>Type</th><th class=cols>Quantity</th><th class=cols>Units</th><th class=cols>Approved By</th>"; 
-      echo "<th class=cols>Approved</th><th class=cols>Inv No</th>";
-      echo "</tr>\n";
+      echo "$tbldef><caption>Quotations</caption>";
+      echo "<TR valign=bottom>" .
+           "<th class=cols>Quote</th><th class=cols align=left>Quoted By</th><th class=cols align=left>Brief</th>" .
+           "<th class=cols>Quoted On</th><th class=cols align=left>Type</th><th class=cols align=right>Qty</th>" .
+           "<th class=cols align=left>Units</th><th class=cols align=left>Approved By</th>" . 
+           "<th class=cols>Approved</th><th class=cols>Inv No</th>" .
+           "</tr>\n";
 
       for ( $i=0; $i < $rows; $i++ ) {
         $quote = pg_Fetch_Object( $quoteq, $i );
@@ -349,11 +347,10 @@
 		   "<td align=center><input type=checkbox name=quote_approved[$quote->quote_id]></td>";
 	else echo "<TD>$quote->approved_by_fullname</TD>" .
 		  "<td>" . substr(nice_date($quote->approved_on),7) . "</td>";
-        if ( $quote->invoice_no == '' &&  (is_member_of('Admin','Support'))) 
+        if ( $quote->invoice_no == '' && $quote->approved_on != '' &&  (is_member_of('Admin','Support'))) 
 		echo "<TD ALIGN=CENTER><input size=6 type=text name=quote_invoice_no[$quote->quote_id]></TD>";
         else echo "<TD ALIGN=CENTER>$quote->invoice_no</TD>";
         echo "</tr>\n";
-
         printf("<tr class=row%1d>", ($i % 2) );
         echo "<TD COLSPAN=10>";
         echo html_format($quote->quote_details) . "</A></TD></TR>\n";
@@ -363,18 +360,19 @@
     if ( ($allocated_to || $sysmgr  || is_member_of('Support') ) && ! $plain ) {
       printf("<tr class=row%1d>", ($i % 2) );
       echo "<TD></td><td>$session->fullname</td>\n";
-      echo "<TD><input name=new_quote_brief size=35 type=text></TD><td></td>\n";
+      echo "<TD><input name=new_quote_brief size=35 type=text class=w100></TD><td></td>\n";
       echo "<TD><select class=sml name=new_quote_type>$quote_types</select></TD>\n";
-      echo "<TD ALIGN=RIGHT><input name=new_quote_amount size=10 type=text></td>";
+      echo "<TD ALIGN=RIGHT><input name=new_quote_amount size=10 type=text align=right></td>";
       echo "<TD ALIGN=LEFT><select class=sml name=new_quote_unit>$quote_units</select></TD>" .
            "<td colspan=3></td></tr>\n";
       printf("<tr class=row%1d>", ($i % 2) );
-      echo "<TD COLSPAN=10><textarea class=sml name=new_quote_details rows=4 cols=60 wrap=soft></textarea></TD></TR>\n";
+      echo "<TD COLSPAN=10 width=100%><textarea class=w100 name=new_quote_details rows=4 cols=60 wrap=soft></textarea></TD></TR>\n";
     }
     echo "</TABLE>";
   }  // if quotable
 
-  if ( !$plain && is_member_of('Admin', 'Support', 'Manage') ) {
+      
+   if ( !$plain && is_member_of('Admin', 'Support', 'Manage') ) {
     $user_list = "<option value=\"\">--- no change ---</option>\n";
     if ( is_member_of('Admin', 'Support') ) {
       $support_list = $user_list;
@@ -387,43 +385,45 @@
 
   /***** Allocated People */
   /* People who have been allocated to the request - again, only if there are any.  */
-  $query = "SELECT usr.user_no, usr.fullname, organisation.abbreviation ";
-  $query .= "FROM request_allocated, usr, organisation ";
-  $query .= "WHERE request_id = '$request->request_id' ";
-  $query .= "AND usr.user_no=request_allocated.allocated_to_id ";
-  $query .= "AND organisation.org_code = usr.org_code ";
-  $query .= "ORDER BY request_allocated.allocated_on ";
-  $allocq = awm_pgexec( $dbconn, $query);
-  $rows = pg_NumRows($allocq);
-  if ( $is_request && ( $rows > 0 || (! $plain && is_member_of('Admin', 'Support', 'Manage') ) ) ) {
-    echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=3>&nbsp;</TD></TR>\n";
-    echo "<TR>$hdcell<TD CLASS=h3 COLSPAN=2 ALIGN=RIGHT>Work Allocated To</TD></TR>\n";
-    echo "<TR VALIGN=TOP><td>";
-    for( $i=0; $i<$rows; $i++ ) {
-      $alloc = pg_Fetch_Object( $allocq, $i );
-      if ( $i > 0 ) echo ", ";
+  /* And surely there wouldn't be any unless there is a request id? */
 
-      if ( ($allocated_to || $sysmgr) && ! $plain )
-        echo "<a href=\"request.php?submit=deallocate&user_no=$alloc->user_no&request_id=$request_id\">\n";
-      echo "$alloc->fullname ($alloc->abbreviation)\n";
-      if ( ($allocated_to || $sysmgr) && ! $plain )
-        echo "</a>\n";
+    if ( $is_request ) {
+        $query = "SELECT usr.user_no, usr.fullname, organisation.abbreviation ";
+        $query .= "FROM request_allocated, usr, organisation ";
+        $query .= "WHERE request_id = '$request->request_id' ";
+        $query .= "AND usr.user_no=request_allocated.allocated_to_id ";
+        $query .= "AND organisation.org_code = usr.org_code ";
+        $query .= "ORDER BY request_allocated.allocated_on ";
+        $allocq = awm_pgexec( $dbconn, $query);
+        $rows = pg_NumRows($allocq);
     }
-
-    if ( $plain || ! is_member_of('Admin', 'Support') ) {
-      echo "</TD>\n<TD>&nbsp;";  // Or we could correct the cellspan above for this case...
+    if ( $is_request && ( $rows > 0 || (! $plain && is_member_of('Admin', 'Support', 'Manage') ) ) ) {
+        echo "$tbldef><caption>Work Allocated To</caption>";
+        echo "<TR VALIGN=TOP><td>";
+        for( $i=0; $i<$rows; $i++ ) {
+            $alloc = pg_Fetch_Object( $allocq, $i );
+            if ( $i > 0 ) echo ", ";
+    
+            if ( ($allocated_to || $sysmgr) && ! $plain )
+                echo "<a href=\"request.php?submit=deallocate&user_no=$alloc->user_no&request_id=$request_id\">\n";
+            echo "$alloc->fullname ($alloc->abbreviation)\n";
+            if ( ($allocated_to || $sysmgr) && ! $plain ) echo "</a>\n";
+        }
+    
+        if ( ! $plain && is_member_of('Admin', 'Support') ) {
+          echo "</TD>\n<td align=right nowrap>Add: <select class=sml name=\"new_allocation\">$support_list</SELECT>";
+        }
+        echo "</TD></TR></TABLE>\n";
     }
-    else {
-      echo "</TD>\n<td align=right nowrap>Add:&nbsp;<select class=sml name=\"new_allocation\">$support_list</SELECT>\n";
-    }
-    echo "</TD></TR></TABLE>\n";
-  }
-
-  /***** Timesheet Details */
+    
+  
+  /***** Work Done */
   /* we only show timesheet details if they exist */
   if ( $is_request && is_member_of('Admin', 'Support') ) {
-    $query = "SELECT *, date_part('epoch',request_timesheet.work_duration) AS seconds ";
-    $query .= "FROM request_timesheet, usr ";
+    $query = "SELECT *, cu.fullname AS charged_by_fullname, date_part('epoch',request_timesheet.work_duration) AS seconds ";
+    $query .= "FROM request_timesheet " .
+              "LEFT OUTER JOIN usr cu ON cu.user_no = request_timesheet.charged_by_id, " . 
+	      "usr ";
     $query .= "WHERE request_timesheet.request_id = $request->request_id ";
     $query .= "AND request_timesheet.work_by_id = usr.user_no ";
     $query .= "ORDER BY request_timesheet.work_on ";
@@ -435,61 +435,115 @@
 
   if ( $rows > 0  || (($allocated_to || $sysmgr || is_member_of('Support')) && !$plain) ) {
 
-    echo "$tbldef>\n<tr><td class=sml colspan=7>&nbsp;</td></tr><tr>$hdcell";
-    echo "<td class=h3 colspan=7 align=right>Work Done</TD></TR>\n";
-    echo "<tr valign=top>\n";
-    echo "<th class=smb>Done By</th>\n";
-    echo "<th class=smb>Done On</th>\n";
-    echo "<th class=smb>Quantity</th>\n";
-    echo "<th class=smb>Rate</th>\n";
-    echo "<th class=smb>Cost</th>\n";
-    echo "<th class=smb colspan=2>Description</th>\n";
+    echo "$tbldef>";
+    echo "<caption>Work Done</caption>";
+    echo "<tr class=cols align=left valign=bottom>\n";
+    echo "<th class=cols>Done By</th>\n";
+    echo "<th class=cols>Done On</th>\n";
+    echo "<th class=cols align=right>Qty</th>\n";
+    echo "<th class=cols>Units</th>\n";
+    echo "<th class=cols align=right>Rate</th>\n";
+    echo "<th class=cols>Description</th>\n";
+    if ( is_member_of('Support') || is_member_of('Admin') ) {
+	echo "<th class=cols align=right>Charge Amount</th>" .
+	     "<th class=cols align=center>Ok to Charge</th>" .
+	     "<th class=cols>Inv No</th>" .
+	     "<th class=cols>Charged By</th>" .
+	     "<th class=cols>Charged</th>" ;
+    }
+    echo "<th class=cols>&nbsp;</th>";
     echo "</tr>\n";
 
     $total_cost = 0;
     for( $i=0; $i<$rows; $i++ ) {
-      $work = pg_Fetch_Object( $workq, $i );
-      $tmp = $work->work_rate * $work->work_quantity;
-      $total_cost += $tmp;
+        $work = pg_Fetch_Object( $workq, $i );
+        if ($work->charged_amount != "") $charged_amount=$work->charged_amount;
+        else $charged_amount=$work->work_rate * $work->work_quantity ;
+        
+        $tmp = $work->work_rate * $work->work_quantity;
+        $total_cost += $tmp;
 
-      printf("<tr class=row%1d>", ($i % 2) );
-      echo "<td>" . str_replace(" ", "&nbsp;", $work->fullname) . "</td>\n";
-      echo "<td align=right>" . substr( nice_date($work->work_on), 7) . "</td>\n";
-      echo "<td align=right nowrap>$work->work_quantity&nbsp;$work->work_units &nbsp;</td>\n";
-      echo "<td align=right nowrap>$work->work_rate&nbsp;</td>\n";
-      echo "<td align=right nowrap>$tmp&nbsp;</td>\n";
-      echo "<td>$work->work_description</td>\n";
-      if ( ! $plain && is_member_of('Admin', 'Support', 'Manage') ) {
-        echo "<td align=right nowrap><a class=submit href=\"request.php?submit=deltime";
-        echo "&request_id=$request_id&timesheet_id=$work->timesheet_id\">";
-        echo "DEL</a></td>";
-      }
-      echo "</tr>";
+        printf("<tr class=row%1d align=left>", ($i % 2) );
+        echo "<td>$work->fullname</td>\n";
+        echo "<td>" . substr( nice_date($work->work_on), 7) . "</td>\n";
+        echo "<td align=right nowrap>$work->work_quantity</td>" .
+             "<td>$work->work_units</td>\n";
+        echo "<td align=right nowrap>$work->work_rate</td>\n";
+        echo "<td>$work->work_description</td>\n";
+      
+        // Charging Info 
+        if ( is_member_of('Admin','Support') ) {
+            // Charge Amount 
+            echo "<td align=right>" ;
+            if   ($work->charged_details != null) echo number_format($charged_amount,2) ;
+            else echo "<input type=text name=new_timesheet_charge_amount[$work->timesheet_id] value=\"" .  
+                      number_format($charged_amount,2) . "\" size=10 align=right>" .
+                      "<input type=hidden name=old_timesheet_charge_amount[$work->timesheet_id] value=\"" . 
+                      number_format($charged_amount,2) . "\">";
+            echo "</td>" ;
+            
+            // Ok to Charge 
+            echo "<td align=center>" ;
+            if   ($work->charged_details != null) {
+                echo "<input type=checkbox disabled";
+                if ($work->ok_to_charge == "t") echo " checked";
+                echo ">";
+            } 
+            else {    
+                echo "<input type=checkbox name=new_timesheet_ok_to_charge[$work->timesheet_id] value=\"true\"" ;
+                if ($work->ok_to_charge == "t") echo " checked";
+                echo "><input type=hidden name=old_timesheet_ok_to_charge[$work->timesheet_id] value=\"";
+                if ($work->ok_to_charge == "t") echo "true";
+                else echo "false";
+                echo "\">";
+            }
+            echo "</td>";
+            
+            // Inv No 
+            if ( $work->ok_to_charge == "t" && $work->charged_details == "" ) {
+                echo "<td><input type=text name=charged_details[$work->timesheet_id] size=6></td>" .
+                     "<td>$session->fullname</td><td>" . date("d/m/Y") . "</td>";
+            }
+            else echo "<td>$work->charged_details</td>" .
+                "<td>$work->charged_by_fullname</td>" .
+                "<td>" . substr(nice_date($work->work_charged), 7) . "</td>" ;
+        }
+        
+        // Delete button 
+        if ( ! $plain && is_member_of('Admin', 'Support', 'Manage') && ! ($work->charged_details != null) ) {
+            echo "<td align=right nowrap><a class=submit href=\"request.php?submit=deltime";
+            echo "&request_id=$request_id&timesheet_id=$work->timesheet_id\">";
+            echo "DEL</a></td>";
+        }
+        echo "</tr>\n";
     }
+    
+    /* Work Total */
     printf("<tr class=row%1d>", ($i % 2) );
-    echo "<td colspan=3 align=left><b>Total</b></td>
-<td colspan=2 align=right nowrap>\$$total_cost&nbsp;</td>
-<td colspan=2>&nbsp;</td>
-</tr>";
+    echo "<td colspan=3 align=left><b>Total</b></td><td colspan=2 align=right nowrap>\$$total_cost</td>" .
+          "<td colspan=10>&nbsp;</td>" .
+          "</tr>\n";
     $i++;
 
+    /* New work entry */
     if ( ($allocated_to || $sysmgr || is_member_of('Support')) && ! $plain ) {
-      printf("<tr class=row%1d>", ($i % 2) );
-      echo "<td colspan=2>$session->fullname<br>\n";
-      echo "<input name=new_work_on size=10 type=text value=\"";
-      if ( isset($old_work_on) ) {
-        echo substr( nice_date($old_work_on), 7);
-        $quote_units = get_code_list( "request_quote", "quote_units", "$old_work_units" );
-      }
-      else {
-        echo "today";
-        $old_work_rate = $request->work_rate;
-      }
-      echo "\"></TD>\n";
-      echo "<td align=center><input name=new_work_quantity size=6 type=text value=\"$old_work_quantity\"><br>\n";
-      echo "<select class=sml name=new_work_units>$quote_units</select></TD>\n";
-      echo "<td><input name=new_work_rate size=5 type=text value=\"$old_work_rate\"><br>($ per unit)</TD>\n";
-      echo "<td colspan=3><textarea class=sml name=new_work_details rows=3 cols=30 wrap=soft>$old_work_details</textarea></TD></TR>\n";
+        printf("<tr class=row%1d align=left>", ($i % 2) );
+        echo "<td>$session->fullname</td>";
+        echo "<td><input name=new_work_on size=10 type=text value=\"";
+        if ( isset($old_work_on) ) {
+            echo substr( nice_date($old_work_on), 7);
+            $quote_units = get_code_list( "request_quote", "quote_units", "$old_work_units" );
+        }
+        else {
+            echo "today";
+            $old_work_rate = $request->work_rate;
+        }
+        echo "\"></td>";
+        echo "<td align=right><input name=new_work_quantity size=6 type=text value=\"$old_work_quantity\" align=right></td>";
+        echo "<td><select class=sml name=new_work_units>$quote_units</select></td>";
+        echo "<td align=right><input name=new_work_rate size=5 type=text value=\"$old_work_rate\" align=right></td>";
+        echo "<td colspan=10><textarea class='sml w100' name=new_work_details rows=3 cols=30 " .
+            "wrap=soft>$old_work_details</textarea></TD></TR>\n";
     }
     echo "</TABLE>\n";
 
@@ -709,5 +763,7 @@ if ( "$style" != "plain" ) {
   }
   echo "</td>\n</tr></table></form>";
 }
+
+
 
 ?>

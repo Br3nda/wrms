@@ -43,46 +43,30 @@
     <defaultDTD>-//w3c//dtd xhtml 1.0 transitional//en</defaultDTD>
     <item url="config/" uploadstatus="0" />
     <item modified_time="1066609898" url="config/config-example.php" uploadstatus="0" />
-    <item url="config/CVS/" uploadstatus="0" />
     <item url="config/.cvsignore" uploadstatus="0" />
-    <item url="config/CVS/Root" uploadstatus="0" />
-    <item url="config/CVS/Repository" uploadstatus="0" />
-    <item url="config/CVS/Entries" uploadstatus="0" />
     <item url="inc/" uploadstatus="0" />
-    <item url="inc/CVS/" uploadstatus="0" />
     <item modified_time="1110499237" url="inc/always.php" uploadstatus="0" />
     <item url="inc/sidebarright.php" uploadstatus="0" />
-    <item url="inc/validateusr.php" uploadstatus="0" />
     <item url="inc/error.php" uploadstatus="0" />
-    <item url="inc/deleteusr.php" uploadstatus="0" />
     <item url="inc/help-action.php" uploadstatus="0" />
     <item modified_time="1084361492" url="inc/getusr.php" uploadstatus="0" />
     <item modified_time="1109550690" url="inc/options.php" uploadstatus="0" />
     <item modified_time="1111083229" url="inc/PgQuery.php" uploadstatus="0" />
     <item url="inc/request-form.php" uploadstatus="0" />
-    <item url="inc/writeusr.php" uploadstatus="0" />
     <item url="inc/lookhead.php" uploadstatus="0" />
     <item url="inc/.cvsignore" uploadstatus="0" />
     <item url="inc/looklist.php" uploadstatus="0" />
-    <item modified_time="1095076833" url="inc/request-action.php" uploadstatus="0" />
     <item url="inc/code-list.php" uploadstatus="0" />
     <item modified_time="1065686593" url="inc/login-page.php" uploadstatus="0" />
     <item url="inc/getrequest.php" uploadstatus="0" />
     <item modified_time="996396481" url="inc/tidy.php" uploadstatus="0" />
-    <item url="inc/system-action.php" uploadstatus="0" />
     <item modified_time="1111088722" url="inc/orglist-form.php" uploadstatus="0" />
     <item url="inc/system-list.php" uploadstatus="0" />
-    <item modified_time="1065133937" url="inc/system-form.php" uploadstatus="0" />
-    <item url="inc/system-valid.php" uploadstatus="0" />
-    <item url="inc/organisation-valid.php" uploadstatus="0" />
     <item modified_time="1109651491" url="inc/syslist-form.php" uploadstatus="0" />
     <item url="inc/orglist-action.php" uploadstatus="0" />
-    <item url="inc/organisation-form.php" uploadstatus="0" />
-    <item url="inc/organisation-action.php" uploadstatus="0" />
     <item url="inc/looksearch.php" uploadstatus="0" />
     <item modified_time="1110309748" url="inc/lookwrite.php" uploadstatus="0" />
     <item url="inc/orglist-valid.php" uploadstatus="0" />
-    <item url="inc/request-valid.php" uploadstatus="0" />
     <item modified_time="984036003" url="inc/syslist-action.php" uploadstatus="0" />
     <item modified_time="1110615295" url="inc/block-menu.php" uploadstatus="0" />
     <item url="inc/get-request-roles.php" uploadstatus="0" />
@@ -114,9 +98,6 @@
     <item url="inc/help-form.php" uploadstatus="0" />
     <item url="inc/timesheet-valid.php" uploadstatus="0" />
     <item url="inc/timesheet-action.php" uploadstatus="0" />
-    <item url="inc/CVS/Root" uploadstatus="0" />
-    <item url="inc/CVS/Repository" uploadstatus="0" />
-    <item url="inc/CVS/Entries" uploadstatus="0" />
     <item url="html/" uploadstatus="0" />
     <item url="html/wap/" uploadstatus="0" />
     <item url="html/wap/inc/" uploadstatus="0" />
@@ -157,25 +138,9 @@
     <item modified_time="1108633875" url="inc/AttachmentType.class" uploadstatus="0" />
     <item modified_time="1109628476" url="html/attachment_type.php" uploadstatus="0" />
     <item url="" uploadstatus="1" />
-    <item url="CVS/" uploadstatus="0" />
-    <item url="CVS/Entries" uploadstatus="0" />
-    <item url="CVS/Repository" uploadstatus="0" />
-    <item url="CVS/Root" uploadstatus="0" />
-    <item url="CVS/Tag" uploadstatus="0" />
-    <item url="config/CVS/Tag" uploadstatus="0" />
     <item url="config/config.php-default" uploadstatus="0" />
     <item modified_time="1109880329" url="config/config.php-opwrms" uploadstatus="0" />
-    <item url="html/CVS/" uploadstatus="0" />
-    <item url="html/CVS/Entries" uploadstatus="0" />
-    <item url="html/CVS/Repository" uploadstatus="0" />
-    <item url="html/CVS/Root" uploadstatus="0" />
-    <item url="html/CVS/Tag" uploadstatus="0" />
     <item url="html/eecimg/" uploadstatus="0" />
-    <item url="html/eecimg/CVS/" uploadstatus="0" />
-    <item url="html/eecimg/CVS/Entries" uploadstatus="0" />
-    <item url="html/eecimg/CVS/Repository" uploadstatus="0" />
-    <item url="html/eecimg/CVS/Root" uploadstatus="0" />
-    <item url="html/eecimg/CVS/Tag" uploadstatus="0" />
     <item url="html/eecimg/.cvsignore" uploadstatus="0" />
     <item url="html/eecimg/WRMSbottom.gif" uploadstatus="0" />
     <item url="html/eecimg/WRMSbottom1.gif" uploadstatus="0" />
@@ -195,17 +160,7 @@
     <item url="html/eecimg/up.gif" uploadstatus="0" />
     <item url="html/eecimg/wrmsTOP.gif" uploadstatus="0" />
     <item url="html/images/" uploadstatus="0" />
-    <item url="html/images/CVS/" uploadstatus="0" />
-    <item url="html/images/CVS/Entries" uploadstatus="0" />
-    <item url="html/images/CVS/Repository" uploadstatus="0" />
-    <item url="html/images/CVS/Root" uploadstatus="0" />
-    <item url="html/images/CVS/Tag" uploadstatus="0" />
     <item url="html/images/eduforge/" uploadstatus="0" />
-    <item url="html/images/eduforge/CVS/" uploadstatus="0" />
-    <item url="html/images/eduforge/CVS/Entries" uploadstatus="0" />
-    <item url="html/images/eduforge/CVS/Repository" uploadstatus="0" />
-    <item url="html/images/eduforge/CVS/Root" uploadstatus="0" />
-    <item url="html/images/eduforge/CVS/Tag" uploadstatus="0" />
     <item url="html/images/eduforge/aquaTile.gif" uploadstatus="0" />
     <item url="html/images/eduforge/aquaTileSolid.gif" uploadstatus="0" />
     <item url="html/images/eduforge/clear.gif" uploadstatus="0" />
@@ -243,17 +198,7 @@
     <item url="html/images/sort-DESC.png" uploadstatus="0" />
     <item url="html/images/tanTile.gif" uploadstatus="0" />
     <item url="html/images/wrmsTOP.gif" uploadstatus="0" />
-    <item url="html/js/CVS/" uploadstatus="0" />
-    <item url="html/js/CVS/Entries" uploadstatus="0" />
-    <item url="html/js/CVS/Repository" uploadstatus="0" />
-    <item url="html/js/CVS/Root" uploadstatus="0" />
-    <item url="html/js/CVS/Tag" uploadstatus="0" />
     <item url="html/pwimg/" uploadstatus="0" />
-    <item url="html/pwimg/CVS/" uploadstatus="0" />
-    <item url="html/pwimg/CVS/Entries" uploadstatus="0" />
-    <item url="html/pwimg/CVS/Repository" uploadstatus="0" />
-    <item url="html/pwimg/CVS/Root" uploadstatus="0" />
-    <item url="html/pwimg/CVS/Tag" uploadstatus="0" />
     <item url="html/pwimg/WRMSbottom.gif" uploadstatus="0" />
     <item url="html/pwimg/WRMSbottom1.gif" uploadstatus="0" />
     <item url="html/pwimg/WRMSbottomTile.gif" uploadstatus="0" />
@@ -272,36 +217,6 @@
     <item url="html/pwimg/tanTile.gif" uploadstatus="0" />
     <item url="html/pwimg/up.gif" uploadstatus="0" />
     <item url="html/pwimg/wrmsTOP.gif" uploadstatus="0" />
-    <item url="html/wap/CVS/" uploadstatus="0" />
-    <item url="html/wap/CVS/Entries" uploadstatus="0" />
-    <item url="html/wap/CVS/Repository" uploadstatus="0" />
-    <item url="html/wap/CVS/Root" uploadstatus="0" />
-    <item url="html/wap/CVS/Tag" uploadstatus="0" />
-    <item url="html/wap/inc/CVS/" uploadstatus="0" />
-    <item url="html/wap/inc/CVS/Entries" uploadstatus="0" />
-    <item url="html/wap/inc/CVS/Repository" uploadstatus="0" />
-    <item url="html/wap/inc/CVS/Root" uploadstatus="0" />
-    <item url="html/wap/inc/CVS/Tag" uploadstatus="0" />
-    <item url="inc/CVS/Tag" uploadstatus="0" />
-    <item url="inc/oldfuncs/" uploadstatus="0" />
-    <item url="inc/oldfuncs/CVS/" uploadstatus="0" />
-    <item url="inc/oldfuncs/CVS/Entries" uploadstatus="0" />
-    <item url="inc/oldfuncs/CVS/Repository" uploadstatus="0" />
-    <item url="inc/oldfuncs/CVS/Root" uploadstatus="0" />
-    <item url="inc/oldfuncs/CVS/Tag" uploadstatus="0" />
-    <item url="inc/oldfuncs/.cvsignore" uploadstatus="0" />
-    <item url="scripts/CVS/" uploadstatus="0" />
-    <item url="scripts/CVS/Entries" uploadstatus="0" />
-    <item url="scripts/CVS/Repository" uploadstatus="0" />
-    <item url="scripts/CVS/Root" uploadstatus="0" />
-    <item url="scripts/CVS/Tag" uploadstatus="0" />
-    <item url="scripts/pages/" uploadstatus="0" />
-    <item url="scripts/pages/CVS/" uploadstatus="0" />
-    <item url="scripts/pages/CVS/Entries" uploadstatus="0" />
-    <item url="scripts/pages/CVS/Repository" uploadstatus="0" />
-    <item url="scripts/pages/CVS/Root" uploadstatus="0" />
-    <item url="scripts/pages/CVS/Tag" uploadstatus="0" />
-    <item url="scripts/pages/.cvsignore" uploadstatus="0" />
     <item url="scripts/.cvsignore" uploadstatus="0" />
     <item url="scripts/conversion-200410.sql" uploadstatus="0" />
     <item url="wrms.webprj" uploadstatus="0" />

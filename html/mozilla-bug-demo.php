@@ -21,9 +21,6 @@ select		{font: xx-small tahoma, sans-serif; background: $colors[7]; }
 style <a href=http://bugzilla.mozilla.org/show_bug.cgi?id=28219>(see bug)</a></li>
 <li>ROWS=Y COLS=X also seem to be being ignored (or 
 misinterpreted in some fashion) for TEXTAREA</li>
-<li>WRAP=SOFT which is not part of the HTML specification but which works for both IE
-and Netscape to turn off WRAP on a TEXTAREA doesn't seem to be working for Mozilla
-although I thought it was in the past</li>
 <li>SIZE=X doesn't seem to be being dealt with appropriately for INPUT TYPE=TEXT fields</li>
 
 <form action=mozilla-bug-demo.php method=post>

@@ -3,60 +3,61 @@
   echo "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\" \"http://www.w3.org/TR/REC-html40/loose.dtd\">\n";
   echo "<html>\n<head>\n<title>$title</title>\n";
 
+  echo '<script language="JavaScript" src="js/date-picker.js"></script>' . "\n";
+
   // Style sheet
-  if ( $agent == "moz4" ) {
-    echo '<link rel="stylesheet" type="text/css" href="/wrmsmoz4.css">' . "\n";
+  $style_sheets = true;
+  if ( $style_sheets ) {
+    if ( $agent == "moz4" )
+      echo '<link rel="stylesheet" type="text/css" href="/wrmsmoz4.css">' . "\n";
+    else
+      echo '<link rel="stylesheet" type="text/css" href="/wrms.css">' . "\n" ;
   }
   else {
-    echo '<link rel="stylesheet" type="text/css" href="/wrms.css">' . "\n" ;
-  }
+    echo "<style type=\"text/css\"><!--\n";
+    $linkstyle = "{color: $colors[fg2]; text-decoration:none; ";
+    echo "A $linkstyle }\n";
+    $borders = "border: solid $colors[blocksides] 1px; ";
+    echo ".msglink $linkstyle }\n";
+    echo ".msgunmod $linkstyle; color: $colors[fgunmod]; }\n";
 
-  echo '<script language="JavaScript" src="/js/date-picker.js"></script>' . "\n";
+    if ( $agent == "moz4" ) {
+      echo ".menu, .bmenu $linkstyle font: bold $fontsizes[1] $fonts[1]; text-decoration: underline; background: $colors[bg3]; color: $colors[fg3]; }\n";
+      echo ".sbutton, .r $linkstyle font: bold $fontsizes[0] $fonts[1]; text-decoration: underline; background: $colors[bg3]; color: $colors[fg3]; vertical-align: top; }\n";
+    }
+    else {
+      echo ".menu $linkstyle font: small-caps bold $fontsizes[1] $fonts[1]; background: $colors[bg3]; color: $colors[fg3]; padding: 0px 1px 1px; margin: 0px 1px; }\n";
+      echo ".bmenu $linkstyle font: small-caps bold $fontsizes[1] $fonts[1]; background: $colors[bg3]; color: $colors[fg3]; padding: 0px 1px 1px; margin: 0px 1px; }\n";
+      echo ".sbutton, .r $linkstyle font: small-caps bold $fontsizes[0] $fonts[1]; background: $colors[bg3]; color: $colors[fg3]; padding: 0px 1px 1px 1px; margin: 0px 1px; }\n";
+    }
 
-//  echo "<style type=\"text/css\"><!--\n";
-  //$linkstyle = "{color: $colors[fg2]; text-decoration:none; ";
-  //echo "A $linkstyle }\n";
-  //$borders = "border: solid $colors[blocksides] 1px; ";
-  //echo ".msglink $linkstyle }\n";
-  //echo ".msgunmod $linkstyle; color: $colors[fgunmod]; }\n";
-//
-  //if ( $agent == "moz4" ) {
-    //echo ".menu, .bmenu $linkstyle font: bold $fontsizes[1] $fonts[1]; text-decoration: underline; background: $colors[bg3]; color: $colors[fg3]; }\n";
-    //echo ".sbutton, .r $linkstyle font: bold $fontsizes[0] $fonts[1]; text-decoration: underline; background: $colors[bg3]; color: $colors[fg3]; vertical-align: top; }\n";
-  //}
-  //else {
-    //echo ".menu $linkstyle font: small-caps bold $fontsizes[1] $fonts[1]; background: $colors[bg3]; color: $colors[fg3]; padding: 0px 1px 1px; margin: 0px 1px; }\n";
-    //echo ".bmenu $linkstyle font: small-caps bold $fontsizes[1] $fonts[1]; background: $colors[bg3]; color: $colors[fg3]; padding: 0px 1px 1px; margin: 0px 1px; }\n";
-    //echo ".sbutton, .r $linkstyle font: small-caps bold $fontsizes[0] $fonts[1]; background: $colors[bg3]; color: $colors[fg3]; padding: 0px 1px 1px 1px; margin: 0px 1px; }\n";
-  //}
-//
-  //echo ".block { text-decoration: none; font: $fontsizes[1] $fonts[block], sans-serif; color: " . $colors["blockfront"] . "; }\n";
-  //echo ".blockhead { text-decoration: none; font: $fontsizes[1] $fonts[block], sans-serif; color: " . $colors["blockfront"] . "; font-weight: 700; }\n";
-//
-  //echo "p, td {font: $fontsizes[1]  $fonts[0], sans-serif; color: $colors[fg1]; }
-//.sml {font: $fontsizes[0] $fonts[0], sans-serif; }
-//.help		{font: italic $fontsizes[1] $fonts[help], serif; color: $colors[fghelp]; background: $colors[bghelp]; }
-//.block		{font: $fontsizes[1] $fonts[block], sans-serif; color: $colors[blockfront]; }
-//.blocka		{font: $fontsizes[1] $fonts[block], sans-serif; color: $colors[blockfront]; }
-//.blockhead	{font: $fontsizes[1] $fonts[block], sans-serif; font-weight: 700; color: $colors[blockfront]; }
-//.msgtitle		{font: bold $fontsizes[1] $fonts[1], sans-serif; font-weight: 700; color: $colors[blockfront]; background: $colors[blocktitle]; margin: 6px 0px 0px 0px; }
-//.msginfo		{font: $fontsizes[0] $fonts[1], sans-serif; margin: 0; text-align: right; color: $colors[fg2]; background: $colors[bg4]; }
-//.msginfmod	{font: $fontsizes[0] $fonts[1], sans-serif; margin: 0; text-align: right; color: $colors[fgunmod]; background: $colors[bgunmod]; }
-//.mand		{font: bold x-small tahoma, sans-serif; background: $colors[9];}
-//.smb		{font: bold x-small tahoma, sans-serif; }
-//.menu		{font: x-small tahoma, sans-serif; color: $colors[fg2]; background: $colors[bg2]; }
-//blockquote {font: italic $fontsizes[1]  $fonts[quote]; color: $colors[fg2]; }
-//input.sml, select.sml {font: $fontsizes[0] $fonts[0], sans-serif; }
-//h1, th {font: bold 18px/20px $fonts[0], sans-serif; color: " . $colors[fg2] . "; }
-//h2, th.h2 {font: normal $fontsizes[2] $fonts[0], sans-serif; color: " . $colors[fg2] . "; }
-//h3, th.h3, th.cols, th.rows  {font: bold $fontsizes[1] $fonts[0], sans-serif; color: $colors[fg2]; margin: 6px 0px 0px 0px; }\n";
-//
-  //if ( (isset($error_message) && $error_message <> "") || (isset($warn_message) && $warn_message <> "") ) {
-    //echo ".error {font: bold $fontsizes[2] $fonts[0], sans-serif; color: $colors[fgerr]; background: $colors[bgerr]; padding: 10px; margin: 20px; }\n";
-  //}
+    echo ".block { text-decoration: none; font: $fontsizes[1] $fonts[block], sans-serif; color: " . $colors["blockfront"] . "; }\n";
+    echo ".blockhead { text-decoration: none; font: $fontsizes[1] $fonts[block], sans-serif; color: " . $colors["blockfront"] . "; font-weight: 700; }\n";
 
-  //echo "--></style>\n";
+    echo "p, td {font: $fontsizes[1]  $fonts[0], sans-serif; color: $colors[fg1]; }
+.sml {font: $fontsizes[0] $fonts[0], sans-serif; }
+.help		{font: italic $fontsizes[1] $fonts[help], serif; color: $colors[fghelp]; background: $colors[bghelp]; }
+.block		{font: $fontsizes[1] $fonts[block], sans-serif; color: $colors[blockfront]; }
+.blocka		{font: $fontsizes[1] $fonts[block], sans-serif; color: $colors[blockfront]; }
+.blockhead	{font: $fontsizes[1] $fonts[block], sans-serif; font-weight: 700; color: $colors[blockfront]; }
+.msgtitle		{font: bold $fontsizes[1] $fonts[1], sans-serif; font-weight: 700; color: $colors[blockfront]; background: $colors[blocktitle]; margin: 6px 0px 0px 0px; }
+.msginfo		{font: $fontsizes[0] $fonts[1], sans-serif; margin: 0; text-align: right; color: $colors[fg2]; background: $colors[bg4]; }
+.msginfmod	{font: $fontsizes[0] $fonts[1], sans-serif; margin: 0; text-align: right; color: $colors[fgunmod]; background: $colors[bgunmod]; }
+.mand		{font: bold x-small tahoma, sans-serif; background: $colors[9];}
+.smb		{font: bold x-small tahoma, sans-serif; }
+.menu		{font: x-small tahoma, sans-serif; color: $colors[fg2]; background: $colors[bg2]; }
+blockquote {font: italic $fontsizes[1]  $fonts[quote]; color: $colors[fg2]; }
+input.sml, select.sml {font: $fontsizes[0] $fonts[0], sans-serif; }
+h1, th {font: bold 18px/20px $fonts[0], sans-serif; color: " . $colors[fg2] . "; }
+h2, th.h2 {font: normal $fontsizes[2] $fonts[0], sans-serif; color: " . $colors[fg2] . "; }
+h3, th.h3, th.cols, th.rows  {font: bold $fontsizes[1] $fonts[0], sans-serif; color: $colors[fg2]; margin: 6px 0px 0px 0px; }\n";
 
+    if ( (isset($error_message) && $error_message <> "") || (isset($warn_message) && $warn_message <> "") ) {
+      echo ".error {font: bold $fontsizes[2] $fonts[0], sans-serif; color: $colors[fgerr]; background: $colors[bgerr]; padding: 10px; margin: 20px; }\n";
+    }
+
+    echo "--></style>\n";
+  } // if not style sheets
 
 
   // Now start the body
@@ -81,12 +82,8 @@
   echo "<tr bgcolor=$colors[blocktitle]>\n";
   echo "<th class=blockhead align=left width=\"95%\">&nbsp;" . ("$forum_title" <> "" ? $forum_title : $title) . "</th>\n";
 
-  if ( strpos($REQUEST_URI, "togglehelp") > 0 ) 
-    $help_uri = $REQUEST_URI;
-  else if ( strpos($REQUEST_URI, "?") > 0 ) 
-    $help_uri = "$REQUEST_URI&togglehelp=1";
-  else
-    $help_uri = "$REQUEST_URI?togglehelp=1";
+  if ( !isset($form) ) $form = str_replace(".php", "", "$SCRIPT_NAME");
+  $help_uri = "form.php?f=help&topic=$form";
   echo "<td class=blockhead align=right width=\"5%\"><a href=\"$help_uri\" class=sbutton>&nbsp;HELP".( "$session->help" == "t" ?"&nbsp;OFF":"")."&nbsp;</a></td>\n";
   echo "</tr>\n</table>";
 

@@ -2,3 +2,6 @@ sizes
 last
 *.log
 *~
+toolbars
+templates
+ChangeLog

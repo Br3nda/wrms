@@ -90,7 +90,7 @@
 
       $query = "COMMIT TRANSACTION;";
       $result = pg_Exec( $wrms_db, $query );
-      $because = "<H3>User Record Written for $UserFullName</H3>\n";
+      $because .= "<H3>User Record Written for $UserFullName</H3>\n";
 
        // Write allowed systems
       if ( isset($UserCat) && is_array($UserCat) ) {

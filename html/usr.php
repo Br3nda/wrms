@@ -66,8 +66,9 @@
       return;
 
     echo "<table border=0 cellspacing=0 cellpadding=0 width=90% height=30><tr valign=bottom><td>\n";
-    if ( "$because" != "" )
+    if ( "$because" != "" ) {
       echo "$because";
+    }
     else {
       echo "<h3 style=\"padding: 0pt; margin: 0pt; \">User Profile";
       if (isset($user_no) && $user_no > 0 ) echo " for $usr->fullname";
@@ -97,8 +98,10 @@
 <tr bgcolor=<?php echo $colors[6]; ?>> 
 	<th align=right>User Name</th> 
 	<td><?php
-if ( $roles['wrms']['Admin'] || ("$usr->username" == "")) echo "<input Type=\"Text\" Name=\"UserName\" Size=\"15\" Value=\"";
-else echo "<h3>";
+if ( $roles['wrms']['Admin'] || ("$usr->username" == ""))
+  echo "<input Type=\"Text\" Name=\"UserName\" Size=\"15\" Value=\"";
+else
+  echo "<h3>";
 echo "$usr->username";
 if ( $roles['wrms']['Admin'] || ("$usr->username" == "") ) echo "\">";
 echo "</td>"; ?>
@@ -126,7 +129,7 @@ if (isset($user_no) && $user_no > 0 ) echo "      ";
 	<input Type="Radio" Name="UserStatus" Value="C"<?php if ("$usr->status" == "U" ) echo " CHECKED"; ?>> System User &nbsp;</font></td> 
 </tr>
 <?php
-  }  // end of   'if Admin... '
+  }  // end of   'if Admin... ' about 5 lines up
   if ( "$user_no" > 0 ) {
     echo "<tr bgcolor=$colors[6]>\n<th align=right>Date Joined&nbsp;</th>";
     echo "<td VALIGN=TOP><font Size=2>";
@@ -170,27 +173,35 @@ if (isset($user_no) && $user_no > 0 ) echo "      ";
       else
         $code = "";
       echo "<select name=\"UserCat[$sys->system_code]\">\n";
+
       echo "<option value=\"\"";
       if ( "$code" == "" ) echo " SELECTED";
       echo ">--- no access ---</option>\n";
+
       echo "<option value=A";
       if ( "$code" == 'A') echo " SELECTED";
       echo ">Administration</option>\n";
+
       echo "<option value=S";
       if ( "$code" == 'S') echo " SELECTED";
       echo ">System Support</option>\n";
+
       echo "<option value=C";
       if ( "$code" == 'C') echo " SELECTED";
       echo ">Client Coordinator</option>\n";
+
       echo "<option value=E";
       if ( "$code" == 'E') echo " SELECTED";
       echo ">Enter Requests</option>\n";
+
       echo "<option value=R";
       if ( "$code" == 'R') echo " SELECTED";
       echo ">Own Requests</option>\n";
+
       echo "<option value=U";
       if ( "$code" == 'U') echo " SELECTED";
       echo ">View Requests</option>\n";
+
       echo "</select></font></td>\n";
     }
 

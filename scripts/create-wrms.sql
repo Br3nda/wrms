@@ -354,7 +354,7 @@ CREATE TABLE saved_queries (
     query_params TEXT,
     PRIMARY KEY (user_no, query_name)
 );
-GRANT SELECT,INSERT,UPDATE ON saved_queries TO PUBLIC;
+GRANT SELECT,INSERT,UPDATE,DELETE ON saved_queries TO PUBLIC;
 GRANT ALL ON saved_queries TO andrew;
 
 

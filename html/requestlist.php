@@ -197,7 +197,6 @@ else {
       $result = awm_pgexec( $dbconn, $qquery, "requestlist", false, 7);
       $thisquery = pg_Fetch_Object( $result, 0 );
       $query = $thisquery->query_sql ;
-      error_log ( "Q: $qquery " . pg_NumRows($result), 0);
     }
     else {
       // Recommended way of limiting queries to not include sub-tables for 7.1
@@ -259,6 +258,7 @@ $query";
         }
       }
     }
+
     $query .= " AND status.source_table='request' AND status.source_field='status_code' AND status.lookup_code=request.last_status ";
     $query .= " ORDER BY $rlsort $rlseq ";
     $query .= " LIMIT 100 ";
@@ -402,8 +402,9 @@ function header_row() {
 
     if ( "$style" != "stripped" ) {
       $this_page = "$PHP_SELF?style=%s&format=%s";
-      if ( "$qry" != "" ) $this_page .= "&qry=$qry";
-      if ( "$search_for" != "" ) $this_page .= "&search_for=$search_for";
+      if ( isset($qry) ) $uqry = urlencode($qry);
+      if ( "$qry" != "" ) $this_page .= "&qry=$uqry";
+      if ( "$search_for" != "" ) $this_page .= "&search_for=" . urlencode($search_for);
       if ( "$org_code" != "" ) $this_page .= "&org_code=$org_code";
       if ( "$system_code" != "" ) $this_page .= "&system_code=$system_code";
       if ( isset($inactive) ) $this_page .= "&inactive=$inactive";
@@ -430,7 +431,7 @@ function header_row() {
       if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] )
         printf( " &nbsp;|&nbsp; <a href=\"$this_page\" target=_new>Ultimate</a>\n", "stripped", "ultimate");
       if ( "$qry" != "" ) {
-        echo "</td><td>|&nbsp; &nbsp; or <a href=\"$PHP_SELF?qs=complex&qry=$qry&action=delete\" class=sbutton>Delete</a> it\n";
+        echo "</td><td>|&nbsp; &nbsp; or <a href=\"$PHP_SELF?qs=complex&qry=$uqry&action=delete\" class=sbutton>Delete</a> it\n";
       }
       echo "</td></tr></table>\n";
     }

@@ -25,8 +25,8 @@ CREATE TABLE usr (
     mail_style CHAR,
     config_data TEXT,
     note CHAR );
-GRANT SELECT,INSERT,UPDATE ON usr, usr_usr_no_seq TO PUBLIC;
-GRANT ALL ON usr, usr_usr_no_seq TO andrew;
+GRANT SELECT,INSERT,UPDATE ON usr, usr_user_no_seq TO PUBLIC;
+GRANT ALL ON usr, usr_user_no_seq TO andrew;
 CREATE FUNCTION max_usr() RETURNS INT4 AS 'SELECT max(user_no) FROM usr' LANGUAGE 'sql';
 CREATE INDEX xak1_usr ON usr ( org_code, username );
 
@@ -184,7 +184,7 @@ CREATE TABLE request_timesheet (
 );
 CREATE INDEX request_timesheet_skey1 ON request_timesheet ( work_on, work_by_id, request_id );
 CREATE INDEX request_timesheet_skey2 ON request_timesheet ( ok_to_charge, request_id );
-GRANT INSERT,UPDATE,SELECT ON request_timesheet, request_timesheet_timesheet_id_seq TO general;
+GRANT INSERT,UPDATE,SELECT ON request_timesheet, request_timesh_timesheet_id_seq TO general;
 CREATE FUNCTION max_timesheet() RETURNS INT4 AS 'SELECT max(timesheet_id) FROM request_timesheet' LANGUAGE 'sql';
 
 

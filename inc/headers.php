@@ -70,7 +70,7 @@ th.h3, td.h3  {font: bold $fontsizes[3] $fonts[0], sans-serif; color: $colors[fg
 .msginfo		{font: $fontsizes[0] $fonts[1], sans-serif; margin: 0; text-align: right; color: $colors[fg2]; background: $colors[bg2]; }
 .msginfmod	{font: $fontsizes[0] $fonts[1], sans-serif; margin: 0; text-align: right; color: $colors[fgunmod]; background: $colors[bgunmod]; }
 .mand		{font: bold $fontsizes[0] $fonts[1], sans-serif; background: $colors[9];}
-.smb		{font: bold $fontsizes[0] $fonts[narrow], sans-serif; }
+.smb		{font: bold $fontsizes[0] $fonts[narrow], sans-serif; color: $colors[fg1]; }
 .row0 { background: $colors[row0]; color: $colors[link2]; }
 .row1 { background: $colors[row1]; color: $colors[link2]; }
 a.row0, a.row1 { color: $colors[link2]; }

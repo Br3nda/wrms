@@ -43,6 +43,7 @@ function update_timesheet( $ts_finish ) {
   if ( $logged_on && isset( $sow) && isset($tm) && is_array( $tm ) ) {
     $sow = intval($sow);
     $query = sprintf( "DELETE FROM request_timesheet WHERE entry_details = 'TS-%d-%d';", $session->user_no, $sow );
+    $query .= sprintf( "DELETE FROM request_timesheet WHERE entry_details = 'TS-%d-%d';", $session->user_no, $sow - 3600 );  // Allow fix for DST error
     $result = awm_pgexec( $dbconn, $query, 'ts-action' );
     for ( $dow = 0; $dow < 7; $dow ++ ) {
 
@@ -54,6 +55,7 @@ function update_timesheet( $ts_finish ) {
         }
         elseif ( $v != "" ) {
           list( $number, $description ) = split( '/', $v, 2);
+          error_log( "$v -> $ts_start" );
           $number = intval($number);
           if ( ($number != $ts_no && $ts_no > 0) ||  ( "$description" != "$ts_description" && "$description" != "") ) update_timesheet( substr($k,1));
           if ( $number > 0 ) {
@@ -72,7 +74,7 @@ function update_timesheet( $ts_finish ) {
 
     $query = "DELETE FROM timesheet_note ";
     $query .= "WHERE note_by_id = $session->user_no ";
-    $query .= "AND note_date >= '" . date( 'Y-M-d', $sow ) . "' ";
+    $query .= "AND note_date >= '" . date( 'Y-M-d', $sow - 3601 ) . "' ";  // 3601 allows for DST error!
     $query .= "AND note_date < '" . date( 'Y-M-d', $sow + (7 * 86400) ) . "' ";
     $rid = awm_pgexec( $dbconn, $query, "ts-action" );
     if ( isset($tnote) && is_array( $tnote ) ) {

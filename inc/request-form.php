@@ -60,7 +60,7 @@
 
   if ( !$is_request  ) {
     if ( $roles[wrms][Admin] || $roles[wrms][Support] || $roles[wrms][Manage] ) {
-      echo "<tr><th class=rows align=right>User:</th>";
+      echo "<tr><th class=rows align=right>On Behalf Of:</th>";
       echo "<td colspan=2 valign=middle align=left><select class=sml name=\"new_user_no\">$user_list</select>\n";
       if ( !$is_request ) {
         echo " &nbsp; <label><input class=sml type=checkbox name=\"in_notify\" value=1 checked>&nbsp;update user on the status of this request.</label></td></tr>\n";
@@ -91,12 +91,26 @@
 
   if ( $is_request ) {
     // --------------------- FROM -----------------------
-    echo "<TR><th class=rows align=right>From:</TH>";
-    echo "<TD ALIGN=CENTER>$request->fullname</TD>\n";
-    echo "<TD ALIGN=LEFT><b class=smb>Entered:</b> " . nice_date($request->request_on);
     if ( strcmp( $request->eta, "") )
       echo " &nbsp; &nbsp; &nbsp; <b class=smb>ETA:</b> " .  substr( nice_date($request->eta), 7);
-    echo "</TD></TR>\n";
+    if ( $roles['wrms']['Admin'] || $roles['wrms']['Support']  ) {
+      echo "<TR><th class=rows align=right>On Behalf Of:</TH>";
+      echo "<td align=center>" . nice_date($request->request_on) . "</td>";
+//      echo "<TD ALIGN=CENTER>$request->fullname</TD>\n";
+      echo "<TD ALIGN=LEFT COLSPAN=2>\n";
+      echo "<select class=sml name=\"new_user_no\">" . get_user_list( "", "", $request->requester_id ) . "</select>\n";
+      if ( strcmp( $request->eta, "") )
+        echo " &nbsp; &nbsp; &nbsp; <b class=smb>ETA:</b> " .  substr( nice_date($request->eta), 7);
+      echo "</TD></TR>\n";
+    }
+    else {
+      echo "<TR><th class=rows align=right>For:</TH>";
+      echo "<TD ALIGN=CENTER>$request->fullname</TD>\n";
+      echo "<TD ALIGN=LEFT><b class=smb>Entered:</b> " . nice_date($request->request_on);
+      if ( strcmp( $request->eta, "") )
+        echo " &nbsp; &nbsp; &nbsp; <b class=smb>ETA:</b> " .  substr( nice_date($request->eta), 7);
+      echo "</TD></TR>\n";
+    }
 
     // --------------------- STATUS -----------------------
     echo "<TR><th class=rows align=right VALIGN=MIDDLE>Status:</TH>\n";

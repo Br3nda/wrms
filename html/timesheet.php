@@ -40,7 +40,7 @@ function get_numeric_setting( $name, $current, $default ) {
   // Construct a selection of weeks, the top one should be the current week
   // This selection we _don't_ save :-)
   $latest_date = localtime ( time() + (86400 * 14), 1);
-  $latest_week = 86400 + mktime( 0, 0, 0, $latest_date['tm_mon'] + 1, $latest_date['tm_mday'], $latest_date['tm_year']) - (86400 * $latest_date['tm_wday']);
+  $latest_week = 86400 + mktime( 0, 0, 0, $latest_date['tm_mon'] + 1, $latest_date['tm_mday'], $latest_date['tm_year'], 0) - (86400 * $latest_date['tm_wday']);
 
   $week_list = "<select name=sow onchange='form.submit()'>\n";
   if ( !isset($sow) ) $sow = $latest_week - (86400 * 14);
@@ -161,7 +161,8 @@ function build_time_list( $name, $from, $current, $delta ) {
   for ( $tod = $sod, $r=0; $tod < $eod; $tod += $period_minutes, $r++ ) {
     printf( "<tr class=row%d>\n<th>%02d:%02d</th>\n", $r % 2, $tod / 60, $tod % 60 );
     for ( $dow=0; $dow < 7; $dow++ ) {
-      echo "<td><input tabindex=$dow$tod type=text size=14 name=\"tm[$dow][m$tod]\" value=\"";
+      $tabindex = ($dow * 200) + ($tod / 10);
+      echo "<td><input tabindex=$tabindex type=text size=14 name=\"tm[$dow][m$tod]\" value=\"";
       echo $tm[$dow]["m$tod"];
       echo "\">&nbsp;</td>\n";
     }

@@ -13,20 +13,6 @@ function nice_time( $in_time ) {
 // <P class=helptext>This page lists timesheets.</P>
 ?>
 
-<FORM METHOD=POST ACTION="<?php 
-echo "$base_url/form.php?form=work";
-if ( isset($org_code) && $org_code != "" ) echo "&org_code=$org_code";
-if ( isset($system_code) && $system_code != "" ) echo "&system_code=$system_code";
-if ( isset($user_no) && $user_no != "" ) echo "&user_no=$user_no";
-?>">
-<table align=center><tr valign=middle>
-<td><b>Desc.</b><input TYPE="Text" Size="20" Name="search_for" Value="<?php echo "$search_for"; ?>"></td>
-<td><label for=uncharged><input type=checkbox value=1 name=uncharged<?php if ("$uncharged"<>"" ) echo " checked"; ?>> Uncharged</label></td>
-<td><label for=charge><input type=checkbox value=1 name=charge<?php if ("$charge"<>"" ) echo " checked"; ?>> Charge</label></td>
-<td><input TYPE="Image" src="images/in-go.gif" alt="go" WIDTH="44" BORDER="0" HEIGHT="26" name="submit"></td>
-</tr></table>
-</form>  
-
 <?php
   if ( "$search_for$system_code " != "" ) {
     $query = "SELECT request.*, organisation.*, request_timesheet.*, ";
@@ -81,6 +67,7 @@ if ( isset($user_no) && $user_no != "" ) echo "&user_no=$user_no";
     }
 
     $query .= " $order_by ";
+    $query .= " LIMIT 100 ";
 
     $result = pg_Exec( $wrms_db, $query );
     if ( ! $result ) {
@@ -89,50 +76,8 @@ if ( isset($user_no) && $user_no != "" ) echo "&user_no=$user_no";
       include("inc/error.php");
     }
     else {
-      echo "<p>&nbsp;" . pg_NumRows($result) . " timesheets found</p>\n"; // <p>$query</p>";
-      if ( "$uncharged" != "" ) {
-        echo "<FORM METHOD=POST ACTION=\"$REQUEST_URI";
-        if ( ! strpos( $REQUEST_URI, "uncharged" ) ) echo "&uncharged=1";
-        echo "\">\n";
-      }
-      echo "<table border=\"0\" align=center><tr>\n";
-      echo "<th class=cols>Requested by</th>";
-      echo "<th class=cols>Org.</th>";
-      echo "<th class=cols>Debtor No.</th>";
-      echo "<th class=cols>Done on</th>";
-      echo "<th class=cols>Qty.</th>";
-      echo "<th class=cols>Rate</th>";
-      echo "<th class=cols>Done By</th>";
-      echo '<th class=cols>WR No.<input TYPE="Image" src="images/down.gif" alt="Sort" BORDER="0" name="sort[request_timesheet.request_id]" ></th>';
-    //  if ( "$uncharged" == "" )
-    //    echo "<th class=cols>Charged on</th>";
-      echo '<th class=cols>Work Description<input TYPE="Image" src="images/down.gif" alt="Sort" BORDER="0" name="sort[request_timesheet.work_description]" ></th>';
-      echo "<th class=cols>WR Brief</th>";
-      echo "<th class=cols>Charge</th>";
-      echo "<th class=cols>Charged On</th>";
-      echo "<th class=cols>Amount</th>";
-      echo "<th class=cols>Invoice No.</th>";
-      echo "</tr>\n";
-
-
-      echo "<tr>\n";
-      echo "  <td class=sml>\n";
-      echo '    <select class=sml name="filter[request.requester_id]">' . "\n";
-      echo "      <option class=sml value=''>All</option>\n";
-
-      $requested_by_query = "SELECT user_no, fullname FROM usr ORDER BY fullname";
-      $requested_by_result = pg_Exec( $wrms_db, $requested_by_query );
-
-      for ( $i=0; $i < pg_NumRows($requested_by_result); $i++ ) {
-        $requested_by = pg_Fetch_Object( $requested_by_result, $i );
-        echo "      <option class=sml value='$requested_by->user_no'";
-        if ( $requested_by->user_no == $filter["request.requester_id"] ) {
-          echo ' selected';
-        }
-        echo ">$requested_by->fullname</option>\n";
-      }
-
-      echo "    </select>\n  </td>\n</tr>\n";
+      echo "<FORM METHOD=POST ACTION=\"$REQUEST_URI\">\n";
+      echo "<table border=0 align=center>\n";
 
       // Build table of organisations found
       for ( $i=0; $i < pg_NumRows($result); $i++ ) {
@@ -143,41 +88,158 @@ if ( isset($user_no) && $user_no != "" ) echo "&user_no=$user_no";
         else echo "<tr class=bgcolor1>";
  //       else echo "<tr bgcolor=$colors[7]>";
 
-//        echo "<td class=sml>$timesheet->requester_name ($timesheet->abbreviation, #$timesheet->debtor_no)</td>\n";
-        echo "<td class=sml>$timesheet->requester_name</td>\n";
- 	echo "<td class=sml>$timesheet->abbreviation</td>\n";
- 	echo "<td class=sml>$timesheet->debtor_no</td>\n";
-        echo "<td class=sml nowrap>" . substr( nice_date($timesheet->work_on), 7) . "</td>\n";
-        echo "<td class=sml nowrap>$timesheet->work_quantity $timesheet->work_units</td>\n";
-        echo "<td class=sml align=right nowrap>$timesheet->work_rate&nbsp;</td>\n";
-        echo "<td class=sml>$timesheet->worker_name</td>\n";
-        if ( "$timesheet->work_charged" == "" ) {
-          if ( "$uncharged" == "" ) echo "<td class=sml>uncharged</td>";
-        }
-        else
-          echo "<td class=sml>" . substr( nice_date($timesheet->work_charged), 7) . "</td>";
-        echo "<td class=sml><A HREF=$base_url/request.php?request_id=$timesheet->request_id>$timesheet->request_id</A></I></td>";
-        echo "<td class=sml>" . html_format( $timesheet->work_description) . "</td>";
+//        echo "<td class=sml valign=top>$timesheet->requester_name ($timesheet->abbreviation, #$timesheet->debtor_no)</td>\n";
+        echo "<td class=sml valign=top>$timesheet->requester_name</td>\n";
+ 	echo "<td class=sml valign=top>$timesheet->abbreviation</td>\n";
+ 	echo "<td class=sml valign=top>$timesheet->debtor_no</td>\n";
+        echo "<td class=sml valign=top>$timesheet->request_id</td>\n";
 
-        if ( "$uncharged" != "" ) {
-        //  echo "</tr>\n";
-        //  if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
-        //  else echo "<tr bgcolor=$colors[7]>";
-          echo "<td class=sml valign=top>$timesheet->brief</td>";
-          echo "<td class=sml><input type=checkbox value=1 name=\"chg_ok[$timesheet->timesheet_id]\"";
-          if ( "$timesheet->ok_to_charge" == "t" ) echo " checked";
-          echo "></td>";
-          echo "<td class=sml><input type=text size=10 name=\"chg_on[$timesheet->timesheet_id]\" value=\"" . date( "d/m/Y" ) . "\"></td>";
-          echo "<td class=sml><input type=text size=12 name=\"chg_amt[$timesheet->timesheet_id]\" value=\"\"></td>";
-          echo "<td class=sml><input type=text size=6 name=\"chg_inv[$timesheet->timesheet_id]\" value=\"\"></td>";
-          echo "</tr>\n";
+        $sub_query = "SELECT status_on, status_code, lookup_code.lookup_desc ";
+        $sub_query .= "  FROM request_status, lookup_code";
+        $sub_query .= "   WHERE request_status.request_id = $timesheet->request_id ";
+        $sub_query .= "   AND lookup_code.source_table = 'request_status'";
+        $sub_query .= "   AND lookup_code.source_field = 'status_code'";
+        $sub_query .= "   AND lookup_code.lookup_code = request_status.status_code";
+        $sub_query .= "   ORDER BY status_on DESC LIMIT 1";
+        $sub_query_result = pg_Exec( $wrms_db, $sub_query );
+        $sub_query_row = pg_Fetch_Object($sub_query_result, 0) ;
+
+        echo "<td class=sml valign=top>" ;
+          if ( pg_NumRows($sub_query_result) > 0 ) echo $sub_query_row->lookup_desc ;
+        echo  "</td>";
+
+        echo "<td class=sml valign=top>" ;
+          if ( pg_NumRows($sub_query_result) > 0 ) echo substr(nice_date($sub_query_row->status_on),7) ;
+        echo  "</td>";
+
+        echo "<td class=sml valign=top>$timesheet->brief</td>";
+        echo "<td class=sml valign=top>" . html_format( $timesheet->work_description) . "</td>";
+        echo "<td class=sml valign=top>$timesheet->worker_name</td>\n";
+        echo "<td class=sml valign=top nowrap>" . substr( nice_date($timesheet->work_on), 7) . "</td>\n";
+        echo "<td class=sml valign=top>$timesheet->work_quantity $timesheet->work_units</td>\n";
+        echo "<td class=sml valign=top align=right nowrap>$timesheet->work_rate</td>\n";
+        echo "<td class=sml valign=top align=right nowrap>";
+        if ( "$timesheet->work_charged" == "" ) {
+          echo "<input type=text size=6 name=\"chg_amt[$timesheet->timesheet_id]\" value=\"" ;
+          if ( "$timesheet->charged_amount" == "" ) echo $timesheet->work_rate*$timesheet->work_quantity;
+          else echo $timesheet->charged_amount ; 
+          echo "\">";
         }
+        else echo "$timesheet->charged_amount";
+        echo "</td>\n";
+        echo "<td class=sml valign=top>"; 
+        if ( "$timesheet->work_charged" == "" ) {
+          echo "<input type=checkbox value=1 name=\"chg_ok[$timesheet->timesheet_id]\"";
+          if ( "$timesheet->ok_to_charge" == "t" ) echo " checked";
+          echo ">";
+        }
+        echo "</td>";
+   //     if ( "$timesheet->work_charged" == "" ) {
+    //      if ( "$uncharged" == "" ) echo "<td class=sml>uncharged</td>";
+     //   }
+      //  else
+
+        echo "<td class=sml valign=top>";
+        if ( "$timesheet->work_charged" == "" && "$timesheet->ok_to_charge" == "t" ) {
+          echo "<input name=\"chg_on[$timesheet->timesheet_id]\" type=text size=10 value=\"" . date("d/m/Y") . "\">";
+        }
+        else echo substr( nice_date($timesheet->work_charged), 7) ;
+        echo "</td>";
+
+        echo "<td class=sml valign=top>";
+        if ( "$timesheet->work_charged" == "" && "$timesheet->ok_to_charge" == "t" ) {
+          echo "<input name=\"chg_inv[$timesheet->timesheet_id]\" type=text size=6 >";
+        }
+        else echo $timesheet->charged_details ;
+        echo "</td>";
+
         echo "</tr>\n";
       }
       if ( "$uncharged" != "" ) {
         echo "<tr><td class=mand colspan=6 align=center><input TYPE=submit alt=\"apply changes\" name=submit value=\"Apply Charges\"></td></tr>\n";
         echo "</form>\n";
       }
+
+      echo "<FORM METHOD=POST ACTION=\"$REQUEST_URI\">\n";
+      echo "<thead><tr>";
+
+      echo "<th class=cols>Requested by";
+      echo '<select class=sml name="filter[request.requester_id]">' . "\n";
+      echo "<option class=sml value=''>All</option>\n";
+      $select_query = "SELECT user_no, fullname FROM usr ORDER BY fullname";
+      $select_result = pg_Exec( $wrms_db, $select_query );
+      for ( $i=0; $i < pg_NumRows($select_result); $i++ ) {
+        $select_option = pg_Fetch_Object( $select_result, $i );
+        echo "<option class=sml value='$select_option->user_no'";
+        if ( $select_option->user_no == $filter["request.requester_id"] ) {
+          echo ' selected';
+        }
+        echo ">$select_option->fullname</option>\n";
+      }
+      echo "</select>\n";
+      echo "</th>\n";
+
+      echo "<th class=cols>Org.";
+      echo '<select class=sml name="filter[organisation.org_code]">' . "\n";
+      echo "<option class=sml value=''>All</option>\n";
+      $select_query = "SELECT org_code, abbreviation FROM organisation ORDER BY abbreviation";
+      $select_result = pg_Exec( $wrms_db, $select_query );
+      for ( $i=0; $i < pg_NumRows($select_result); $i++ ) {
+        $select_option = pg_Fetch_Object( $select_result, $i );
+        echo "<option class=sml value='$select_option->org_code'";
+        if ( $select_option->org_code == $filter["organisation.org_code"] ) {
+          echo ' selected';
+        }
+        echo ">$select_option->abbreviation</option>\n";
+      }
+      echo "</select>\n";
+      echo "</th>\n";
+
+      echo '<th class=cols>Dbtr. No.';
+      echo '<input TYPE="Image" src="images/down.gif" alt="Sort" BORDER="0" name="sort[organisation.org_code]" >';
+      echo "</th>\n";
+
+      echo '<th class=cols>WR No.<input TYPE="Image" src="images/down.gif" alt="Sort" BORDER="0" name="sort[request_timesheet.request_id]" ></th>';
+
+      echo "<th class=cols>WR Status";
+      echo '<select class=sml name="filter[request.last_status]">' . "\n";
+      echo "<option class=sml value=''>All</option>\n";
+      $select_query = "SELECT lookup_code, lookup_desc FROM lookup_code";
+      $select_query .= " WHERE lookup_code.source_table = 'request' ";
+      $select_query .= " AND lookup_code.source_field = 'status_code' ";
+      $select_query .= " ORDER BY lookup_code.lookup_desc";
+      $select_result = pg_Exec( $wrms_db, $select_query );
+      for ( $i=0; $i < pg_NumRows($select_result); $i++ ) {
+        $select_option = pg_Fetch_Object( $select_result, $i );
+        echo "<option class=sml value=\"'$select_option->lookup_code'\"";
+        if ( "'" . $select_option->lookup_code . "'" == $filter["request.last_status"] ) {
+          echo ' selected';
+        }
+        echo ">$select_option->lookup_desc</option>\n";
+      }
+      echo "</select>\n";
+      echo "</th>\n";
+
+      echo "<th class=cols>Status On</th>";
+      echo "<th class=cols>WR Brief</th>";
+      echo '<th class=cols>Work Description<input TYPE="Image" src="images/down.gif" alt="Sort" BORDER="0" name="sort[request_timesheet.work_description]" ></th>';
+      echo "<th class=cols>Done By</th>";
+      echo "<th class=cols>Done on</th>";
+      echo "<th class=cols>Qty.</th>";
+      echo "<th class=cols>Rate</th>";
+      echo "<th class=cols>Charge Amount</th>";
+      echo "<th class=cols>Ok to Charge</th>";
+      echo "<th class=cols>Charged On</th>";
+      echo "<th class=cols>Invoice No.</th>";
+      echo "</tr>\n";
+      echo "<tr>\n";
+      echo "<td class=sml>\n";
+      echo "</td>\n";
+      echo "</tr>\n";
+      echo "</thead>\n";
+
+      echo "</form>\n";
+
       echo "</table>\n";
     }
   }

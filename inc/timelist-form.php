@@ -102,10 +102,10 @@ function nice_time( $in_time ) {
       $query .= " AND requester.org_code='$org_code' ";
     }
     if ( "$from_date" != "" ) {
-      $query .= " AND request_timesheet.work_on > '$from_date' ";
+      $query .= " AND request_timesheet.work_on::date >= '$from_date'::date ";
     }
     if ( "$to_date" != "" ) {
-      $query .= " AND request_timesheet.work_on <= '$to_date' ";
+      $query .= " AND request_timesheet.work_on::date <= '$to_date'::date ";
     }
 
     if ( "$uncharged" != "" ) {

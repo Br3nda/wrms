@@ -1,6 +1,6 @@
 <!DOCTYPE webproject>
 <webproject>
-<project usePreviewPrefix="0" preview="http://mywrms/" previewPrefix="file:file%3A/" type="Local" newfiles="php" name="WRMS" encoding="iso 8859-1" >
+<project usePreviewPrefix="0" preview="http://mywrms/" type="Local" previewPrefix="file:file%3A" newfiles="php" name="WRMS" encoding="iso 8859-1" >
 <upload/>
 <author>Andrew McMillan</author>
 <email>wrms@catalyst.net.nz</email>

@@ -93,7 +93,7 @@ GRANT SELECT,UPDATE ON request_request_id_seq TO PUBLIC;
 
 
 CREATE TABLE request_words ( string TEXT, id OID );
-CREATE FUNCTION keyword() RETURNS OPAQUE AS '/usr/lib/postgresql/modules/keyword.so' LANGUAGE 'C';
+CREATE FUNCTION keyword() RETURNS OPAQUE AS '/usr/lib/postgresql/lib/contrib/keyword.so' LANGUAGE 'C';
 CREATE TRIGGER request_kidx_trigger AFTER UPDATE or INSERT or DELETE ON request
      FOR EACH ROW EXECUTE PROCEDURE keyword( request_words, detailed);
 GRANT DELETE,INSERT,UPDATE,SELECT ON request_words TO general;
@@ -338,8 +338,8 @@ CREATE TABLE session (
     session_start DATETIME DEFAULT TEXT 'now',
     session_end DATETIME DEFAULT TEXT 'now',
     session_config TEXT );
-GRANT SELECT,INSERT,UPDATE ON session TO PUBLIC;
-GRANT ALL ON session TO andrew;
+GRANT SELECT,INSERT,UPDATE ON session, session_session_id_seq TO PUBLIC;
+GRANT ALL ON session, session_session_id_seq TO andrew;
 CREATE FUNCTION max_session() RETURNS INT4 AS 'SELECT max(session_id) FROM session' LANGUAGE 'sql';
 
 CREATE TABLE system_usr (

@@ -11,16 +11,21 @@
     include( "inc/error.php" );
   }
   else {
-    echo "<h3>Request List\n";
-    echo "<form Action=\"$base_url/requestlist.php";
-    if ( "$org_code" != "" ) echo "?org_code=$org_code";
-    echo "\" Method=\"POST\"></h3>\n";
+    echo "<h3>Request List";
+    if ( isset( $style ) && "$style" == "plain"  ) {
+      echo "</h3>\n";
+    }
+    else {
+      echo "<form Action=\"$base_url/requestlist.php";
+      if ( "$org_code" != "" ) echo "?org_code=$org_code";
+      echo "\" Method=\"POST\">";
+      echo "</h3>\n";
 
-    include("inc/system-list.php");
-    if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] )
-      $system_list = get_system_list( "", "$system_code", 50);
-    else
-      $system_list = get_system_list( "CES", "$system_code", 50);
+      include("inc/system-list.php");
+      if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] )
+        $system_list = get_system_list( "", "$system_code", 50);
+      else
+        $system_list = get_system_list( "CES", "$system_code", 50);
 ?>
 <table border=0 cellspacing=0 cellpadding=2 align=center bgcolor=<?php echo $colors[6]; ?>>
 <tr valign=middle>
@@ -65,8 +70,10 @@
 </form>  
 
 <?php
+  } // if  not plain style
+
   if ( "$search_for$org_code$system_code " != "" ) {
-    $query = "SELECT request_id, brief, fullname, email, lookup_desc AS status_desc, last_activity FROM request, usr, lookup_code AS status ";
+    $query = "SELECT DISTINCT ON (request_id) request_id, brief, fullname, email, lookup_desc AS status_desc, last_activity FROM request, usr, lookup_code AS status ";
 
     $query .= " WHERE request.request_by=usr.username ";
     if ( "$inactive" == "" )        $query .= " AND active ";
@@ -104,15 +111,10 @@
     $query .= " AND status.source_table='request' AND status.source_field='status_code' AND status.lookup_code=request.last_status ";
     $query .= " ORDER BY request_id DESC ";
     $query .= " LIMIT 100 ";
-    $result = pg_Exec( $wrms_db, $query );
-    if ( ! $result ) {
-      $error_loc = "requestlist.php";
-      $error_qry = "$query";
-      include("inc/error.php");
-    }
-    else {
+    $result = awm_pgexec( $wrms_db, $query );
+    if ( $result ) {
       echo "<p>" . pg_NumRows($result) . " requests found</p>"; // <p>$query</p>";
-      echo "<table border=\"0\" align=center><tr>\n";
+      echo "<table border=\"0\" align=left><tr>\n";
       echo "<th class=cols>WR&nbsp;#</th><th class=cols>Requested By</th>";
       echo "<th class=cols>Description</th><th class=cols>Status</th><th class=cols>Actions</th>";
       echo "<th class=cols>Last Activity</th>";
@@ -122,7 +124,7 @@
       for ( $i=0; $i < pg_NumRows($result); $i++ ) {
         $thisrequest = pg_Fetch_Object( $result, $i );
 
-        if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
+        if ( ($i % 2) == 0 ) echo "<tr bgcolor=$colors[6]>";
         else echo "<tr bgcolor=$colors[7]>";
 
         echo "<td class=sml align=center><a href=\"request.php?request_id=$thisrequest->request_id\">$thisrequest->request_id</a></td>\n";
@@ -140,7 +142,7 @@
     }
   }
 
-} /* The end of the else ... clause waaay up there! */ 
+} /* The end of the else ... clause waaay up there! */
 
 include("inc/footers.php");
 

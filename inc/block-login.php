@@ -1,6 +1,11 @@
 <?php
   block_open();
   block_title("WRMS Login");
+
+  if ( $go_width && $go_height ) {
+    $dim = " width=\"$go_width\" height=\"$go_height\" ";
+  }
+
   echo "<tr>\n<td class=blockhead>\n";
   echo "<form action=\"$REQUEST_URI\" method=post>";
   echo "<input type=hidden name=M value=LC>\n";
@@ -9,7 +14,7 @@
 
   echo "<br> &nbsp;password:<br>\n";
   echo "&nbsp; <font size=1><input type=password name=L size=\"7\"></font>";
-  echo "&nbsp;<input type=image src=\"$images/in-go.gif\" alt=go width=\"$go_width\" height=\"$go_height\" border=\"0\" name=submit$submit_align></font><br clear=all>\n";
+  echo "&nbsp;<input type=image src=\"$images/in-go.gif\" alt=go $dim border=\"0\" name=submit$submit_align></font><br clear=all>\n";
   echo " &nbsp;forget&nbsp;me&nbsp;not:<font size=2><input type=checkbox name=remember value=\"1\"></font>\n";
 ?>
 </form></td></tr>

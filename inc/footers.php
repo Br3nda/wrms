@@ -13,6 +13,8 @@
 //  phpinfo();
   echo "</body>\n</html>";
 
+if ( is_object ( $settings ) ) {
+
   if ( ! is_numeric( $settings->get('counter')) )
     $settings->set('counter', 0 );
   else
@@ -26,4 +28,5 @@
   if ( !$result ) {
     error_log( "$sysabbr footers QF: $query", 0);
   }
+}
 ?>

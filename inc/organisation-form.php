@@ -68,6 +68,8 @@ with them.</P><?php
 ?>
 <TR><TH ALIGN=RIGHT>Name:</TH>
 <TD><input type=text size=50 maxlen=50 name=org_name value="<?php echo "$org->org_name"; ?>"></TD></TR>
+<TR><TH ALIGN=RIGHT>Abbreviation:</TH>
+<TD><input type=text size=10 maxlen=10 name=org_name value="<?php echo "$org->abbreviation"; ?>"></TD></TR>
 <TR><TH ALIGN=RIGHT>Active:</TH>
 <TD><input type=checkbox value="t" name=active<?php if ( "$org->active" != "f" ) echo " checked"; ?>></TD></TR>
 <TR><TH ALIGN=RIGHT>Debtor #:</TH>

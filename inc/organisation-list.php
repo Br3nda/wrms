@@ -1,4 +1,5 @@
 <?php
+require_once("PgQuery.php");
 function get_organisation_list( $current="", $maxwidth=50 ) {
   global $session;
 

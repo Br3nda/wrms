@@ -1209,8 +1209,8 @@ class Request {
   /////////////////////////////////////////////////////////////
   function Validate( $ef ) {
     global $client_messages;
-    error_log("$system_name: vpw: WARNING: Not validating request");
-    $client_messages[] = "WARNING: Not validating request details yet.";
+    error_log("$system_name: WR::Validate: WARNING: Not validating request");
+//    $client_messages[] = "WARNING: Not validating request details yet.";
 
     // If we validated OK, make sure the request.last_status is synced with any submitted status.
     $_POST['last_status'] = $_POST['status_code'];
@@ -1226,7 +1226,7 @@ class Request {
   /////////////////////////////////////////////////////////////
   function Write( $ef ) {
     global $client_messages, $request_id, $session;
-    error_log("$system_name: vpw: Writing request details to database");
+    error_log("$system_name: WR::Write: Writing request details to database");
     $qry = new PgQuery("BEGIN");  $qry->Exec("WR::Write");
 
     $this->chtype = strtolower($_POST['submit']);

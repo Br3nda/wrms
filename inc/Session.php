@@ -89,6 +89,7 @@ class Session
   var $roles;
   var $logged_in = false;
   var $cause = '';
+  var $just_logged_in = false;
 
   function Session()
   {
@@ -96,6 +97,7 @@ class Session
 
     $this->roles = array();
     $this->logged_in = false;
+    $this->just_logged_in = false;
 
     if ( ! isset($sid) ) return;
 
@@ -240,6 +242,8 @@ class Session
               $cookie .= session_salted_md5($usr->user_no . $usr->username . $usr->password);
               setcookie( "lsid", $cookie, time() + (86400 * 3600), "$base_url/" );   // will expire in ten or so years
             }
+            $this->just_logged_in = true;
+            unset($GLOBALS['submit']);
             return true;
           }
    // else ...

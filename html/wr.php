@@ -24,13 +24,13 @@ else {
 $show = 0;
 $new = isset($edit) && intval($edit) && !isset($id);
 
-if ( $M != "LC" && $wr->AllowedTo(($wr->new_record?"create":"update")) && isset($_POST['submit']) ) {
+if ( !$session->just_logged_in && $wr->AllowedTo(($wr->new_record?"create":"update")) && isset($_POST['submit']) ) {
   if ( $wr->Validate($wrf) ) {
     $wr->Write($wrf);
     $wr = new Request($request_id);
   }
 }
-elseif ( $M != "LC" && isset($action) ) {
+elseif ( !$session->just_logged_in && isset($action) ) {
   $wr->Actions($wrf);
 }
 

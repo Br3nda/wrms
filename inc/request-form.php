@@ -175,24 +175,32 @@
     $rows = pg_NumRows($updateq);
     if ( $rows > 0 ) {
 ?>
-<?php echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=5>&nbsp;</TD></TR><TR>$hdcell"; ?>
-<TD CLASS=h3 COLSPAN=4 ALIGN=RIGHT<?php echo " bgcolor=$colors[8]"; ?>><FONT SIZE=+1 color=<?php echo $colors[1]; ?>><B>Program Update Details</B></FONT></TD></TR>
- <TR><TH>ID</TH><TH>Done By</TH><TH>Done On</TH><TH>Description</TH><TH>&nbsp;</TH></TR>
+<?php echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=6>&nbsp;</TD></TR><TR>$hdcell"; ?>
+<TD CLASS=h3 COLSPAN=5 ALIGN=RIGHT<?php echo " bgcolor=$colors[8]"; ?>><FONT SIZE=+1 color=<?php echo $colors[1]; ?>><B>Program Update Details</B></FONT></TD></TR>
+<TR><th>&nbsp;</th>
+ <TH class=cols>ID</TH>
+ <TH class=cols>Done By</TH>
+ <TH class=cols>Done On</TH>
+ <TH class=cols>Description</TH>
+ <TH class=cols>&nbsp;</TH>
+</TR>
 <?php
       for( $i=0; $i<$rows; $i++ ) {
         $update = pg_Fetch_Object( $updateq, $i );
 
         if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
         else echo "<tr bgcolor=$colors[7]>";
-        echo "<TH VALIGN=TOP ALIGN=CENTER ROWSPAN=2><FONT SIZE=+2>$update->update_id</FONT></TH>\n";
-        echo "<TD>$update->update_by</TD>\n";
-        echo "<TD>" . nice_date($update->update_on) . "</TD>\n";
-        echo "<TD><A HREF=\"view-update.php3?update_id=$update->update_id&username=$usr->username\">";
-        echo "$update->update_brief</A></TD>";
-        echo "<TD><A HREF=\"$update->file_url\">Download</A></TD>\n";
-        echo "</TR>\n";
-        echo "<TR><TD COLSPAN=4>";
-        echo html_format( $update->update_description) . "</TD></TR><TR><TD></TD></TR>";
+        echo "<th>&nbsp;</TH>\n";
+        echo "<td class=h2 VALIGN=TOP ALIGN=CENTER ROWSPAN=2><FONT SIZE=+2>$update->update_id</FONT></td>\n";
+        echo "<td>$update->update_by</TD>\n";
+        echo "<td>" . nice_date($update->update_on) . "</TD>\n";
+        echo "<td>$update->update_brief</td>";
+        echo "<td><A HREF=\"$update->file_url\">Download</A></TD>\n";
+        echo "</tr>\n";
+        if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
+        else echo "<tr bgcolor=$colors[7]>";
+        echo "<TH>&nbsp;</TH><TD COLSPAN=4>";
+        echo html_format( $update->update_description) . "</TD></tr>";
       }
       echo "</TABLE>";
     }

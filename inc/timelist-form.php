@@ -89,9 +89,9 @@ function nice_time( $in_time ) {
           if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
           else echo "<tr bgcolor=$colors[7]>";
           echo "<th class=cols align=right colspan=3>Charged&nbsp;On:</th>\n";
-          echo "<td><input type=text size=10 name=\"chg_on[$timesheet->timesheet_id]\" value=\"" . date( "d/m/Y" ) . "\"></td>\n";
+          echo "<td><font size=2><input type=text size=10 name=\"chg_on[$timesheet->timesheet_id]\" value=\"" . date( "d/m/Y" ) . "\"></font></td>\n";
           echo "<th class=cols align=right>Amount:</th>\n";
-          echo "<td><input type=text size=12 name=\"chg_amt[$timesheet->timesheet_id]\" value=\"\"></td>\n";
+          echo "<td><font size=2><input type=text size=12 name=\"chg_amt[$timesheet->timesheet_id]\" value=\"\"></font></td>\n";
         }
         echo "</tr>\n";
       }

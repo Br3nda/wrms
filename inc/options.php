@@ -98,7 +98,8 @@
         $error_msg = "<h3>Internal Processing Error</h3><p>An internal processing error has occurred.  You will need to log on again.</p>";
       }
       else {
-        $query = "UPDATE session SET session_end='now' WHERE session_id='$session_test' ";
+        $query = "UPDATE session SET session_end='now' WHERE session_id='$session_test'; ";
+        $query .= "UPDATE usr SET last_accessed='now' WHERE user_no=$session->user_no; ";
         $result = pg_Exec( $wrms_db, $query );
         $logged_on = true;
 

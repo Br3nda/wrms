@@ -10,8 +10,8 @@
 <P class=helptext>Use this form to select organisations for maintenance or review.</P>
 
 <FORM METHOD=POST ACTION="<?php echo "$SCRIPT_NAME?form=$form"; ?>">
-<table><tr valign=middle>
-<td><b>Name</b><input TYPE="Text" Size="20" Name="search_for" Value="<?php echo "$search_for"; ?>"></td>
+<table align=center><tr valign=middle>
+<td><b>Name</b><font size=2><input TYPE="Text" Size="20" Name="search_for" Value="<?php echo "$search_for"; ?>"></font></td>
 <td><input TYPE="Image" src="images/in-go.gif" alt="go" WIDTH="44" BORDER="0" HEIGHT="26" name="submit"></td>
 </tr></table>
 </form>  
@@ -55,16 +55,16 @@
         if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
         else echo "<tr bgcolor=$colors[7]>";
 
-        echo "<td class=sml align=center>&nbsp;<a href=\"form.php?form=organisation&org_code=$thisorganisation->org_code\">$thisorganisation->org_code</a>&nbsp;</td>\n";
-        echo "<td class=sml align=right>&nbsp;$thisorganisation->debtor_no</td>\n";
-        echo "<td class=sml>&nbsp;<a href=\"form.php?form=organisation&org_code=$thisorganisation->org_code\">$thisorganisation->org_name";
+        echo "<td align=center>&nbsp;<a href=\"form.php?form=organisation&org_code=$thisorganisation->org_code\">$thisorganisation->org_code</a>&nbsp;</td>\n";
+        echo "<td align=right>&nbsp;$thisorganisation->debtor_no</td>\n";
+        echo "<td>&nbsp;<a href=\"form.php?form=organisation&org_code=$thisorganisation->org_code\">$thisorganisation->org_name";
         if ( "$thisorganisation->org_name" == "" ) echo "-- no description --";
         echo "</a>&nbsp;</td>\n";
-        echo "<td class=sml>&nbsp;<a href=\"requestlist.php?org_code=$thisorganisation->org_code\">Requests</a> &nbsp; \n";
-        echo "<a href=\"usrsearch.php?org_code=$thisorganisation->org_code\">Users</a> &nbsp; \n";
-        echo "<a href=\"form.php?org_code=$thisorganisation->org_code&form=syslist\">Systems</a>\n";
+        echo "<td class=sml>&nbsp;<a class=r href=\"requestlist.php?org_code=$thisorganisation->org_code\">Requests</a> &nbsp; \n";
+        echo "<a class=r href=\"usrsearch.php?org_code=$thisorganisation->org_code\">Users</a> &nbsp; \n";
+        echo "<a class=r href=\"form.php?org_code=$thisorganisation->org_code&form=syslist\">Systems</a>\n";
         if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] )
-          echo " &nbsp; <a href=\"form.php?org_code=$thisorganisation->org_code&form=timelist\">Work</a>\n";
+          echo " &nbsp; <a class=r href=\"form.php?org_code=$thisorganisation->org_code&form=timelist\">Work</a>\n";
 
         echo "&nbsp;</td></tr>\n";
       }

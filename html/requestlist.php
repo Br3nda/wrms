@@ -327,12 +327,12 @@ else {
 <tr><td><table border=0 cellspacing=0 cellpadding=0 width=100%><tr valign=middle>
 <td class=smb align=right>Last&nbsp;Action&nbsp;From:</td>
 <td nowrap class=smb><input type=text size=10 name=from_date class=sml value="<?php echo "$from_date"; ?>">
-<a href="javascript:show_calendar('forms[0].from_date');" onmouseover="window.status='Date Picker';return true;" onmouseout="window.status='';return true;"><img valign="middle" src="/$images/date-picker.gif" border=0></a>
+<a href="javascript:show_calendar('forms[0].from_date');" onmouseover="window.status='Date Picker';return true;" onmouseout="window.status='';return true;"><img valign="middle" src="/<?php echo $images; ?>/date-picker.gif" border=0></a>
 </td>
 
 <td class=smb align=right>&nbsp;To:</td>
 <td nowrap class=smb><input type=text size=10 name=to_date class=sml value="<?php echo "$to_date"; ?>">
-<a href="javascript:show_calendar('forms[0].to_date');" onmouseover="window.status='Date Picker';return true;" onmouseout="window.status='';return true;"><img valign="middle" src="/$images/date-picker.gif" border=0></a>
+<a href="javascript:show_calendar('forms[0].to_date');" onmouseover="window.status='Date Picker';return true;" onmouseout="window.status='';return true;"><img valign="middle" src="/<?php echo $images; ?>/date-picker.gif" border=0></a>
 </td>
 <td class=smb align=right>&nbsp;Type:</td>
 <td nowrap class=smb><select name="type_code" class=sml><option value="">-- All Types --</option><?php echo "$request_types"; ?></select></td>

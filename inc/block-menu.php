@@ -16,7 +16,7 @@
     $tooltip = "Go to the WRMS home page";
     echo "<br>\n &nbsp;<a href=$base_url/index.php class=block title=\"$tooltip\" alt=\"$tooltip\">WRMS&nbsp;Home</a>";
     $tooltip = "Enter a new work request into the system.";
-    echo "<br>\n &nbsp;<a href=$base_url/request.php class=block>New&nbsp;Request</a>";
+    echo "<br>\n &nbsp;<a href=$base_url/wr.php class=block>New&nbsp;Request</a>";
     $tooltip = "Search and list work requests";
     echo "<br>\n &nbsp;<a href=$base_url/requestlist.php class=block title=\"$tooltip\" alt=\"$tooltip\">List&nbsp;Requests</a>";
 
@@ -27,11 +27,6 @@
       $tooltip = "A ranked list of work requests, most important and urgent at the top";
       echo "<br>\n &nbsp;<a href=$base_url/requestrank.php?qs=complex class=block title=\"$tooltip\" alt=\"$tooltip\">Request&nbsp;Ranking</a>";
     }
-  }
-
-  if ( $PHP_SELF == "/request.php" && $request_id > 0 ) {
-    $tooltip = "Show the current request in a printable view";
-    echo  "<br>\n &nbsp;<a href=\"$base_url/request.php?request_id=$request_id&style=plain\" target=_new class=block title=\"$tooltip\" alt=\"$tooltip\">Printable View</a>";
   }
 
   if ( is_member_of('Admin', 'Support', 'Manage', 'Request') ) {
@@ -48,9 +43,7 @@
   }
 
   echo "<br><img class=blocksep src=\"/$images/menuBreak.gif\" width=\"130\" height=\"9\">";
-  echo "<table border=0 width=100%><form method=get action=\"/request.php\"><tr><td align=right>";
-  // echo "Go to: </td><td><input type=hidden value=\"$style\" name=style>";
-  echo "Go to: </td><td><input type=hidden value=\"\" name=style>";
+  echo "<table border=0 width=100%><form method=get action=\"/wr.php\"><tr><td align=right>";
   echo "<input type=text size=7 value=\"$request_id\" name=request_id></td></tr></form></table>";
 
   if ( is_member_of('Admin', 'Support', 'Manage') ) {

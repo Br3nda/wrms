@@ -228,9 +228,9 @@ function show_column_value( $column_name, $row ) {
   switch( $column_name ) {
     case "request_id":
       if ( "$format" == "edit" )  //used to control whether or not a request id hidden variable is also added which builds up the 'id' column in the EditableRequests array for the Brief (editable) report
-        echo "<td class=sml align=center>" . ( ($status_edit || $active_edit ) ? "<input type=hidden name=\"EditableRequests[$EditableRequests_count][0]\" value=\"$row->request_id\">" : "" ) . "<a href=\"request.php?request_id=$row->request_id\">$row->request_id</a></td>\n";
+        echo "<td class=sml align=center>" . ( ($status_edit || $active_edit ) ? "<input type=hidden name=\"EditableRequests[$EditableRequests_count][0]\" value=\"$row->request_id\">" : "" ) . "<a href=\"/wr.php?request_id=$row->request_id\">$row->request_id</a></td>\n";
       else
-        echo "<td class=sml align=center><a href=\"request.php?request_id=$row->request_id\">$row->request_id</a></td>\n";
+        echo "<td class=sml align=center><a href=\"/wr.php?request_id=$row->request_id\">$row->request_id</a></td>\n";
       break;
     case "lfull":
     case "request_for":
@@ -245,7 +245,7 @@ function show_column_value( $column_name, $row ) {
       break;
     case "lbrief":
     case "description":
-      echo "<td class=sml><a href=\"request.php?request_id=$row->request_id\">$row->brief";
+      echo "<td class=sml><a href=\"/wr.php?request_id=$row->request_id\">$row->brief";
       if ( "$row->brief" == "" ) echo substr( $row->detailed, 0, 50) . "...";
       echo "</a></td>\n";
       break;

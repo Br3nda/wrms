@@ -191,6 +191,8 @@ function CheckRequestForm() {
     document.forms.form.brief.focus();
     return false;
   }
+
+  // Validate that they describe any quote
   if ( document.forms.form.quote_brief.value != "" ) {
     if ( document.forms.form.quote_amount.value == "" ) {
       alert("If you enter a quote, you must enter an amount!" );
@@ -200,6 +202,20 @@ function CheckRequestForm() {
     if ( ! document.forms.form.quote_amount.value.match( number_rx ) ) {
       alert("The quoted amount should be a plain number!" );
       document.forms.form.quote_amount.focus();
+      return false;
+    }
+  }
+
+  // Validate that they enter a description if they enter work.
+  if ( document.forms.form.work_quantity.value != "" ) {
+    if ( ! document.forms.form.work_description.value == "" ) {
+      alert("If you enter some work, you must enter a description!" );
+      document.forms.form.work_description.focus();
+      return false;
+    }
+    if ( ! document.forms.form.work_quantity.value.match( number_rx ) ) {
+      alert("The amount of work should be a plain number!" );
+      document.forms.form.work_quantity.focus();
       return false;
     }
   }

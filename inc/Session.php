@@ -12,11 +12,6 @@ if ( isset($logout) )
 }
 
 
-// Enable for debugging...
-$debuggroups['Session'] = 1;
-$debuggroups['Login'] = 1;
-$debuggroups['querystring'] = 1;
-
 if ( !isset($session) ) {
   $session = new Session();
 
@@ -71,12 +66,9 @@ class Session
 {
   var $user_no = 0;
   var $session_id = 0;
-  var $name = 'guest';
+  var $username = 'guest';
   var $full_name = 'Guest';
   var $email = '';
-  var $centre_id = -1;
-  var $region_id = -1;
-  var $centre_name = '';
   var $roles;
   var $logged_in = false;
   var $cause = '';
@@ -127,6 +119,24 @@ class Session
     }
   }
 
+  function Log( $whatever )
+  {
+    global $sysabbr;
+
+    $argc = func_num_args();
+    $format = func_get_arg(0);
+    if ( $argc == 1 || ($argc == 2 && func_get_arg(1) == "0" ) ) {
+      error_log( "$sysabbr: $format" );
+    }
+    else {
+      $args = array();
+      for( $i=1; $i < $argc; $i++ ) {
+        $args[] = func_get_arg($i);
+      }
+      error_log( "$sysabbr: " . vsprintf($format,$args) );
+    }
+    return true;
+  }
 
   function AllowedTo ( $whatever )
   {
@@ -151,11 +161,13 @@ class Session
   function AssignSessionDetails( $u )
   {
     $this->user_no = $u->user_no;
-    $this->name = $u->name;
+    $this->username = $u->username;
     $this->fullname = $u->fullname;
     $this->email = $u->email;
     $this->org_code = $u->org_code;
     $this->org_name = $u->org_name;
+    $this->base_rate = $u->base_rate;
+    $this->work_rate = $u->work_rate;
     $this->config_data = $u->config_data;
     $this->session_id = $u->session_id;
 

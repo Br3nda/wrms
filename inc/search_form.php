@@ -55,7 +55,7 @@ function RenderSearchForm( $target_url ) {
   $ef = new EntryForm( $REQUEST_URI, $this, true );
 
   // We do the formatting fairly carefully here...
-  $ef->SimpleForm('<span style="white-space: nowrap"><span class="srchp">%s:</span> <span class="srchf">%s</span></span> ' );
+  $ef->SimpleForm('<span style="white-space: nowrap"><span class="srchp">%s:</span><span class="srchf">%s</span></span> ' );
 
   $html .= $ef->StartForm( array("autocomplete" => "off", "onsubmit" => "return CheckSearchForm();" ) );
 
@@ -82,16 +82,14 @@ function RenderSearchForm( $target_url ) {
 
   // System (within Organisation) drop-down
   $sql = "SELECT work_system.system_code, system_desc FROM work_system ";
-  if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) ) {
-    $sql .= "JOIN org_system ON org_system.system_code = work_system.system_code ";
-    $sql .= "JOIN system_usr ON $session->user_no = system_usr.user_no AND org_system.system_code = system_usr.system_code ";
-  }
   $sql .= "WHERE active ";
-  if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) ) {
+  $sql .= "AND EXISTS (SELECT 1 FROM org_system WHERE org_system.system_code = work_system.system_code ";
+  if ( $org_code != 0 && ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) )
+    $sql .= "AND org_system.org_code = $org_code ";
+  else if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) )
     $sql .= "AND org_system.org_code = $session->org_code ";
-    $sql .= "AND system_usr.role IN ( 'A', 'S', 'C', 'E' ) ";
-  }
-  $sql .= "ORDER BY lower(system_desc)";
+  $sql .= ") ";
+  $sql .= "ORDER BY lower(system_desc);";
   $html .= $ef->DataEntryLine( "System", "", "lookup", "system_code",
             array("_sql" => $sql, "_null" => "-- All Systems --", "onchange" => "SystemChanged();",
                   "title" => "The business system that this request applies to.",
@@ -134,12 +132,12 @@ function RenderSearchForm( $target_url ) {
   $html .= $ef->DataEntryLine( "Last Action", "%s", "date", "from_date",
             array( "size" => 10, "class" => "srchf",
                    "title" => "Only show requests with action after this date." ) );
-  $html .= "<a href=\"javascript:show_calendar('search.from_date');\" onmouseover=\"window.status='Date Picker';return true;\" onmouseout=\"window.status='';return true;\"><img valign=\"middle\" src=\"/$images/date-picker.gif\" border=\"0\"></a> &nbsp; ";
+  $html .= "<a href=\"javascript:show_calendar('forms.form.from_date');\" onmouseover=\"window.status='Date Picker';return true;\" onmouseout=\"window.status='';return true;\"><img valign=\"middle\" src=\"/$images/date-picker.gif\" border=\"0\"></a> &nbsp; ";
 
   $html .= $ef->DataEntryLine( "To", "%s", "date", "to_date",
             array( "size" => 10, "class" => "srchf",
                    "title" => "Only show requests with action before this date." ) );
-  $html .= "<a href=\"javascript:show_calendar('search.to_date');\" onmouseover=\"window.status='Date Picker';return true;\" onmouseout=\"window.status='';return true;\"><img valign=\"middle\" src=\"/$images/date-picker.gif\" border=\"0\"></a> &nbsp; ";
+  $html .= "<a href=\"javascript:show_calendar('forms.form.to_date');\" onmouseover=\"window.status='Date Picker';return true;\" onmouseout=\"window.status='';return true;\"><img valign=\"middle\" src=\"/$images/date-picker.gif\" border=\"0\"></a> &nbsp; ";
 
   // Type of Request
   $html .= $ef->DataEntryLine( "Type", $this->request_type_desc, "lookup", "type_code",
@@ -149,29 +147,59 @@ function RenderSearchForm( $target_url ) {
                   "style" => "width: 8em",
                   "title" => "Only show this type of request") );
 
-  $html .= "<table border='0' cellspacing='0' cellpadding='0' width='100%'><tr valign='middle'>";
-  $html .= "<td valign='top'><span class=\"srchp\">Status:</span></td><td valign='top'>\n";
+  $html .= "<table border='0' cellspacing='0' cellpadding='0' width='100%'><tr>";
+  $html .= "<td style=\"vertical-align: top; padding-top: 0.3em;\"><span class=\"srchp\">Status:</span></td><td valign='top'>\n";
   $sql = "SELECT * FROM lookup_code WHERE source_table='request' ";
   $sql .= " AND source_field='status_code' ";
   $sql .= " ORDER BY source_table, source_field, lookup_seq, lookup_code ";
   $qry = new PgQuery( $sql );
   if ( $qry->Exec("RenderSearchForm") && $qry->rows > 0 ) {
     while ( $status = $qry->Fetch() ) {
-      $html .= "<label class=\"srchf\" style=\"white-space: nowrap\" for=\"incstat[$status->lookup_code]\"><input type=\"checkbox\" id=\"incstat[$status->lookup_code]\" name=\"incstat[$status->lookup_code]\"";
-      if ( !isset( $incstat) || isset($incstat[$status->lookup_code]) ) $html .= " checked";
-      $html .= " value='1'>" . str_replace( " ", "&nbsp;", $status->lookup_desc) . "</label></span> \n";
+      $html .= $ef->DataEntryField( "%s", "checkbox", "incstat[$status->lookup_code]",
+              array("_label" => $status->lookup_desc, "class" => "srchf", "value" => 1 ) );
     }
-    $html .= "<label class=\"srchf\" style=\"white-space: nowrap\" for=\"incstat[$status->lookup_code]\"><input type='checkbox' name='inactive'";
-    if ( $inactive != "" ) $html .= " checked";
-    $html .= " value='1'>Inactive</label></span>";
+    $html .= $ef->DataEntryField( "%s", "checkbox", "inactive",
+              array("_label" => "inactive", "class" => "srchf", "value" => 1 ) );
     $html .= "</td>\n";
   }
   $html .= "</tr></table>\n";
 
   $html .= RenderTagsPanel($ef);
 
+  if ( ($session->AllowedTo("Admin") /* || $session->AllowedTo("Support") */ ) ) {
+    $html .= "<div id=\"whereclause\">";
+    $html .= $ef->DataEntryLine( "Where", "%s", "text", "where_clause",
+              array( "size" => 60, "class" => "srchf",
+                    "title" => "Add an SQL 'WHERE' clause to further refine the search - you will need to know what you are doing..." ) );
+    $html .= "</div>";
+  }
+
+  $html .= RenderColumnSelections($ef);
+
+  // style="display: block; float:right; clear: left;"
+  $html .= '<div id="savesearch">';
+  $html .= $ef->DataEntryLine( "Save as", "%s", "text", "savelist",
+              array( "size" => 20, "class" => "srchf",
+                    "title" => "A name to use to refer to this query in the future." ) );
+  $html .= $ef->DataEntryField( "%s", "checkbox", "save_query_order",
+              array("_label" => "With Order?", "class" => "srchf", "value" => 1 ) );
+  $html .= $ef->DataEntryField( "%s", "checkbox", "save_public",
+              array("_label" => "Public?", "class" => "srchf", "value" => 1 ) );
+  $html .= $ef->DataEntryField( "%s", "checkbox", "save_hotlist",
+              array("_label" => "In my menu?", "class" => "srchf", "value" => 1 ) );
+
+  $html .= $ef->SubmitButton( "submit", "Save Query",
+            array("title" => "Save this query so you can run it again." ) );
+  $html .= "</div>";
+
+  $html .= $ef->DataEntryLine( "Max results", "%s", "text", "maxresults",
+              array( "size" => 6, "class" => "srchf",
+                    "title" => "The maximum number of rows to show in the listing" ) );
+
   $html .= $ef->SubmitButton( "submit", "Run Query",
             array("title" => "Run a query with these settings" ) );
+
+
   $html .= "</table>\n";
   $html .= "</td></tr></table>\n";
   $html .= $ef->EndForm();
@@ -205,18 +233,8 @@ function RenderTagsPanel( $ef ) {
   else if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) )
     $sql .= "AND organisation.org_code = $session->org_code ";
   $sql .= "ORDER BY lower(abbreviation), tag_sequence, lower(tag_description)";
-/*
-  $sql = "SELECT tag_id, tag_description ";
-  if ( ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) )
-    $sql .= " || ' (' || abbreviation || ')' AS tag_description ";
 
-  $sql .= "FROM organisation NATURAL JOIN organisation_tag ";
-  $sql .= "WHERE organisation.active AND organisation_tag.active ";
-  if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) )
-    $sql .= "AND organisation.org_code IN ( $session->org_code ) ";
-  $sql .= "ORDER BY lower(abbreviation), tag_sequence";
-*/
-  $html .= "<div id=\"tagselect\" style=\"display :non;\">";
+  $html .= "<div id=\"tagselect\" style=\"display :none;\">";
   $html .= $ef->DataEntryLine( "Tag List", "", "lookup", "orgtaglist",
             array("_sql" => $sql, "_null" => "-- Any Tag --", /* "onchange" => "TagChanged();", */
                   "title" => "A tag that you want included or excluded from the report.",
@@ -243,7 +261,7 @@ function RenderTagsPanel( $ef ) {
   $html .= "</div>";
 
   $html .= $ef->DataEntryLine( "", "", "button", "extend_tags",
-            array("value" => "Extend",
+            array("value" => "More Tags",
                   "onclick" => "ExtendTagSelections();",
                   "title" => "Click to add another tag for the search.",
                   "class" => "fsubmit" ) );
@@ -252,6 +270,32 @@ function RenderTagsPanel( $ef ) {
 
   return $html;
 }
+
+
+/////////////////////////////////////////////////////////////
+// RenderColumnSelections - Return HTML to show the column
+// selections for the search screen.
+/////////////////////////////////////////////////////////////
+function RenderColumnSelections( $ef ) {
+  global $available_columns, $columns;
+
+  $html .= '<div id="columnselect">';
+  $html .= '<span class="srchp">Columns:</span>';
+  reset($available_columns);
+  $save_cols = $columns;
+  $columns = array_flip($columns);
+  $i=0;
+  while( list($k,$v) = each( $available_columns ) ) {
+    $html .= $ef->DataEntryField( "%s", "checkbox", "columns[$i]",
+              array("_label" => $v, "class" => "srchf", "value" => $k ) );
+    $i++;
+  }
+  $columns = $save_cols;
+  $html .= "</div>\n";
+
+  return $html;
+}
+
 
 if ( !isset( $style ) || ($style != "plain" && $style != "stripped") ) {
   $form_url_parameters = array();
@@ -265,37 +309,7 @@ if ( !isset( $style ) || ($style != "plain" && $style != "stripped") ) {
   echo RenderSearchForm($form_url);
 
 /*
-  if ( isset($choose_columns) && $choose_columns ) {
-    echo "<tr><td>\n";
-    echo "<table border=0 cellspacing=0 cellpadding=0 align=left>\n";
-    echo "<tr valign=middle>\n";
-    echo "<td valign=middle align=right class=srchf>Columns:</td><td class=srchf valign=top>";
-    // echo "<select name=\"columns[]\" multiple size=\"6\">\n";
-    reset($available_columns);
-    $cols_set = array_flip($columns);
-    $i=0;
-    while( list($k,$v) = each( $available_columns ) ) {
-      // echo "<option value=\"$k\"";
-      // if ( isset($columns[$k]) ) echo " selected";
-      // echo ">$v</option>\n";;
-      echo "<label for=\"columns[$i]\" style=\"white-space: nowrap\"><input type=\"checkbox\" id=\"columns[$i]\" name=\"columns[$i]\"";
-      if ( isset($cols_set[$k]) ) echo " checked";
-      echo " value=\"$k\">" . str_replace( " ", "&nbsp;", $v) . "</label> &nbsp; \n";
-      $i++;
-    }
-    // echo "</select>\n";
-    echo "</td>\n";
-    echo "</tr></table>\n</td></tr>\n";
-  }
 
-
-  if ( is_member_of('Admin') ) {
-    echo "<tr><td>\n";
-    echo "<table border=0 cellspacing=0 cellpadding=0 align=left>\n";
-    echo "<tr valign=middle>\n";
-    echo "<td valign=middle align=right class=srchf>WHERE:</td><td class=srchf valign=top><input type=text size=100 value=\"".htmlentities($where_clause)."\" name=where_clause class=\"srchf\"></td>\n";
-    echo "</tr></table>\n</td></tr>\n";
-  }
 
   echo "<table border=0 cellspacing=0 cellpadding=0 align=center>\n";
   echo "<tr valign=middle>\n";

@@ -140,9 +140,10 @@ class Request {
    // AllowedTo - Can the user do that to this request?
    /////////////////////////////////////////////////////////////
    function AllowedTo( $action ) {
+     global $session;
      switch( $action ) {
        default:
-         error_log("$sysabbr WR::AllowedTo: WARNING: Unrecognised action: '$action'");
+         $session->Log("WR::AllowedTo: WARNING: Unrecognised action: '$action'");
      }
      return true;  // Of course they can!
    }
@@ -835,49 +836,99 @@ class Request {
    /////////////////////////////////////////////////////////////
    /////////////////////////////////////////////////////////////
    function RenderTimesheets( $ef ) {
-     global $session;
+     global $session, $sysabbr;
      $html = "";
-     $sql = "SELECT request_timesheet.*, usr.fullname, usr.email, ";
-     $sql .= "to_char(work_on, 'DD-MM-YYYY') AS work_on ";
+     $sql = "SELECT request_timesheet.*, usr.fullname, usr.email, cb.fullname AS charged_by, ";
+     $sql .= "usr.base_rate AS worker_rate, supplier.work_rate AS supplier_rate, organisation.work_rate AS org_rate, ";
+     $sql .= "to_char(work_on, 'DD-MM-YYYY') AS work_on, ";
+     $sql .= "to_char(work_charged, 'DD-MM-YYYY') AS charged_on ";
      $sql .= "FROM request_timesheet JOIN usr ON ( request_timesheet.work_by_id = usr.user_no ) ";
-     $sql .= "WHERE request_id = $this->request_id ";
-     $sql .= "ORDER BY request_id, usr.fullname";
+     $sql .= "JOIN request ON (request_timesheet.request_id = request.request_id ) ";
+     $sql .= "LEFT JOIN usr requester ON (request.requester_id = requester.user_no ) ";
+     $sql .= "LEFT JOIN organisation ON (requester.org_code = organisation.org_code ) ";
+     $sql .= "LEFT JOIN usr cb ON (request_timesheet.charged_by_id = cb.user_no ) ";
+     $sql .= "LEFT JOIN organisation supplier ON (usr.org_code = supplier.org_code ) ";
+     $sql .= "WHERE request_timesheet.request_id = $this->request_id ";
+     $sql .= "ORDER BY request_id, request_timesheet.work_on, usr.fullname";
      # Select the records
      $q = new PgQuery($sql);
      $q->Exec('WR::Timesheet') ;
      if ( $ef->editmode || $q->rows ) {
        $html .= $ef->BreakLine("Work Done");
-       $line_format = '<tr class="row%d"><td class="entry" style="white-space: nowrap;">%s</td>';
+       $line_format = '<tr class="row%d"><td class="entry">%s</td>';
        $line_format .= '<td class="entry">%s</td>';
        $line_format .= '<td class="entry" style="white-space: nowrap; text-align: right; ">%s %s</td>';
        $line_format .= '<td class="entry" style="white-space: nowrap; text-align: right; ">%s</td>';
+       $entry_line_format = $line_format;
+       $line_format .= '<td class="entry" width="50%%">%s</td>';
+       $line_format .= '<td class="entry">%s</td>';
+       $line_format .= '<td class="entry">%s</td>';
        $line_format .= '<td class="entry" style="white-space: nowrap; text-align: right; ">%s</td>';
-       $line_format .= '<td class="entry" width="50%%">%s</td>%s';
-       $line_format .= '</tr>'."\n";
+       $line_format .= '<td class="entry" style="white-space: nowrap; text-align: right; ">%s</td>';
+       $line_format .= '%s%s</tr>'."\n";
+       $bill_ok_format = '<td class="entry" style="text-align: center; ">%s</td>';
        $delete_link_format = '<td class="entry" width="2%%"><a href="/wr.php?request_id=%d&action=removets&timesheet_id=%d&edit=1" title="Remove timesheet from this request"><img src="'.$GLOBALS['images'].'/delete.png" border="none"></a></td>';
 
        $html .= '<tr><td colspan="2"><table width="100%">'."\n";
-       $html .= '<tr><th class="pcol">Done By</th>';
+       $html .= '<tr><th class="pcol">Done&nbsp;By</th>';
        $html .= '<th class="pcol">Done On</th>';
        $html .= '<th class="pcol">Quantity</th>';
-       $html .= '<th class="pcol">Rate</th>';
-       $html .= '<th class="pcol">Cost</th>';
+       $html .= '<th class="pcol" style="text-align: right; ">Rate</th>';
        $html .= '<th class="pcol">Description</th>';
-       if ( $ef->editmode ) $html .= '<th class="pcol">&nbsp;</th>';
+       $html .= '<th class="pcol">Inv.&nbsp;By</th>';
+       $html .= '<th class="pcol">Charged</th>';
+       $html .= '<th class="pcol">Inv.&nbsp;No</th>';
+       $html .= '<th class="pcol" style="text-align: center;">Charge Amount</th>';
+       if ( $ef->editmode ) {
+         $html .= '<th class="pcol" style="text-align: center;">OK to Charge</th>';
+         $html .= '<th class="pcol">&nbsp;</th>';
+       }
        $html .= '</tr>'."\n";
      }
      if ( $q->rows ) {
        $total = 0;
+       $this->ts_ok_to_charge   = array();
+       $this->ts_charged_amount = array();
        while( $row = $q->Fetch() ) {
+//         error_log( "$sysabbr: DBG: work_rate:$row->work_rate, org_rate:$row->org_rate, worker_rate:$row->worker_rate, supplier_rate:$row->supplier_rate");
+         $rate = ($row->work_rate > 0 ? $row->work_rate
+                            : ($row->org_rate > 0 ? $row->org_rate
+                                        : ($row->worker_rate > 0 ? $row->worker_rate : $row->supplier_rate ) ));
+         $invoice_details = $row->charged_details;
+         $amount_charged = sprintf("$%.2lf", $row->work_quantity * $rate );
+         if ( $ef->editmode ) {
+           // error_log( "$sysabbr: DBG: Ok to charge = $row->ok_to_charge" );
+           $bill_ok_options = array("title" => "Check this if it is OK to bill this work now." );
+           if ( $row->ok_to_charge == 't' ) $this->ts_ok_to_charge["$row->timesheet_id"] = 't';
+           if ( $row->work_charged != "" ) {
+             $bill_ok_options["_disabled"] = "yes";
+             $amount_charged = sprintf('$%.2lf', $row->charged_amount);
+           }
+           else {
+             $invoice_details = $ef->DataEntryField( "", "text", "ts_invoice_no[$row->timesheet_id]",
+                                        array( "title" => "The invoice number that included this work",
+                                               "size" => "7" ) );
+             $this->ts_charged_amount["$row->timesheet_id"] = sprintf('%.1lf', $row->work_quantity * $rate) . "0";
+             $amount_charged = $ef->DataEntryField( "", "text", "ts_charged_amount[$row->timesheet_id]",
+                                        array( "title" => "The amount to be invoiced for this work.",
+                                               "style" => "text-align:right;",
+                                               "size" => "8" ) );
+           }
+           $bill_ok = sprintf( $bill_ok_format, $ef->DataEntryField( "", "checkbox", "ts_ok_to_charge[$row->timesheet_id]", $bill_ok_options ) );
+         }
+         else {
+           $bill_ok = "";
+         }
          $delete_link = ( $ef->editmode ? sprintf( $delete_link_format, $this->request_id, $row->timesheet_id ) : '');
          $html .= sprintf( $line_format,
                     ($q->rownum % 2), $row->fullname, $row->work_on, $row->work_quantity, $row->work_units,
-                    $row->work_rate, $row->work_quantity * $row->work_rate, $row->work_description, $delete_link
+                    $rate, $row->work_description,
+                    $row->charged_by, $row->charged_on, $invoice_details, $amount_charged, $bill_ok, $delete_link
                   );
-         $total += ($row->work_quantity * $row->work_rate);
+         $total += ($row->work_charged != "" ? $row->charged_amount : $row->work_quantity * $rate);
        }
        $html .= sprintf( $line_format,
-                    (($q->rownum + 1) % 2), "<b>Total</b>", "", "", "", "", "<b>$total</b>", "", "" );
+                    (($q->rownum + 1) % 2), "<b>Total</b>", "", "", "", "", "", "", "", "", sprintf('<b>$%.2lf</b>',$total), "", "", "" );
      }
 
      if ( $ef->editmode ) {
@@ -886,33 +937,36 @@ class Request {
        if ( !isset($_POST['work_units']) ) $_POST['work_units'] = 'hours';  // Default to Hours
 
        $work_on = $ef->DataEntryField( "", "number", "work_on",
-                   array("title" => "Enter the date of this work", "size" => 10,
+                   array("title" => "Enter the date of this work", "size" => 8,
                          "onblur" => "this.value=CheckDate(this)" ) );
 
        $work_quantity = $ef->DataEntryField( "", "number", "work_quantity",
                    array("title" => "Enter the number of units of work",
-                         "size" => 8, "onblur" => "this.value=CheckNumber(this,0,999999999)" ) );
+                         "size" => 6, "onblur" => "this.value=CheckNumber(this,0,999999999)" ) );
 
        $work_units = $ef->DataEntryField( "", "lookup", "work_units",
                    array("_type" => "request_quote|quote_units", "style" => "width: 5em;",
                          "title" => "The type of units for this work" ) );
 
+       $session->Log( "DBG: org_rate:%s, worker_rate:%s, supplier_rate:%s", $this->work_rate, $session->base_rate, $session->work_rate);
+       $rate = ($this->work_rate > 0 ? $this->work_rate
+                          : ($session->base_rate > 0 ? $session->base_rate : $session->work_rate ));
+       $this->work_rate = $rate;
        $work_rate = $ef->DataEntryField( "", "number", "work_rate",
                    array("title" => "Enter the rate / unit for this work",
-                         "size" => 10, "onblur" => "this.value=CheckNumber(this,0,999999999)" ) );
+                         "size" => 4, "onblur" => "this.value=CheckNumber(this,0,999999999)" ) );
 
        $work_desc = $ef->DataEntryField( "", "text", "work_description",
-                   array("title" => "Enter brief description of the work done", "size" => 40 ) );
+                   array("title" => "Enter brief description of the work done", "size" => 70 ) );
 
-       $html .= sprintf( $line_format, ($q->rownum % 2),
+       $entry_line_format .= '<td class="entry" width="50%%" colspan="7">%s</td></tr>';
+       $html .= sprintf( $entry_line_format, ($q->rownum % 2),
                 $session->fullname,
                 $work_on,
                 $work_quantity,
                 "<br />$work_units",
                 $work_rate,
-                "",
-                $work_desc,
-                ""
+                $work_desc
                 );
 
      }
@@ -1255,6 +1309,12 @@ class Request {
         if ( !$db_errors && trim($_POST['work_description']) != "" ) {
           $db_errors = ! $this->AddWork();
         }
+
+        if ( !$db_errors && is_array($_POST['ts_ok_to_charge']) ) {
+          while( !$db_errors && list($k,$v) = each($_POST['ts_ok_to_charge']) ) {
+            $db_errors = ! $this->UpdateInvoiceDetails($k);
+          }
+        }
      }
 
      $qry = new PgQuery( ( $db_errors ? "ROLLBACK;" : "COMMIT;") );  $qry->Exec("WR::Write");
@@ -1545,6 +1605,61 @@ EOX
 
      return true;
    }
+
+   /////////////////////////////////////////////////////////////
+   // Update the details of existing timesheets with invoicing
+   /////////////////////////////////////////////////////////////
+  function UpdateInvoiceDetails( $ts_id ) {
+    global $session, $client_messages;
+
+    if ( ! ($session->AllowedTo('Admin') || $session->AllowedTo('Support') || $session->AllowedTo('Invoice') ) )
+      return;
+
+    $made_changes = false;
+    $ts_id = intval($ts_id);
+    $sql = "UPDATE request_timesheet SET ";
+    if ( $_POST['ts_ok_to_charge'][$ts_id] == "on" ) {
+      $sql .= "ok_to_charge = TRUE ";
+      $sql .= "WHERE timesheet_id = ? ";
+      $sql .= "AND (ok_to_charge = FALSE OR ok_to_charge IS NULL);";
+    }
+    else if ( $_POST['ts_charged_amount'][$ts_id] == "" ) {
+      $sql .= "ok_to_charge = FALSE ";
+      $sql .= "WHERE timesheet_id = ? ";
+      $sql .= "AND (ok_to_charge = TRUE OR ok_to_charge IS NULL) ";
+      $sql .= "AND work_charged is NULL; ";
+    }
+    $qry = new PgQuery($sql, $ts_id );
+    if ( !$qry->Exec('WR::UpdateInvoiceDetails') ) {
+      $client_messages[] = "There was a problem writing the timesheet changes to the database.";
+      return false;
+    }
+    else if ( $qry->rows > 0 ) {
+      $made_changes = true;
+      $client_messages[] = "";
+    }
+
+    if ( $_POST['ts_invoice_no'][$ts_id] != "" && $_POST['ts_charged_amount'][$ts_id] != "" ) {
+      $sql = "UPDATE request_timesheet SET ";
+      $sql .= "charged_by_id = $session->user_no, ";
+      $sql .= "work_charged = current_timestamp, ";
+      $sql .= "charged_details = ?, ";
+      $sql .= "charged_amount = ? ";
+      $sql .= "WHERE timesheet_id = ? AND ok_to_charge ";
+      $sql .= "AND work_charged IS NULL; ";
+      $qry = new PgQuery($sql, $_POST['ts_invoice_no'][$ts_id], $_POST['ts_charged_amount'][$ts_id], $ts_id );
+      if ( !$qry->Exec('WR::UpdateInvoiceDetails') ) {
+        $client_messages[] = "There was a problem writing the timesheet changes to the database.";
+        return false;
+      }
+      else if ( $qry->rows > 0 ) {
+        $made_changes = true;
+        $client_messages[] = "Invoice details on timesheet changed.";
+      }
+    }
+
+    return true;
+  }
 
    /////////////////////////////////////////////////////////////
    /////////////////////////////////////////////////////////////

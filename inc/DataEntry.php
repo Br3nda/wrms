@@ -104,8 +104,21 @@ class EntryField
          break;
 
        case "checkbox":
-         $checked =  ( $this->current == 't' || $this->current == 'on' ? " checked" : "" );
-         $r .= "input type=\"checkbox\" name=\"$this->fname\"$checked%%attributes%%>\n";
+         $checked = "";
+         if ( $this->current == 't' || intval($this->current) > 0 || $this->current == 'on'
+               || (isset($this->attributes['value']) && $this->current == $this->attributes['value'] ) )
+           $checked = " checked";
+         if ( isset($this->attributes['_label']) ) {
+           $r .= "label for=\"id_$this->fname\"";
+           if ( isset($this->attributes['class']) )
+             $r .= ' class="'. $this->attributes['class'] . '"';
+           $r .= "><";
+         }
+         $r .= "input type=\"checkbox\" name=\"$this->fname\" id=\"id_$this->fname\"$checked%%attributes%%>";
+         if ( isset($this->attributes['_label']) ) {
+           $r .= " " . $this->attributes['_label'];
+           $r .= "</label>\n";
+         }
          break;
 
        case "button":
@@ -134,6 +147,8 @@ class EntryField
      reset( $this->attributes );
      $attribute_values = "";
      while( list($k,$v) = each( $this->attributes ) ) {
+       if ( $k == '_readonly' ) $attribute_values .= " readonly";
+       else if ( $k == '_disabled' ) $attribute_values .= " disabled";
        if ( substr($k, 0, 1) == '_' ) continue;
        $attribute_values .= " $k=\"".htmlentities($v)."\"";
      }
@@ -286,7 +301,7 @@ class EntryForm
     if ( preg_match("/^(.+)\[(.+)\]$/", $fname, $parts) ) {
       $p1 = $parts[1];
       $p2 = $parts[2];
-      error_log( "DBG: fname=$fname, p1=$p1, p2=$p2, POSTVAL=" . $_POST[$p1][$p2] . ", record=".$this->record->{"$p1"}["$p2"] );
+//      error_log( "DBG: fname=$fname, p1=$p1, p2=$p2, POSTVAL=" . $_POST[$p1][$p2] . ", record=".$this->record->{"$p1"}["$p2"] );
       // fixme - This could be changed to handle more dimensions on submitted variable names
       if ( isset($_POST[$p1]) ) {
         if ( isset($_POST[$p1][$p2]) ) {

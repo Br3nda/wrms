@@ -34,12 +34,10 @@
 
   if ( is_member_of('Admin', 'Support', 'Manage', 'Request') ) {
     $tooltip = "Run this saved work request report";
-    $query = "SELECT * FROM saved_queries WHERE user_no = '$session->user_no' ORDER BY query_name";
-    $result = awm_pgexec( $dbconn, $query, "block-menu");
-    if ( $result && pg_NumRows($result) > 0) {
+    $qry = new PgQuery( "SELECT * FROM saved_queries WHERE user_no = '$session->user_no' ORDER BY query_name" );
+    if ( $qry->Exec("block-menu") && $qry->rows > 0) {
       echo "<br><img class=blocksep src=\"/$images/menuBreak.gif\" width=\"130\" height=\"9\">";
-      for ( $i=0; $i < pg_NumRows($result); $i++ ) {
-        $thisquery = pg_Fetch_Object( $result, $i );
+      while ( $thisquery = $qry->Fetch() ) {
         echo "<br>\n &nbsp;<a href=\"$base_url/requestlist.php?style=plain&qry=" . urlencode($thisquery->query_name) . "\" class=block title=\"$tooltip\" alt=\"$tooltip\"><b>&raquo;</b>$thisquery->query_name</a>";
       }
     }

@@ -102,8 +102,7 @@ function OrganisationChanged() {
             orgtag_sel.options[orgtag_sel.options.length] = new Option( lines[i].replace( orgtag_rx, "$2"), lines[i].replace( orgtag_rx, "$1") )
           }
         }
-//        FixTagOptions(orgtag_sel);
-        w3_fix_taglists(orgtag_sel);
+        FixTagOptions(orgtag_sel);
 
         document.forms.form.requester_id.value
       }
@@ -196,7 +195,7 @@ function GetFieldFromName(fname) {
       return document.forms.form.elements[i];
     }
   }
-  alert("Field " + append_fname + " was not found in the form!");
+  alert("Field " + fname + " was not found in the form!");
   return false;
 }
 
@@ -231,7 +230,6 @@ function AssignSelected(select_from, append_fname) {
 function CopyOptions( from_field, to_field ) {
   var currval = 'nothing is selected yet';
   if ( to_field.length > 0 && to_field.selectedIndex < to_field.length ) {
-//    currval = to_field.options[to_field.selectedIndex].value;
     currval = to_field.value;
   }
   CleanSelectOptions(to_field);
@@ -245,33 +243,12 @@ function CopyOptions( from_field, to_field ) {
   if ( found_currval ) {
     to_field.value = currval;
   }
-  else {
-    if ( currval != 'nothing is selected yet' )
-      alert("Couldn't find current value in new list" );
-  }
-}
-
-function do_nothing(x,y) {
- return x + y;
 }
 
 //////////////////////////////////////////////////////////
 // Fix the Tag options to make them match the organisation ones
 //////////////////////////////////////////////////////////
 function FixTagOptions(from_field) {
-  var to_field;
-  window.offscreenBuffering = false;
-  for( var i=0; i < stanza_count; i++ ) {
-    to_field = GetFieldFromName('tag_list['+ i +']');
-    CopyOptions(from_field,to_field);
-  }
-  window.offscreenBuffering = true;
-}
-
-//////////////////////////////////////////////////////////
-// Fix the Tag options to make them match the organisation ones
-//////////////////////////////////////////////////////////
-function w3_fix_taglists(from_field) {
   var old_field;
   var new_field;
   var the_parent;
@@ -348,11 +325,11 @@ function ExtendTagSelections() {
     stanza += ' <select class="srchf" style=\"width: 4em\" name="tag_and['+stanza_count+']"><option value="AND">AND</option><option value="OR" checked>OR</option></select> ';
   }
   else {
-    stanza += ' <div class="srchp" style=\"display: block; clear: none; float: left; vertical-align: bottom; margin-top: 0.2em; font-weight: 700; height: 1.2em; width: 4.2em\">&nbsp; Tags: </div> ';
+    stanza += ' <div style=\"display: block; float: left; margin-top: 0.4em; height: 1.0em; width: 4.2em\"><span class="srchp">Tags:</span></div> ';
   }
-  stanza += ' <select class="srchf" name="tag_lb['+stanza_count+']"><option value=" "> </option><option value="(">(</option><option value="((">((</option></select> ';
+  stanza += ' <select class="srchf" name="tag_lb['+stanza_count+']"><option value=" "> </option><option value="(">(</option><option value="((">((</option><option value="(((">(((</option></select> ';
   stanza += ' <select class="srchf" style=\"width: 12em\" name="tag_list['+stanza_count+']"></select>';
-  stanza += ' <select class="srchf" name="tag_rb['+stanza_count+']"><option value=" "> </option><option value=")">)</option><option value="))">))</option></select> ';
+  stanza += ' <select class="srchf" name="tag_rb['+stanza_count+']"><option value=" "> </option><option value=")">)</option><option value="))">))</option><option value=")))">)))</option></select> ';
   stanza += '</span> ';
 
   SaveTagSettings();

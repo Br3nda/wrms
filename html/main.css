@@ -45,12 +45,16 @@ th.pcol {
   margin: 0;
   padding: 0;
   text-align: left;
-  vertical-align: top;
+  vertical-align: bottom;
   padding: 0.1em 0.5em 0;
   color: white;
   background: black;
   width: 8em;
-  font-family: sans-serif;
+/*  font-family: sans-serif; */
+  font-family: arial narrow, helvetica narrow, times new roman, times, sans-serif;
+  /* font-variant: small-caps; */
+  font-weight: 700;
+  font-size: 80%;
   border: none;
   line-height: 1.2em;
 }
@@ -77,6 +81,11 @@ span.entry {
   padding: 0.1em 1em 0 0.2em;
 }
 
+label {
+   white-space: nowrap;
+   padding: 0.1em 0.5em 0.1em 0.1em;
+}
+
 input.ftext {
   font-family: tahoma,sans-serif;
 }
@@ -96,7 +105,8 @@ textarea.ftextarea {
   background: #660000;
   color: #f0fff0;
   padding: 0px 1px 1px 1px;
-  margin: 0px 1px;
+  margin: 0.2em 0.1em 0.0em;
+  vertical-align: text-bottom;
   border: thin outset;
 }
 .fsubmit:hover {
@@ -105,21 +115,21 @@ textarea.ftextarea {
 }
 
 span.srchp {
-  font: bold 1em arial narrow, helvetica narrow, times new roman, times, sans-serif;
-  padding-left: 0.3em;
+  font: bold 110% arial narrow, helvetica narrow, times new roman, times, sans-serif;
+  padding: 0 0.1em 0 0.3em;
+  vertical-align: 15%;
+  line-height:100%;
 }
 
 span.srchf, input.srchf, select.srchf, label.srchf {
   font-family: arial narrow, helvetica narrow, times new roman, times, sans-serif;
-/*  height: 1.5em; */
   padding-right: 0.3em;
-  margin: 0.3em 0;
-  /* line-height: 2.1em; */
+  margin: 0.2em 0 0.1em;
 }
 
 /* For the display of important messages to the user, such as
    validation failures and so forth. */
-div.messages {
+#messages {
   /* color: #fff; background: #b10;  */
   color: #900; background: #dad0b0;
 }
@@ -133,11 +143,6 @@ li.messages {
   text-indent: -8em;
   margin-left: 8em;
   padding: 6px 0;
-}
-
-div.tmnf {
-  display:block;
-  float:left;
 }
 
 /* For the display of menus across the top on some pages */
@@ -187,40 +192,9 @@ a.tmnu:hover
   background: #d0c8af url(/images/cxmenumid-hover.png) repeat-x center center;
 }
 
-#header {
-  position: fixed;
-  width: 100%;
-  height: 15%;
-  top: 0;
-  right: 0;
-  bottom: auto;
-  left: 0;
-  background-color: #cccccc;
-}
-#sidebar {
-  position: fixed;
-  width: 10em;
-  height: auto;
-  top: 15%;
-  right: auto;
-  bottom: 100px;
-  left: 0;
-  font-style: italic;
-  background-color: #ffffe0;
-}
-#main {
-  position: fixed;
-  width: auto;
-  height: auto;
-  top: 15%;
-  right: 0;
-  bottom: 100px;
-  left: 10em;
-  overflow: auto;
-  padding: 2px .5em;
-  border: solid 1px black;
-  background-color: #ffffff;
-}
+/* Stuff here will sit around the bottom right of the screen (Moz, anyway) so
+ * we use it for a div with the buttons on entry screen.
+ */
 #footer {
   position: fixed;
   width: auto;
@@ -233,3 +207,13 @@ a.tmnu:hover
   margin-top: auto;
   background-color: #ffffff;
 }
+
+#columnselect {
+  background-color: #f0ece8;
+}
+
+#savesearch {
+  display:block;
+  float: right;
+  clear: both;
+};

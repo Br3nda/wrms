@@ -157,7 +157,7 @@ th.cols, th.rows, a.cols  {font: small-caps bold $fontsizes[1] $fonts[0], sans-s
   } // if style not stripped
 
   if ( isset($client_messages) && is_array($client_messages) && count($client_messages) > 0 ) {
-    echo "<div class=\"messages\"><ul class=\"messages\">\n";
+    echo "<div id=\"messages\"><ul class=\"messages\">\n";
     reset($client_messages);
     while( list($i,$msg) = each($client_messages) ) {
       echo "<li class=\"messages\">$msg</li>\n";

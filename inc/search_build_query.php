@@ -6,23 +6,30 @@
   /////////////////////////////////////////////////////////////////////////////////////////////////
 
   $search_query = "";
-  if ( !isset($maxresults) ) $maxresults = 100;
   if ( isset($savedquery) && "$savedquery" != "" ) {
-    $qquery = "SELECT * FROM saved_queries WHERE user_no = '$session->user_no' AND query_name = '".tidy($savedquery)."';";
+    $sql =  "SELECT * FROM saved_queries ";
+    $sql .= "WHERE (user_no = '$session->user_no' OR public ) ";
+    $sql .= "AND query_name = ?;";
+    $qry = new PgQuery( $sql, $savedquery );
+    $qry->Exec("WRSearch::Build");
     $result = awm_pgexec( $dbconn, $qquery, "requestlist", false, 7);
-    $thisquery = pg_Fetch_Object( $result, 0 );
+    $thisquery = $qry->Fetch();
     $search_query = $thisquery->query_sql ;
+
     // If the maxresults they saved was non-default, use that, otherwise we
     // increase the default anyway, because saved queries are more carefully
     // crafted, and less likely to list the whole database
-    $maxresults = ( $maxresults == 100 && $thisquery->maxresults != 100 ? $thisquery->maxresults : 500 );
+    $mr = 1000;
+    if ( (!isset($maxresults) || intval($maxresults) == 0 || $maxresults == 100)
+           && intval($thisquery->maxresults) != 100 && intval($thisquery->maxresults) != 100 )
+      $mr = $thisquery->maxresults;
+    $maxresults = $mr;
     if ( $thisquery->rlsort && ! isset($_GET['rlsort']) ) {
       $rlsort = $thisquery->rlsort;
       $rlseq = $thisquery->rlseq;
     }
   }
   else {
-    error_log("$sysabbr: DBG: Building fresh search query from fields...");
     $search_query .= "SELECT request.request_id, brief, usr.fullname, usr.email, request_on, status.lookup_desc AS status_desc, last_activity, detailed ";
     $search_query .= ", request_type.lookup_desc AS request_type_desc, lower(usr.fullname) AS lfull, lower(brief) AS lbrief ";
     $search_query .= ", to_char( request.last_activity, 'FMdd Mon yyyy') AS last_change ";
@@ -44,7 +51,7 @@
       $search_query .= " AND usr.org_code = '$session->org_code' ";
     }
     else if ( isset($org_code) && intval($org_code) > 0 )
-      $search_query .= " AND usr.org_code='$org_code' ";
+      $search_query .= " AND usr.org_code='".intval($org_code)."' ";
 
     if ( intval("$user_no") > 0 )
       $search_query .= " AND requester_id = " . intval($user_no);
@@ -68,28 +75,32 @@
     if ( "$to_date" != "" )     $search_query .= " AND request.last_activity<='$to_date' ";
 
     $taglist_count = intval($taglist_count);
-    error_log( "$sysabbr: DBG: Tag List count: $taglist_count, " . is_array($tag_list) );
     if ( isset($tag_list) && is_array($tag_list) ) {
       $taglist_subquery = "";
+      $lb_count = 0;
+      $rb_count = 0;
       for ( $i=0; $i < $taglist_count ; $i++ ) {
         $tag_id = intval($tag_list[$i]);
-        error_log( "$sysabbr: DBG: Tag List[$i]: $tag_id" );
         if ( $tag_id > 0 ) {
+          $lb_count += strlen(str_replace(" ", "", $tag_lb[$i]));
+          $rb_count += strlen(str_replace(" ", "", $tag_rb[$i]));
           $taglist_subquery .= sprintf("%s %s EXISTS( SELECT 1 FROM request_tag WHERE request_id=request.request_id AND tag_id=%d) %s ",
                                          ($i>0?$tag_and[$i]:''), $tag_lb[$i], $tag_id, $tag_rb[$i]);
-          error_log( "$sysabbr: DBG: Tag List subquery: $taglist_subquery" );
         }
       }
       if ( $taglist_subquery != "" ) {
         $taglist_subquery = str_replace("'","",str_replace("\\", "", $taglist_subquery ));
         $search_query .= "AND (" . $taglist_subquery . ") ";
-        error_log( "$sysabbr: DBG: Tag List subquery: $taglist_subquery" );
+        // error_log( "$sysabbr: DBG: Tag List subquery: $taglist_subquery" );
+        if ( $lb_count != $rb_count ) {
+          $client_messages[] = "You have $lb_count left brackets and $rb_count right brackets - they should match!";
+        }
       }
     }
 
     $search_query .= " AND status.source_table='request' AND status.source_field='status_code' AND status.lookup_code=request.last_status ";
-    if ( $where_clause != "" ) {
-      $search_query .= " AND $where_clause ";
+    if ( $where_clause != "" && ($session->AllowedTo('Admin') /* || $session->AllowedTo('Support') */ )) {
+      $search_query .= " AND $where_clause ";  // Not checked, but only an Admin can do this...
     }
 
     if ( isset($incstat) && is_array( $incstat ) ) {
@@ -119,5 +130,6 @@ $search_query";
   }
 
   $search_query .= " ORDER BY $rlsort $rlseq ";
+  if ( !isset($maxresults) || intval($maxresults) == 0 ) $maxresults = 100;
   $search_query .= " LIMIT $maxresults ";
 ?>

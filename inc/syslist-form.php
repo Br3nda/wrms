@@ -61,6 +61,7 @@
 
         echo "</td></tr>\n";
       }
+      echo "<tr><td class=mand colspan=3 align=center><a class=r href=\"form.php?form=system\">Add A New System</a>";
       echo "</table>\n";
     }
   }

@@ -1,5 +1,6 @@
 <?php
   if ( !isset($org_code) ) $org_code = $session->org_code;
+  if ( "$org_code" == "new" ) unset($org_code);
   if ( isset($org_code) && $org_code > 0 ) {
 
     $query = "SELECT * FROM organisation WHERE org_code='$org_code' ";
@@ -51,14 +52,19 @@ with them.</P><?php
   }
 ?>
 <FORM METHOD=POST ACTION="form.php?form=<?php echo "$form"; ?>" ENCTYPE="multipart/form-data">
-<input type=hidden name=org_code value="<?php echo "$org->org_code"; ?>">
+<?php
+  if ( isset($org) )
+    echo "<input type=hidden name=org_code value=\"$org->org_code\">";
+  else
+    echo "<input type=hidden name=M value=add>";
+?>
 <TABLE WIDTH=100% cellspacing=0 border=0>
 
 <TR><TD COLSPAN=2>&nbsp;</TD></TR>
 <TR><TD class=h3 COLSPAN=2 ALIGN=RIGHT><FONT SIZE=+1><B>Organisation Details</B></FONT></TD></TR>
-
-<?php if ( isset($org) )
-  echo "<TR><TH ALIGN=RIGHT>Org Code:</TH><TD><h2>$org->org_code</TD></TR>";
+<?php
+  if ( isset($org) )
+    echo "<TR><TH ALIGN=RIGHT>Org Code:</TH><TD><h2>$org->org_code</TD></TR>";
 ?>
 <TR><TH ALIGN=RIGHT>Name:</TH>
 <TD><input type=text size=50 maxlen=50 name=org_name value="<?php echo "$org->org_name"; ?>"></TD></TR>

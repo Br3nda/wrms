@@ -55,14 +55,17 @@ with them.</P><?php
 
 <TR><TD COLSPAN=2>&nbsp;</TD></TR>
 <TR><TD class=h3 COLSPAN=2 ALIGN=RIGHT><FONT SIZE=+1><B>System Details</B></FONT></TD></TR>
-
-<?php if ( isset($org) )
-  echo "<TR><TH ALIGN=RIGHT>System Code:</TH><TD><h2>$sys->system_code</TD></TR>";
-?>
+<TR><TH ALIGN=RIGHT>System Code:</TH><TD>
+<?php
+  if ( isset($sys) )
+    echo "<h2>$sys->system_code";
+  else
+    echo "<input type=text size=10 maxlen=10 name=sys_code><input type=hidden name=M value=add>";
+?></TD></TR>
 <TR><TH ALIGN=RIGHT>Description:</TH>
-<TD><input type=text size=50 maxlen=50 name=sys_desc value="<?php echo "$sys->system_desc"; ?>"></TD></TR>
+<TD><input type=text size=50 maxlen=50 name=sys_desc value="<?php echo htmlspecialchars($sys->system_desc); ?>"></TD></TR>
 <TR><TH ALIGN=RIGHT>Active:</TH>
-<TD><input type=checkbox value="t" name=active<?php if ( "$sys->active" == "t" ) echo " checked"; ?>></TD></TR>
+<TD><input type=checkbox value="t" name=active<?php if ( strtolower(substr("$sys->active",0,1)) == "t" ) echo " checked"; ?>></TD></TR>
 
 <?php
   if ( $roles[wrms][Admin] && pg_NumRows($org_res) > 0 ) {

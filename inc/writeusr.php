@@ -32,7 +32,7 @@
       $UserFax      = tidy("$UserFax");
       $UserPager    = tidy("$UserPager");
       if ( "$M" == "add" ) {
-        $query = "INSERT INTO usr ( user_no, username, email, fullname, organisation, phone, fax, pager, ";
+        $query = "INSERT INTO usr ( user_no, username, email, fullname, org_code, phone, fax, pager, ";
         $query .= " mail_style, status, last_update";
         if ( $UserPassword <> "      " ) $query .= ", password";
         $query .= ")  VALUES(";
@@ -90,7 +90,7 @@
             if ( ! $result ) $because .= "<p>$query</p>";
           }
         }
-        reset($UserRole);
+        reset($NewUserRole);
       }
 
        // Write allowed systems

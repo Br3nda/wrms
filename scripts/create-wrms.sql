@@ -46,7 +46,7 @@ CREATE FUNCTION get_usr_setting(TEXT,TEXT)
 
 
 CREATE TABLE organisation (
-  org_code TEXT NOT NULL UNIQUE PRIMARY KEY,
+  org_code SERIAL PRIMARY KEY,
 	active BOOL DEFAULT TRUE,
 	debtor_no INT4,
 	work_rate FLOAT,
@@ -56,6 +56,8 @@ CREATE TABLE organisation (
 ) ;
 GRANT SELECT ON organisation TO PUBLIC;
 GRANT INSERT,UPDATE,SELECT ON organisation TO general;
+CREATE FUNCTION max_organisation() RETURNS INT4 AS 'SELECT max(org_code) FROM organisation' LANGUAGE 'sql';
+GRANT SELECT,UPDATE ON organisation_org_code_seq TO general;
 
 -- CREATE TABLE severity (
 --   severity_code INT2 NOT NULL UNIQUE PRIMARY KEY,

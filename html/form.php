@@ -1,6 +1,7 @@
 <?php
   include("inc/always.php");
   include("inc/options.php");
+  include("inc/tidy.php");
 
   if ( "$submit" <> "") {
     include("inc/$form-valid.php");

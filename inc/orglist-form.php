@@ -33,7 +33,7 @@
     if ( "$org_code" <> "" ) {
       $query .= " AND org_system.org_code = $org_code ";
     }
-    $query .= " ORDER BY organisation.org_code ";
+    $query .= " ORDER BY organisation.org_name ";
     $query .= " LIMIT 100 ";
     $result = pg_Exec( $wrms_db, $query );
     if ( ! $result ) {
@@ -68,6 +68,7 @@
 
         echo "&nbsp;</td></tr>\n";
       }
+      echo "<tr><td class=mand colspan=4 align=center><a class=r href=\"form.php?form=organisation&org_code=new\">Add A New Organisation</a>";
       echo "</table>\n";
     }
   }

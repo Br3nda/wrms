@@ -13,7 +13,7 @@
     echo "<form Action=\"$base_url/usrsearch.php\" Method=\"POST\">\n";
 
     echo "<table align=center cellspacing=0 cellpadding=2><tr valign=middle>\n";
-    echo "<td><b>Name:</b><input type=text size=\"10\" name=search_for value=\"$search_for\"></td>\n";
+    echo "<td><b>Name:</b><input type=text size=\"8\" name=search_for value=\"$search_for\"></td>\n";
 
     if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
       include( "inc/organisation-list.php" );
@@ -22,7 +22,7 @@
     }
     if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] || $roles['wrms']['Manage']) {
       include( "inc/system-list.php" );
-      $syslist = get_system_list( "VOECS", "$system_code", 20 );
+      $syslist = "<option value=\"\">--- All Systems ---</option>\n" . get_system_list( "VOECS", "$system_code", 20 );
       echo "<td><b>Type </b><select name=\"system_code\">\n$syslist</select></td>\n";
       echo "<td>&nbsp;<label><b>Inactive:</b><input type=\"checkbox\" name=status value=I" . ("$status" == "I" ? " checked" : "") . "></label></td>\n";
     }
@@ -34,7 +34,7 @@
 
       $query = "SELECT * FROM usr, organisation";
 //    $query .= ", session";
-      if ( isset( $system_code ) ) $query .= ", system_usr, lookup_code";
+      if ( isset( $system_code ) && $system_code <> "" ) $query .= ", system_usr, lookup_code";
       $query .= " WHERE usr.org_code=organisation.org_code ";
       if ( !isset( $org_code ) || $org_code == "" )
         $query .= "AND organisation.active ";
@@ -51,7 +51,7 @@
       else if ( isset( $org_code ) && $org_code != "" )
         $query .= " AND usr.org_code='$org_code' ";
 
-      if ( isset( $system_code ) ) {
+      if ( isset( $system_code ) && $system_code <> ""  ) {
         $query .= " AND system_usr.system_code='$system_code'";
         $query .= " AND system_usr.user_no=usr.user_no";
         $query .= " AND lookup_code.source_table='system_usr' AND lookup_code.source_field='role' AND lookup_code.lookup_code=system_usr.role ";
@@ -67,10 +67,10 @@
         echo "<table border=\"0\" cellpadding=2 cellspacing=1 align=center>\n<tr>\n";
         echo "<th class=cols>User&nbsp;ID</th><th class=cols>Full Name</th>\n";
         echo "<th class=cols>Organisation</th><th class=cols>Email</th>\n";
-        if ( isset( $system_code ) )
+        if ( isset( $system_code )  && $system_code <> "")
           echo "<th class=cols>User Role</th>\n";
         echo "<th class=cols>Updated</th>\n";
-        if ( ! isset( $system_code ) )
+        if ( ! isset( $system_code ) && $system_code <> "" )
           echo "<th class=cols>Accessed</th>\n";
         echo "<th class=cols>Actions</th>\n";
         echo "</tr>\n";
@@ -87,7 +87,7 @@
         echo "<td class=sml><a href=\"usr.php?user_no=$thisusr->user_no\">$thisusr->fullname</a></td>\n";
         echo "<td class=sml><a href=\"form.php?form=organisation&org_code=$thisusr->org_code\">$thisusr->org_name</a></td>\n";
         echo "<td class=sml><a href=\"mailto:$thisusr->email\">$thisusr->email</a>&nbsp;</td>\n";
-        if ( isset( $system_code ) )
+        if ( isset( $system_code ) && $system_code <> "" )
           echo "<td class=sml>$thisusr->lookup_desc ($thisusr->role)&nbsp;</td>\n";
         echo "<td class=sml>" . nice_date($thisusr->last_update) . "&nbsp;</td>\n";
         if ( ! isset( $system_code ) )

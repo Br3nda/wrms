@@ -40,7 +40,7 @@
     $rid = awm_pgexec( $wrms_db, $query, "req-action" );
     if ( $rid ) {
       if ( $user_no == $session->user_no )
-        $because .= "<h3>You have ";
+        $because .= "<h3>You are ";
       else
         $because .= "<h3>User $user_no is ";
       $because .= "no longer allocated to this request</h3>";

@@ -135,17 +135,22 @@ if (isset($user_no) && $user_no > 0 ) echo "      ";
     echo "</td></tr>";
   }
 
-  if ( $roles[wrms][Admin] ) {
+  if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] || $roles['wrms']['Manage'] ) {
     // This displays checkboxes to select the users special roles.
     echo "\n<tr bgcolor=$colors[6]>\n<th align=right class=rows>User Roles</th>";
     echo "<td VALIGN=TOP><font Size=2>\n<table border=0 cellspacing=0 cellpadding=3><tr>\n";
-    for ( $i=0; $i <pg_NumRows($grp_res); $i++) {
-      if ( $i > 0 && ($i % 3) == 0 ) echo "</tr><tr>";
+    for ( $i=0, $j=0; $i <pg_NumRows($grp_res); $i++) {
       $grp = pg_Fetch_Object( $grp_res, $i );
+      if ( "$grp->group_name" == "Admin" && !$roles[wrms][Admin] ) continue;
+      if ( "$grp->group_name" == "Support" && !($roles[wrms][Admin] || $roles[wrms][Support]) ) continue;
+      if ( "$grp->group_name" == "Manage" && !($roles[wrms][Admin] || $roles[wrms][Support] || $roles[wrms][Manage]) ) continue;
+      if ( $j > 0 && ($j % 3) == 0 ) echo "</tr><tr>";
       echo "<td><font size=2><input type=checkbox name=\"NewUserRole[$grp->module_name][$grp->group_name]\"";
       if ( isset($UserRole) && is_array($UserRole) && $UserRole[$grp->module_name][$grp->group_name] ) echo " CHECKED";
+      else if ( !isset($UserRole) && ("$grp->group_name" == "Request") ) echo " CHECKED";
       echo "> " . ucfirst($grp->module_name) . " $grp->group_name\n";
       echo " &nbsp; </font></td>\n";
+      $j++;
     }
     echo "</select></font></td></tr></table></td></tr>\n";
   }

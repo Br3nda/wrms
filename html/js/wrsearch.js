@@ -50,10 +50,10 @@ function CleanSelectOptions( sel ) {
 
 function OrganisationChanged() {
   var new_org_id = document.forms.form.org_code.value;
-  per_sel = document.forms.form.requester_id;
+  per_sel = document.forms.form.requested_by;
   sys_sel = document.forms.form.system_code;
-  alloc_sel = document.forms.form.allocatable;
-  subsc_sel = document.forms.form.subscribable;
+  subsc_sel = document.forms.form.interested_in;
+  alloc_sel = document.forms.form.allocated_to;
   orgtag_sel = document.forms.form.orgtaglist;
   if ( new_org_id != organisation_id ) {
     organisation_id = new_org_id;
@@ -63,8 +63,8 @@ function OrganisationChanged() {
         var rsp = xmlhttp.responseText;
         var lines = rsp.split("\n");
         var old_person_id = per_sel.value;
-        var old_system_code = sys_sel.value;
         CleanSelectOptions(per_sel);
+        var old_system_code = sys_sel.value;
         CleanSelectOptions(sys_sel);
         CleanSelectOptions(alloc_sel);
         CleanSelectOptions(subsc_sel);
@@ -100,7 +100,7 @@ function OrganisationChanged() {
         }
         FixTagOptions(orgtag_sel);
 
-        document.forms.form.requester_id.value
+        document.forms.form.requested_by.value
       }
     }
     xmlhttp.send(null)

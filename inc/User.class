@@ -126,7 +126,8 @@ class User {
     $ef = new EntryForm( $REQUEST_URI, $this, $GLOBALS['edit'] );
     $ef->NoHelp();  // Prefer this style, for the moment
 
-    if ( $ef->editmode ) $html .= $ef->StartForm( array("autocomplete" => "off", "onsubmit" => "return CheckUserForm();" ) );
+    if ( $ef->editmode ) $html .= $ef->StartForm( array("autocomplete" => "off"
+                               /*, "onsubmit" => "return CheckUserForm();" */ ) );
 
     $html .= "<table width=\"100%\" class=\"data\" cellspacing=\"0\" cellpadding=\"0\">\n";
 

@@ -67,9 +67,7 @@ function OrganisationChanged() {
         var old_system_code = sys_sel.value;
         CleanSelectOptions(per_sel);
         CleanSelectOptions(sys_sel);
-//        alert("System Cleaned!");
         CleanSelectOptions(alloc_sel);
-//        alert("Allocations Cleaned!");
         CleanSelectOptions(subsc_sel);
         if ( orgtag_ok )
           CleanSelectOptions(orgtag_sel);

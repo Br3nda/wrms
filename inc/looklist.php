@@ -15,7 +15,7 @@
     exit;
   }
 
-  echo "<br clear=all><table width=100% cellspacing=2 cellpadding=2>\n";
+  echo "<br clear=all><table width=100% border=1 cellspacing=1 cellpadding=2>\n";
   echo "<tr><th height=30>Seq</th><th>Code</th><th>Description</th>";
   echo "<th>Miscellaneous</th><th><span style=\" font-weight: 300;\">Actions</span></td></tr>\n";
 
@@ -62,10 +62,10 @@ function edit_line() {
         echo "<td>$lookup->lookup_code&nbsp;</td>";
         echo "<td>$lookup->lookup_desc&nbsp;</td>";
         echo "<td>$lookup->lookup_misc&nbsp;</td>\n";
-        echo "<td align=center>\n";
-        echo "<a href=\"$look_href&lookup_code=" . rawurlencode($lookup->lookup_code) . "&action=edit\">Edit </a> &nbsp;\n";
-        echo "<a href=\"$look_href&lookup_code=" . rawurlencode($lookup->lookup_code) . "&action=delete\">Delete </a> \n";
-        echo "</td>";
+        echo "<td align=center class=menu><font size=1>\n";
+        echo "<a class=r href=\"$look_href&lookup_code=" . rawurlencode($lookup->lookup_code) . "&action=edit\">Edit</a> \n";
+        echo "<a class=r href=\"$look_href&lookup_code=" . rawurlencode($lookup->lookup_code) . "&action=delete\">Delete</a>";
+        echo "</font></td>";
       }
       echo "</tr>\n";
     }

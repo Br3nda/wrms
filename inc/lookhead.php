@@ -9,12 +9,12 @@
     $error_qry = "$query";
   }
   else if ( pg_NumRows($result) > 0 ) {
-    echo "<tr><td BGCOLOR=$colors[6]><font size=1>\n";
+    echo "<tr><td BGCOLOR=$colors[6] class=menu><font size=1>\n";
     for ( $i=0; $i < pg_NumRows($result); $i++) {
       $codes = pg_Fetch_Object( $result, $i );
       list( $s_table, $s_field ) = explode( "|", "$codes->lookup_code" );
-      echo "<a href=lookups.php?table=$s_table&field=$s_field>";
-      if  ( "$table$field" == "$s_table$s_field" ) echo "<b>*"; 
+      echo "<a href=lookups.php?table=$s_table&field=$s_field";
+      if  ( "$table$field" == "$s_table$s_field" ) echo " class=r><b>*"; else echo ">";
       echo "$codes->lookup_desc";
       if  ( "$table$field" == "$s_table$s_field" ) echo "*</b>"; 
       echo "</a>";

@@ -49,17 +49,17 @@
         if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
         else echo "<tr bgcolor=$colors[7]>";
 
-        echo "<td class=sml align=center>&nbsp;<a href=\"form.php?form=system&system_code=$thissystem->system_code\">$thissystem->system_code</a>&nbsp;</td>\n";
-        echo "<td class=sml>&nbsp;<a href=\"form.php?form=system&system_code=$thissystem->system_code\">$thissystem->system_desc";
+        echo "<td align=center>&nbsp;<a href=\"form.php?form=system&system_code=$thissystem->system_code\">$thissystem->system_code</a>&nbsp;</td>\n";
+        echo "<td>&nbsp;<a href=\"form.php?form=system&system_code=$thissystem->system_code\">$thissystem->system_desc";
         if ( "$thissystem->system_desc" == "" ) echo "-- no description --";
         echo "</a>&nbsp;</td>\n";
-        echo "<td class=sml>&nbsp;<a href=\"requestlist.php?system_code=$thissystem->system_code\">Requests</a> &nbsp; \n";
-        echo "<a href=\"form.php?form=orglist&system_code=$thissystem->system_code\">Organisations</a> &nbsp; \n";
-        echo "<a href=\"usrsearch.php?system_code=$thissystem->system_code\">Users</a>\n";
+        echo "<td class=menu><a class=r href=\"requestlist.php?system_code=$thissystem->system_code\">Requests</a> &nbsp; \n";
+        echo "<a class=r href=\"form.php?form=orglist&system_code=$thissystem->system_code\">Organisations</a> &nbsp; \n";
+        echo "<a class=r href=\"usrsearch.php?system_code=$thissystem->system_code\">Users</a>\n";
         if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] )
-          echo " &nbsp; <a href=\"form.php?system_code=$thissystem->system_code&form=timelist\">Work</a>\n";
+          echo " &nbsp; <a class=r href=\"form.php?system_code=$thissystem->system_code&form=timelist\">Work</a>\n";
 
-        echo "&nbsp;</td></tr>\n";
+        echo "</td></tr>\n";
       }
       echo "</table>\n";
     }

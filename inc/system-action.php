@@ -1,7 +1,7 @@
 <?php
   $query = "BEGIN; UPDATE work_system ";
   $query .= "SET system_desc='$sys_desc' ";
-//  $query .= ", active='$active' ";
+  $query .= ", active='$active' ";
   $query .= " WHERE system_code='$system_code' ";
   $rid = pg_Exec( $wrms_db, $query );
   if ( !$rid ) {

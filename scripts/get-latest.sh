@@ -3,7 +3,7 @@
 # Update local database from socrates
 SITE=$1
 
-[ "$SITE" == "" ] && SITE=socrates.catalyst.net.nz
+[ "$SITE" == "" ] && SITE=sartre.catalyst.net.nz
 
 echo "Grabbing latest version off $SITE"
 ssh $SITE 'cd ~/wrms/scripts; ./dump-db.sh'

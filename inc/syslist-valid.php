@@ -2,7 +2,8 @@
   $because = "";
 
   if ( ! $logged_on )
-    $because .= "You must log on with a valid password and maintainer ID\n";
+    $because .= "You must log on with a valid user ID and password\n";
+
   if ( "$fsystem_code" == "" ) {
     if ( "$session->system_code" == "" )
       $because .= "You must select a valid system_code\n";

@@ -23,10 +23,7 @@
 </form>  
 
 <?php
-  if ( "$search_for$org_code " != "" && ( $roles['wrms']['Manage'] || $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) ) {
-    echo "<table border=\"0\" align=center><tr>\n";
-    echo "<th>User&nbsp;ID</th><th>Full Name</th>";
-    echo "<th>Organisation</th><th>Email</th><th>Updated</th></tr>";
+  if ( "$search_for$org_code$system_code " != "" && ( $roles['wrms']['Manage'] || $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) ) {
 
     $query = "SELECT * FROM usr, organisation WHERE usr.org_code=organisation.org_code ";
     if ( "$search_for" != "" ) {
@@ -38,6 +35,10 @@
       $query .= " AND usr.org_code='$session->org_code' ";
     else if ( isset( $org_code ) ) 
       $query .= " AND usr.org_code='$org_code' ";
+
+    if ( isset( $system_code ) ) 
+      $query .= " AND system_usr.system_code='$system_code' AND system_usr.user_no=usr.user_no";
+
     $query .= " ORDER BY username ";
 //    $query .= " LIMIT 100 ";
     $result = pg_Exec( $wrms_db, $query );
@@ -47,6 +48,11 @@
     }
     else {
       // Build table of usrs found
+      echo "<p>" . pg_NumRows($result) . " users found</p>"; // <p>$query</p>";
+      echo "<table border=\"0\" align=center><tr>\n";
+      echo "<th class=cols>User&nbsp;ID</th><th class=cols>Full Name</th>";
+      echo "<th class=cols>Organisation</th><th class=cols>Email</th><th class=cols>Updated</th></tr>";
+
       for ( $i=0; $i < pg_NumRows($result); $i++ ) {
         $thisusr = pg_Fetch_Object( $result, $i );
 
@@ -71,8 +77,8 @@
 
         echo "</tr>\n";
       }
+      echo "</table>\n";
     }
-    echo "</table>\n";
   }
 
 } /* The end of the else ... clause waaay up there! */ ?>

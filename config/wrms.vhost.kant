@@ -6,6 +6,7 @@
   ServerName mywrms
   ServerAlias mywrms mywrms.laptop.cat-it.co.nz
   ServerAlias mywrms mywrms.wgtn.cat-it.co.nz
+  Alias /images/ /home/andrew/wrms/html/images/
   php_value include_path /home/andrew/wrms/inc
   php_value magic_quotes_gpc 0
 </VirtualHost>

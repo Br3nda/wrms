@@ -4,6 +4,10 @@ function dates_equal( $date1, $date2 ) {
   return strtotime( "$date1" ) == strtotime( "$date2" );
 }
 
+  if ( "$M" == "LC" ) {
+    // No, we _don't_ want to be submitting changes when someone is logging in to view a request!
+    return;
+  }
   if ( "$submit" == "register" ) {
     $query = "INSERT INTO request_interested (request_id, username, user_no ) VALUES( $request_id, '$session->username', $session->user_no); ";
     $rid = awm_pgexec( $wrms_db, $query );
@@ -122,8 +126,9 @@ function dates_equal( $date1, $date2 ) {
     $rid = awm_pgexec( $wrms_db, $query, "req-action", true, 7 );
     if ( ! $rid ) return;
 
+    if ( ! isset( $new_status ) || "$new_status" == "" ) $new_status = "N";
     $query = "INSERT INTO request_status (request_id, status_by, status_on, status_code, status_by_id) ";
-    $query .= "VALUES( $request_id, '$session->username', 'now', 'N', $session->user_no)";
+    $query .= "VALUES( $request_id, '$session->username', 'now', '$new_status', $session->user_no)";
     $rid = awm_pgexec( $wrms_db, $query, "req-action", true, 7 );
     if ( ! $rid ) {
 //      $because .= "<P>The failed query was:</P><TT>$query</TT>";
@@ -226,12 +231,14 @@ function dates_equal( $date1, $date2 ) {
 
     $status_changed = isset($new_status) && ($request->last_status != $new_status );
     $eta_changed = !dates_equal($request->eta, $new_eta);
-    $new_brief = str_replace( "\r\n", "\n", $new_brief);
-    $brief_changed = (isset($new_brief) && trim($request->brief) != trim($new_brief));
+    if ( isset( $new_brief) ) $new_brief = str_replace( "\r\n", "\n", $new_brief);
+    if ( isset( $new_detail) ) $new_detail = str_replace( "\r\n", "\n", $new_detail);
+    $brief_changed = (isset($new_brief) && $new_brief != "" && trim($request->brief) != trim($new_brief));
+    $detail_changed = (isset($new_detail) && $new_detail != "" && trim($request->detailed) != trim($new_detail));
     $requested_by_changed = !dates_equal($request->requested_by_date, $new_requested_by_date);
     $agreed_changed = !dates_equal($request->agreed_due_date, $new_agreed_due_date);
     $changes =  $brief_changed
-             || (isset($new_detail) && $request->detailed != $new_detail)
+             || $detail_changed
              || (isset($new_type) && $request->request_type != $new_type )
              || (isset($new_severity) && $request->severity_code != $new_severity )
              || (isset($new_urgency) && $request->urgency != $new_urgency )
@@ -244,7 +251,7 @@ function dates_equal( $date1, $date2 ) {
     $changes = $changes || $work_added || $interest_added;
     error_log( "$sysabbr request-action: $changes---"
              . $brief_changed . "-"
-             . (isset($new_detail) && $request->detailed != $new_detail) . "+"
+             . $detail_changed . "+"
              . (isset($new_type) && $request->request_type != $new_type ) . "-"
              . (isset($new_severity) && $request->severity_code != $new_severity ) . "+"
              . (isset($new_urgency) && $request->urgency != $new_urgency ) . "-"
@@ -299,7 +306,7 @@ function dates_equal( $date1, $date2 ) {
     $query = "UPDATE request SET";
    if ( $brief_changed )
       $query .= " brief = '" . tidy($new_brief) . "',";
-    if ( isset($new_detail) && $request->detailed != $new_detail )
+    if ( $detail_changed )
       $query .= " detailed = '" . tidy( $new_detail ) . "',";
     if ( isset($new_eta) && ($sysmgr || $allocated_to) && $eta_changed ) $query .= " eta = '$new_eta',";
     if ( isset($new_active) && $request->active != $new_active )

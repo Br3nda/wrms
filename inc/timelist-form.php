@@ -29,7 +29,7 @@ if ( isset($user_no) && $user_no != "" ) echo "&user_no=$user_no";
 
 <?php
   if ( "$search_for$system_code " != "" ) {
-    $query = "SELECT request.*, request_timesheet.*, organisation.*,";
+    $query = "SELECT request.*, organisation.*, request_timesheet.*, ";
     $query .= " worker.fullname AS worker_name, requester.fullname AS requester_name";
     $query .= " FROM request, usr AS worker, usr AS requester, organisation, request_timesheet ";
     $query .= " WHERE request_timesheet.request_id = request.request_id";

@@ -1,8 +1,12 @@
 <?php
 function html_format( $instr ) {
+global $colors;
 
   // Lines beginning with something bullet-like get made into bullet points
   $instr = ereg_replace("\n *([o+-]) +", "<br>&nbsp;&nbsp;\\1&nbsp;&nbsp;", $instr);
+
+  // Lines beginning like e-mail comment lines
+  $instr = ereg_replace("\n( *[|>][^\n]*)", "<br><span style=\"background: ".$colors["row1"].";\">\\1</span>", $instr);
 
   // A word like _word_ displays as bold
   $instr = ereg_replace(" _([^ ]+)_ ", " <b>\\1</b> ", $instr);

@@ -2,7 +2,7 @@
 <tr><td><?php
   include("inc/block-newnodes.php");
   echo "<br>\n";
-  // include("inc/block-seek.php");
+  include("inc/block-wusearch.php");
   echo "<br>\n";
   if ( $logged_on ) {
     // include("inc/block-search.php");

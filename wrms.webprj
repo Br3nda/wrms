@@ -119,5 +119,6 @@
   <item url="html/inc/wu-form.php" />
   <item url="html/inc/wu-action.php" />
   <item url="html/inc/block-newnodes.php" />
+  <item url="html/inc/block-wusearch.php" />
  </project>
 </webproject>

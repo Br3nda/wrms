@@ -25,11 +25,23 @@
 
 function column_header( $ftext, $fname ) {
   global $rlsort, $rlseq, $org_code, $system_code, $search_for, $qry, $format, $style;
+  global $requested_by, $interested_in, $allocated_to, $inactive, $incstat, $from_date, $to_date, $type_code;
   echo "<th class=cols><a class=cols href=\"$PHP_SELF?rlsort=$fname&rlseq=";
   if ( "$rlsort" == "$fname" ) echo ( "$rlseq" == "DESC" ? "ASC" : "DESC");
   if ( isset($org_code) ) echo "&org_code=$org_code";
   if ( isset($system_code) ) echo "&system_code=$system_code";
   if ( isset($search_for) ) echo "&search_for=$search_for";
+  if ( isset($inactive) ) echo "&inactive=$inactive";
+  if ( isset($requested_by) ) echo "&requested_by=$requested_by";
+  if ( isset($interested_in) ) echo "&interested_in=$interested_in";
+  if ( isset($allocated_to) ) echo "&allocated_to=$allocated_to";
+  if ( isset($from_date) ) echo "&from_date=$from_date";
+  if ( isset($to_date) ) echo "&to_date=$to_date";
+  if ( isset($type_code) ) echo "&type_code=$type_code";
+  reset($incstat);
+  while( list($k,$v) = each( $incstat ) ) {
+    echo "&incstat[$k]=$v";
+  }
   if ( "$qry" != "" ) echo "&qry=$qry";
   if ( "$style" != "" ) echo "&style=$style";
   if ( "$format" != "" ) echo "&format=$format";
@@ -94,7 +106,7 @@ else {
         echo "<td class=smb>Watching:</td><td class=sml><select class=sml name=interested_in>$user_list</select></td>\n";
       }
       if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
-        if ( !isset($allocated_to) ) $allocated_to = $session->user_no;
+//        if ( !isset($allocated_to) ) $allocated_to = $session->user_no;
         $user_list = "<option value=\"\">--- Any Assigned Staff ---</option>" . get_user_list( "Support", "", $allocated_to );
         echo "<td class=smb>ToDo:</td><td class=sml><select class=sml name=allocated_to>$user_list</select></td>\n";
       }
@@ -353,12 +365,26 @@ function header_row() {
       if ( "$search_for" != "" ) $this_page .= "&search_for=$search_for";
       if ( "$org_code" != "" ) $this_page .= "&org_code=$org_code";
       if ( "$system_code" != "" ) $this_page .= "&system_code=$system_code";
+      if ( isset($inactive) ) $this_page .= "&inactive=$inactive";
+      if ( isset($requested_by) ) $this_page .= "&requested_by=$requested_by";
+      if ( isset($interested_in) ) $this_page .= "&interested_in=$interested_in";
+      if ( isset($allocated_to) ) $this_page .= "&allocated_to=$allocated_to";
+      if ( isset($from_date) ) $this_page .= "&from_date=$from_date";
+      if ( isset($to_date) ) $this_page .= "&to_date=$to_date";
+      if ( isset($type_code) ) $this_page .= "&type_code=$type_code";
+      reset($incstat);
+      while( list($k,$v) = each( $incstat ) ) {
+        $this_page .= "&incstat[$k]=$v";
+      }
 
       echo "<br clear=all><hr>\n<table cellpadding=5 cellspacing=5 align=right><tr><td>Rerun as report: </td>\n<td>\n";
       printf( "<a href=\"$this_page\" target=_new>Brief</a>\n", "stripped", "brief");
       if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] )
         printf( " &nbsp;|&nbsp; <a href=\"$this_page\" target=_new>Activity</a>\n", "stripped", "activity");
       printf( " &nbsp;|&nbsp; <a href=\"$this_page\" target=_new>Detailed</a>\n", "stripped", "detailed");
+      if ( "$qry" != "" ) {
+        echo "</td><td>|&nbsp; &nbsp; or <a href=\"$PHP_SELF?qs=complex&qry=$qry&action=delete\" class=sbutton>Delete</a> it\n";
+      }
       echo "</td></tr></table>\n";
     }
 

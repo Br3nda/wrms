@@ -6,7 +6,7 @@ if ( $logged_on ) { ?>
 one of the recently modified requests from the list below.</H4>
 <?php
   include( "$base_dir/inc/nice-date.php" );
-  $query = "SELECT DISTINCT ON request_id request.request_id, brief, fullname, email, last_activity, lookup_desc AS status_desc ";
+  $query = "SELECT DISTINCT ON ( request.severity_code, request_id ) request.request_id, brief, fullname, email, last_activity, lookup_desc AS status_desc ";
   $query .= "FROM request, request_interested, usr, lookup_code AS status ";
   $query .= "WHERE request.request_id=request_interested.request_id ";
   $query .= "AND request_interested.user_no=$session->user_no ";
@@ -14,7 +14,7 @@ one of the recently modified requests from the list below.</H4>
   $query .= "AND request.request_by=usr.username ";
   if ( "$session->status" == "S" ) {
     $query .= "AND request.active AND request.last_status~*'[AILNRQA]' ";
-    $query .= "ORDER BY request.severity_code DESC LIMIT 50 ";
+    $query .= "ORDER BY request.severity_code DESC, request.request_id LIMIT 50 ";
   }
   else
     $query .= "ORDER BY last_activity DESC LIMIT 20 ";

@@ -1218,17 +1218,35 @@ class Request {
              . "Importance:  $this->importance_desc\n"
              . "Urgency:     $this->urgency_desc\n";
 
-     $hbody  = "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n"
-             . "<html>\n<head>\n"
-             . "<title>".$mail->Subject."</title>\n"
-             . "<link rel='stylesheet' type='text/css' href='".$GLOBALS['base_dns']."/email.css' />\n"
-             . "</head>\n<body>\n"
-             . "<table width=100%>\n"
-             . "<tr><th width='10%' align='left' class='eth'>Request No</th><td class='etd'>$this->request_id</td></tr>\n"
-             . "<tr><th width='10%' align='left' class='eth'>Overview</th><td class='etd'>$this->brief</td></tr>\n"
-             . "<tr><th width='10%' align='left' class='eth'>Type</th><td class='etd'>$this->request_type_desc</td></tr>\n"
-             . "<tr><th width='10%' align='left' class='eth'>Importance</th><td class='etd'>$this->importance_desc</td></tr>\n"
-             . "<tr><th width='10%' align='left' class='eth'>Urgency</th><td class='etd'>$this->urgency_desc</td></tr>\n";
+     $hbody  = <<<EOX
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html><head>
+<title>$mail->Subject</title>
+<link rel='stylesheet' type='text/css' href='$GLOBALS[base_dns]/email.css' />
+<style type="text/css"><!--
+A {color: navy; text-decoration:underline;  }
+body, input {font: 13px  tahoma, sans-serif; color: #000000; margin: 0.3em; }
+p, td { margin: 0 2em 0.5em; }
+td.etd {font: bold 13px tahoma, sans-serif; color: black; background-color: #f0ece8; }
+th.eth {font: bold 15px tahoma, sans-serif; color: white; background-color: #440000; margin: 0; padding: 1px 4px; }
+.row0 { background: #ffffff; color: #333333; }
+.row1 { background: #f0ece8; color: #333333; }
+h1, .h1 {font: bold 15px/17px tahoma, sans-serif; color: #660000; margin: 2em 0.3em 0; }
+h2, .h2 {font: normal 15px tahoma, sans-serif; color: #660000;  margin: 1.4em 0.3em 0; }
+h3, th.h3 {font: bold 13px tahoma, sans-serif; color: #660000; margin: 1em 0.3em 0; }
+h4, .h4 {font: bold 13px tahoma, sans-serif; color: #660000;  margin: 0.7em 0.3em 0; }
+hr.footerline {line-height: 1em; margin: 1em; padding: 2px; height: 2px; width: 95%; color: #440000; background-color: #840000; clear: both; border: none; align: center; }
+.footer { font: normal 11px tahoma, sans-serif; }
+--></style>
+</head>\n<body>
+<table width=100%>
+<tr><th width='10%' align='left' class='eth'>Request No</th><td class='etd'>$this->request_id</td></tr>
+<tr><th width='10%' align='left' class='eth'>Overview</th><td class='etd'>$this->brief</td></tr>
+<tr><th width='10%' align='left' class='eth'>Type</th><td class='etd'>$this->request_type_desc</td></tr>
+<tr><th width='10%' align='left' class='eth'>Importance</th><td class='etd'>$this->importance_desc</td></tr>
+<tr><th width='10%' align='left' class='eth'>Urgency</th><td class='etd'>$this->urgency_desc</td></tr>
+EOX
+;
 
      if ( $this->chtype == "update" ) {
        $tbody .= "Request On:  $this->request_on\n";
@@ -1449,9 +1467,7 @@ class Request {
        $client_messages[] = "$qry->errorstring";
        return false;
      }
-     $client_messages[] = "Work added to this request";
-     $this->mail_message_data[]['html'] = "<h4>Work was added:</h4>\n<p>$work_description</p>\n";
-     $this->mail_message_data[]['text'] = " * Work done was added.\n     " . $_POST['work_description'] . "\n";
+     $client_messages[] = "Timesheet added to this request";
 
      return true;
    }
@@ -1570,11 +1586,6 @@ class Request {
        return false;
      }
      $client_messages[] = sprintf("Request tagged.", count($_POST['new_tags']));
-     $this->mail_message_data[]['html'] = "<h4>The request was tagged.</h4>\n";
-     $this->mail_message_data[]['text'] = " * The request was tagged.\n";
-
-     // If we're going to send an e-mail, fine, but we won't trigger one for this.
-//     $this->send_an_email = true;
 
      return true;
    }
@@ -1622,7 +1633,7 @@ class Request {
        return false;
      }
      $client_messages[] = "Note added to request";
-     $this->mail_message_data[]['html'] = "<h3>$session->fullname noted</h3><p>".html_format($note_detail)."</p>\n";
+     $this->mail_message_data[]['html'] = "<h3>$session->fullname noted:</h3><p>".html_format($note_detail)."</p>\n";
      $this->mail_message_data[]['text'] = "$session->fullname noted that:\n$note_detail\n";
 
      $this->send_an_email = true;

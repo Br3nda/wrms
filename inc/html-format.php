@@ -21,8 +21,8 @@ global $colors;
   $instr = ereg_replace(" mailto:([^ ]+@[^ ]+) ", " <a href=\"mailto:\\1\">\\1</a> ", $instr);
 
   // A phrase like " W/R #99999 " (and variants) gets converted to a link
-//  $instr = preg_replace("/WR #([[:digit:]]{4,6})/i", " <a href=\"".$GLOBALS['base_dns']."/wr.php?request_id=\${1}\">W/R #\${1}</a> ", $instr);
-  $instr = preg_replace("/W\/?R ?#?([[:digit:]]{4,6})([^[:digit:]]|$)/i", " <a href=\"".$GLOBALS['base_dns']."/wr.php?request_id=\${1}\">W/R #\${1}</a> ", $instr);
+  $instr = preg_replace("/(W\/?R ?#?([[:digit:]]{4,6}))([^[:digit:]]|$)/i",
+                " <a href=\"".$GLOBALS['base_dns']."/wr.php?request_id=\${2}\">\${1}</a>\${3}", $instr);
 
   // Two consecutive newlines is a new paragraph
   $instr = str_replace("\n\n", "</p><p>", $instr);

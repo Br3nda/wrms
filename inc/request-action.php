@@ -223,7 +223,7 @@ function dates_equal( $date1, $date2 ) {
 
     // Have to be pedantic here - the translation from database -> variable is basic.
     // error_log( "$sysabbr request-action1: Active: $request->active, New: $new_active", 0);
-    if ( isset($new_active) && $new_active <> "TRUE" ) $new_active = "FALSE";
+    if ( $editable && $new_active <> "TRUE" ) $new_active = "FALSE";
     if ( strtolower( substr( $request->active, 0, 1)) == "t" )
       $request->active = "TRUE";
     else

@@ -193,8 +193,7 @@ class Organisation {
     $column = 0;
     if ( $q && $q->Exec() && $q->rows ) {
       $html .= $ef->BreakLine("Active Systems");
-      $html .= '<tr><td colspan="2"><table>'."\n";
-//       $html .= '<tr><th class="pcol" colspan="3">System</th>';
+      $html .= '<tr><th class="prompt">&nbsp;</th><td class="entry"><table width="100%" class="entry">'."\n";
       while( $row = $q->Fetch() ) {
         if ( $column % 3 == 0 ) $html .= "<tr>";
         $html .= "<td width=\"33%\">";
@@ -211,12 +210,12 @@ class Organisation {
         $html .= "</td>";
         if ( ++$column % 3 == 0 ) $html .= "</tr>";
       }
+      while ( $column % 3 != 0 ) {
+        $html .= "<td></td>";
+        if ( ++$column % 3 == 0 ) $html .= "</tr>";
+      }
+      $html .= '</table></td></tr>'."\n";
     }
-    while ( $column % 3 != 0 ) {
-      $html .= "<td></td>";
-      if ( ++$column % 3 == 0 ) $html .= "</tr>";
-    }
-    $html .= '</table></td></tr>'."\n";
 
     return $html;
   }
@@ -239,7 +238,7 @@ class Organisation {
     $column = 0;
     $html .= $ef->BreakLine("Organisation Tags for Requests");
     if ( $q && $q->Exec() && $q->rows ) {
-      $html .= '<tr><th class="prompt">&nbsp;</th><td><table>'."\n";
+      $html .= '<tr><th class="prompt">&nbsp;</th><td class="entry"><table width="100%" class="entry">'."\n";
 
       while( $row = $q->Fetch() ) {
         if ( $column % 3 == 0 ) $html .= "<tr>";
@@ -297,7 +296,7 @@ class Organisation {
     $max_sequence = 100;
     $html .= $ef->BreakLine("Required Actions for Requests");
     if ( $q && $q->Exec() && $q->rows ) {
-      $html .= '<tr><th class="prompt">&nbsp;</th><td><table>'."\n";
+      $html .= '<tr><th class="prompt">&nbsp;</th><td class="entry"><table width="100%" class="entry">'."\n";
 
       while( $row = $q->Fetch() ) {
         if ( $row->action_sequence >= $max_sequence ) $max_sequence = $row->action_sequence + 100;

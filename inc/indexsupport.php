@@ -43,7 +43,7 @@ see their currently active requests.
       echo "<td class=sml align=right>&nbsp;$thisorganisation->active_org_requests</td>\n";
       echo "<td class=sml align=center>&nbsp;$thisorganisation->last_request_date</td>\n";
 
-      echo "<td class=sml align=center><a class=submit href=\"form.php?form=organisation&org_code=$thisorganisation->org_code\">Details</a>";
+      echo "<td class=sml align=center><a class=\"submit\" href=\"org.php?org_code=$thisorganisation->org_code\">Organisation</a>";
       echo "&nbsp;&nbsp;<a class=submit href=\"usrsearch.php?org_code=$thisorganisation->org_code\">Users</a>";
       echo "&nbsp;&nbsp;<a class=submit href=\"form.php?org_code=$thisorganisation->org_code&form=timelist&uncharged=1\">Work</a>";
       //echo "&nbsp;&nbsp;<a class=submit href=\"form.php?org_code=$thisorganisation->org_code&form=simpletimelist&uncharged=1\">Work by Person</a>";

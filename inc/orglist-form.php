@@ -74,7 +74,7 @@
 
         echo "</td></tr>\n";
       }
-      echo "<tr><td class=mand colspan=4 align=center><a class=submit href=\"form.php?form=organisation&org_code=new\">Add A New Organisation</a>";
+      echo "<tr><td class=mand colspan=4 align=center><a class=submit href=\"org.php\">Add A New Organisation</a>";
       echo "</table>\n";
     }
   }

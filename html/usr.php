@@ -182,37 +182,47 @@ if (isset($user_no) && $user_no > 0 ) echo "      ";
         $code = $UserCat[$sys->system_code];
       else
         $code = "";
-      echo "<select name=\"NewUserCat[$sys->system_code]\">\n";
+      if ( ! ($roles['wrms']['Admin'] || $roles['wrms']['Support'] ) ) {
+        echo "<select name=\"NewUserCat[$sys->system_code]\">\n";
 
-      echo "<option value=\"\"";
-      if ( "$code" == "" ) echo " SELECTED";
-      echo ">--- no access ---</option>\n";
+        echo "<option value=\"\"";
+        if ( "$code" == "" ) echo " SELECTED";
+        echo ">--- no access ---</option>\n";
 
-      echo "<option value=A";
-      if ( "$code" == 'A') echo " SELECTED";
-      echo ">Administration</option>\n";
+        echo "<option value=A";
+        if ( "$code" == 'A') echo " SELECTED";
+        echo ">Administration</option>\n";
 
-      echo "<option value=S";
-      if ( "$code" == 'S') echo " SELECTED";
-      echo ">System Support</option>\n";
+        echo "<option value=S";
+        if ( "$code" == 'S') echo " SELECTED";
+        echo ">System Support</option>\n";
 
-      echo "<option value=C";
-      if ( "$code" == 'C') echo " SELECTED";
-      echo ">Client Coordinator</option>\n";
+        echo "<option value=C";
+        if ( "$code" == 'C') echo " SELECTED";
+        echo ">Client Coordinator</option>\n";
 
-      echo "<option value=E";
-      if ( "$code" == 'E') echo " SELECTED";
-      echo ">Enter Requests</option>\n";
+        echo "<option value=E";
+        if ( "$code" == 'E') echo " SELECTED";
+        echo ">Enter Requests</option>\n";
 
-      echo "<option value=R";
-      if ( "$code" == 'R') echo " SELECTED";
-      echo ">Own Requests</option>\n";
+        echo "<option value=R";
+        if ( "$code" == 'R') echo " SELECTED";
+        echo ">Own Requests</option>\n";
 
-      echo "<option value=U";
-      if ( "$code" == 'U') echo " SELECTED";
-      echo ">View Requests</option>\n";
+        echo "<option value=U";
+        if ( "$code" == 'U') echo " SELECTED";
+        echo ">View Requests</option>\n";
 
-      echo "</select></font></td>\n";
+        echo "</select></font></td>\n";
+      }
+      else {
+        if ( "$code" == 'A')      echo "Administration";
+        else if ( "$code" == 'S') echo "System Support";
+        else if ( "$code" == 'C') echo "Client Coordinator";
+        else if ( "$code" == 'E') echo "Enter Requests";
+        else if ( "$code" == 'R') echo "Own Requests";
+        else if ( "$code" == 'U') echo "View Requests";
+      }
     }
 
     echo "</table>\n";

@@ -1,6 +1,7 @@
 <?php
   include("$base_dir/inc/tidy.php");
 
+//  $debuglevel = 1;
   if ( "$submit" == "register" ) {
     $query = "INSERT INTO request_interested (request_id, username, user_no ) VALUES( $request_id, '$session->username', $session->user_no); ";
     $rid = pg_Exec( $wrms_db, $query );
@@ -30,7 +31,6 @@
 
   /* scope a transaction to the whole change */
   pg_exec( $wrms_db, "BEGIN;" );
-//  $debuglevel = 1;
   if ( isset( $request ) ) {
     /////////////////////////////////////
     // Update an existing request
@@ -281,6 +281,7 @@
     if ( $in_notify ) {
       $query = "INSERT INTO request_interested (request_id, username, user_no ) ";
       $query .= " VALUES( $request_id, '$requsr->username', $requsr->user_no); ";
+      if ( $debuglevel > 0 ) $because .= "<p>$query</p>";
       $rid = pg_Exec( $wrms_db, $query );
       if ( ! $rid ) {
         $because .= "<H3>&nbsp;Submit Interest Failed!</H3>\n";
@@ -295,6 +296,7 @@
     $query .= "WHERE system_usr.system_code = '$new_system_code' ";
     $query .= "AND system_usr.role = 'S' " ;
     $query .= "AND system_usr.user_no = usr.user_no " ;
+    if ( $debuglevel > 0 ) $because .= "<p>$query</p>";
     $rid = pg_Exec( $wrms_db, $query);
     if ( ! $rid  ) {
       $because .= "<P>Query failed:</P><P>$query</P>";
@@ -309,6 +311,7 @@
 
         if ( !$in_notify || strcmp( $sys_notify->user_no, $requsr->user_no) ) {
           $query = "SELECT set_interested( $sys_notify->user_no, $request_id ); ";
+          if ( $debuglevel > 0 ) $because .= "<p>$query</p>";
           $rrid = pg_exec( $wrms_db, $query );
           if ( ! $rrid ) {
             $because .= "<H3>System Manager Interest Failed!</H3>\n";
@@ -321,10 +324,12 @@
       }
     }
 
-    $query = "SELECT * FROM org_usr, usr ";
-    $query .= "WHERE org_usr.org_code = '$requsr->org_code' ";
-    $query .= "AND org_usr.role = 'C' " ;
-    $query .= "AND org_usr.user_no = usr.user_no " ;
+    $query = "SELECT * FROM system_usr, usr ";
+    $query .= "WHERE system_usr.system_code = '$new_system_code' ";
+    $query .= "AND system_usr.role = 'C' " ;
+    $query .= "AND system_usr.user_no = usr.user_no " ;
+    $query .= "AND usr.org_code=$requsr->org_code; " ;
+    if ( $debuglevel > 0 ) $because .= "<p>$query</p>";
     $rid = pg_Exec( $wrms_db, $query);
     if ( ! $rid  ) {
       $because .= "<P>Query failed:</P><P>$query</P>";
@@ -332,16 +337,17 @@
       return;
     }
     else if (!pg_NumRows($rid) )
-      $because .= "<P><B>Warning: </B> No organisation manager for '$requsr->org_code'</P>";
+      $because .= "<P><B>Warning: </B> No system organisational coordinator for '$new_system_code'</P>";
     else {
-      for ($i=0; $i <pg_NumRows($rid); $i++ ) {
-        $admin_notify = pg_Fetch_Object( $rid, $i );
+      for ( $i=0; $i<pg_NumRows($rid); $i++ ) {
+        $sys_notify = pg_Fetch_Object( $rid, $i );
 
-        if ( !$in_notify || strcmp( $admin_notify->user_no, $requsr->user_no) ) {
-          $query = "SELECT set_interested( $admin_notify->user_no, $request_id )";
+        if ( !$in_notify || strcmp( $sys_notify->user_no, $requsr->user_no) ) {
+          $query = "SELECT set_interested( $sys_notify->user_no, $request_id ); ";
+          if ( $debuglevel > 0 ) $because .= "<p>$query</p>";
           $rrid = pg_exec( $wrms_db, $query );
           if ( ! $rrid ) {
-            $because .= "<H3>Organisation Manager Interest Failed!</H3>\n";
+            $because .= "<H3>Organisational Cooordinator Interest Failed!</H3>\n";
             $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
             $because .= "<P>The failed query was:</P><TT>$query</TT>";
             pg_exec( $wrms_db, "ROLLBACK;" );
@@ -350,6 +356,7 @@
         }
       }
     }
+
     $because .= "<H2>Your request number for enquiries is $request_id.</H2>";
     $send_some_mail = TRUE;
   }

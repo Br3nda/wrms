@@ -201,6 +201,7 @@ CREATE TABLE request_timesheet (
 );
 CREATE UNIQUE INDEX request_timesheet_skey1 ON request_timesheet ( work_on, work_by_id, request_id );
 GRANT INSERT,UPDATE,SELECT ON request_timesheet TO general;
+CREATE FUNCTION max_timesheet() RETURNS INT4 AS 'SELECT max(timesheet_id) FROM request_timesheet' LANGUAGE 'sql';
 
 
 CREATE TABLE request_note (

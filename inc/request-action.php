@@ -30,7 +30,7 @@
 
   /* scope a transaction to the whole change */
   pg_exec( $wrms_db, "BEGIN;" );
-  $debuglevel = 1;
+//  $debuglevel = 1;
   if ( isset( $request ) ) {
     /////////////////////////////////////
     // Update an existing request

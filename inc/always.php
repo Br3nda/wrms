@@ -1,12 +1,12 @@
 <?php
 // Turn on output buffering so that we can send a "Content-Length" header.
-function my_ob_callback( $buffer ) {
+// function my_ob_callback( $buffer ) {
   // Tidy up the output buffer and send it.
-  $length = strlen($buffer);
-  Header( "Content-Length: $length" );
-  return $buffer;
-}
-ob_start( 'my_ob_callback' );
+  // $length = strlen($buffer);
+  // Header( "Content-Length: $length" );
+  // return $buffer;
+// }
+// ob_start( 'my_ob_callback' );
 
 
 $begin_processing = microtime();

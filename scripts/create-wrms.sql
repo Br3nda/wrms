@@ -582,10 +582,10 @@ CREATE FUNCTION set_allocated (int4, int4) RETURNS int4 AS '
       req_id ALIAS FOR $2;
       curr_val TEXT;
    BEGIN
-      SELECT username INTO curr_val FROM request_allocated
-			                WHERE user_no = u_no AND request_id = req_id;
+      SELECT allocated_to INTO curr_val FROM request_allocated
+			                WHERE allocated_to_id = u_no AND request_id = req_id;
       IF NOT FOUND THEN
-        INSERT INTO request_allocated (user_no, request_id, username)
+        INSERT INTO request_allocated (allocated_to_id, request_id, allocated_to)
 				    SELECT user_no, req_id, username FROM usr WHERE user_no = u_no;
       END IF;
       RETURN u_no;

@@ -1892,6 +1892,7 @@ EOX
       $sql .= "FROM system_usr s ";
       $sql .= "JOIN usr u ON s.user_no = u.user_no ";
       $sql .= "WHERE s.system_code = '$this->system_code' AND s.role IN ( 'S', 'C' ) ";
+      $sql .= "AND u.user_no NOT IN ( $new_subscriptions ) ";
       $sql .= "AND NOT EXISTS( SELECT 1 FROM request_interested WHERE request_id = $this->request_id ";
       $sql .=                  "AND request_interested.user_no = u.user_no) ";
       $sql .= "AND (usr.org_code IN ( $this->org_code, $session->org_code ) ";

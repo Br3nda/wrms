@@ -23,4 +23,4 @@ ALTER TABLE usr ADD COLUMN base_rate NUMERIC;
 -- And finally commit that to make it a logical unit...
 COMMIT;
 
-VACUUM FULL VERBOSE ANALYZE request-timesheet;
+VACUUM FULL VERBOSE ANALYZE request_timesheet;

@@ -6,10 +6,10 @@ CREATE or REPLACE FUNCTION set_interested (int4, int4) RETURNS int4 AS '
       curr_val TEXT;
    BEGIN
       SELECT username INTO curr_val FROM request_interested
-			                WHERE user_no = u_no AND request_id = req_id;
+                      WHERE user_no = u_no AND request_id = req_id;
       IF NOT FOUND THEN
         INSERT INTO request_interested (user_no, request_id, username)
-				    SELECT user_no, req_id, username FROM usr WHERE user_no = u_no;
+            SELECT user_no, req_id, username FROM usr WHERE user_no = u_no;
       END IF;
       RETURN u_no;
    END;
@@ -23,10 +23,35 @@ CREATE or REPLACE FUNCTION set_allocated (int4, int4) RETURNS int4 AS '
       curr_val TEXT;
    BEGIN
       SELECT allocated_to INTO curr_val FROM request_allocated
-			                WHERE allocated_to_id = u_no AND request_id = req_id;
+                      WHERE allocated_to_id = u_no AND request_id = req_id;
       IF NOT FOUND THEN
         INSERT INTO request_allocated (allocated_to_id, request_id, allocated_to)
-				    SELECT user_no, req_id, username FROM usr WHERE user_no = u_no;
+            SELECT user_no, req_id, username FROM usr WHERE user_no = u_no;
+      END IF;
+      RETURN u_no;
+   END;
+' LANGUAGE 'plpgsql';
+
+-- Set a user as having a particular system-related role
+CREATE or REPLACE FUNCTION set_system_role (int4, text, text ) RETURNS int4 AS '
+   DECLARE
+      u_no ALIAS FOR $1;
+      sys_code ALIAS FOR $2;
+      new_role ALIAS FOR $3;
+      curr_val TEXT;
+   BEGIN
+      SELECT role INTO curr_val FROM system_usr
+                      WHERE user_no = u_no AND system_code = sys_code;
+      IF FOUND THEN
+        IF curr_val = new_role THEN
+          RETURN u_no;
+        ELSE
+          UPDATE system_usr SET role = new_role
+                      WHERE user_no = u_no AND system_code = sys_code;
+        END IF;
+      ELSE
+        INSERT INTO system_usr (user_no, system_code, role)
+                         VALUES( u_no, sys_code, new_role );
       END IF;
       RETURN u_no;
    END;

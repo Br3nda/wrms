@@ -4,7 +4,7 @@
 
 include_once('PgQuery.php');
 
-if ( isset($logout) )
+if ( isset($logout) || (isset($M) && $M=='LO') )
 {
   error_log("$sysname: Session: DBG: Logging out");
   setcookie( 'sid', '', 0,'/');
@@ -24,12 +24,18 @@ if ( !isset($session) ) {
 }
 
 function session_salted_md5( $instr, $salt = "" ) {
+  global $sysabbr, $debuggroups;
   if ( $salt == "" ) $salt = substr( md5(rand(100000,999999)), 2, 8);
-  return ( "*$salt*" . md5($salt . $instr) );
+  if ( $debuggroups['Login'] )
+    error_log( "$sysabbr: DBG: Making salted MD5: salt=$salt, instr=$instr, md5($salt$instr)=".md5($salt . $instr) );
+  return ( sprintf("*%s*%s", $salt, md5($salt . $instr) ) );
 }
 
 function session_validate_password( $they_sent, $we_have ) {
   global $system_name, $debuggroups;
+
+  if ( $debuggroups['Login'] )
+    error_log( "$system_name: vpw: DBG: Comparing they_sent=$they_sent with $we_have" );
 
   // In some cases they send us a salted md5 of the password, rather
   // than the password itself (i.e. if it is in a cookie)
@@ -50,7 +56,7 @@ function session_validate_password( $they_sent, $we_have ) {
     $salt = $regs[1];
     $md5_sent = session_salted_md5( $they_sent, $salt ) ;
     if ( $debuggroups['Login'] )
-      error_log( "$system_name: vpw: DBG: Salt=$salt, comparing=$md5_sent with $pwcompare" );
+      error_log( "$system_name: vpw: DBG: Salt=$salt, comparing=$md5_sent with $pwcompare or $we_have" );
     return ( $md5_sent == $pwcompare );
   }
 
@@ -148,11 +154,21 @@ class Session
   {
     $this->roles = array();
     $qry = new PgQuery( 'SELECT group_name AS role_name FROM group_member m join ugroup g ON g.group_no = m.group_no WHERE user_no = ? ', $this->user_no );
-    if ( $qry->Exec('Login') && $qry->rows > 0 )
+    if ( $qry->Exec('Session::GetRoles') && $qry->rows > 0 )
     {
       while( $role = $qry->Fetch() )
       {
         $this->roles[$role->role_name] = true;
+      }
+    }
+
+    $this->system_roles = array();
+    $qry = new PgQuery( 'SELECT role FROM system_usr WHERE user_no = ? ', $this->user_no );
+    if ( $qry->Exec('Session::GetRoles') && $qry->rows > 0 )
+    {
+      while( $role = $qry->Fetch() )
+      {
+        $this->system_roles[$role->role] = true;
       }
     }
   }

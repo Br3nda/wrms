@@ -44,6 +44,19 @@ elseif ( strstr($REQUEST_URI,"/attachment_type.php") || (isset($type_code) && $t
   $tmnu->AddOption("New","/attachment_type.php","Create a new Attachment Type");
   $tmnu->AddOption("List","/form.php?form=attachment_type","List the existing attachment types");
 }
+elseif ( strstr($REQUEST_URI,"/user.php") || (isset($user_no) && $user_no != '') ) {
+  $tmnu->AddOption("User","/user.php?user_no=$user_no","View the details for this user");
+  if ( strstr($REQUEST_URI, "/user.php") ) {
+    $tmnu->AddOption("Edit","/user.php?edit=1&user_no=$user_no","Edit the details for this user");
+  }
+  $tmnu->AddOption("Subscribed","/requestlist.php?qs=complex&interested_in=$user_no","List current requests this user is subscribed to");
+  $tmnu->AddOption("Allocated","/requestlist.php?qs=complex&allocated_to=$user_no","List current requests this user is allocated to");
+
+//  if ( $session->AllowedTo('Admin') || $session->AllowedTo('Support') ) {
+  if ( is_member_of('Admin', 'Support' ) ) {
+    $tmnu->AddOption("Uncharged","/form.php?user_no=$user_no&form=timelist&uncharged=1","List uncharged work for this user");
+  }
+}
 elseif ( strstr($REQUEST_URI,"/usr.php") || (isset($user_no) && $user_no != '') ) {
   $tmnu->AddOption("User","/usr.php?user_no=$user_no","View the details for this user");
   if ( strstr($REQUEST_URI, "/usr.php") ) {

@@ -5,162 +5,170 @@
 /////////////////////////////////////////////////////////////
 class EntryField
 {
-   var $fname;               // The original field name
-   var $ftype;               // The type of entry field
-   var $current;             // The current value
-   var $attributes;          // An array of key value pairs
-   var $rendered;            // Once it actually is...
+  var $fname;               // The original field name
+  var $ftype;               // The type of entry field
+  var $current;             // The current value
+  var $attributes;          // An array of key value pairs
+  var $rendered;            // Once it actually is...
 
-  /**
-   * Initialise an EntryField, used for data entry
-   *
-   * @param text $intype The type of field:
-   *    select | lookup | date | checkbox | textarea
-   *    (anything else is dealt with as "text")
-   *
-   * @param text $inname The name of the field.
-   *
-   * @param text $inextra An associative array of extra attributes to
-   *                      be applied to the field.  Optional.
-   *
-   * @param text $inname The current value to use to initialise the
-   *                     field.   Optional.
-   *
-   * @return object
-   *
-   * @author Andrew McMillan <andrew@catalyst.net.nz>
-   */
-    function EntryField( $intype, $inname, $inextra="", $current_value="" )
-   {
-      $this->ftype = $intype;
-      $this->fname = $inname;
-      $this->current = $current_value;
+/**
+  * Initialise an EntryField, used for data entry
+  *
+  * @param text $intype The type of field:
+  *    select | lookup | date | checkbox | textarea
+  *    (anything else is dealt with as "text")
+  *
+  * @param text $inname The name of the field.
+  *
+  * @param text $inextra An associative array of extra attributes to
+  *                      be applied to the field.  Optional.
+  *
+  * @param text $inname The current value to use to initialise the
+  *                     field.   Optional.
+  *
+  * @return object
+  *
+  * @author Andrew McMillan <andrew@catalyst.net.nz>
+  */
+  function EntryField( $intype, $inname, $inextra="", $current_value="" )
+  {
+    $this->ftype = $intype;
+    $this->fname = $inname;
+    $this->current = $current_value;
 
-      if ( isset($this->{"new_$intype"}) && function_exists($this->{"new_$intype"}) ) {
-        // Optionally call a function within this object called "new_<intype>" for setup
-        $this->{"new_$intype"}( $inextra );
-      }
-      else if ( is_array($inextra) ) {
-        $this->attributes = $inextra;
-      }
-      else {
-      }
+    if ( isset($this->{"new_$intype"}) && function_exists($this->{"new_$intype"}) ) {
+      // Optionally call a function within this object called "new_<intype>" for setup
+      $this->{"new_$intype"}( $inextra );
+    }
+    else if ( is_array($inextra) ) {
+      $this->attributes = $inextra;
+    }
+    else {
+    }
 
-      $this->rendered = "";
+    $this->rendered = "";
 
-      return $this;
-   }
+    return $this;
+  }
 
-  /**
-   * Render an EntryField into HTML
-   *
-   * @return text  An HTML fragment for the data-entry field.
-   *
-   * @author Andrew McMillan <andrew@catalyst.net.nz>
-   */
-   function Render() {
-     $r = "<";
-     switch ( $this->ftype ) {
+/**
+  * Render an EntryField into HTML
+  *
+  * @return text  An HTML fragment for the data-entry field.
+  *
+  * @author Andrew McMillan <andrew@catalyst.net.nz>
+  */
+  function Render() {
+    global $session;
 
-       case "select":
-         $r .= "select name=\"$this->fname\"%%attributes%%>";
-         reset( $this->attributes );
-         while( list($k,$v) = each( $this->attributes ) ) {
-           if ( substr($k, 0, 1) != '_' ) continue;
-           if ( $k == '_help' ) continue;
-           $k = substr($k,1);
-           $r .= "<option value=\"".htmlentities($k)."\"";
-           if ( "$this->current" == "$k" ) $r .= " selected";
-           $r .= ">$v</option>\n" ;
-         }
-         $r .= "</select>\n";
-         break;
+    $r = "<";
+    switch ( $this->ftype ) {
 
-       case "lookup":
-         $r .= "select name=\"$this->fname\"%%attributes%%>\n";
-         if ( isset($this->attributes["_all"]) ) {
-           $r .= sprintf("<option value=\"all\"".("all"==$this->current?" selected":"").">%s</option>\n", $this->attributes["_all"] );
-         }
-         if ( isset($this->attributes["_null"]) ) {
-           $r .= sprintf("<option value=\"\"".(""==$this->current?" selected":"").">%s</option>\n", $this->attributes["_null"] );
-         }
-         if ( isset($this->attributes["_zero"]) ) {
-           $r .= sprintf("<option value=\"0\"".(0==$this->current?" selected":"").">%s</option>\n", $this->attributes["_zero"] );
-         }
-         if ( isset($this->attributes["_sql"]) ) {
-           $qry = new PgQuery( $this->attributes["_sql"] );
-         }
-         else {
-           list( $tbl, $fld ) = explode("|", $this->attributes['_type'], 2);
-           $qry = new PgQuery( "SELECT lookup_code, lookup_desc FROM lookup_code WHERE source_table = ? AND source_field = ? ORDER BY lookup_seq, lookup_code", $tbl, $fld );
-         }
-         $r .= $qry->BuildOptionList( $this->current, "rndr:$this->fname" );
-         $r .= "</select>\n";
-         break;
+      case "select":
+        $r .= "select name=\"$this->fname\"%%attributes%%>";
+        reset( $this->attributes );
+        while( list($k,$v) = each( $this->attributes ) ) {
+          if ( substr($k, 0, 1) != '_' ) continue;
+          if ( $k == '_help' ) continue;
+          $k = substr($k,1);
+          $r .= "<option value=\"".htmlentities($k)."\"";
+          if ( "$this->current" == "$k" ) $r .= " selected";
+          $r .= ">$v</option>\n" ;
+        }
+        $r .= "</select>\n";
+        break;
 
-       case "date":
-         if ( !isset($this->attributes['size']) || $this->attributes['size'] == "" ) $size = " size=12";
-         $r .= "input type=\"text\" name=\"$this->fname\"$size value=\"".htmlentities($this->current)."\"%%attributes%%>\n";
-         break;
+      case "lookup":
+        $r .= "select name=\"$this->fname\"%%attributes%%>\n";
+        if ( isset($this->attributes["_all"]) ) {
+          $r .= sprintf("<option value=\"all\"".("all"==$this->current?" selected":"").">%s</option>\n", $this->attributes["_all"] );
+        }
+        if ( isset($this->attributes["_null"]) ) {
+          $r .= sprintf("<option value=\"\"".(""==$this->current?" selected":"").">%s</option>\n", $this->attributes["_null"] );
+        }
+        if ( isset($this->attributes["_zero"]) ) {
+          $r .= sprintf("<option value=\"0\"".(0==$this->current?" selected":"").">%s</option>\n", $this->attributes["_zero"] );
+        }
+        if ( isset($this->attributes["_sql"]) ) {
+          $qry = new PgQuery( $this->attributes["_sql"] );
+        }
+        else {
+          list( $tbl, $fld ) = explode("|", $this->attributes['_type'], 2);
+          $qry = new PgQuery( "SELECT lookup_code, lookup_desc FROM lookup_code WHERE source_table = ? AND source_field = ? ORDER BY lookup_seq, lookup_code", $tbl, $fld );
+        }
+        $r .= $qry->BuildOptionList( $this->current, "rndr:$this->fname" );
+        $r .= "</select>\n";
+        break;
 
-       case "checkbox":
-         $checked = "";
-         if ( $this->current == 't' || intval($this->current) > 0 || $this->current == 'on'
-               || (isset($this->attributes['value']) && $this->current == $this->attributes['value'] ) )
-           $checked = " checked";
-         if ( isset($this->attributes['_label']) ) {
-           $r .= "label for=\"id_$this->fname\"";
-           if ( isset($this->attributes['class']) )
-             $r .= ' class="'. $this->attributes['class'] . '"';
-           $r .= "><";
-         }
-         $r .= "input type=\"checkbox\" name=\"$this->fname\" id=\"id_$this->fname\"$checked%%attributes%%>";
-         if ( isset($this->attributes['_label']) ) {
-           $r .= " " . $this->attributes['_label'];
-           $r .= "</label>\n";
-         }
-         break;
+      case "date":
+        if ( !isset($this->attributes['size']) || $this->attributes['size'] == "" ) $size = " size=12";
+        $r .= "input type=\"text\" name=\"$this->fname\"$size value=\"".htmlentities($this->current)."\"%%attributes%%>\n";
+        break;
 
-       case "button":
-         $r .= "input type=\"button\" name=\"$this->fname\"%%attributes%%>\n";
-         break;
+      case "radio":
+      case "checkbox":
+        $checked = "";
+        if ( $this->current == 't' || intval($this->current) == 1 || $this->current == 'on'
+              || (isset($this->attributes['value']) && $this->current == $this->attributes['value'] ) )
+          $checked = " checked";
+        $id = "id_$this->fname" . ( $this->ftype == "radio" ? "_".$this->attributes['value'] : "");
+        if ( isset($this->attributes['_label']) ) {
+          $r .= "label for=\"$id\"";
+          if ( isset($this->attributes['class']) )
+            $r .= ' class="'. $this->attributes['class'] . '"';
+          $r .= "><";
+        }
+        $r .= "input type=\"$this->ftype\" name=\"$this->fname\" id=\"$id\"$checked%%attributes%%>";
+        if ( isset($this->attributes['_label']) ) {
+          $r .= " " . $this->attributes['_label'];
+          $r .= "</label>\n";
+        }
+        break;
 
-       case "submit":
-         $r .= "input type=\"submit\" name=\"$this->fname\" value=\"".htmlentities($this->current)."\"%%attributes%%>\n";
-         break;
+      case "button":
+        $r .= "input type=\"button\" name=\"$this->fname\"%%attributes%%>\n";
+        break;
 
-       case "textarea":
-         $r .= "textarea name=\"$this->fname\"%%attributes%%>$this->current</textarea>\n";
-         break;
+      case "submit":
+        $r .= "input type=\"submit\" name=\"$this->fname\" value=\"".htmlentities($this->current)."\"%%attributes%%>\n";
+        break;
 
-       case "file":
-         if ( !isset($this->attributes['size']) || $this->attributes['size'] == "" ) $size = " size=25";
-         $r .= "input type=\"file\" name=\"$this->fname\"$size value=\"".htmlentities($this->current)."\"%%attributes%%>\n";
-         break;
+      case "textarea":
+        $r .= "textarea name=\"$this->fname\"%%attributes%%>$this->current</textarea>\n";
+        break;
 
-       default:
-         $r .= "input type=\"text\" name=\"$this->fname\" value=\"".htmlentities($this->current)."\"%%attributes%%>\n";
-         break;
-     }
+      case "file":
+        if ( !isset($this->attributes['size']) || $this->attributes['size'] == "" ) $size = " size=25";
+        $r .= "input type=\"file\" name=\"$this->fname\"$size value=\"".htmlentities($this->current)."\"%%attributes%%>\n";
+        break;
 
-     // Now process the generic attributes
-     reset( $this->attributes );
-     $attribute_values = "";
-     while( list($k,$v) = each( $this->attributes ) ) {
-       if ( $k == '_readonly' ) $attribute_values .= " readonly";
-       else if ( $k == '_disabled' ) $attribute_values .= " disabled";
-       if ( substr($k, 0, 1) == '_' ) continue;
-       $attribute_values .= " $k=\"".htmlentities($v)."\"";
-     }
-     $r = str_replace( '%%attributes%%', $attribute_values, $r );
+      case "password":
+        $r .= "input type=\"password\" name=\"$this->fname\" value=\"".htmlentities($this->current)."\"%%attributes%%>\n";
+        break;
 
-     $this->rendered = $r;
-     return $r;
-   }
+      default:
+        $r .= "input type=\"text\" name=\"$this->fname\" value=\"".htmlentities($this->current)."\"%%attributes%%>\n";
+        break;
+    }
 
-   function new_lookup( $inextra ) {
-     $this->attributes = $inextra;
-   }
+    // Now process the generic attributes
+    reset( $this->attributes );
+    $attribute_values = "";
+    while( list($k,$v) = each( $this->attributes ) ) {
+      if ( $k == '_readonly' ) $attribute_values .= " readonly";
+      else if ( $k == '_disabled' ) $attribute_values .= " disabled";
+      if ( substr($k, 0, 1) == '_' ) continue;
+      $attribute_values .= " $k=\"".htmlentities($v)."\"";
+    }
+    $r = str_replace( '%%attributes%%', $attribute_values, $r );
+
+    $this->rendered = $r;
+    return $r;
+  }
+
+  function new_lookup( $inextra ) {
+    $this->attributes = $inextra;
+  }
 }
 
 class EntryForm

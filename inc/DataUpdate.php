@@ -33,7 +33,7 @@ function sql_from_post( $type, $tablename, $where, $fprefix = "" ) {
     $value = str_replace( "'", "''", str_replace("\\", "\\\\", $_POST[$fn]));
     if ( $fn == "password" ) {
       if ( $value == "******" || $value == "" ) continue;
-      $value = md5($value);
+      if ( !preg_match('/\*[0-9a-z]+\*[0-9a-z]+/', $value ) ) $value = md5($value);
     }
     if ( eregi("(time|date)", $typ ) && $value == "" ) {
       $value = "NULL";

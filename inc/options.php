@@ -4,6 +4,9 @@
 
   if ( isset($session) ) return;
 
+
+  error_log( "$system_name: options: WARN: Validating with options.php, not updated to Session basis." );
+
 if ( ! function_exists('salted_md5') ) {
 function salted_md5( $instr, $salt = "" ) {
   if ( $salt == "" ) $salt = substr( md5(rand(100000,999999)), 2, 8);

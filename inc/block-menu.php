@@ -4,7 +4,7 @@
   block_title("&nbsp;");
   echo "<tr><td class=block>\n &nbsp;";
   $tooltip = "Maintain your name, phone and e-mail details, or change your password";
-  echo "<a href=\"usr.php?user_no=$session->user_no\" class=block title=\"$tooltip\" alt=\"$tooltip\">Edit&nbsp;My&nbsp;Info</a>\n";
+  echo "<a href=\"user.php?edit=1&user_no=$session->user_no\" class=block title=\"$tooltip\" alt=\"$tooltip\">Edit&nbsp;My&nbsp;Info</a>\n";
 
   $tooltip = "Au revoir!";
   echo  "<br>\n &nbsp;<a href=\"/?M=LO$hurl\" class=block title=\"$tooltip\" alt=\"$tooltip\">Log Off</a>";

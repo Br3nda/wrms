@@ -141,10 +141,50 @@ class Request {
    /////////////////////////////////////////////////////////////
    function AllowedTo( $action ) {
      global $session;
+     if ( $session->AllowedTo("Admin") ) return true;   // Admin can do anything
      switch( $action ) {
+       'create':
+         if ( $session->AllowedTo("Support") )    return true;   // Support can always create
+         if ( $session->AllowedTo("Contractor") ) return true;
+         if ( $session->AllowedTo("Manage") )     return true;
+         if ( $session->AllowedTo("Request") )    return true;
+         $session->Log("WR::AllowedTo: WARNING: Denying action '$action' to $session->username, User-Org:$session->org_code, WR-Org:$this->org_code, System:$this->system_code");
+         return false;
+       'view':
+         if ( $session->AllowedTo("Support") ) return true;   // Support can always update
+         if ( $this->org_code == $session->org_code ) {
+           if ( isset($this->system_roles[$this->system_code]) ) {
+             return true;
+           }
+         }
+         else if ( $session->AllowedTo("Contractor") ) {
+           // Need specific Support access to this System
+           if ( isset($this->system_roles[$this->system_code]) ) {
+             return true;
+           }
+         }
+         $session->Log("WR::AllowedTo: WARNING: Denying action '$action' to $session->username, User-Org:$session->org_code, WR-Org:$this->org_code, System:$this->system_code");
+         return false;
+
+       'update':
+         if ( $session->AllowedTo("Support") ) return true;   // Support can always update
+         if ( $this->org_code == $session->org_code ) {
+           if ( stripos("SACE",$this->system_roles[$this->system_code] ) ) {
+             return true;
+           }
+         }
+         else if ( $session->AllowedTo("Contractor") ) {
+           // Need specific Support access to this System
+           if ( stripos("SACEO",$this->system_roles[$this->system_code] ) ) {
+             return true;
+           }
+         }
+         $session->Log("WR::AllowedTo: WARNING: Denying action '$action' to $session->username, User-Org:$session->org_code, WR-Org:$this->org_code, System:$this->system_code");
+         return false;
        default:
          $session->Log("WR::AllowedTo: WARNING: Unrecognised action: '$action'");
      }
+     // Default to allowing unrecognised actions.
      return true;  // Of course they can!
    }
 

@@ -1,6 +1,7 @@
 <?php
   include("always.php");
-  include("options.php");
+  require_once("authorisation-page.php");
+
   $right_panel = false;
   $title = $system_name;
   include("headers.php");

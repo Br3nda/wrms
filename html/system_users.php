@@ -119,7 +119,7 @@ TABLEHEADINGS;
 </td></tr>
 LINEFORMAT;
 
-$role_colours = array( 'A' => '#ff5010', 'S' => '#e03000', 'C' => '#60a000',
+$role_colours = array( 'A' => '#ffa000', 'S' => '#e03000', 'C' => '#60a000',
                        'E' => '#80b020', 'O' => '#d0e070', 'V' => '#f0ff80' );
 
     if ( $ef->editmode  && ($session->AllowedTo('Admin') || $session->AllowedTo('Support') || $session->AllowedTo('OrgMgr')) ) {

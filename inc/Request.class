@@ -1223,6 +1223,7 @@ class Request {
     error_log("$system_name: WR::Validate: WARNING: Not validating request");
 //    $client_messages[] = "WARNING: Not validating request details yet.";
 
+    $this->chtype = strtolower($_POST['submit']);
 
     if ( ! $this->_CheckNewRequester() ) return false;
 
@@ -1297,7 +1298,6 @@ class Request {
     error_log("$system_name: WR::Write: Writing request details to database");
     $qry = new PgQuery("BEGIN");  $qry->Exec("WR::Write");
 
-    $this->chtype = strtolower($_POST['submit']);
     $this->send_an_email = false;
 
     $db_errors = false;

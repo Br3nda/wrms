@@ -22,6 +22,8 @@
 		}
 
     $request_types = get_code_list( "request", "request_type", "$request_type" );
+
+    $quote_types = get_code_list( "request_quote", "quote_type", "$quote_type" );
         
 ?>
 
@@ -40,6 +42,13 @@
 				<select class=sml name=request_type>
 					<option>(All)</option>
 						<?php echo $request_types; ?>
+				</select>
+			</td>
+			<td class=smb>Quote Type</td>
+			<td class=sml>
+				<select class=sml name=quote_type>
+					<option>(All)</option>
+						<?php echo $quote_types; ?>
 				</select>
 			</td>
 			<td valign=middle class=smb align=center>
@@ -77,7 +86,7 @@
 
 <?php
 
-    if ( isset($system_code) || isset($request_type)) {
+    if ( isset($system_code) || isset($request_type) || isset($quote_type) ) {
 
 	$query  = "SELECT";
 	$query .= "  r.request_id                         AS \"id\"" ;
@@ -104,6 +113,7 @@
 	// Build WHERE clause
         if ( isset($system_code)    && "$system_code"    != "(All)" ) $where .= " AND r.system_code='$system_code' ";
         if ( isset($request_type) && "$request_type" != "(All)" ) $where .= " AND r.request_type='$request_type' ";
+        if ( isset($quote_type) && "$quote_type" != "(All)" ) $where .= " AND rq.quote_type='$quote_type' ";
 
 	if (isset($where)) $query .= " WHERE " . substr($where,4);
 
@@ -159,8 +169,8 @@
                   $lw_query .= " FROM request_request rr ";
 		  if ("$invoiced" <> "invoiced") $lw_query .= " LEFT OUTER";
       		  $lw_query .= " JOIN request_timesheet rt ON rt.request_id = rr.to_request_id ";
-		  if ("$invoiced" == "invoiced") $lw_query .= " AND rt.charged_details IS NOT null ";
-		  else if ("$invoiced" == "uninvoiced") $lw_query .= " AND rt.charged_details IS null ";
+		  if ("$invoiced" == "invoiced") $lw_query .= " AND rt.charged_details IS NOT null AND rt.charged_details <> ''";
+		  else if ("$invoiced" == "uninvoiced") $lw_query .= " AND (rt.charged_details IS null OR rt.charged_details = '')";
       		  $lw_query .= " LEFT OUTER JOIN request r ON r.request_id = rr.to_request_id ";
                   $lw_query .= " LEFT OUTER JOIN lookup_code lc ON lc.source_table = 'request' AND lc.source_field = 'status_code' AND lc.lookup_code  = r.last_status";
 		  $lw_query .= " WHERE rr.request_id = " . $row["id"] ;

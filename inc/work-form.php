@@ -136,7 +136,7 @@ function nice_time( $in_time ) {
           if ( "$timesheet->ok_to_charge" == "t" ) echo " checked";
           echo ">";
         }
-        echo "</td>";
+        echo "</td>\n";
    //     if ( "$timesheet->work_charged" == "" ) {
     //      if ( "$uncharged" == "" ) echo "<td class=sml>uncharged</td>";
      //   }
@@ -164,7 +164,7 @@ function nice_time( $in_time ) {
       }
 
 
-      echo "<FORM METHOD=POST ACTION=\"$REQUEST_URI\" name=\"options\">\n";
+      echo "<form method=post action=\"$REQUEST_URI\" name=\"options\">\n";
       echo   "<thead>";
       echo     "<tr>";
       echo       "<th class=cols>Requested by";
@@ -203,7 +203,7 @@ function nice_time( $in_time ) {
       echo         '<input TYPE="Image" src="images/down.gif" alt="Sort" BORDER="0" name="sort[organisation.org_code]" >';
       echo       "</th>\n";
 
-      echo       '<th class=cols>WR No.<input TYPE="Image" src="images/down.gif" alt="Sort" BORDER="0" name="sort[request_timesheet.request_id]" ></th>';
+      echo       '<th class=cols>WR No.<input TYPE="Image" src="images/down.gif" alt="Sort" BORDER="0" name="sort[request_timesheet.request_id]" ></th>' . "\n";
 
       echo       "<th class=cols>WR Status";
       echo         '<select class=sml name="filter[request.last_status]">' . "\n";
@@ -224,8 +224,8 @@ function nice_time( $in_time ) {
       echo         "</select>\n";
       echo       "</th>\n";
 
-      echo       "<th class=cols>Status On</th>";
-      echo       "<th class=cols>WR Brief</th>";
+      echo       "<th class=cols>Status On</th>\n";
+      echo       "<th class=cols>WR Brief</th>\n";
       echo       '<th class=cols>';
       echo         '<table cellpadding=2 cellspacing=0 border=0>';
       echo           '<tr>';
@@ -233,7 +233,7 @@ function nice_time( $in_time ) {
       echo             '<td align="middle"><input TYPE="Image" src="images/up.gif" alt="Sort Ascending" BORDER="0" name="sort_asc[request_timesheet.work_description]" ></td>';
       echo           '</tr>';
       echo           '<tr>';
-      echo             '<td><input TYPE="Image" src="images/hide.gif" alt="Hide Work Description" BORDER="0" name="hide[request_timesheet.work_description]" ></td>';
+      echo             '<td><input TYPE="Image" src="images/hide.gif" alt="Hide Work Description" BORDER="1" name="hide[request_timesheet.work_description]" ></td>';
       echo             '<td>Work Description</td>';
       echo           '</tr>';
       echo           '<tr>';
@@ -241,8 +241,8 @@ function nice_time( $in_time ) {
       echo             '<td align="middle"><input TYPE="Image" src="images/down.gif" alt="Sort Descending" BORDER="0" name="sort[request_timesheet.work_description]" ></td>';
       echo           '</tr>';
       echo         '</table>';
-      echo       '</th>';
-      echo       "<th class=cols>Done By</th>";
+      echo       "</th>\n";
+      echo       "<th class=cols>Done By</th>\n";
 
       echo       '<th class=cols nowrap>Done on<br>';
       echo         '<input type="text" name="done_on_from_date" size=10 maxlength=10 class=sml >';
@@ -257,13 +257,13 @@ function nice_time( $in_time ) {
       echo           ' onmouseout="window.status=\'\';return true;">';
       echo           '<img valign="middle" src="/images/date-picker.gif" border=0>';
       echo         '</a>';
-      echo       '</th>';
-      echo       "<th class=cols>Qty.</th>";
-      echo       "<th class=cols>Rate</th>";
-      echo       "<th class=cols>Charge Amount</th>";
-      echo       "<th class=cols>Ok to Charge</th>";
-      echo       "<th class=cols>Charged On</th>";
-      echo       "<th class=cols>Invoice No.</th>";
+      echo       "</th>\n";
+      echo       "<th class=cols>Qty.</th>\n";
+      echo       "<th class=cols>Rate</th>\n";
+      echo       "<th class=cols>Charge Amount</th>\n";
+      echo       "<th class=cols>Ok to Charge</th>\n";
+      echo       "<th class=cols>Charged On</th>\n";
+      echo       "<th class=cols>Invoice No.</th>\n";
       echo     "</tr>\n";
       echo   "</thead>\n";
 

@@ -13,7 +13,9 @@ function update_timesheet( $ts_finish ) {
       error_log( "WR# $ts_no '$ts_description' was not found.", 0);
     }
     else {
-      $from = "'" . date( 'Y-M-d, H:i', $sow + ($dow * 86400) + (($ts_start - 60) * 60) ) . "'::timestamp without time zone";
+      $lt = localtime($sow, true);
+      error_log( "Time includes DST? " . $lt['tm_isdst'] );
+      $from = "'" . date( 'Y-M-d, H:i', $sow + ($dow * 86400) + (($ts_start - (60 * $lt['tm_isdst'])) * 60) ) . "'::timestamp without time zone";
       $duration = sprintf( "'%d minutes'::interval", $ts_finish - $ts_start );
       $quantity = ($ts_finish - $ts_start ) / 60;
       $description = addslashes( ereg_replace( "@\|@.*\$", "", $ts_description ) );

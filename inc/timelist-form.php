@@ -257,9 +257,6 @@ function nice_time( $in_time ) {
 
       echo "<br clear=all><hr>\n<table cellpadding=5 cellspacing=5 align=right><tr><td>Rerun as report: </td>\n<td>\n";
       printf( "<a href=\"$this_page\" target=_new>Standard</a>\n", "stripped", "brief");
-      if ( "$qry" != "" ) {
-        echo "</td><td>|&nbsp; &nbsp; or <a href=\"$PHP_SELF?f=form&qs=complex&qry=$qry&action=delete\" class=sbutton>Delete</a> it\n";
-      }
       echo "</td></tr></table>\n";
     }
 ?>

@@ -40,7 +40,7 @@ function organisation_menus(&$tmnu,$org) {
   global $session;
   if ( intval("$org->org_code") == 0 ) return;
 
-  $tmnu->AddOption($org->abbreviation,"/org.php?org_code=$org->org_code","View the details for this organisation");
+  $tmnu->AddOption("Organisation","/org.php?org_code=$org->org_code","View the details for this organisation");
   $tmnu->AddOption("Edit","/org.php?edit=1&org_code=$org->org_code","Edit the details for this organisation");
   $tmnu->AddOption("Requests","/requestlist.php?org_code=$org->org_code","List current requests for this organisation");
   $tmnu->AddOption("Systems","/form.php?org_code=$org->org_code&form=syslist","List systems for this organisation");

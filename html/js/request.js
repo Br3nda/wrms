@@ -66,7 +66,6 @@ function OrganisationChanged() {
         var old_person_id = per_sel.value;
         var old_system_code = sys_sel.value;
         CleanSelectOptions(per_sel);
-//        alert("Person Cleaned!");
         CleanSelectOptions(sys_sel);
 //        alert("System Cleaned!");
         CleanSelectOptions(alloc_sel);
@@ -245,6 +244,27 @@ function GetFieldFromName(fname) {
 }
 
 //////////////////////////////////////////////////////////
+// Copy the options from one select to another.
+//////////////////////////////////////////////////////////
+function CopyOptions( from_field, to_field ) {
+  var currval = 'nothing is selected yet';
+  if ( to_field.length > 0 && to_field.selectedIndex < to_field.length ) {
+    currval = to_field.value;
+  }
+  CleanSelectOptions(to_field);
+  var found_currval = false;
+  for ( var i=0 ; i < from_field.length ; i ++ ) {
+    to_field.options[i] = new Option( from_field.options[i].text, from_field.options[i].value, false, false);
+    if ( from_field.options[i].value == currval ) {
+      found_currval = true;
+    }
+  }
+  if ( found_currval ) {
+    to_field.value = currval;
+  }
+}
+
+//////////////////////////////////////////////////////////
 // Insert new values into the list from the selection
 //////////////////////////////////////////////////////////
 function AssignSelected(select_from, append_fname) {
@@ -261,9 +281,9 @@ function AssignSelected(select_from, append_fname) {
   }
   j = select_from.selectedIndex;
   i = append_to.options.length;
-  append_to.options[i] = select_from.options[j];
-  append_to.options[i].selected = true;
+  append_to.options[i] = new Option( select_from.options[j].text, select_from.options[j].value, false, false);
   append_to.size = i + 1;
+  append_to.options[i].selected = true;
 
   if ( j < select_from.options.length ) {
     select_from.options[j].selected = true;

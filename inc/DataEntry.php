@@ -73,21 +73,21 @@ class EntryField
           $k = substr($k,1);
           $r .= "<option value=\"".htmlentities($k)."\"";
           if ( "$this->current" == "$k" ) $r .= " selected";
-          $r .= ">$v</option>\n" ;
+          $r .= ">$v</option>" ;
         }
-        $r .= "</select>\n";
+        $r .= "</select>";
         break;
 
       case "lookup":
-        $r .= "select name=\"$this->fname\"%%attributes%%>\n";
+        $r .= "select name=\"$this->fname\"%%attributes%%>";
         if ( isset($this->attributes["_all"]) ) {
-          $r .= sprintf("<option value=\"all\"".("all"==$this->current?" selected":"").">%s</option>\n", $this->attributes["_all"] );
+          $r .= sprintf("<option value=\"all\"".("all"==$this->current?" selected":"").">%s</option>", $this->attributes["_all"] );
         }
         if ( isset($this->attributes["_null"]) ) {
-          $r .= sprintf("<option value=\"\"".(""==$this->current?" selected":"").">%s</option>\n", $this->attributes["_null"] );
+          $r .= sprintf("<option value=\"\"".(""==$this->current?" selected":"").">%s</option>", $this->attributes["_null"] );
         }
         if ( isset($this->attributes["_zero"]) ) {
-          $r .= sprintf("<option value=\"0\"".(0==$this->current?" selected":"").">%s</option>\n", $this->attributes["_zero"] );
+          $r .= sprintf("<option value=\"0\"".(0==$this->current?" selected":"").">%s</option>", $this->attributes["_zero"] );
         }
         if ( isset($this->attributes["_sql"]) ) {
           $qry = new PgQuery( $this->attributes["_sql"] );
@@ -97,12 +97,12 @@ class EntryField
           $qry = new PgQuery( "SELECT lookup_code, lookup_desc FROM lookup_code WHERE source_table = ? AND source_field = ? ORDER BY lookup_seq, lookup_code", $tbl, $fld );
         }
         $r .= $qry->BuildOptionList( $this->current, "rndr:$this->fname" );
-        $r .= "</select>\n";
+        $r .= "</select>";
         break;
 
       case "date":
         if ( !isset($this->attributes['size']) || $this->attributes['size'] == "" ) $size = " size=12";
-        $r .= "input type=\"text\" name=\"$this->fname\"$size value=\"".htmlentities($this->current)."\"%%attributes%%>\n";
+        $r .= "input type=\"text\" name=\"$this->fname\"$size value=\"".htmlentities($this->current)."\"%%attributes%%>";
         break;
 
       case "radio":
@@ -121,33 +121,33 @@ class EntryField
         $r .= "input type=\"$this->ftype\" name=\"$this->fname\" id=\"$id\"$checked%%attributes%%>";
         if ( isset($this->attributes['_label']) ) {
           $r .= " " . $this->attributes['_label'];
-          $r .= "</label>\n";
+          $r .= "</label>";
         }
         break;
 
       case "button":
-        $r .= "input type=\"button\" name=\"$this->fname\"%%attributes%%>\n";
+        $r .= "input type=\"button\" name=\"$this->fname\"%%attributes%%>";
         break;
 
       case "submit":
-        $r .= "input type=\"submit\" name=\"$this->fname\" value=\"".htmlentities($this->current)."\"%%attributes%%>\n";
+        $r .= "input type=\"submit\" name=\"$this->fname\" value=\"".htmlentities($this->current)."\"%%attributes%%>";
         break;
 
       case "textarea":
-        $r .= "textarea name=\"$this->fname\"%%attributes%%>$this->current</textarea>\n";
+        $r .= "textarea name=\"$this->fname\"%%attributes%%>$this->current</textarea>";
         break;
 
       case "file":
         if ( !isset($this->attributes['size']) || $this->attributes['size'] == "" ) $size = " size=25";
-        $r .= "input type=\"file\" name=\"$this->fname\"$size value=\"".htmlentities($this->current)."\"%%attributes%%>\n";
+        $r .= "input type=\"file\" name=\"$this->fname\"$size value=\"".htmlentities($this->current)."\"%%attributes%%>";
         break;
 
       case "password":
-        $r .= "input type=\"password\" name=\"$this->fname\" value=\"".htmlentities($this->current)."\"%%attributes%%>\n";
+        $r .= "input type=\"password\" name=\"$this->fname\" value=\"".htmlentities($this->current)."\"%%attributes%%>";
         break;
 
       default:
-        $r .= "input type=\"text\" name=\"$this->fname\" value=\"".htmlentities($this->current)."\"%%attributes%%>\n";
+        $r .= "input type=\"text\" name=\"$this->fname\" value=\"".htmlentities($this->current)."\"%%attributes%%>";
         break;
     }
 
@@ -367,16 +367,16 @@ class EntryForm
   {
     global $session;
 
-    $prompt = "<select name=\"$prompt_name\">\n";
+    $prompt = "<select name=\"$prompt_name\">";
 
     reset($prompt_options);
     while( list($k,$v) = each($prompt_options) ) {
       $selected = ( ( $k == $default_prompt ) ? ' selected="selected"' : '' );
-      $nextrow = "<option value=\"$k\"$selected>$v</option>\n";
+      $nextrow = "<option value=\"$k\"$selected>$v</option>";
       if ( preg_match('/&/', $nextrow) ) $nextrow = preg_replace( '/&/', '&amp;', $nextrow);
       $prompt .= $nextrow;
     }
-    $prompt .= "</select>\n";
+    $prompt .= "</select>";
 
     return $this->DataEntryLine( $prompt, $format, $ftype, $fname, $type_extra );
   }

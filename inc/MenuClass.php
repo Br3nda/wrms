@@ -127,6 +127,11 @@ class MenuSet {
     return false;
   }
 
+  // This is called to find out how big the menu is.
+  function Size( ) {
+    return count($this->options);
+  }
+
   // This is called to see if a menu already has this option
   // by AddOption - should possibly be private.
   function OptionExists( $newlabel ) {

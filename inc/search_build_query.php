@@ -108,34 +108,39 @@
       $search_query .= " AND $where_clause ";  // Not checked, but only an Admin can do this...
     }
 
+    $search_query .= " AND (request.last_status ~* '[";
     if ( isset($incstat) && is_array( $incstat ) ) {
       reset($incstat);
-      $search_query .= " AND (request.last_status ~* '[";
       while( list( $k, $v) = each( $incstat ) ) {
         $search_query .= $k ;
       }
-      $search_query .= "]') ";
-      if ( eregi("save", "$submit") && "$savelist" != "" ) {
-        $saved_sort = "";
-        $saved_seq  = "";
-        if ( isset($save_query_order) && $save_query_order ) {
-          $saved_sort = $rlsort;
-          $saved_seq = $rlseq;
-        }
-        $qparams   = qpg(serialize($_POST));
-        $savelist = qpg($savelist);
-        $qquery   = qpg($search_query);
-        $save_rlsort   = qpg($rlsort);
-        $save_rlseq    = qpg($rlseq);
-        $save_public   = qpg(intval($public)  > 0);
-        $save_in_menu  = qpg(intval($in_menu) > 0);
-        $search_query = "DELETE FROM saved_queries WHERE user_no = $session->user_no AND LOWER(query_name) = LOWER($savelist);
+    }
+    else {
+      $search_query .= $default_search_statuses;
+    }
+    $search_query .= "]') ";
+
+    if ( eregi("save", "$submit") && "$savelist" != "" ) {
+      $saved_sort = "";
+      $saved_seq  = "";
+      if ( isset($save_query_order) && $save_query_order ) {
+        $saved_sort = $rlsort;
+        $saved_seq = $rlseq;
+      }
+      $qparams   = qpg(serialize($_POST));
+      $savelist = qpg($savelist);
+      $qquery   = qpg($search_query);
+      $save_rlsort   = qpg($rlsort);
+      $save_rlseq    = qpg($rlseq);
+      $save_public   = qpg(intval($public)  > 0);
+      $save_in_menu  = qpg(intval($in_menu) > 0);
+      $search_query = "DELETE FROM saved_queries WHERE user_no = $session->user_no AND LOWER(query_name) = LOWER($savelist);
 INSERT INTO saved_queries (user_no, query_name, query_sql, maxresults, rlsort, rlseq, public, updated, in_menu, query_params)
-   VALUES( $session->user_no, $savelist, $qquery, ".intval($maxresults).",
+  VALUES( $session->user_no, $savelist, $qquery, ".intval($maxresults).",
     $save_rlsort, $save_rlseq, $save_public, current_timestamp, $save_in_menu, $qparams);
 $search_query";
-      }
     }
+
   }
 
   $search_query .= " ORDER BY $rlsort $rlseq ";

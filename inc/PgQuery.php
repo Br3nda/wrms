@@ -218,7 +218,7 @@ class PgQuery
       while( $row = $this->Fetch(true) )
       {
         $selected = ( ( $row[0] == $current || $row[1] == $current ) ? ' selected="selected"' : '' );
-        $nextrow = "<option value=\"$row[0]\"$selected>$row[1]</option>\n";
+        $nextrow = "<option value=\"$row[0]\"$selected>$row[1]</option>";
         if ( preg_match('/&/', $nextrow) ) $nextrow = preg_replace( '/&/', '&amp;', $nextrow);
         $result .= $nextrow;
       }

@@ -28,7 +28,6 @@ one of the recently modified requests from the list below.<br></p>";
     echo "<th class=cols>System</th>";
     echo "<th class=cols>Last&nbsp;Activity</th>";
     echo "</tr>\n";
-    echo "<tr class=row0 height=5><td colspan=5></td></tr>\n";
     for ( $i=0; $i < pg_NumRows($result); $i++ ) {
       $thisrequest = pg_Fetch_Object( $result, $i );
 

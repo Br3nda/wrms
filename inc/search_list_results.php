@@ -143,12 +143,12 @@
           echo "<td>$thiswork->nice_date</td>\n";
           echo "<td>$thiswork->fullname</td>\n";
           echo "<td colspan=2>$thiswork->work_description</td>\n";
-          printf("<td align=right>%9.2f &nbsp; </td>\n", $thiswork->work_quantity);
-          printf("<td align=right>%9.2f &nbsp; </td>\n", $thiswork->work_rate);
+          printf("<td align=right>%9.2f</td>\n", $thiswork->work_quantity);
+          printf("<td align=right>%9.2f</td>\n", $thiswork->work_rate);
           $value = $thiswork->work_quantity * $thiswork->work_rate;
           $total += $value;
           $qty_total += $thiswork->work_quantity;
-          printf("<td align=right>%9.2f &nbsp; </td>\n", $value);
+          printf("<td align=right>%9.2f</td>\n", $value);
           echo "</tr>\n";
         }
         if ( $j > 0 )

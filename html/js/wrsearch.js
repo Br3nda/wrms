@@ -220,6 +220,7 @@ function AssignSelected(select_from, append_fname) {
     select_from.options[j].selected = true;
   }
 }
+
 //////////////////////////////////////////////////////////
 // Copy the options from one select to another.
 //////////////////////////////////////////////////////////

@@ -2,6 +2,7 @@
 /////////////////////////////////////////////////////////////
 //   C L A S S   F O R   U S E R
 /////////////////////////////////////////////////////////////
+require_once("organisation-selectors-sql.php");
 
 class User {
   var $user_no;
@@ -178,13 +179,15 @@ class User {
 
     // Organisation drop-down
     if ( $session->AllowedTo("Admin") || $session->AllowedTo("Support") ) {
+
       $sql = "SELECT org_code, org_name || ' (' || abbreviation || ')' AS org_name ";
       $sql .= "FROM organisation WHERE active AND abbreviation !~ '^ *$' ";
       $sql .= "AND EXISTS(SELECT user_no FROM usr WHERE usr.org_code = organisation.org_code AND usr.status != 'I') ";
       $sql .= "AND EXISTS(SELECT work_system.system_code FROM org_system JOIN work_system ON (org_system.system_code = work_system.system_code) WHERE org_system.org_code = organisation.org_code AND work_system.active) ";
       $sql .= "ORDER BY lower(org_name)";
       $html .= $ef->DataEntryLine( "Organisation", "$this->org_name", "lookup", "org_code",
-                array("_sql" => $sql, "_null" => "--- select an organisation ---", "onchange" => "OrganisationChanged();",
+                array("_sql" => SqlSelectOrganisations($this->org_code),
+                      "_null" => "--- select an organisation ---", "onchange" => "OrganisationChanged();",
                       "title" => "The organisation that this person is a part of." ) );
 
       $html .= $ef->DataEntryLine( "Hourly Rate", "%s", "text", "base_rate",
@@ -419,6 +422,7 @@ class User {
       unset($_POST['password']);
     }
 
+    if ( isset($_POST['base_rate']) ) $_POST['base_rate'] = floatval($_POST['base_rate']);
     $this->chtype = strtolower($_POST['submit']);
 
     $sql = sql_from_post( $this->chtype, "usr", "WHERE user_no='$this->user_no'");

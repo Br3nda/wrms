@@ -163,19 +163,28 @@ function build_time_list( $name, $from, $current, $delta ) {
 
 
   // Now display the actual timesheet for entry
-  echo '<form name=data method=post action="/timesheet.php" enctype="multipart/form-data"><table width="100%" border="0" cellpadding="1" cellspacing="2">' . "\n";
-  echo "<tr class=row1><th class=cols>&nbsp;</th><th class=cols>Monday</th><th class=cols>Tuesday</th><th class=cols>Wednesday</th>";
-  echo "<th class=cols>Thursday</th><th class=cols>Friday</th><th class=cols>Saturday</th><th class=cols>Sunday</th></tr>\n";
+  echo <<<EOHEADERS
+<form name=data method="post" action="/timesheet.php" enctype="multipart/form-data" style="display:inline;">
+<table width="100%" border="0" cellpadding="1" cellspacing="0">
+<tr>
+ <th class="cols" width="9%">&nbsp;</th>
+ <th class="cols" width="13%">Monday</th>
+ <th class="cols" width="13%">Tuesday</th>
+ <th class="cols" width="13%">Wednesday</th>
+ <th class="cols" width="13%">Thursday</th>
+ <th class="cols" width="13%">Friday</th>
+ <th class="cols" width="13%">Saturday</th>
+ <th class="cols" width="13%">Sunday</th>
+</tr>
+EOHEADERS;
+
   for ( $tod = $sod, $r=0; $tod < $eod; $tod += $period_minutes, $r++ ) {
-    printf( "<tr class=row%d>\n<th>%02d:%02d</th>\n", $r % 2, $tod / 60, $tod % 60 );
+    printf( '<tr class="row%d"><th>%02d:%02d</th>', $r % 2, $tod / 60, $tod % 60 );
     for ( $dow=0; $dow < 7; $dow++ ) {
       $tabindex = ($dow * 200) + ($tod / 10);
-      echo "<td><input tabindex=$tabindex type=text size=14 name=\"tm[$dow][m$tod]\" value=\"";
+      echo "<td><input tabindex=\"$tabindex\" type=\"text\" size=\"14\" name=\"tm[$dow][m$tod]\" value=\"";
       echo $tm[$dow]["m$tod"];
-      echo "\">&nbsp;</td>\n";
-      // if ( $tm[$dow]["m$tod"] != "" ) {
-        // error_log( "timesheet: DBG: tm[$dow][m$tod] == " . $tm[$dow]["m$tod"] );
-      // }
+      echo "\"></td>\n";
     }
     echo "</tr>\n";
   }

@@ -2,25 +2,33 @@
  * external stylesheet anyway.
  */
 
+body {
+  padding: 0;
+  margin: 0;
+}
+
 table.data {
 /*  border: 0;
   padding: 0;
   margin: 0;
   background: green; */
+  /* border-right: thick solid #606060; */
+  border-bottom: 12px solid #606060;
+  background-image:url(/catimg/tile_lines.gif);
 }
 
 tr.data {
-  background: #ffe;
+  background-image:none;
+  background: #fff;
 }
 
 th.ph {
   margin: 0;
   border: none;
   padding: 0.2em 0.3em 0;
-  color: white;
-  background: #442;
-  background: black;
+  color: black;
   border-top: thick solid #dda;
+  border-top: 14px solid #3d3d3d;
   text-align: right;
   font-family: sans-serif;
   font-size: 130%;
@@ -33,8 +41,8 @@ th.prompt {
   text-align: right;
   vertical-align: top;
   padding: 0.1em 0.5em 0 0;
-  color: white;
-  background: black;
+  padding: 0;
+  color: black;
   width: 8em;
   font-family: sans-serif;
   border: none;
@@ -47,20 +55,24 @@ th.pcol {
   text-align: left;
   vertical-align: bottom;
   padding: 0.1em 0.5em 0;
-  color: white;
-  background: black;
+  color: black;
   width: 8em;
-/*  font-family: sans-serif; */
   font-family: arial narrow, helvetica narrow, times new roman, times, sans-serif;
-  /* font-variant: small-caps; */
   font-weight: 700;
   font-size: 80%;
   border: none;
   line-height: 1.2em;
+  background-image:none;
+  background: #ddd;
 }
 
 td.entry {
   padding: 0.1em 0.2em;
+  background-image: none;
+}
+
+table.entry {
+  background-image: none;
 }
 
 span.prompt {
@@ -102,15 +114,15 @@ textarea.ftextarea {
 .fsubmit {
   text-decoration: none;
   font: small-caps bold 11px verdana, sans-serif;
-  background: #660000;
-  color: #f0fff0;
+  color: #fff;
+  background-image: url(/catimg/bar_red_tile.gif);
   padding: 0px 1px 1px 1px;
   margin: 0.2em 0.1em 0.0em;
   vertical-align: text-bottom;
   border: thin outset;
 }
 .fsubmit:hover {
-  color: #f0ff4c;
+  color: #f8f400;
   border: thin inset;
 }
 
@@ -131,7 +143,7 @@ span.srchf, input.srchf, select.srchf, label.srchf {
    validation failures and so forth. */
 #messages {
   /* color: #fff; background: #b10;  */
-  color: #900; background: #dad0b0;
+  color: #900; background: #dad8d6;
 }
 ul.messages {
   padding: 2px 12px;
@@ -149,67 +161,124 @@ li.messages {
 /* The div, and the base for the rest */
 .tmnu, .tmnu:hover, .tmnu:visited
 {
-  color: #600;
-  background: #fff;
-  padding: 0 0 0.2em;
+  color: #fff;
+  padding: 0.25em;
   margin: 0 0 0 0;
 }
+
 /* Left/Right sides of the context menu */
 .tmnu_left, .tmnu_active_left {
-  background: #eee url(/images/cxmenuleft.png) no-repeat top right;
   padding: 0 0 0.2em 8px;
   margin: 0 0 0 1px;
 }
 .tmnu_right, .tmnu_active_right {
-  background: #eee url(/images/cxmenuright.png) no-repeat top left;
   padding: 0 4px 0.2em;
   margin: 0 1px 0 0;
 }
+/*
 .tmnu_active_left {
   background: #fff url(/images/cxmenuleft-sel.png) no-repeat top right;
 }
 .tmnu_active_right {
   background: #fff url(/images/cxmenuright-sel.png) no-repeat top left;
 }
+*/
 
 a.tmnu, a.tmnu:hover, a.tmnu:visited,
 a.tmnu_active, a.tmnu_active:hover, a.tmnu_active:visited
 {
   font: bold 13px verdana, sans-serif;
-  background-image: url(/images/cxmenumid.png);
-  padding: 0 2px 0.2em;
+  padding: 0.25em;
 }
 a.tmnu_active, a.tmnu_active:hover, a.tmnu_active:visited
 {
   color: #fff;
-  background: #600;
-  background-image: url(/images/cxmenumid-sel.png);
+  background: #505050;
 }
 
 /* And when we hover over the options */
 a.tmnu:hover
 {
-  background: #d0c8af url(/images/cxmenumid-hover.png) repeat-x center center;
+  /* background: #d0c8af url(/images/cxmenumid-hover.png) repeat-x center center; */
 }
 
 /* Stuff here will sit around the bottom right of the screen (Moz, anyway) so
  * we use it for a div with the buttons on entry screen.
  */
+#topbar {
+  /* position: fixed; */
+  width: auto;
+  height: 50px;
+  float:left;
+  top: 0;
+  left: 0;
+  bottom: auto;
+  right: auto;
+  text-align: left;
+  margin: 0;
+  padding: 0 0.3em 1em;
+  background-color: #ffffff;
+}
+#searchbar {
+  /* position: fixed; */
+  width: auto;
+  height: auto;
+  float: right;
+  top: 0;
+  left: auto;
+  bottom: auto;
+  right: 0;
+  text-align: right;
+  margin: 0;
+  padding: 0;
+  background-color: #ffffff;
+  font-size: 80%;
+  vertical-align:text-bottom;
+}
+.search_for {
+  font-family: tahoma,sans-serif;
+  width: 5em;
+  height: 1.5em;
+  margin-top:1.3em;
+  vertical-align: 0%;
+}
+
+select.search_for {
+  width: 20em;
+  height: 1.8em;
+  margin-top:1.1em;
+  vertical-align: 15%;
+}
+
+#top_menu {
+  margin: 0 0 20px 0;
+  margin: 0;
+  height: 24px;
+  clear:both;
+  text-align: center;
+  vertical-align: middle;
+  background-image: url(/catimg/bar_red_tile.gif);
+}
 #footer {
   position: fixed;
-  width: auto;
-  height: 2em;
   top: auto;
-  right: 2px;
+  right: 15px;
   bottom: 15px;
   left: auto;
+  width: auto;
+  height: auto;
   text-align: center;
-  margin-top: auto;
-  background-color: #ffffff;
+}
+#page_footer {
+  width: auto;
+  height: 14px;
+  text-align: center;
+  margin-top: 5px;
+  background-color: #606060;
 }
 
 #columnselect {
-  background-color: #f0ece8;
+  background-color: #f0f0f0;
 }
 
 #savesearch {
@@ -217,15 +286,13 @@ a.tmnu:hover
   float: right;
   clear: both;
 };
-/*
-img.blocksep {
-  display:block;
-  clear:both;
+
+div.block, div.blockhead {
+  width: 160px;
+  clear: both;
 }
-a.block {
-  display:block;
-  white-space:nowrap;
-  clear:both;
-  margin-right: 10em;
+
+div.blockhead {
+  width: auto;
+  clear: both;
 }
-*/

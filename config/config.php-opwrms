@@ -57,29 +57,30 @@ $fonts = array( "tahoma",   // primary font
 if ( !isset($debuglevel) ) $debuglevel = 2;
 
 
+
+//-----------------------------------------
+// Function to start a block in the sidebar
+//-----------------------------------------
 function block_open(  $bgcolor="", $border_color="") {
-  echo '<table border="0" cellpadding="5" cellspacing="0" width="100%">';
+  echo '<div class="block">';
+  return;
 }
 
 //-----------------------------------------
 // Function to title a block of options / menus / whatever
 //-----------------------------------------
 function block_title( $title="&nbsp;", $bgcolor="", $border_color="") {
-  echo "  <tr>
-    <td class=\"aqua-tile\" valign=\"middle\">
-      <div align=\"left\"><b><span class=\"mockup\"><span class=\"heading-blue\">$title</span></span></b></div>
-    </td>
-  </tr>\n";
-
+  echo '<div class="blockhead">';
+  echo "<div align=\"left\"><b><span class=\"mockup\"><span class=\"heading-blue\">$title</span></span></b></div>";
+  echo '</div>';
 }
 
 //-----------------------------------------
 // Function to finish a block of options / menus / whatever
 //-----------------------------------------
 function block_close() {
-  echo "</table>\n";
+  echo '</div>';
 }
-
 
 //-----------------------------------------
 // Function to do the page header, that is local to this installation
@@ -117,7 +118,7 @@ td.searchbar-cell {
 
 
 }
-.aqua-tile {
+.aqua-tile, .blockhead {
   background-image:url('/images/eduforge/aquaTile.gif');
   background-repeat:repeat-x;
   height:15px;

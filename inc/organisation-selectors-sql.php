@@ -20,7 +20,6 @@ function SqlSelectOrganisations( $org_code = 0 ) {
     }
   }
   $sql .= "WHERE organisation.active AND abbreviation !~ '^ *$' ";
-  $sql .= "AND EXISTS(SELECT user_no FROM usr WHERE usr.org_code = organisation.org_code AND usr.status != 'I') ";
   $sql .= "AND EXISTS(SELECT work_system.system_code FROM org_system JOIN work_system ON (org_system.system_code = work_system.system_code) WHERE org_system.org_code = organisation.org_code AND work_system.active) ";
   $sql .= "ORDER BY lower(org_name)";
 

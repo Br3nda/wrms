@@ -12,7 +12,7 @@
 
       echo "</tr></table>\n";
     }
-    if ( function_exists("local_page_header") ) {
+    if ( function_exists("local_page_footer") ) {
       local_page_footer();
     }
     else {

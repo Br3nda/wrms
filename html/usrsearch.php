@@ -7,7 +7,7 @@
   require_once("top-menu-bar.php");
   include("headers.php");
 
-  if ( ! is_member_of('Admin','Support','Manage') ) {
+  if ( ! is_member_of('Admin','Support','OrgMgr') ) {
     echo "<p class=error>Unauthorised</p>\n";
   }
   else {

@@ -1,47 +1,6 @@
 <?php
 require_once("organisation-selectors-sql.php");
 
-  // Force some variables to have values.
-  if ( !isset($format) ) $format = "";
-  if ( !isset($style) ) $style = "";
-  if ( !isset($savedquery) ) $savedquery = "";
-  if ( !isset($qs) ) $qs = "";
-  if ( !isset($org_code) ) $org_code = "";
-  if ( !isset($system_code) ) $system_code = "";
-  if ( !isset($search_for) ) $search_for = "";
-  if ( !isset($interested_in) ) $interested_in = "";
-  if ( !isset($allocated_to) ) $allocated_to = "";
-  if ( !isset($type_code) ) $type_code = "";
-  if ( !isset($inactive) ) $inactive = "";
-  if ( !isset($user_no) ) $user_no = "";
-  if ( !isset($requested_by) ) $requested_by = "";
-  if ( !isset($from_date) ) $from_date = "";
-  if ( !isset($to_date) ) $to_date = "";
-  if ( !isset($where_clause) ) $where_clause = "";
-  if ( !isset($default_search_statuses) ) $default_search_statuses = '@NRILKTQADSPZU';
-
-  // If they didn't provide a $columns, we use a default.
-  if ( !isset($columns) || $columns == "" || $columns == array() ) {
-    $columns = array("to be ignored!!!", "request_id","lfull","request_on","lbrief","status_desc","request_type_desc","request.last_activity");
-  }
-  elseif ( ! is_array($columns) )
-    $columns = explode( ',', $columns );
-
-  // Internal column names (some have 'nice' alternatives defined in header_row() )
-  // The order of these defines the ordering when columns are chosen
-  $available_columns = array(
-          "request_id" => "WR&nbsp;#",
-          "lby_fullname" => "Created By",
-          "lfull" => "Request For",
-          "request_on" => "Request On",
-          "lbrief" => "Description",
-          "request_type_desc" => "Type",
-          "status_desc" => "Status",
-          "request.last_activity" => "Last Chng",
-          "active" => "Active",
-   );
-
-
 function ggv($var, $i = "nope", $j = "nope") {
 
   $answer = null;
@@ -89,7 +48,7 @@ function RenderSearchForm( $target_url ) {
   $html .= $ef->StartForm( array("autocomplete" => "off", "onsubmit" => "return CheckSearchForm();" ) );
 
   $html .= "<table border=0 cellspacing=2 cellpadding=0 align=center class=row0 width=100% style=\"border: 1px dashed #aaaaaa;\">\n";
-  $html .= "<tr><td width=100%><table border=0 cellspacing=0 cellpadding=0 width=100%><tr valign=middle>\n";
+  $html .= "<tr><td width=100%><table border=0 cellspacing=0 cellpadding=0 width=100%><tr valign=middle><td width=100%>\n";
 
   $html .= $ef->DataEntryLine( "Find", "%s", "text", "search_for",
             array( "size" => 10, "class" => "srchf",
@@ -140,12 +99,12 @@ function RenderSearchForm( $target_url ) {
   $html .= $ef->DataEntryLine( "Last Action", "%s", "date", "from_date",
             array( "size" => 10, "class" => "srchf",
                    "title" => "Only show requests with action after this date." ) );
-  $html .= "<a href=\"javascript:show_calendar('forms.form.from_date');\" onmouseover=\"window.status='Date Picker';return true;\" onmouseout=\"window.status='';return true;\"><img valign=\"middle\" src=\"/$images/date-picker.gif\" border=\"0\"></a> &nbsp; ";
+  $html .= "<a href=\"javascript:show_calendar('forms.form.from_date');\" onmouseover=\"window.status='Date Picker';return true;\" onmouseout=\"window.status='';return true;\"><img valign=\"middle\" src=\"/$images/date-picker.gif\" border=\"0\"></a> &nbsp; \n";
 
   $html .= $ef->DataEntryLine( "To", "%s", "date", "to_date",
             array( "size" => 10, "class" => "srchf",
                    "title" => "Only show requests with action before this date." ) );
-  $html .= "<a href=\"javascript:show_calendar('forms.form.to_date');\" onmouseover=\"window.status='Date Picker';return true;\" onmouseout=\"window.status='';return true;\"><img valign=\"middle\" src=\"/$images/date-picker.gif\" border=\"0\"></a> &nbsp; ";
+  $html .= "<a href=\"javascript:show_calendar('forms.form.to_date');\" onmouseover=\"window.status='Date Picker';return true;\" onmouseout=\"window.status='';return true;\"><img valign=\"middle\" src=\"/$images/date-picker.gif\" border=\"0\"></a> &nbsp; \n";
 
   // Type of Request
   $html .= $ef->DataEntryLine( "Type", $this->request_type_desc, "lookup", "type_code",
@@ -154,6 +113,15 @@ function RenderSearchForm( $target_url ) {
                   "class" => "srchf",
                   "style" => "width: 8em",
                   "title" => "Only show this type of request") );
+
+  if ( ($session->AllowedTo("Admin") /* || $session->AllowedTo("Support") */ ) ) {
+//    $html .= "<div id=\"whereclause\">";
+    $html .= $ef->DataEntryLine( "Where", "%s", "text", "where_clause",
+              array( "size" => 60, "class" => "srchf",
+                    "title" => "Add an SQL 'WHERE' clause to further refine the search - you will need to know what you are doing..." ) );
+//    $html .= "</div>";
+  }
+
 
   $html .= "<table border='0' cellspacing='0' cellpadding='0' width='100%'><tr>";
   $html .= "<td style=\"vertical-align: top; padding-top: 0.3em;\"><span class=\"srchp\">Status:</span></td><td valign='top'>\n";
@@ -173,15 +141,8 @@ function RenderSearchForm( $target_url ) {
   }
   $html .= "</tr></table>\n";
 
-  $html .= RenderTagsPanel($ef);
 
-  if ( ($session->AllowedTo("Admin") /* || $session->AllowedTo("Support") */ ) ) {
-    $html .= "<div id=\"whereclause\">";
-    $html .= $ef->DataEntryLine( "Where", "%s", "text", "where_clause",
-              array( "size" => 60, "class" => "srchf",
-                    "title" => "Add an SQL 'WHERE' clause to further refine the search - you will need to know what you are doing..." ) );
-    $html .= "</div>";
-  }
+  $html .= RenderTagsPanel($ef);
 
   $html .= RenderColumnSelections($ef);
 
@@ -211,7 +172,7 @@ function RenderSearchForm( $target_url ) {
             array("title" => "Run a query with these settings" ) );
 
 
-  $html .= "</table>\n";
+  $html .= "</td></tr></table>\n";
   $html .= "</td></tr></table>\n";
   $html .= $ef->EndForm();
 
@@ -295,8 +256,8 @@ function RenderColumnSelections( $ef ) {
   $html .= '<span class="srchp">Columns:</span>';
   $i=0;
   foreach( $available_columns AS $k => $v ) {
-    $ef->record->columns[$k] = (intval($flipped_columns[$k])?$k:'');
-    error_log( "DBG: $k => $v " . $flipped_columns[$k] . ", " . $ef->record->columns[$k] );
+    $ef->record->columns[$k] = (isset($flipped_columns[$k])?$k:'');
+    error_log( "DBG: $k => $v -- " . $flipped_columns[$k] . ", " . $ef->record->columns[$k] );
     $html .= $ef->DataEntryField( "%s", "checkbox", "columns[$k]",
               array("_label" => $v, "class" => "srchf", "value" => $k ) );
     $i++;

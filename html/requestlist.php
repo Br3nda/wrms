@@ -98,18 +98,16 @@
         //the $ReturnedRequestStatus is made unset and the $ReturnedRequestActivePermit is made FALSE in order to prevent duplicate records written into the
         //request_history and request_status tables
 
-        $ReturnedRequestId = $EditableRequests[$i][0];
+        $ReturnedRequestId = intval($EditableRequests[$i][0]);
 
         //Retrieve current request status and active field values from the database
-        $query = "SELECT last_status, active FROM request WHERE request_id = $ReturnedRequestId;";
-        $rid = awm_pgexec( $dbconn, $query, "requestlist", TRUE, 7 );
-        if ( !$rid || pg_numrows($rid) > 1 || pg_numrows($rid) == 0 )
-        {
+        $q = new PgQuery( "SELECT last_status, active FROM request WHERE request_id = $ReturnedRequestId");
+        if ( !$q || !$q->Exec("requestlist") || $q->rows > 1 || $q->rows == 0 ) {
            $because .= "<P>Request $ReturnedRequestId: Error updating request! - query 1</P>\n";
            continue;
         }
 
-        $CurrentRequest = pg_fetch_object($rid, 0);
+        $CurrentRequest = $q->Fetch();
 
         if ( isset($EditableRequests[$i][1]) )
         {
@@ -151,30 +149,25 @@
         }
 
         //Begin SQL Transaction for the updating of each request
-        awm_pgexec( $dbconn, "BEGIN;", "requestlist" );
+        $q = new PgQuery("BEGIN;");   $q->Exec("requestlist");
 
         /* take a snapshot of the current request record and store in request_history*/
-
-        $query = "INSERT INTO request_history (SELECT * FROM request WHERE request.request_id = $ReturnedRequestId);";
-
-        $rid = awm_pgexec( $dbconn, $query, "requestlist", TRUE, 7 );
-        if ( ! $rid ) {
+        $q = new PgQuery( "INSERT INTO request_history (SELECT * FROM request WHERE request.request_id = $ReturnedRequestId)");
+        if ( !$q || !$q->Exec("requestlist") ) {
            $because .= "<P>Request $ReturnedRequestId: Error updating request! - query 2</P>\n";
            continue;
         }
 
         //update request record in request - status field and/or active field
 
-        $query = "UPDATE request SET ";
-        if ( isset($ReturnedRequestStatus ) )
-           $query .= " last_status = '$ReturnedRequestStatus', ";
-        if ( $ReturnedRequestActivePermit )
-           $query .= " active = '$ReturnedRequestActive', ";
-        $query .= " last_activity = 'now' ";
-        $query .= "WHERE request.request_id = $ReturnedRequestId; ";
+        $sql = "UPDATE request SET ";
+        if ( isset($ReturnedRequestStatus ) ) $sql .= " last_status = '".qpg($ReturnedRequestStatus)."', ";
+        if ( $ReturnedRequestActivePermit )   $sql .= " active = '".qpg($ReturnedRequestActive)."', ";
+        $sql .= " last_activity = 'now' ";
+        $sql .= "WHERE request.request_id = $ReturnedRequestId ";
 
-        $rid = awm_pgexec( $dbconn, $query, "requestlist", TRUE, 7 );
-        if ( ! $rid ) {
+        $q = new PgQuery($sql);
+        if ( !$q || !$q->Exec("requestlist") ) {
            $because .= "<P>Request $ReturnedRequestId: Error updating request! - query 3</P>\n";
            continue;
         }
@@ -183,10 +176,10 @@
         //update the request_status table with the new status for that request if permitted
         if ( isset($ReturnedRequestStatus) )
         {
-           $query = "INSERT INTO request_status (request_id, status_by, status_on, status_code, status_by_id)";
-           $query .= "VALUES( $ReturnedRequestId, '$session->username', 'now', '$ReturnedRequestStatus', $session->user_no);";
+           $sql = "INSERT INTO request_status (request_id, status_by, status_on, status_code, status_by_id)";
+           $sql .= "VALUES( $ReturnedRequestId, '$session->username', 'now', '$ReturnedRequestStatus', $session->user_no);";
 
-           $rid = awm_pgexec( $dbconn, $query, "requestlist", TRUE, 7 );
+           $rid = awm_pgexec( $dbconn, $sql, "requestlist", TRUE, 7 );
            if ( ! $rid ) {
               $because .= "<P>Request $ReturnedRequestId: Error updating request! - query 4</P>\n";
               continue;
@@ -194,7 +187,7 @@
 
         }
 
-        awm_pgexec( $dbconn, "COMMIT;", "requestlist" );
+        $q = new PgQuery("BEGIN;");   $q->Exec("requestlist");
 
         $ChangedRequests_count++;
      }
@@ -361,8 +354,8 @@ function column_header( $ftext, $fname ) {
 }
 
   if ( "$saved_query" != "" && "$action" == "delete" ) {
-    $query = "DELETE FROM saved_queries WHERE user_no = '$session->user_no' AND LOWER(query_name) = LOWER('".tidy($saved_query)."');";
-    $result = awm_pgexec( $dbconn, $query, "requestlist", false, 7);
+    $sql = "DELETE FROM saved_queries WHERE user_no = '$session->user_no' AND LOWER(query_name) = LOWER(".qpg($saved_query).");";
+    $result = awm_pgexec( $dbconn, $sql, "requestlist", false, 7);
     unset($saved_query);
   }
 
@@ -443,10 +436,10 @@ else {
 <?php
     echo "<tr><td>\n";
     echo "<table border=0 cellspacing=0 cellpadding=0><tr valign=middle><td class=smb align=right valign=top>When:</td><td class=sml valign=top>\n";
-    $query = "SELECT * FROM lookup_code WHERE source_table='request' ";
-    $query .= " AND source_field='status_code' ";
-    $query .= " ORDER BY source_table, source_field, lookup_seq, lookup_code ";
-    $rid = pg_Exec( $dbconn, $query);
+    $sql = "SELECT * FROM lookup_code WHERE source_table='request' ";
+    $sql .= " AND source_field='status_code' ";
+    $sql .= " ORDER BY source_table, source_field, lookup_seq, lookup_code ";
+    $rid = pg_Exec( $dbconn, $sql);
     if ( $rid && pg_NumRows($rid) > 1 ) {
       $nrows = pg_NumRows($rid);
       for ( $i=0; $i<$nrows; $i++ ) {
@@ -522,7 +515,7 @@ else {
   // if ( "$saved_query$search_for$org_code$system_code" != "" ) {
     $query = "";
     if ( isset($saved_query) && "$saved_query" != "" ) {
-      $qquery = "SELECT * FROM saved_queries WHERE user_no = '$session->user_no' AND query_name = '".tidy($saved_query)."';";
+      $qquery = "SELECT * FROM saved_queries WHERE user_no = '$session->user_no' AND query_name = ".qpg($saved_query).";";
       $result = awm_pgexec( $dbconn, $qquery, "requestlist", false, 7);
       $thisquery = pg_Fetch_Object( $result, 0 );
       $query = $thisquery->query_sql ;
@@ -608,13 +601,13 @@ else {
             $saved_sort = $rlsort;
             $saved_seq = $rlseq;
           }
-          $savelist = tidy($savelist);
-          $qquery   = tidy($query);
-          $rlsort   = tidy($rlsort);
-          $rlseq    = tidy($rlseq);
-          $query = "DELETE FROM saved_queries WHERE user_no = '$session->user_no' AND LOWER(query_name) = LOWER('$savelist');
+          $savelist = qpg($savelist);
+          $qquery   = qpg($query);
+          $save_rlsort   = qpg($rlsort);
+          $save_rlseq    = qpg($rlseq);
+          $query = "DELETE FROM saved_queries WHERE user_no = '$session->user_no' AND LOWER(query_name) = LOWER($savelist);
 INSERT INTO saved_queries (user_no, query_name, query_sql, maxresults, rlsort, rlseq)
-   VALUES( '$session->user_no', '$savelist', '$qquery', $maxresults, '$rlsort', '$rlseq');
+   VALUES( '$session->user_no', $savelist, 'qquery, $maxresults, $save_rlsort, $save_rlseq);
 $query";
         }
       }
@@ -827,7 +820,7 @@ $query";
         printf( " &nbsp;|&nbsp; <a href=\"$this_page\" target=_new>Brief (editable)</a>\n", "stripped", "edit");  //uses the format = edit setting in this link for the Brief (editable) report
       }
       if ( "$saved_query" != "" ) {
-        echo "</td><td>|&nbsp; &nbsp; or <a href=\"$PHP_SELF?qs=complex&qry=".urlencode($saved_query)."&action=delete\" class=sbutton>Delete</a> it\n";
+        echo "</td><td>|&nbsp; &nbsp; or <a href=\"wrsearch.php?saved_query=".urlencode($saved_query)."&action=delete\" class=\"sbutton\">Delete</a> it\n";
       }
       echo "</td></tr></table>\n";
     }

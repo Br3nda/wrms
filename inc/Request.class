@@ -541,7 +541,7 @@ class Request {
       $html .= $ef->BreakLine("Attached Files");
     if ( $q->rows ) {
       $html .= '<tr>';
-      $html .= '<td colspan="2"><table width="100%">'."\n";
+      $html .= '<th colspan="2" class="prompt"><table width="100%" class="entry">'."\n";
       $html .= '<tr><th class="pcol">File</th>';
       $html .= '<th class="pcol">Description</th>';
       $html .= '<th class="pcol">By</th>';
@@ -561,7 +561,7 @@ class Request {
                     $row->fullname, $row->att_on, $row->type_desc, $delete_link
                   );
       }
-      $html .= '</table></td></tr>'."\n";
+      $html .= '</table></th></tr>'."\n";
     }
 
     if ( $ef->editmode ) {
@@ -604,7 +604,7 @@ class Request {
     if ( $ef->editmode || $q->rows )
       $html .= $ef->BreakLine("Quotations");
     if ( $q->rows ) {
-      $html .= '<tr><td colspan="2"><table width="100%">'."\n";
+      $html .= '<tr><th colspan="2" class="prompt"><table width="100%" class="entry">'."\n";
       $html .= '<tr><th class="pcol">Type</th>';
       $html .= '<th class="pcol">Quote On</th>';
       $html .= '<th class="pcol">By</th>';
@@ -627,11 +627,11 @@ class Request {
                   );
         }
       }
-      $html .= '</table></td></tr>'."\n";
+      $html .= '</table></th></tr>'."\n";
     }
 
     if ( $ef->editmode ) {
-      $html .= '<tr><th class="prompt">Add Quote</th><td><table><tr>'."\n";
+      $html .= '<tr><th class="prompt">Add Quote</th><td><table width="100%" class="entry"><tr>'."\n";
 
       $html .= '<td class="entry">';
       $html .= $ef->DataEntryField( "", "text", "quote_brief",
@@ -697,7 +697,7 @@ class Request {
       $header_done = true;
     }
     if ( $q->rows ) {
-      $html .= '<tr><td colspan="2"><table width="100%">'."\n";
+      $html .= '<tr><th colspan="2" class="prompt"><table width="100%" class="entry">'."\n";
       $html .= '<tr><th class="pcol">Parent</th>';
       $html .= '<th class="pcol">Brief</th>';
       $html .= '<th class="pcol">Status</th>';
@@ -719,7 +719,7 @@ class Request {
                     $this->request_id, $delete_link
                   );
       }
-      $html .= '</table></td></tr>'."\n";
+      $html .= '</table></th></tr>'."\n";
     }
 
     $sql = "SELECT child.*, request_request.*, child.request_id AS child_id, ";
@@ -739,7 +739,7 @@ class Request {
       $header_done = true;
     }
     if ( $q->rows ) {
-      $html .= '<tr><td colspan="2"><table width="100%">'."\n";
+      $html .= '<tr><th colspan="2" class="prompt"><table width="100%" class="entry">'."\n";
       $html .= '<tr><th class="pcol" style="white-space: nowrap;">This W/R</th>';
       $html .= '<th class="pcol">Link</th>';
       $html .= '<th class="pcol">Child</th>';
@@ -760,7 +760,7 @@ class Request {
                     $row->child_id, $row->child_id, $row->brief, $row->last_status_desc, $delete_link
                   );
       }
-      $html .= '</table></td></tr>'."\n";
+      $html .= '</table></th></tr>'."\n";
     }
 
     if ( $ef->editmode ) {
@@ -860,13 +860,13 @@ class Request {
     $q->Exec('WR::Timesheet') ;
     if ( $ef->editmode || $q->rows ) {
       $html .= $ef->BreakLine("Work Done");
-      $line_format = '<tr class="row%d"><td class="entry">%s</td>';
+      $line_format = '<tr class="row%d"><td class="entry" width="10%%">%s</td>';
       $line_format .= '<td class="entry">%s</td>';
       $line_format .= '<td class="entry" style="white-space: nowrap; text-align: right; ">%s %s</td>';
       $line_format .= '<td class="entry" style="white-space: nowrap; text-align: right; ">%s</td>';
       $entry_line_format = $line_format;
-      $line_format .= '<td class="entry" width="50%%">%s</td>';
-      $line_format .= '<td class="entry">%s</td>';
+      $line_format .= '<td class="entry" width="40%%">%s</td>';
+      $line_format .= '<td class="entry" width="10%%">%s</td>';
       $line_format .= '<td class="entry">%s</td>';
       $line_format .= '<td class="entry" style="white-space: nowrap; text-align: right; ">%s</td>';
       $line_format .= '<td class="entry" style="white-space: nowrap; text-align: right; ">%s</td>';
@@ -874,7 +874,7 @@ class Request {
       $bill_ok_format = '<td class="entry" style="text-align: center; ">%s</td>';
       $delete_link_format = '<td class="entry" width="2%%"><a href="/wr.php?request_id=%d&action=removets&timesheet_id=%d&edit=1" title="Remove timesheet from this request"><img src="'.$GLOBALS['images'].'/delete.png" border="none"></a></td>';
 
-      $html .= '<tr><td colspan="2"><table width="100%">'."\n";
+      $html .= '<tr><th colspan="2" class="prompt"><table width="100%" class="entry">'."\n";
       $html .= '<tr><th class="pcol">Done&nbsp;By</th>';
       $html .= '<th class="pcol">Done On</th>';
       $html .= '<th class="pcol">Quantity</th>';
@@ -977,7 +977,7 @@ class Request {
     }
 
     if ( $ef->editmode || $q->rows )
-      $html .= '</table></td></tr>'."\n";
+      $html .= '</table></th></tr>'."\n";
 
     return $html;
   }
@@ -1111,7 +1111,7 @@ class Request {
     if ( $ef->editmode || $q->rows )
       $html .= $ef->BreakLine("Notes");
     if ( $q->rows ) {
-      $html .= '<tr><th class="pcol">&nbsp;</th><td><table width="100%">'."\n";
+      $html .= '<tr><th class="prompt">&nbsp;</th><td><table width="100%" class="entry">'."\n";
       $html .= '<tr><th class="pcol">Noted By/On</th>';
 //       $html .= '<th class="pcol">Noted On</th>';
       $html .= '<th class="pcol">Details</th></tr>'."\n";
@@ -1127,7 +1127,7 @@ class Request {
     }
 
     if ( $ef->editmode ) {
-      $html .= '<tr><th class="prompt">&nbsp;<br />Add Note</th><td><table><tr>'."\n";
+      $html .= '<tr><th class="prompt">&nbsp;<br />Add Note</th><td><table width="100%" class="entry"><tr>'."\n";
 
       // Enter the description
       $html .= '<tr><td class="entry">';
@@ -1162,7 +1162,7 @@ class Request {
     if ( $ef->editmode || $q->rows )
       $html .= $ef->BreakLine("Changes in Status");
     if ( $q->rows ) {
-      $html .= '<tr><th class="pcol">&nbsp;</th><td><table width="100%">'."\n";
+      $html .= '<tr><th class="prompt">&nbsp;</th><td><table width="100%" class="entry">'."\n";
       $html .= '<tr><th class="pcol">Changed By</th>';
       $html .= '<th class="pcol">Changed On</th>';
       $html .= '<th class="pcol">Changed To</th></tr>'."\n";
@@ -1179,7 +1179,7 @@ class Request {
     }
 
     if ( $ef->editmode ) {
-      $html .= '<tr><th class="prompt">Change Status</th><td><table><tr>'."\n";
+      $html .= '<tr><th class="prompt">Change Status</th><td><table width="100%" class="entry"><tr>'."\n";
 
       $html .= '<td class="entry">';
       if ( !isset($_POST['status_code']) ) $_POST['status_code'] = $this->last_status;  // Default to current status
@@ -1222,6 +1222,7 @@ class Request {
     $qry = new PgQuery("BEGIN");  $qry->Exec("WR::Write");
 
     $this->chtype = strtolower($_POST['submit']);
+    $this->send_an_email = false;
 
     $db_errors = false;
     $save_detailed_description = $_POST['detailed'];
@@ -1309,7 +1310,7 @@ class Request {
     else {
       $client_messages[] = "Request details written.";
 
-      $this->NotifyEmail();
+      if ( $this->send_an_email ) $this->NotifyEmail();
 
       // Since we wrote it all successfully, clear the $_POST array
       // so that the posted data isn't all re-used in the form fields,

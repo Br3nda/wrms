@@ -193,8 +193,7 @@ class Session
   }
 
 
-  function Login( $username, $password )
-  {
+  function Login( $username, $password ) {
     global $sysname, $sid, $debuggroups, $client_messages;
     if ( $debuggroups['Login'] )
       $this->Log( "DBG: Login: Attempting login for $username" );
@@ -252,6 +251,27 @@ class Session
 
     $this->Log( "DBG: Login $this->cause" );
     return false;
+  }
+
+  function LoginRequired() {
+    global $system_name, $admin_email, $session, $images, $colors;
+
+    if ( $this->logged_in ) return;
+
+    include("headers.php");
+    if ( function_exists("local_index_not_logged_in") ) {
+      local_index_not_logged_in();
+    }
+    else {
+      echo <<<EOTEXT
+<H4>For access to the $system_name you should log on with
+the username and password that have been issued to you.</H4>
+
+<h4>If you would like to request access, please e-mail $admin_email.</h4>
+EOTEXT;
+    }
+    include("footers.php");
+    exit;
   }
 }
 

@@ -5,16 +5,16 @@ function update_timesheet( $ts_finish ) {
 
   $ts_finish = intval($ts_finish);
   if ( $ts_no > 0 && $ts_finish > 0 ) {
-    error_log( "Write timesheet from $ts_start to $ts_finish for $ts_no '$ts_description'", 0);
+    error_log( "wrms timesheet-action: DBG: Write timesheet from $ts_start to $ts_finish for $ts_no '$ts_description'", 0);
     $query = "SELECT request_id FROM request WHERE request_id = $ts_no;";
     $result = awm_pgexec( $dbconn, $query, 'ts-action');
     if ( !$result || pg_NumRows($result) == 0 ) {
       $because .= "<p class=error>WR # $ts_no was not found</p>\n";
-      error_log( "WR# $ts_no '$ts_description' was not found.", 0);
+      error_log( "wrms timesheet-action: DBG: WR# $ts_no '$ts_description' was not found.", 0);
     }
     else {
       $lt = localtime($sow, true);
-      error_log( "Time includes DST? " . $lt['tm_isdst'] );
+      error_log( "wrms timesheet-action: DBG: Time includes DST? " . $lt['tm_isdst'] );
       $from = "'" . date( 'Y-M-d, H:i', $sow + ($dow * 86400) + (($ts_start - (60 * $lt['tm_isdst'])) * 60) ) . "'::timestamp without time zone";
       $duration = sprintf( "'%d minutes'::interval", $ts_finish - $ts_start );
       $quantity = ($ts_finish - $ts_start ) / 60;
@@ -33,7 +33,7 @@ function update_timesheet( $ts_finish ) {
     }
   }
   else {
-    error_log( "Not writing timesheet from $ts_start to $ts_finish for $ts_no '$ts_description'", 0);
+    error_log( "wrms timesheet-action: DBG: Not writing timesheet from $ts_start to $ts_finish for $ts_no '$ts_description'", 0);
   }
 
   $ts_no = 0;
@@ -57,7 +57,7 @@ function update_timesheet( $ts_finish ) {
         }
         elseif ( $v != "" ) {
           list( $number, $description ) = split( '/', $v, 2);
-          error_log( "$v -> $ts_start" );
+          error_log( "wrms timesheet-action: DBG: $v -> $ts_start" );
           $number = intval($number);
           if ( ($number != $ts_no && $ts_no > 0) ||  ( "$description" != "$ts_description" && "$description" != "") ) update_timesheet( substr($k,1));
           if ( $number > 0 ) {
@@ -66,7 +66,7 @@ function update_timesheet( $ts_finish ) {
             if ( "$description" != "" ) $ts_description = $description;
             if ( "$ts_description" == "" ) $ts_description = "$session->fullname - Weekly T/S";
           }
-          error_log( "Setting description: $k - $v => no: $ts_no, desc: $ts_description", 0);
+          error_log( "wrms timesheet-action: DBG: Setting description: $k - $v => no: $ts_no, desc: $ts_description", 0);
         }
       }
       // Update to the end of the day

@@ -737,7 +737,7 @@ class Request {
     $sql .= "FROM request_request ";
     $sql .= "JOIN request parent ON (request_request.request_id = parent.request_id) ";
     $sql .= "JOIN request child ON (request_request.to_request_id = child.request_id) ";
-    $sql .= "JOIN lookup_code lsd ON (lsd.source_table = 'request' AND lsd.source_field = 'status_code' AND lsd.lookup_code = parent.last_status) ";
+    $sql .= "JOIN lookup_code lsd ON (lsd.source_table = 'request' AND lsd.source_field = 'status_code' AND lsd.lookup_code = child.last_status) ";
     $sql .= "JOIN lookup_code llt ON (llt.source_table = 'request_request' AND llt.source_field = 'link_type' AND llt.lookup_code = request_request.link_type) ";
     $sql .= "WHERE request_request.request_id = ? ";
     $sql .= "ORDER BY request_request.request_id, request_request.to_request_id ";

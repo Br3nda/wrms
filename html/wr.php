@@ -12,13 +12,14 @@ require_once("maintenance-page.php");
 require_once("Request.class");
 
 $wr = new Request($request_id);
-if ( $wr->request_id == 0 ) {
-  unset( $request_id );
+if ( $wr->new_record ) {
   $edit = 1;
-  $title = ( intval($request_id) > 0 ? "Request Unavailable" : "New Request" );
+  unset( $request_id );
 }
 else {
-  $title = "WR#$wr->request_id - $wr->brief";
+  $title = ( intval($request_id) > 0 && $wr->request_id == 0
+                 ? "Request $request_id Unavailable"
+                 : "WR#$wr->request_id - $wr->brief" );
 }
 $show = 0;
 $new = isset($edit) && intval($edit) && !isset($id);

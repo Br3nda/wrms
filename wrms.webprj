@@ -1,6 +1,6 @@
 <!DOCTYPE webproject>
 <webproject>
-  <project usePreviewPrefix="0" preview="http://mywrms/" type="Local" previewPrefix="file:file%3A" newfiles="php" name="WRMS" encoding="iso 8859-1" >
+  <project usePreviewPrefix="0" preview="http://mywrms/" previewPrefix="file:file%3A" type="Local" newfiles="php" name="WRMS" encoding="iso 8859-1" >
     <upload/>
     <author>Andrew McMillan</author>
     <email>wrms@catalyst.net.nz</email>
@@ -311,51 +311,14 @@
     <item url="wrms.webprj" uploadstatus="0" />
     <item url="config/config.php" uploadstatus="0" />
     <item url="inc/simpletimelist-form.php" uploadstatus="0" />
-    <item url="inc/phpmailer-1.72/" />
-    <item url="inc/phpmailer-1.72/docs/" />
-    <item url="inc/phpmailer-1.72/docs/extending.html" />
-    <item url="inc/phpmailer-1.72/docs/faq.html" />
-    <item url="inc/phpmailer-1.72/docs/timeoutfix.diff" />
-    <item url="inc/phpmailer-1.72/language/" />
-    <item url="inc/phpmailer-1.72/language/phpmailer.lang-br.php" />
-    <item url="inc/phpmailer-1.72/language/phpmailer.lang-cz.php" />
-    <item url="inc/phpmailer-1.72/language/phpmailer.lang-de.php" />
-    <item url="inc/phpmailer-1.72/language/phpmailer.lang-en.php" />
-    <item url="inc/phpmailer-1.72/language/phpmailer.lang-es.php" />
-    <item url="inc/phpmailer-1.72/language/phpmailer.lang-fr.php" />
-    <item url="inc/phpmailer-1.72/language/phpmailer.lang-it.php" />
-    <item url="inc/phpmailer-1.72/language/phpmailer.lang-nl.php" />
-    <item url="inc/phpmailer-1.72/language/phpmailer.lang-no.php" />
-    <item url="inc/phpmailer-1.72/language/phpmailer.lang-se.php" />
-    <item url="inc/phpmailer-1.72/language/phpmailer.lang-tr.php" />
-    <item url="inc/phpmailer-1.72/phpdoc/" />
-    <item url="inc/phpmailer-1.72/phpdoc/allclasses-frame.html" />
-    <item url="inc/phpmailer-1.72/phpdoc/deprecated-list.html" />
-    <item url="inc/phpmailer-1.72/phpdoc/help-doc.html" />
-    <item url="inc/phpmailer-1.72/phpdoc/index-all.html" />
-    <item url="inc/phpmailer-1.72/phpdoc/index.html" />
-    <item url="inc/phpmailer-1.72/phpdoc/overview-tree.html" />
-    <item url="inc/phpmailer-1.72/phpdoc/packages.html" />
-    <item url="inc/phpmailer-1.72/phpdoc/phpmailer.html" />
-    <item url="inc/phpmailer-1.72/phpdoc/serialized-form.html" />
-    <item url="inc/phpmailer-1.72/phpdoc/stylesheet.css" />
-    <item url="inc/phpmailer-1.72/test/" />
-    <item url="inc/phpmailer-1.72/test/phpmailer_test.php" />
-    <item url="inc/phpmailer-1.72/test/phpunit.php" />
-    <item url="inc/phpmailer-1.72/test/rocks.png" />
-    <item url="inc/phpmailer-1.72/ChangeLog.txt" />
-    <item url="inc/phpmailer-1.72/LICENSE" />
-    <item url="inc/phpmailer-1.72/README" />
-    <item url="inc/phpmailer-1.72/class.phpmailer.php" />
-    <item url="inc/phpmailer-1.72/class.smtp.php" />
-    <item url="inc/class.phpmailer.php" />
-    <item url="inc/class.smtp.php" />
-    <item url="inc/phpmailer.lang-en.php" />
-    <item url="scripts/dump/" />
-    <item url="scripts/conversion-200411.sql" />
-    <item url="wrms.pgdump" />
+    <item url="inc/class.phpmailer.php" uploadstatus="1" />
+    <item url="inc/class.smtp.php" uploadstatus="1" />
+    <item url="inc/phpmailer.lang-en.php" uploadstatus="1" />
+    <item url="scripts/dump/" uploadstatus="1" />
+    <item url="scripts/conversion-200411.sql" uploadstatus="1" />
     <treestatus>
       <openfolder url="html" />
+      <openfolder url="html/js" />
       <openfolder url="inc" />
     </treestatus>
   </project>

@@ -155,6 +155,7 @@ class Session
     $this->fullname = $u->fullname;
     $this->email = $u->email;
     $this->org_code = $u->org_code;
+    $this->org_name = $u->org_name;
     $this->config_data = $u->config_data;
     $this->session_id = $u->session_id;
 

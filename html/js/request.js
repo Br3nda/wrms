@@ -5,6 +5,7 @@ var system_code = "";
 
 var popt_rx = /^Person: <option value="(.+)">(.+)<\/option>/i
 var sopt_rx = /^System: <option value="(.+)">(.+)<\/option>/i
+var aopt_rx = /^Subscriber: <option value="(.+)">(.+)<\/option>/i
 var number_rx = /^[0-9\.]*$/
 var date_rx = /^([0-9][0-9]?-[0-1]?[0-9]-[0-9][0-9]*|today|yesterday|now|tomorrow)$/
 
@@ -14,6 +15,8 @@ var system_options;
 var org_sel;
 var per_sel;
 var sys_sel;
+var alloc_sel;
+var subsc_sel;
 
 var xmlhttp;
 /*@cc_on @*/
@@ -51,6 +54,8 @@ function OrganisationChanged() {
   var new_org_id = document.forms.form.org_code.value;
   per_sel = document.forms.form.requester_id;
   sys_sel = document.forms.form.system_code;
+  alloc_sel = document.forms.form.allocatable;
+  subsc_sel = document.forms.form.subscribable;
   if ( new_org_id != organisation_id ) {
     organisation_id = new_org_id;
     xmlhttp.open("GET", "/js.php?org_code=" + new_org_id, true);
@@ -62,8 +67,12 @@ function OrganisationChanged() {
         var old_system_code = sys_sel.value;
         CleanSelectOptions(per_sel);
         CleanSelectOptions(sys_sel);
+        CleanSelectOptions(alloc_sel);
+        CleanSelectOptions(subsc_sel);
         per_sel.options[0] = new Option( "--- select a person ---", "" );
         sys_sel.options[0] = new Option( "--- select a system ---", "" );
+        alloc_sel.options[0] = new Option( "--- select a person ---", "" );
+        subsc_sel.options[0] = new Option( "--- select a person ---", "" );
         person_id = -1;
         system_code = "";
         for ( var i=0; i < lines.length; i++ ) {
@@ -78,6 +87,10 @@ function OrganisationChanged() {
             if ( sys_sel.options[sys_sel.options.length - 1].value == old_system_code ) {
               sys_sel.options.selectedIndex = sys_sel.options.length - 1;
             }
+          }
+          else if ( lines[i].match( /^Subscriber:/ ) ) {
+            alloc_sel.options[alloc_sel.options.length] = new Option( lines[i].replace( aopt_rx, "$2"), lines[i].replace( aopt_rx, "$1") )
+            subsc_sel.options[subsc_sel.options.length] = new Option( lines[i].replace( aopt_rx, "$2"), lines[i].replace( aopt_rx, "$1") )
           }
         }
 

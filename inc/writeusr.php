@@ -78,25 +78,33 @@
       // Roles
       if ( isset($NewUserRole) && is_array($NewUserRole) ) {
         // Delete groups from the target person that the maintaining user has access to
-        $query = "DELETE FROM group_member WHERE user_no=$user_no ";
-        $query .= "AND group_no IN (SELECT group_no FROM group_member WHERE user_no = $session->user_no);";
-        $result = awm_pgexec( $dbconn, $query, "writeusr" );
+        // $query = "DELETE FROM group_member WHERE user_no=$user_no ";
+        // $query .= "AND group_no IN (SELECT group_no FROM group_member WHERE user_no = $session->user_no);";
+        $name_list = '';
 
         while ( is_array($NewUserRole) && list($k1, $val) = each($NewUserRole)) {
+          $k1 = str_replace( "'", "''", str_replace( "\\", "\\\\", $k1 ));
 
           if ( is_array($val) ) {
             /* This should be caught by PHP4 */
             while ( list($k2, $val2) = each($val) ) {
+              $k2 = str_replace( "'", "''", str_replace( "\\", "\\\\", $k2 ));
               $query = "INSERT INTO group_member (user_no, group_no) SELECT $user_no AS user_no, group_no FROM ugroup";
               $query .= " WHERE module_name='$k1' ";
               $query .= " AND group_name='$k2' ";
               // Only insert groups to the target person that the maintaining user has access to
               $query .= " AND group_no IN (SELECT group_no FROM group_member WHERE user_no = $session->user_no);";
               $result = awm_pgexec( $dbconn, $query );
+              if ( $name_list != '' ) $name_list .= ", ";
+              $name_list .= "'$k2'";
             }
           }
         }
         reset($NewUserRole);
+        $delqry = "DELETE FROM group_member WHERE user_no=$user_no ";
+        $delqry .= "AND group_no IN (SELECT group_no FROM ugroup ";
+        $delqry .= "WHERE group_name NOT IN ($name_list))";
+        $result = awm_pgexec( $dbconn, $delqry, "writeusr" );
       }
 
        // Write allowed systems

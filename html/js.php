@@ -2,12 +2,8 @@
 require_once("always.php");
 require_once("authorisation-page.php");
 
-// Header("Content-type: text/xml");
-/* echo "<?xml version=\"1.0\"?>\n"; */
-// echo "<selects>\n";
 if ( !$session->logged_in ) {
   // Very quiet
-  // echo "<error>Not authorised</error>";
   echo "Error: Not authorised";
   exit;
 }
@@ -20,12 +16,9 @@ if ( isset($org_code) ) {
   $sql .= "ORDER BY lower(fullname)";
   $qry = new PgQuery( $sql );
   if ( $qry->Exec('js') ) {
-    // echo "<personselect>\n";
     while( $row = $qry->Fetch() ) {
       echo "Person: <option value=\"$row->user_no\">$row->name</option>\n";
-      // echo "<option>$row->user_no|$row->fullname</option>\n";
     }
-    // echo "</personselect>\n";
   }
 
   $sql = "SELECT work_system.system_code, system_desc ";
@@ -34,12 +27,32 @@ if ( isset($org_code) ) {
   $sql .= "ORDER BY lower(system_desc);";
   $qry = new PgQuery($sql);
   if ( $qry->Exec('js') ) {
-    // echo "<systemselect>\n";
     while( $row = $qry->Fetch() ) {
       echo "System: <option value=\"$row->system_code\">$row->system_desc</option>\n";
     }
-    // echo "</systemselect>\n";
   }
+
+  if ( isset($org2_code) || $session->org_code != $org_code ) {
+    $org2_code = intval($org2_code);
+    $sql = "SELECT user_no, abbreviation || ': ' || fullname AS name ";
+    $sql .= "FROM usr JOIN organisation ON (usr.org_code = organisation.org_code) ";
+    $sql .= "WHERE status != 'I' ";
+    $sql .= "AND organisation.org_code IN ($org_code";
+    if ( $session->org_code != $org_code ) {
+      $sql .= ", $session->org_code";
+    }
+    if ( $org2_code > 0 && $session->org_code != $org2_code ) {
+      $sql .= ", $org2_code";
+    }
+    $sql .= ") ORDER BY organisation.org_code, lower(fullname)";
+    $qry = new PgQuery( $sql );
+    if ( $qry->Exec('js') ) {
+      while( $row = $qry->Fetch() ) {
+        echo "Subscriber: <option value=\"$row->user_no\">$row->name</option>\n";
+      }
+    }
+  }
+
 }
 else if ( isset($person_id) ) {
   $person_id = intval($person_id);
@@ -49,5 +62,4 @@ else if ( isset( $system_code ) ) {
 else {
   echo "Error: Unrecognised request";
 }
-// echo "</selects>\n";
 ?>

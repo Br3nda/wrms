@@ -38,8 +38,8 @@
   if ( !isset($error_qry) || "$error_qry" == "" ) {
     $query = "SELECT DISTINCT ON (work_system.system_code) * FROM work_system, org_system ";
     $query .= " WHERE work_system.system_code = org_system.system_code AND work_system.active ";
-    if ( ! is_member_of('Admin','Support')  ) {
-      $query .= " AND org_system.org_code='$session->org_code' ";
+    if ( ! (is_member_of('Admin','Support') && $session->org_code == $usr->org_code) ) {
+      $query .= " AND org_system.org_code='$usr->org_code' ";
     }
     $query .= " ORDER BY work_system.system_code ";
     $sys_res = awm_pgexec( $dbconn, $query, "usr", false, 7 );
@@ -255,10 +255,10 @@ echo "</td>\n</tr>\n";
       echo "<select class=sml style=\"width: 150px;\" name=\"NewUserCat[$sys->system_code]\">\n";
 
       echo "<option value=\"\"";
-      if ( "$code" == "" && is_member_of('Admin','Support') ) echo " selected";
+      if ( "$code" == "" && ! is_member_of('Admin','Support') ) echo " selected";
       echo ">--- no access ---</option>\n";
 
-      if ( is_member_of('Admin','Support') ) {
+      if ( is_member_of('Admin','Support') && $session->org_code == $usr->org_code ) {
         echo "<option value=A";
         if ( "$code" == 'A') echo " selected";
         echo ">Administration</option>\n";
@@ -273,7 +273,7 @@ echo "</td>\n</tr>\n";
       echo ">Client Coordinator</option>\n";
 
       echo "<option value=E";
-      if ( "$code" == 'E' || ("$code" == "" && ! is_member_of('Admin','Support') ) ) echo " selected";
+      if ( "$code" == 'E') echo " selected";
       echo ">Enter Requests</option>\n";
 
       echo "<option value=R";

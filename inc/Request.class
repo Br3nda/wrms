@@ -11,49 +11,18 @@ class Request {
    var $mail_message_data;
 
    function Request( $id = 0 ) {
-     global $session, $tmnu;
+     global $session, $tmnu, $edit;
      if ( !$session->logged_in ) return false;
      $loaded = false;
+     $this->request_id = 0;
      $this->mail_message_data = array();
 
      $id = intval("$id");
      if ( $id > 0 ) {
        // Try and load it from file
-       // Note: careful adjustment of the field order - work_system and request both have 'active' e.g.
-       $sql = "SELECT organisation.*, usr.*, work_system.*, request.*";
-       $sql .= ", to_char( request.requested_by_date, 'dd/mm/yyyy' ) AS requested_by_date, to_char( request.agreed_due_date, 'dd/mm/yyyy' ) AS agreed_due_date ";
-       $sql .= ", status.lookup_desc AS status_desc";
-       $sql .= ", request_type.lookup_desc AS request_type_desc";
-       $sql .= ", urgency.lookup_desc AS urgency_desc";
-       $sql .= ", sla_response.lookup_desc AS sla_response_desc";
-       $sql .= ", importance.lookup_desc AS importance_desc";
-       $sql .= ", system_desc, request_sla_code(sla_response_time,sla_response_type) ";
-       $sql .= " FROM request LEFT OUTER JOIN usr ON (request.requester_id = usr.user_no)";
-       $sql .= " LEFT OUTER JOIN organisation USING( org_code )";
-       $sql .= " LEFT OUTER JOIN lookup_code AS status ON status.source_table='request' AND status.source_field='status_code' AND status.lookup_code = request.last_status";
-       $sql .= " LEFT OUTER JOIN lookup_code AS request_type ON request_type.source_table='request' AND request_type.source_field='request_type' AND request.request_type = request_type.lookup_code";
-       $sql .= " LEFT OUTER JOIN lookup_code AS urgency ON urgency.source_table='request' AND urgency.source_field='urgency' AND int4(urgency.lookup_code)=request.urgency";
-       $sql .= " LEFT OUTER JOIN lookup_code AS sla_response ON sla_response.source_table='request' AND sla_response.source_field='sla_response' AND sla_response.lookup_code=request_sla_code(sla_response_time,sla_response_type)";
-       $sql .= " LEFT OUTER JOIN lookup_code AS importance ON importance.source_table='request' AND importance.source_field='importance' AND int4(importance.lookup_code)=request.importance";
-       $sql .= " LEFT OUTER JOIN work_system USING( system_code )";
-       $sql .= " WHERE request.request_id = '$id'";
-       if ( !($session->AllowedTo('Admin') || $session->AllowedTo('Support')) )
-         $sql .= " AND organisation.org_code = '$session->org_code' ";
-
-       if ( $qry = new PgQuery($sql) ) {
-         if ( $qry->Exec("newRequest")
-                  && $qry->rows == 1 && $row = $qry->Fetch() ) {
-           $this->new_record = false;
-           while( list($k,$v) = each($row) ) {
-             if ( isset($debuggroups['Request']) && $debuggroups['Request'] ) {
-               error_log( sprintf("%s: DBG: \$this->{'%-25.25s = %s", $sysabbr, "$k'}", $v) );
-             }
-             $this->{$k} = $v;
-           }
-           $tmnu->AddOption("Organisation","/org.php?org_code=$this->org_code&request_id=$id","View the details for this organisation");
-           $tmnu->AddOption("System","/system.php?system_code=$this->system_code&request_id=$id","View the details for this system");
-           $tmnu->AddOption("User","/usr.php?user_no=$this->user_no&request_id=$id","View the details for the requesting user");
-         }
+       $this->ReadRequest($id);
+       if ( $this->request_id == 0 ) {
+         $edit = false;
        }
      }
      else {
@@ -69,6 +38,74 @@ class Request {
        }
      }
    }
+
+   /////////////////////////////////////////////////////////////
+   // ReadRequest - Read the actual request record and assign the fields.
+   /////////////////////////////////////////////////////////////
+   function ReadRequest( $id ) {
+     global $session, $tmnu, $client_messages;
+
+     // Note: careful adjustment of the field order - work_system and request both have 'active' e.g.
+     $sql = "SELECT organisation.*, usr.*, work_system.*, request.*, system_usr.role AS system_usr_role ";
+     $sql .= ", to_char( request.requested_by_date, 'dd/mm/yyyy' ) AS requested_by_date, to_char( request.agreed_due_date, 'dd/mm/yyyy' ) AS agreed_due_date ";
+     $sql .= ", status.lookup_desc AS status_desc";
+     $sql .= ", request_type.lookup_desc AS request_type_desc";
+     $sql .= ", urgency.lookup_desc AS urgency_desc";
+     $sql .= ", sla_response.lookup_desc AS sla_response_desc";
+     $sql .= ", importance.lookup_desc AS importance_desc";
+     $sql .= ", system_desc, request_sla_code(sla_response_time,sla_response_type) ";
+     $sql .= " FROM request LEFT OUTER JOIN usr ON (request.requester_id = usr.user_no)";
+     $sql .= " LEFT OUTER JOIN organisation USING( org_code )";
+     $sql .= " LEFT OUTER JOIN lookup_code AS status ON status.source_table='request' AND status.source_field='status_code' AND status.lookup_code = request.last_status";
+     $sql .= " LEFT OUTER JOIN lookup_code AS request_type ON request_type.source_table='request' AND request_type.source_field='request_type' AND request.request_type = request_type.lookup_code";
+     $sql .= " LEFT OUTER JOIN lookup_code AS urgency ON urgency.source_table='request' AND urgency.source_field='urgency' AND int4(urgency.lookup_code)=request.urgency";
+     $sql .= " LEFT OUTER JOIN lookup_code AS sla_response ON sla_response.source_table='request' AND sla_response.source_field='sla_response' AND sla_response.lookup_code=request_sla_code(sla_response_time,sla_response_type)";
+     $sql .= " LEFT OUTER JOIN lookup_code AS importance ON importance.source_table='request' AND importance.source_field='importance' AND int4(importance.lookup_code)=request.importance";
+     $sql .= " LEFT OUTER JOIN work_system USING( system_code )";
+     $sql .= " JOIN system_usr ON $session->user_no = system_usr.user_no AND request.system_code = system_usr.system_code ";
+     $sql .= " WHERE request.request_id = '$id' ";
+//     echo "<p>$sql<p>";
+
+     if ( $qry = new PgQuery($sql) ) {
+       if ( $qry->Exec("ReadRequest")
+                  && $qry->rows == 1 && $row = $qry->Fetch() ) {
+         if ( $session->AllowedTo('Admin') || $session->AllowedTo('Support')
+                  || $row->org_code == $session->org_code ) {
+           $this->new_record = false;
+           while( list($k,$v) = each($row) ) {
+             if ( isset($debuggroups['Request']) && $debuggroups['Request'] ) {
+               error_log( sprintf("%s: DBG: \$this->{'%-25.25s = %s", $sysabbr, "$k'}", $v) );
+             }
+             $this->{$k} = $v;
+           }
+           if ( strpos( "ASEC", strtoupper($this->system_usr_role)) {
+                || $this->requester_id == $session->user_no ) {
+             $tmnu->AddOption("Edit","/wr.php?edit=1&request_id=$this->request_id","Edit the details for this work request");
+           }
+
+           $tmnu->AddOption("Organisation","/org.php?org_code=$this->org_code&request_id=$id","View the details for this organisation");
+           $tmnu->AddOption("System","/system.php?system_code=$this->system_code&request_id=$id","View the details for this system");
+           $tmnu->AddOption("User","/usr.php?user_no=$this->user_no&request_id=$id","View the details for the requesting user");
+         }
+         else {
+           error_log( sprintf("%s: DBG: User %d cannot access request %d.", $this->user_no, $id) );
+           $client_messages[] = "Request $id is unavailable - do you have the number right?";
+           $this->new_record = false;
+         }
+       }
+       else {
+         // Request not found that the user can read.
+         error_log( sprintf("%s: DBG: User %d cannot access request %d.", $this->user_no, $id) );
+         $client_messages[] = "Request $id is unavailable - do you have the number right?";
+         $this->new_record = false;
+       }
+     }
+     else {
+       // SQL is broken or something very wierd!
+       error_log( sprintf("%s: DBG: Can't create SQL PgQuery for '%s'", $sysabbr, $sql) );
+     }
+   }
+
 
    /////////////////////////////////////////////////////////////
    // AllowedTo - Can the user do that to this request?
@@ -244,6 +281,7 @@ class Request {
                  array("_sql" => $sql, "_null" => "--- select an organisation ---", "onchange" => "OrganisationChanged();" ) );
      }
      else {
+       if ( $this->new_record ) $this->org_name = $session->org_name;
        $html .= $ef->DataEntryLine( "Organisation", "$this->org_name", "", "" );
      }
 
@@ -267,15 +305,23 @@ class Request {
      // System (within Organisation) drop-down
      $sql = "SELECT work_system.system_code, system_desc FROM work_system ";
      if ( $this->new_record ) {
-       if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) )
+       if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) ) {
          $sql .= "JOIN org_system ON org_system.system_code = work_system.system_code ";
+         $sql .= "JOIN system_usr ON $session->user_no = system_usr.user_no AND org_system.system_code = system_usr.system_code ";
+       }
        $sql .= "WHERE active ";
-       if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) )
+       if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) ) {
          $sql .= "AND org_system.org_code = $session->org_code ";
+         $sql .= "AND system_usr.role IN ( 'A', 'S', 'C', 'E' ) ";
+       }
      }
      else {
        $sql .= "JOIN org_system ON org_system.system_code = work_system.system_code ";
+       if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) )
+         $sql .= "JOIN system_usr ON $session->user_no = system_usr.user_no AND org_system.system_code = system_usr.system_code ";
        $sql .= "WHERE org_system.org_code = $this->org_code ";
+       if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) )
+         $sql .= "AND system_usr.role IN ( 'A', 'S', 'C', 'E' ) ";
      }
      $sql .= "ORDER BY lower(system_desc)";
      $html .= $ef->DataEntryLine( "System", "$this->system_desc", "lookup", "system_code",
@@ -734,7 +780,12 @@ class Request {
        // Select the file
        $usr_sql = "SELECT user_no, abbreviation || ': ' || fullname ";
        $usr_sql .= "FROM usr JOIN organisation ON ( usr.org_code = organisation.org_code) ";
-       $usr_sql .= "WHERE status != 'I' AND organisation.org_code IN ( $this->org_code, $session->org_code )";
+       if ( isset($this->org_code) ) {
+         $usr_sql .= "WHERE status != 'I' AND organisation.org_code IN ( $this->org_code, $session->org_code )";
+       }
+       else {
+          $usr_sql .= "WHERE status != 'I' AND organisation.org_code = $session->org_code ";
+       }
        $usr_sql .= " ORDER BY organisation.org_code, fullname;";
        $html .= '<td class="entry">';
        $html .= $ef->DataEntryField( "", "lookup", "subscribable",
@@ -878,7 +929,7 @@ class Request {
    // ones used for displaying the form.
    /////////////////////////////////////////////////////////////
    function Write( $ef ) {
-     global $client_messages;
+     global $client_messages, $request_id;
      error_log("$system_name: vpw: Writing request details to database");
      $qry = new PgQuery("BEGIN");  $qry->Exec("WR::Write");
 
@@ -892,11 +943,16 @@ class Request {
      else {
        // If we are creating a new record, we need to grab the ID that it got
        if ( eregi("create",$_POST['submit']) ) {
-         $sql = "SELECT currval('organisation_org_code_seq';";
+         // Fetch the request_id for this record.
+         $sql = "SELECT currval('request_request_id_seq');";
          $qry = new PgQuery($sql);
          $qry->Exec("WR::Write");
          $row = $qry->Fetch(true);    // Fetch results as array
          $this->request_id = $row[0];
+         $request_id = $this->request_id;
+
+         // Fetch the other details for the request and assign them into this object.
+         $this->ReadRequest($request_id);
        }
      }
 

@@ -526,7 +526,7 @@
     $msg .= "\nFull details of the request, with all changes and notes, can be reviewed and changed at:\n"
          .  "    http://$HTTP_HOST$base_url/request.php?request_id=$request_id\n";
 
-    mail( $send_to, $msub, $msg, "From: andrew@catalyst.net.nz\nErrors-To: wrmsadmin@catalys.net.nz" );
+    mail( $send_to, $msub, $msg, "From: Catalyst Work Requests <wrms@catalyst.net.nz>\nReply-To: andrew@catalyst.net.nz\nErrors-To: wrmsadmin@catalys.net.nz" );
   }
 ?>
 

@@ -314,7 +314,6 @@ class Request {
    function Disassociate( $other_id ) {
      global $client_messages;
 
-     $row = $q->Fetch();
      $client_messages[] = "Disassociated from request $other_id.";
 
      $sql = "DELETE FROM request_request ";
@@ -672,17 +671,20 @@ class Request {
        $html .= '<th class="pcol">Brief</th>';
        $html .= '<th class="pcol">Status</th>';
        $html .= '<th class="pcol">Link</th>';
-       $html .= '<th class="pcol">This W/R</th></tr>'."\n";
+       $html .= '<th class="pcol">This W/R</th>';
+       $html .= '<th class="pcol">&nbsp;</th></tr>'."\n";
        $line_format = '<tr class="row%d"><td class="entry" width="5%%"><a href="/wr.php?request_id=%d">%s</a></td>';
        $line_format .= '<td class="entry"><a href="/wr.php?request_id=%d">%s</a></td>';
        $line_format .= '<td class="entry">%s</td>';
        $line_format .= '<td class="entry">%s</td>';
-       $line_format .= '<td class="entry">%s</td></tr>'."\n";
+       $line_format .= '<td class="entry">%s</td>';
+       $line_format .= '<td class="entry" width="2%%"><a href="/wr.php?request_id=%d&action=disassociate&other_id=%d" title="Break the association with this request"><img src="'.$GLOBALS['images'].'/delete.png" border="none"></a></td>';
+       $line_format .= '</tr>'."\n";
        while( $row = $q->Fetch() ) {
          if ( trim($row->brief) == '' ) $row->brief = substr($row->detailed,0,50) . "...";
          $html .= sprintf( $line_format,
                     ($q->rownum % 2), $row->parent_id, $row->parent_id, $row->parent_id, $row->brief, $row->last_status_desc, $row->link_type_desc,
-                    $this->request_id
+                    $this->request_id, $this->request_id, $row->parent_id
                   );
        }
        $html .= '</table></td></tr>'."\n";
@@ -710,17 +712,21 @@ class Request {
        $html .= '<th class="pcol">Link</th>';
        $html .= '<th class="pcol">Child</th>';
        $html .= '<th class="pcol">Brief</th>';
-       $html .= '<th class="pcol">Status</th></tr>'."\n";
+       $html .= '<th class="pcol">Status</th>';
+       $html .= '<th class="pcol">&nbsp;</th></tr>'."\n";
        $line_format = '<tr class="row%d"><td class="entry" width="5%%">%s</td>';
        $line_format .= '<td class="entry">%s</td>';
        $line_format .= '<td class="entry"><a href="/wr.php?request_id=%d">%s</a></td>';
        $line_format .= '<td class="entry"><a href="/wr.php?request_id=%d">%s</a></td>';
-       $line_format .= '<td class="entry">%s</td></tr>'."\n";
+       $line_format .= '<td class="entry">%s</td>';
+       $line_format .= '<td class="entry" width="2%%"><a href="/wr.php?request_id=%d&action=disassociate&other_id=%d" title="Break the association with this request"><img src="'.$GLOBALS['images'].'/delete.png" border="none"></a></td>';
+       $line_format .= '</tr>'."\n";
        while( $row = $q->Fetch() ) {
          if ( trim($row->brief) == '' ) $row->brief = substr($row->detailed,0,50) . "...";
          $html .= sprintf( $line_format,
                     ($q->rownum % 2), $this->request_id, $row->link_type_desc,
-                    $row->child_id, $row->child_id, $row->child_id, $row->brief, $row->last_status_desc
+                    $row->child_id, $row->child_id, $row->child_id, $row->brief, $row->last_status_desc,
+                    $this->request_id, $row->parent_id
                   );
        }
        $html .= '</table></td></tr>'."\n";

@@ -26,6 +26,8 @@ CREATE INDEX organisation_action_sk1 ON organisation_action( org_code, action_se
 -- This constraint should be there, but is missing(!)
 ALTER TABLE usr ADD PRIMARY KEY ( user_no );
 
+-- Support deletion of relationships...
+GRANT DELETE ON request_request TO general;
 
 -- And the instances associated with each request
 CREATE TABLE request_action (

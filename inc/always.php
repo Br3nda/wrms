@@ -51,6 +51,7 @@ $request_id = intval($request_id);
 
 class Setting {
   var $parameters;  // parameters we have set
+  var $modified = false;
 
   function Setting( $fromtext = "" ) {
     $session_data = unserialize ($fromtext);
@@ -59,10 +60,13 @@ class Setting {
       $session_data = array();
     }
     $this->parameters = $session_data;
+    $this->modified = false;
   }
 
   function set ($key, $value) {
+    if ( isset($this->parameters[$key]) && $this->parameters[$key] == $value ) return;
     $this->parameters[$key] = $value;
+    $this->modified = true;
   }
 
   function get ($key) {
@@ -71,11 +75,17 @@ class Setting {
   }
 
   function forget($key) {
+    if ( !isset($this->parameters[$key]) ) return;
     unset( $this->parameters[$key] );
+    $this->modified = true;
   }
 
   function to_save() {
     return str_replace( "'", "''", str_replace( "\\", "\\\\", serialize( $this->parameters ) ));
+  }
+
+  function is_modified() {
+    return $this->modified;
   }
 }
 
@@ -107,7 +117,8 @@ function awm_pgexec( $myconn, $query, $location="", $abort_on_fail=FALSE, $mydbg
     }
   }
   else if ( $debuglevel > 4  || $mydbg > 4 ) {
-    error_log( "$sysabbr $locn URI: $REQUEST_URI", 0);
+    if ( $debuglevel > 6  || $mydbg > 6 )
+      error_log( "$sysabbr $locn URI: $REQUEST_URI", 0);
     while( strlen( $query ) > 0 ) {
       error_log( "$sysabbr $locn QT: $taken for: " . substr( $query, 0, 220) , 0);
       $query = substr( "$query", 220 );

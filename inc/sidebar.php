@@ -10,6 +10,7 @@
 		<tr><td class=sml> &nbsp; </td><td colspan=2 class=sml><font size=1><b>Password</b></font></td></tr>
 		<tr valign=middle><td> &nbsp; </td><td width=30%><font size=2><input TYPE="password" Name="L" SIZE="8"></td>
 		<td valign=middle width=70%>&nbsp;<input type="image" src="<?php $base_url; ?>/images/in-go.gif" alt="go" WIDTH="44" HEIGHT="26" BORDER=0 name="submit"></font></td></tr>
+		<tr valign=middle><td> &nbsp; </td><td colspan=2 align=right><SPAN STYLE="font-size: x-small; font-weight: 700; color: <?php echo $colors[2]; ?>; ">Remember my details:&nbsp;</span><font size=2><input type=checkbox name=remember value=1></font>&nbsp;</td></tr>
 	</form>
 		</table>
 </TR>

@@ -2,7 +2,13 @@
   $maxresults = 100;
 
   // Various changes happen on the basis of $M
-  if ( !isset($M) ) $M = "";
+  if ( isset($LI) && !isset($M) && !isset($session_id) ) {
+    // Handle the login cookie
+      list( $E, $L ) = split( ";", $LI);
+      $E = strtr( "$E", "abcdefghijklmnopqrstuvwxyz", "nopqrstuvwxyzabcdefghijklm" );
+      $M = "LC";
+  }
+  else if ( !isset($M) ) $M = "";
   if ( "$M" == "LC" ) {
     $query = "SELECT * FROM usr WHERE ";
     $query .= "username=LOWER('$E')";
@@ -42,6 +48,11 @@
             $session_id = "$session->session_id " . md5($session->session_start);
             setcookie( "session_id", "$session_id", "", "$base_url/" );
             $logged_on = true;
+            if ( $remember == 1 ) {
+              $cookie .= strtr( $usr->username, "abcdefghijklmnopqrstuvwxyz", "nopqrstuvwxyzabcdefghijklm" ) . ";";
+              $cookie .= md5($usr->password);
+              setcookie( "LI", $cookie, time() + (86400 * 1800), "$base_url/" );   // will expire in five or so years
+            }
           }
         }
       }

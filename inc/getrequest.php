@@ -57,10 +57,12 @@
   if ( strtolower("$request->active") == "t" ) $request->active = "TRUE";
 
   /* Current request is editable if the user requested it or user is sysmgr, cltmgr or allocated the job */
-  if ( ! isset($plain) ) $plain = ("$style" == "plain");
+  if ( ! isset($plain) && isset($style) ) $plain = ("$style" == "plain");
   $statusable = isset($request) && ($author || $sysmgr || $cltmgr || $allocated_to );
   $quotable = $statusable;
   $editable = ($sysmgr || $allocated_to || ! isset($request_id) );
   if ( $editable ) $editable = ! $plain;
+
+  error_log( "getrequest: plain=$plain, editable=$editable, sysmgr=$sysmgr, request_id=$request_id", 0);
 
 ?>

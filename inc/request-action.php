@@ -255,9 +255,15 @@ function dates_equal( $date1, $date2 ) {
              || (isset($new_importance) && $request->importance != $new_importance )
              || (isset($new_system_code) && $request->system_code != $new_system_code )
              || (isset($new_active) && $request->active != $new_active )
+             || isset($quote_approved)
              || $eta_changed || $status_changed || $note_added || $quote_added || $allocation_added || $attachment_added ;
     $send_some_mail = $changes;
     $changes = $changes || $work_added || $interest_added;
+
+    if ( isset($quote_invoice_no) ) {
+        foreach($quote_invoice_no as $quote_id => $invoice_no) $changes = $changes || ($invoice_no != "");
+    }
+
     error_log( "$sysabbr request-action: DBG: $changes---"
              . $brief_changed . "-"
              . $detail_changed . "+"
@@ -342,6 +348,39 @@ function dates_equal( $date1, $date2 ) {
       return;
     }
   }
+
+    // Existing quote(s) approved
+    if ( isset($quote_approved) ) {
+        $query = "UPDATE request_quote SET approved_on = 'now', approved_by_id = $session->user_no WHERE quote_id IN ("
+               . implode(",",array_keys($quote_approved)) . ")";
+
+        $rid = awm_pgexec( $dbconn, $query, "req-action" );
+        if ( ! $rid ) {
+            $because .= "<H3>Quote Approval Failed</H3>\n";
+            $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $dbconn ) . "</TT>";
+            $because .= "<P>The failed query was:</P><TT>$query</TT>";
+            awm_pgexec( $dbconn, "ROLLBACK;" );
+            return;
+        }
+    }
+
+    // Existing quote(s) invoiced
+    if ( isset($quote_invoice_no) ) {
+        foreach($quote_invoice_no as $quote_id => $invoice_no) {
+            if ($invoice_no != "") {
+                $query = "UPDATE request_quote SET invoice_no = $invoice_no WHERE quote_id = $quote_id";
+                $rid = awm_pgexec( $dbconn, $query, "req-action" );
+                if ( ! $rid ) {
+                    $because .= "<H3>Update Quote Invoice No Failed</H3>";
+                    $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $dbconn ) . "</TT>";
+                    $because .= "<P>The failed query was:</P><TT>$query</TT>";
+                    awm_pgexec( $dbconn, "ROLLBACK;" );
+                return;
+                }
+            }
+        }
+    }
+
 
     if ( $quote_added ) {
       $query = "SELECT nextval('request_quote_quote_id_seq');";

@@ -10,6 +10,13 @@
       $because .= "<h2 class=error>New Quote Failed!</h2><h4 class=error>&quot;Amount&quot; must be numeric</h4>\n";
   }
 
+  if ( isset($quote_invoice_no) ) {
+    foreach ($quote_invoice_no as $quote_id => $invoice_no) {
+      if ( $invoice_no != "" && ! is_numeric($invoice_no) )
+      $because .= "<h2 class=error>Update Invoice No Failed for Quote $quote_id</h2><h4 class=error>Must be integer</h4>\n";
+    }
+  }
+
   // Now attempt to catch support staff who log themselves as 'requester'
   if ( $request_id > 0 ) {
     $qs = "SELECT count(*) FROM usr, org_system WHERE org_system.org_code = usr.org_code ";

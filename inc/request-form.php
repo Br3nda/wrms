@@ -346,12 +346,12 @@
         echo "<TD ALIGN=RIGHT>" . number_format($quote->quote_amount, 2) . "</td><td>$quote->quote_units</TD>\n";
         if ($quote->approved_by_id == '')
 	      echo "<td>$session->fullname</td>" .
-		   "<td align=center><input type=checkbox name=quote_approved_$quote->quote_id></td>";
+		   "<td align=center><input type=checkbox name=quote_approved[$quote->quote_id]></td>";
 	else echo "<TD>$quote->approved_by_fullname</TD>" .
 		  "<td>" . substr(nice_date($quote->approved_on),7) . "</td>";
-        if ( $quote->inv_no == '' &&  (is_member_of('Admin','Support'))) 
-		echo "<TD ALIGN=CENTER><input size=6 type=text name=quote_inv_no_$quote->quote_id></TD>";
-        else echo "<TD ALIGN=CENTER>$quote->inv_no</TD>";
+        if ( $quote->invoice_no == '' &&  (is_member_of('Admin','Support'))) 
+		echo "<TD ALIGN=CENTER><input size=6 type=text name=quote_invoice_no[$quote->quote_id]></TD>";
+        else echo "<TD ALIGN=CENTER>$quote->invoice_no</TD>";
         echo "</tr>\n";
 
         printf("<tr class=row%1d>", ($i % 2) );

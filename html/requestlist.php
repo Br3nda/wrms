@@ -243,10 +243,11 @@ $query";
     if ( "$style" != "stripped" ) {
       if ( $result && pg_NumRows($result) > 0 )
         echo "\n<small>" . pg_NumRows($result) . " requests found</small>"; // <p>$query</p>";
-      else
+      else {
         echo "\n<p><small>No requests found</small></p>";
         if ( $roles['wrms']['Admin'] )
           echo "<p>You are an admin, so I can show you this:<br>\n<small><small>$query</small></small></p>";
+      }
     }
 
 function header_row() {

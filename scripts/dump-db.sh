@@ -12,4 +12,4 @@ for TABLE in `psql -qt -d ${DATABASE} -c "SELECT relname from pg_class where rel
 done
 
 # Remove the request_words table which is built on load
-rm ${DUMPDIR}/t-request_words.sql
+rm ${DUMPDIR}/t-request_words.sql >>/dev/null 2>&1

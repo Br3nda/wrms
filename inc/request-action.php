@@ -209,11 +209,12 @@ function dates_equal( $date1, $date2 ) {
     $requsr = $session;
 
     // Have to be pedantic here - the translation from database -> variable is basic.
-    if ( $editable && $new_active <> "TRUE" ) $new_active = "FALSE";
     if ( strtolower( substr( $request->active, 0, 1)) == "t" )
       $request->active = "TRUE";
     else
       $request->active = "FALSE";
+    if ( ! isset($new_active) ) $new_active = $request->active ;
+    if ( $editable && $new_active <> "TRUE" ) $new_active = "FALSE";
 
     $behalf_changed = isset($new_user_no) && intval($new_user_no) > 0 && ($request->requester_id != $new_user_no );
     $status_changed = isset($new_status) && ($request->last_status != $new_status );

@@ -115,14 +115,16 @@
         echo " &nbsp; &nbsp; &nbsp; <b class=smb>ETA:</b> " .  substr( nice_date($request->eta), 7);
       echo "</TD></TR>\n";
     }
+  }
 
-    // --------------------- STATUS -----------------------
+  // --------------------- STATUS -----------------------
+  if ( is_member_of('Admin', 'Support','Manage' ) ) {
     echo "<TR><th class=rows align=right VALIGN=MIDDLE>Status:</TH>\n";
     echo "<TD ALIGN=CENTER>";
     if ( $editable ) {
       echo "<LABEL><INPUT class=sml TYPE=\"checkbox\" NAME=\"new_active\" VALUE=\"TRUE\"";
       if ( $is_request && strtolower( substr( "$request->active", 0, 1)) == "t" ) echo " CHECKED";
-        echo ">&nbsp;Active</LABEL>";
+      echo ">&nbsp;Active</LABEL>";
     }
     else if ( $is_request && strtolower( substr( "$request->active", 0, 1)) == "t" ) echo "Active";
     else echo "Inactive";

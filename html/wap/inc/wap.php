@@ -12,8 +12,29 @@
  *    operation characteristics appropriately.
  *  Further pissing around by AWM to restructure the browser experience to
  *    give a more visually phone-like appearance.
+ *  Added 'safe_for_wap' function to fix text to work in WAP. AWM 8/6
  *
  */
+
+////////////////////////////////////////////////////////////////////
+// Strip & and $ from text replacing them with the
+// WAP ways of doing things...
+////////////////////////////////////////////////////////////////////
+function safe_for_wap( $instr ) {
+  global $wap_browser;
+
+  $instr = ereg_replace( "&#[1-9][0-9][0-9][0-9]+;", "?", $instr);
+  $instr = ereg_replace( "&([#0-9a-z]+);", "aMpErSaNd-\\1;", $instr);
+  $instr = str_replace( "&", "&amp;", $instr);
+  $instr = ereg_replace( "[\x81-\xff]", "?", $instr);
+  $instr = ereg_replace( "[" . chr(128) . "-" . chr(255) . "]", "?", $instr);
+  if ( $wap_browser ) {
+    $instr = ereg_replace( "&copy;", "(c)", $instr);
+    $instr = ereg_replace( "[$]", "$$", $instr);
+  }
+  return str_replace( "aMpErSaNd-", "&", $instr);
+}
+
 
 // This function performs the basic initialisation of the wml page - each separate page
 // needs this stuff at the head of the page so that .php file get sent with wml headers

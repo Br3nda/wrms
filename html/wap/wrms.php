@@ -1,28 +1,23 @@
 <?php 
+require("inc/wap.php");
 
-	require("inc/wap.php");
+  WMLinit();
 
-	WMLinit();
-	
-	if(!isset($id)) {
+  if ( !isset($id) ) {
+    include("inc/getRequests.php");
 
-	  include("inc/getRequests.php");
+    WMLCardInit("init", "false", "List"); 
+    WMLdo("prev", "", "WRMS", "", "<prev/>");
+    WMLCardBody( safe_for_wap($requests) );
+  }
+  else {
+    include("inc/showRequest.php");
 
-	  WMLCardInit("init", "false", "List"); 
-	  WMLdo("prev", "", "WRMS", "", "<prev/>");
-	  WMLCardBody($requests);
+    WMLCardInit("showrequest", "false"); 
+    WMLdo("prev", "", "List", "", "<prev/>");
+    WMLCardBody( safe_for_wap($request) );
+  }
 
-	} else {
-
-	  include("inc/showRequest.php");
-
-	  WMLCardInit("showrequest", "false"); 
-	  WMLdo("prev", "", "List", "", "<prev/>");
-	  WMLCardBody($request);
-
-	}
-
-	WMLCardFinn();
-
-	WMLFinn();
+  WMLCardFinn();
+  WMLFinn();
 ?>

@@ -258,14 +258,6 @@ CREATE TABLE request_update (
 CREATE INDEX xak1_request_update ON request_update ( update_id );
 GRANT INSERT,UPDATE,SELECT ON request_update TO general;
 
--- keep this in case we need it again!
--- Or better, just use enable_pgpl
---  DROP PROCEDURAL LANGUAGE 'plpgsql';
---  CREATE FUNCTION plpgsql_call_handler ()
---         RETURNS OPAQUE AS '/usr/lib/postgresql/lib/plpgsql.so'
---         LANGUAGE 'C';
---  CREATE TRUSTED PROCEDURAL LANGUAGE 'plpgsql' HANDLER plpgsql_call_handler LANCOMPILER 'PL/pgSQL';
-
 
 
 CREATE TABLE lookup_code (

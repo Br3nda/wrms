@@ -1,11 +1,11 @@
 <table border=0 cellspacing=0 cellpadding=2>
 <tr><td><?php
-  include("inc/block-weather.php");
+  // include("inc/block-weather.php");
   echo "<br>\n";
-  include("inc/block-seek.php");
+  // include("inc/block-seek.php");
   echo "<br>\n";
   if ( $logged_on ) {
-    include("inc/block-search.php");
+    // include("inc/block-search.php");
     echo "<br>\n";
   }
 ?></td></tr>

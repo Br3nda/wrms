@@ -556,9 +556,9 @@ function dates_equal( $date1, $date2 ) {
     $msg .= "\nFull details of the request, with all changes and notes, can be reviewed and changed at:\n"
          .  "    https://$HTTP_HOST$base_url/request.php?request_id=$request_id\n";
 
-     $other = "From: Catalyst Work Requests <wrms@catalyst.net.nz>\n";
+     $other = "From: $system_name <$admin_email>\n";
      $other .= "Reply-To: $session->fullname <$session->email>\n";
-     $other .= "Errors-To: wrmsadmin@catalyst.net.nz";
+     $other .= "Errors-To: $admin_email";
     mail( $send_to, $msub, $msg,  $other );
 
   }

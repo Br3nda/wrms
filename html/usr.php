@@ -146,7 +146,7 @@ if (isset($user_no) && $user_no > 0 ) echo "      ";
     for ( $i=0; $i <pg_NumRows($grp_res); $i++) {
       if ( $i > 0 && ($i % 3) == 0 ) echo "</tr><tr>";
       $grp = pg_Fetch_Object( $grp_res, $i );
-      echo "<td><font size=2><input type=checkbox name=\"UserRole[$grp->module_name][$grp->group_name]\"";
+      echo "<td><font size=2><input type=checkbox name=\"NewUserRole[$grp->module_name][$grp->group_name]\"";
       if ( isset($UserRole) && is_array($UserRole) && $UserRole[$grp->module_name][$grp->group_name] ) echo " CHECKED";
       echo "> " . ucfirst($grp->module_name) . " $grp->group_name\n";
       echo " &nbsp; </font></td>\n";
@@ -172,7 +172,7 @@ if (isset($user_no) && $user_no > 0 ) echo "      ";
         $code = $UserCat[$sys->system_code];
       else
         $code = "";
-      echo "<select name=\"UserCat[$sys->system_code]\">\n";
+      echo "<select name=\"NewUserCat[$sys->system_code]\">\n";
 
       echo "<option value=\"\"";
       if ( "$code" == "" ) echo " SELECTED";
@@ -215,7 +215,7 @@ if (isset($user_no) && $user_no > 0 ) echo "      ";
       echo " Add User ";
     echo "\"></b></td>\n</tr></table></form>";
   } // end of "else 'there was no error' way up there.
-  } // Do we need another?
+
 ?>
 </body> 
 </html>

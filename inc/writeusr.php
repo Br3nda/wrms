@@ -43,11 +43,11 @@
       }
       else {
         $query = "UPDATE usr SET email=LOWER('$UserEmail'), fullname='$UserFullName', ";
-        $query .= " organisation='";
-        if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] )
-          $query .= "$UserOrganisation', ";
+        if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
+          if ( "$UserOrganisation" <> "" ) $query .= " organisation='$UserOrganisation', ";
+        }
         else
-          $query .= "$session->org_code', ";
+          $query .= " organisation='$session->org_code', ";
         $query .= " phone='$UserPhone', fax='$UserFax', ";
         $query .= " pager='$UserPager', ";
         if ( "$UserName" <> "" ) $query .= " username=LOWER('$UserName'), ";
@@ -58,19 +58,23 @@
       $result = pg_Exec( $wrms_db, $query );
       /* if ( ! $result ) */ $because .= "<p>$query</p>";
 
+      $query = "COMMIT TRANSACTION;";
+      $result = pg_Exec( $wrms_db, $query );
+      $because .= "<H3>User Record Written for $UserFullName</H3>\n";
+
       // Roles
-      if ( isset($UserRole) && is_array($UserRole) ) {
-        $query = "DELETE FROM group_member WHERE user_no=$user_no";
+      if ( isset($NewUserRole) && is_array($NewUserRole) ) {
+        $query = "DELETE FROM group_member WHERE user_no=$user_no;";
         $result = pg_Exec( $wrms_db, $query );
         /* if ( ! $result ) */ $because .= "<p>$query</p>";
-        while ( is_array($UserRole) && list($k1, $val) = each($UserRole)) {
+        while ( is_array($NewUserRole) && list($k1, $val) = each($NewUserRole)) {
 //          echo "<p>Roles: $k1, $val</p>";
           if ( is_array($val) ) {
             /* This should be caught by PHP4 */
             while ( list($k2, $val2) = each($val) ) {
               $query = "INSERT INTO group_member (user_no, group_no) SELECT $user_no AS user_no, group_no FROM ugroup";
               $query .= " WHERE module_name='$k1' ";
-              $query .= " AND group_name='$k2' ";
+              $query .= " AND group_name='$k2'; ";
               $result = pg_Exec( $wrms_db, $query );
               /* if ( ! $result ) */ $because .= "<p>$query</p>";
             }
@@ -81,7 +85,7 @@
 //            echo "<p>Split: $k2, $val2</p>";
             $query = "INSERT INTO group_member (user_no, group_no) SELECT $user_no AS user_no, group_no FROM ugroup";
             $query .= " WHERE module_name='$k2' ";
-            $query .= " AND group_name='$val2' ";
+            $query .= " AND group_name='$val2'; ";
             $result = pg_Exec( $wrms_db, $query );
             /* if ( ! $result ) */ $because .= "<p>$query</p>";
           }
@@ -89,24 +93,20 @@
         reset($UserRole);
       }
 
-      $query = "COMMIT TRANSACTION;";
-      $result = pg_Exec( $wrms_db, $query );
-      $because .= "<H3>User Record Written for $UserFullName</H3>\n";
-
        // Write allowed systems
-      if ( isset($UserCat) && is_array($UserCat) ) {
+      if ( isset($NewUserCat) && is_array($NewUserCat) ) {
         $query = "DELETE FROM system_usr WHERE user_no=$user_no";
         $result = pg_Exec( $wrms_db, $query );
-        while ( list($k1, $val) = each($UserCat)) {
+        while ( list($k1, $val) = each($NewUserCat)) {
           if ( "$val" == "" ) continue;
           $query = "INSERT INTO system_usr (user_no, system_code, role) ";
           $query .= " VALUES( $user_no, '$k1', '$val') ";
           $result = pg_Exec( $wrms_db, $query );
           /* if ( ! $result ) */ $because .= "<p>$query</p>";
         }
-        reset($UserCat);
+        reset($NewUserCat);
       }
-    }
-  }
+    }  // valid user no
+  }  // validated OK
 
 ?>

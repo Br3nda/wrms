@@ -1307,7 +1307,7 @@ class Request {
      }
 
 
-     $mail->Subject = 'WR #' . $this->request_id . ' ['.$this->system_code.'/'.$this->username.'] '.$this->chtype.'d: '
+     $mail->Subject = 'WR #' . $this->request_id . ' ['.$this->system_code.'/'.$session->username.'] '.$this->chtype.'d: '
                       . $this->brief;
 
      $tbody  = "Request No:  $this->request_id\n"
@@ -1354,7 +1354,7 @@ EOX
      $tbody .= ucfirst($this->chtype) . "d by:  $session->fullname\n";
      $hbody .= "<tr><th width='10%' align='left' class='eth'>".ucfirst($this->chtype)."d by</th><td class='etd'>$session->fullname</td></tr>\n";
 
-     if ( $requsr->user_no <> $session->user_no ) {
+     if ( $requsr->user_no <> $session->user_no && $this->chtype != "update" ) {
        $tbody .= ucfirst($this->chtype) . "d for: $this->fullname\n";
        $hbody .= "<tr><th width='10%' align='left' class='eth'>".ucfirst($this->chtype)."d for</th><td class='etd'>$this->fullname</td></tr>\n";
      }

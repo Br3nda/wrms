@@ -1,12 +1,12 @@
 <?php
 
-  $result = awm_pgexec( $dbconn, $query, "requestlist", false, 7 );
+  $qry = new PgQuery( $search_query );
+  $result = $qry->Exec("SearchQuery");
 
   if ( "$style" != "stripped" ) {
-    if ( $result && pg_NumRows($result) > 0 ) {
-      echo "\n<small>";
-      echo pg_NumRows($result) . " requests found";
-      if ( isset($qry) && $qry != "" ) echo " for <b>$qry</b>";
+    if ( $result && $qry->rows > 0 ) {
+      echo "\n<small>$qry->rows requests found";
+      if ( isset($savedquery) && $savedquery != "" ) echo " for <b>$savedquery</b>";
       echo "</small>";
     }
     else {
@@ -16,8 +16,8 @@
 
   if ( "$style" != "stripped" || ("$style" == "stripped" && "$format" == "edit")) {
     $this_page = "$PHP_SELF?style=%s&format=%s";
-    if ( isset($qry) ) $uqry = str_replace('%','%%',urlencode($qry));
-    if ( "$qry" != "" ) $this_page .= "&qry=$uqry";
+    if ( isset($savedquery) ) $usavedquery = str_replace('%','%%',urlencode($savedquery));
+    if ( "$savedquery" != "" ) $this_page .= "&savedquery=$usavedquery";
     if ( "$search_for" != "" ) $this_page .= "&search_for=" . urlencode($search_for);
     if ( "$org_code" != "" ) $this_page .= "&org_code=$org_code";
     if ( "$system_code" != "" ) $this_page .= "&system_code=$system_code";
@@ -44,7 +44,7 @@
 
   if ( $style == "stripped" ) {
     echo "<table border=\"0\" cellspacing=\"0\" cellpadding=\"2\" width=\"100%\">\n<tr>\n";
-    echo "<th class=cols style=\"text-align: left\">$qry</th>";
+    echo "<th class=cols style=\"text-align: left\">$savedquery</th>";
     echo "<th class=cols style=\"text-align: right\">" . pg_NumRows($result) . " requests at " . date("H:i j M y") . "</th>";
     echo "</tr></table>\n";
   }
@@ -66,8 +66,8 @@
     $grand_qty_total = 0.0;
 
     // Build table of requests found
-    for ( $i=0; $i < pg_NumRows($result); $i++ ) {
-      $thisrequest = pg_Fetch_Object( $result, $i );
+    $i=0;
+    while ( $thisrequest = $qry->Fetch() ) {
 
       if ( "$format" == "edit" ) {
         //We set some flags if the user is editing things on the listing
@@ -160,6 +160,7 @@
       if ( $show_details )
         echo "<tr class=row3>\n<td colspan=7>&nbsp;</td></tr>\n";
 
+      $i++;
       if ( (isset($status_edit) && $status_edit) || (isset($active_edit) && $active_edit ) ) //Maintains the $EditableRequests_count counter
        $EditableRequests_count++;
     }
@@ -203,8 +204,8 @@
     if ( is_member_of('Admin', 'Support') ) {
       printf( " &nbsp;|&nbsp; <a href=\"$this_page\" target=_new>Brief (editable)</a>\n", "stripped", "edit");  //uses the format = edit setting in this link for the Brief (editable) report
     }
-    if ( "$qry" != "" ) {
-      echo "</td><td>|&nbsp; &nbsp; or <a href=\"$PHP_SELF?qs=complex&qry=".urlencode($qry)."&action=delete\" class=sbutton>Delete</a> it\n";
+    if ( "$savedquery" != "" ) {
+      echo "</td><td>|&nbsp; &nbsp; or <a href=\"$PHP_SELF?qs=complex&savedquery=".urlencode($savedquery)."&action=delete\" class=sbutton>Delete</a> it\n";
     }
     echo "</td></tr></table>\n";
   }

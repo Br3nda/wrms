@@ -291,7 +291,7 @@ function data_row( $row, $rc ) {
       $header_cell .= "&incstat[$k]=$v";
     }
   }
-  if ( "$qry" != "" ) $header_cell .= "&qry=$qry";
+  if ( "$savedquery" != "" ) $header_cell .= "&savedquery=$savedquery";
   if ( "$style" != "" ) $header_cell .= "&style=$style";
   if ( "$format" != "" ) $header_cell .= "&format=$format";
   if ( isset($choose_columns) && $choose_columns ) $header_cell .= "&choose_columns=1";

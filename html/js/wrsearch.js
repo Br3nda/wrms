@@ -42,10 +42,10 @@ if (!xmlhttp && typeof XMLHttpRequest!='undefined') {
 function CleanSelectOptions( sel ) {
   if ( typeof(sel) != 'undefined' ) {
     if ( sel.options.length > 0 ) {
-    for ( var i=0; i < sel.options.length; i++ ) {
-      sel.options[i] = null;
-      i--;
-    }
+      for ( var i=0; i < sel.options.length; i++ ) {
+        sel.options[i] = null;
+        i--;
+      }
     }
   }
 }
@@ -56,7 +56,7 @@ function OrganisationChanged() {
   sys_sel = document.forms.form.system_code;
   alloc_sel = document.forms.form.allocatable;
   subsc_sel = document.forms.form.subscribable;
-//  orgtag_sel = document.forms.form.orgtaglist;
+  orgtag_sel = document.forms.form.orgtaglist;
   if ( new_org_id != organisation_id ) {
     organisation_id = new_org_id;
     xmlhttp.open("GET", "/js.php?org_code=" + new_org_id, true);
@@ -76,7 +76,7 @@ function OrganisationChanged() {
         alloc_sel.options[0] = new Option( "-- Any Assigned User --", "" );
         alloc_sel.options[1] = new Option( "-- Not Yet Allocated --", "all" );
         subsc_sel.options[0] = new Option( "-- Any Interested User --", "" );
-        // orgtag_sel.options[0] = new Option( "-- select a tag --", "" );
+        orgtag_sel.options[0] = new Option( "-- Any Tag --", "" );
         person_id = -1;
         system_code = "";
         for ( var i=0; i < lines.length; i++ ) {
@@ -96,10 +96,11 @@ function OrganisationChanged() {
             alloc_sel.options[alloc_sel.options.length] = new Option( lines[i].replace( aopt_rx, "$2"), lines[i].replace( aopt_rx, "$1") )
             subsc_sel.options[subsc_sel.options.length] = new Option( lines[i].replace( aopt_rx, "$2"), lines[i].replace( aopt_rx, "$1") )
           }
-//          else if ( lines[i].match( /^OrgTag:/ ) ) {
-//            orgtag_sel.options[orgtag_sel.options.length] = new Option( lines[i].replace( orgtag_rx, "$2"), lines[i].replace( orgtag_rx, "$1") )
-//          }
+          else if ( lines[i].match( /^OrgTag:/ ) ) {
+            orgtag_sel.options[orgtag_sel.options.length] = new Option( lines[i].replace( orgtag_rx, "$2"), lines[i].replace( orgtag_rx, "$1") )
+          }
         }
+        FixTagOptions(orgtag_sel);
 
         document.forms.form.requester_id.value
       }
@@ -221,4 +222,56 @@ function AssignSelected(select_from, append_fname) {
     select_from.options[j].selected = true;
   }
 }
+//////////////////////////////////////////////////////////
+// Copy the options from one select to another.
+//////////////////////////////////////////////////////////
+function CopyOptions( from_field, to_field ) {
+  for ( i=0 ; i < from_field.options.length ; i ++ ) {
+    to_field.options[i] = new Option( from_field.options[i].text, from_field.options[i].value, false, false);
+  }
+}
 
+//////////////////////////////////////////////////////////
+// Construct the fields for a Tag selection stanza roughly
+// of the form:
+//    <AND / OR> <( or not><SELECT TAG> <) or not>
+//////////////////////////////////////////////////////////
+var stanza_count = 0;
+var tag_selections = new Array();
+function TagSelectionStanza() {
+  orgtag_sel = document.forms.form.orgtaglist;
+  var moretags = document.getElementById('moretags');
+  var stanza = '<span class="srchf" style="white-space: nowrap;">';
+  if ( stanza_count > 0 ) {
+    stanza += ' <select class="srchf" style=\"width: 4.5em\" name="tag_and['+stanza_count+']"><option value="AND">AND</option><option value="OR" checked>OR</option></select> ';
+  }
+  else {
+    stanza += ' <div class="srchp" style=\"display: block; clear: none; float: left; vertical-align: middle; width: 4.5em\">Tags: </div> ';
+  }
+  stanza += ' <select class="srchf" name="tag_lb['+stanza_count+']"><option value=" "> </option><option value="(">(</option><option value="((">((</option></select> ';
+  stanza += ' <select class="srchf" name="taglist['+stanza_count+']"></select>';
+  stanza += ' <select class="srchf" name="tag_rb['+stanza_count+']"><option value=" "> </option><option value=")">)</option><option value="))">))</option></select> ';
+  stanza += '</span>';
+  moretags.innerHTML += stanza;
+
+  tag_selections[stanza_count] = GetFieldFromName('taglist['+stanza_count+']');
+  CopyOptions( orgtag_sel, tag_selections[stanza_count] );
+
+  stanza_count++;
+  return '';
+}
+
+//////////////////////////////////////////////////////////
+// Extend the Tag stanzas by another tag at this point
+//////////////////////////////////////////////////////////
+function ExtendTagPanel() {
+  TagSelectionStanza();
+}
+
+function FixTagOptions(from_field) {
+  alert( "Stanza count = " + stanza_count );
+  for( i=0; i < stanza_count; i++ ) {
+    CleanSelectOptions(tag_selections[i]);
+    CopyOptions(from_field,tag_selections[i]);
+  }
+}

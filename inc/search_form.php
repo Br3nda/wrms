@@ -3,7 +3,7 @@
   // Force some variables to have values.
   if ( !isset($format) ) $format = "";
   if ( !isset($style) ) $style = "";
-  if ( !isset($qry) ) $qry = "";
+  if ( !isset($savedquery) ) $savedquery = "";
   if ( !isset($qs) ) $qs = "";
   if ( !isset($org_code) ) $org_code = "";
   if ( !isset($system_code) ) $system_code = "";
@@ -48,20 +48,22 @@
 //   on the W/R.
 /////////////////////////////////////////////////////////////
 function RenderSearchForm( $target_url ) {
-  global $session;
+  global $session, $images;
 
   $html = "";
 
   $ef = new EntryForm( $REQUEST_URI, $this, true );
-  $ef->SimpleForm('<span class="smb">%s:</span>&nbsp;<span class="sml">%s</span>' );  // We do the formatting fairly carefully here...
+
+  // We do the formatting fairly carefully here...
+  $ef->SimpleForm('<span style="white-space: nowrap"><span class="srchp">%s:</span> <span class="srchf">%s</span></span> ' );
 
   $html .= $ef->StartForm( array("autocomplete" => "off", "onsubmit" => "return CheckSearchForm();" ) );
 
   $html .= "<table border=0 cellspacing=2 cellpadding=0 align=center class=row0 width=100% style=\"border: 1px dashed #aaaaaa;\">\n";
-//  $html .= "<tr><td width=100%><table border=0 cellspacing=0 cellpadding=0 width=100%><tr valign=middle>\n";
+  $html .= "<tr><td width=100%><table border=0 cellspacing=0 cellpadding=0 width=100%><tr valign=middle>\n";
 
   $html .= $ef->DataEntryLine( "Find", "%s", "text", "search_for",
-            array( "size" => 10, "class" => "smb",
+            array( "size" => 10, "class" => "srchf",
                    "title" => "Search for free text in the request or notes.  Regular expressions are OK too." ) );
 
   // Organisation drop-down
@@ -74,8 +76,8 @@ function RenderSearchForm( $target_url ) {
     $html .= $ef->DataEntryLine( "Organisation", "", "lookup", "org_code",
               array("_sql" => $sql, "_null" => "-- All Organisations --", "onchange" => "OrganisationChanged();",
                     "title" => "The organisation that this work will be done for.",
-                    "class" => "sml",
-                    "style" => "width: 20em" ) );
+                    "class" => "srchf",
+                    "style" => "width: 18em" ) );
   }
 
   // System (within Organisation) drop-down
@@ -93,10 +95,8 @@ function RenderSearchForm( $target_url ) {
   $html .= $ef->DataEntryLine( "System", "", "lookup", "system_code",
             array("_sql" => $sql, "_null" => "-- All Systems --", "onchange" => "SystemChanged();",
                   "title" => "The business system that this request applies to.",
-                  "class" => "sml",
-                  "style" => "width: 20em") );
-
-  $html .= "<br />\n";
+                  "class" => "srchf",
+                  "style" => "width: 18em") );
 
   // Person within Organisation drop-down
   $sql = "SELECT user_no, fullname ";
@@ -104,13 +104,13 @@ function RenderSearchForm( $target_url ) {
   $sql .= "FROM usr JOIN organisation ON organisation.org_code = usr.org_code ";
   $sql .= "WHERE status != 'I' AND organisation.active ";
   if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) )
-    $sql .= "AND organisation.org_code = $session->org_code AND usr.org_code = $session->org_code ";
+    $sql .= "AND organisation.org_code = usr.org_code AND usr.org_code IN ( $session->org_code ) ";
   $sql .= "AND EXISTS(SELECT work_system.system_code FROM org_system JOIN work_system ON (org_system.system_code = work_system.system_code) WHERE org_system.org_code = organisation.org_code AND work_system.active) ";
   $sql .= "ORDER BY lower(fullname)";
   $html .= $ef->DataEntryLine( "By", "", "lookup", "requester_id",
             array("_sql" => $sql, "_null" => "-- Any Requester --", "onchange" => "PersonChanged();",
                   "title" => "The client who is requesting this, or who is in charge of ensuring it happens.",
-                  "class" => "smb",
+                  "class" => "srchf",
                   "style" => "width: 12em" ) );
 
 
@@ -118,7 +118,7 @@ function RenderSearchForm( $target_url ) {
   $html .= $ef->DataEntryLine( "Watching", "", "lookup", "subscribable",
             array("_sql" => $sql, "_null" => "-- Any Interested User --",
                   "title" => "The client who is requesting this, or who is in charge of ensuring it happens.",
-                  "class" => "smb",
+                  "class" => "srchf",
                   "style" => "width: 12em" ) );
 
   // Person Assigned to W/R
@@ -126,15 +126,54 @@ function RenderSearchForm( $target_url ) {
             array("_sql" => $sql,
                   "_null" => "-- Any Assigned User --",
                   "_all" => "-- Not Yet Allocated --",
-                  "class" => "smb",
+                  "class" => "srchf",
                   "title" => "A person who has been assigned to work on requests.",
                   "style" => "width: 12em" ) );
 
+  // Date range
+  $html .= $ef->DataEntryLine( "Last Action", "%s", "date", "from_date",
+            array( "size" => 10, "class" => "srchf",
+                   "title" => "Only show requests with action after this date." ) );
+  $html .= "<a href=\"javascript:show_calendar('search.from_date');\" onmouseover=\"window.status='Date Picker';return true;\" onmouseout=\"window.status='';return true;\"><img valign=\"middle\" src=\"/$images/date-picker.gif\" border=\"0\"></a> &nbsp; ";
+
+  $html .= $ef->DataEntryLine( "To", "%s", "date", "to_date",
+            array( "size" => 10, "class" => "srchf",
+                   "title" => "Only show requests with action before this date." ) );
+  $html .= "<a href=\"javascript:show_calendar('search.to_date');\" onmouseover=\"window.status='Date Picker';return true;\" onmouseout=\"window.status='';return true;\"><img valign=\"middle\" src=\"/$images/date-picker.gif\" border=\"0\"></a> &nbsp; ";
+
+  // Type of Request
+  $html .= $ef->DataEntryLine( "Type", $this->request_type_desc, "lookup", "type_code",
+            array("_type" => "request|request_type",
+                  "_null" => "-- All Types --",
+                  "class" => "srchf",
+                  "style" => "width: 8em",
+                  "title" => "Only show this type of request") );
+
+  $html .= "<table border='0' cellspacing='0' cellpadding='0' width='100%'><tr valign='middle'>";
+  $html .= "<td valign='top'><span class=\"srchp\">Status:</span></td><td valign='top'>\n";
+  $sql = "SELECT * FROM lookup_code WHERE source_table='request' ";
+  $sql .= " AND source_field='status_code' ";
+  $sql .= " ORDER BY source_table, source_field, lookup_seq, lookup_code ";
+  $qry = new PgQuery( $sql );
+  if ( $qry->Exec("RenderSearchForm") && $qry->rows > 0 ) {
+    while ( $status = $qry->Fetch() ) {
+      $html .= "<label class=\"srchf\" style=\"white-space: nowrap\" for=\"incstat[$status->lookup_code]\"><input type=\"checkbox\" id=\"incstat[$status->lookup_code]\" name=\"incstat[$status->lookup_code]\"";
+      if ( !isset( $incstat) || isset($incstat[$status->lookup_code]) ) $html .= " checked";
+      $html .= " value='1'>" . str_replace( " ", "&nbsp;", $status->lookup_desc) . "</label></span> \n";
+    }
+    $html .= "<label class=\"srchf\" style=\"white-space: nowrap\" for=\"incstat[$status->lookup_code]\"><input type='checkbox' name='inactive'";
+    if ( $inactive != "" ) $html .= " checked";
+    $html .= " value='1'>Inactive</label></span>";
+    $html .= "</td>\n";
+  }
+  $html .= "</tr></table>\n";
+
+  $html .= RenderTagsPanel($ef);
 
   $html .= $ef->SubmitButton( "submit", "Run Query",
             array("title" => "Run a query with these settings" ) );
   $html .= "</table>\n";
-//   $html .= "</td></tr></table>\n";
+  $html .= "</td></tr></table>\n";
   $html .= $ef->EndForm();
 
   return $html;
@@ -142,6 +181,51 @@ function RenderSearchForm( $target_url ) {
 
 
 
+/////////////////////////////////////////////////////////////
+// RenderTagsPanel - Return HTML to show the Tags panel of
+//   the search screen.
+/////////////////////////////////////////////////////////////
+function RenderTagsPanel( $ef ) {
+  global $session, $images;
+
+  $html = "";
+
+  // Tags List format is as simple as possible...
+  $ef->TempLineFormat('<span class="srchf" style="white-space: nowrap">%s%s</span>' );
+
+  $sql = "SELECT tag_id, tag_description ";
+  if ( ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) )
+    $sql .= " || ' (' || abbreviation || ')' AS tag_description ";
+
+  $sql .= "FROM organisation NATURAL JOIN organisation_tag ";
+  $sql .= "WHERE organisation.active AND organisation_tag.active ";
+  if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) )
+    $sql .= "AND organisation.org_code IN ( $session->org_code ) ";
+  $sql .= "ORDER BY lower(abbreviation), tag_sequence";
+  $html .= "<div id=\"tagselect\" style=\"display :none;\">";
+  $html .= $ef->DataEntryLine( "", "", "lookup", "orgtaglist",
+            array("_sql" => $sql, "_null" => "-- Any Tag --", "onchange" => "TagChanged();",
+                  "title" => "A tag that you want included or excluded from the report.",
+                  "class" => "srchf",
+                  "style" => "width: 12em" ) );
+  $html .= "</div>";
+  $html .= "<div id=\"moretags\" style=\"display :inline;\">";
+  $html .= "<script type='text/javascript'>document.write(TagSelectionStanza());</script>";
+  $html .= "</div>";
+
+  $html .= $ef->DataEntryLine( "", "", "button", "extend_tags",
+            array("value" => "Extend",
+                  "class" => "fsubmit",
+                  "onclick" => "ExtendTagPanel();",
+                  "title" => "Click to add another tag for the search.",
+                  "class" => "srchf" ) );
+
+//  $html .= "</div>";
+
+  $ef->RevertLineFormat();
+
+  return $html;
+}
 
 if ( !isset( $style ) || ($style != "plain" && $style != "stripped") ) {
   $form_url_parameters = array();
@@ -154,90 +238,12 @@ if ( !isset( $style ) || ($style != "plain" && $style != "stripped") ) {
   }
   echo RenderSearchForm($form_url);
 
-  include("system-list.php");
-  if ( is_member_of('Admin', 'Support' ) ) {
-    $system_list = get_system_list( "", "$system_code", 35);
-  }
-  else {
-    $system_list = get_system_list( "CES", "$system_code", 35);
-  }
-
-  echo "<table border=0 cellspacing=2 cellpadding=0 align=center class=row0 width=100% style=\"border: 1px dashed #aaaaaa;\">\n<tr>\n";
-  echo "<td width=100%><table border=0 cellspacing=0 cellpadding=0 width=100%><tr valign=middle>\n";
-  echo "<td class=smb>Find:</td><td class=sml><input class=sml type=text size=10 name=search_for value=\"$search_for\"></td>\n";
-
-  echo "<td class=smb>&nbsp;System:</td><td class=sml><select class=sml name=system_code><option value=\".\">--- All Systems ---</option>$system_list</select></td>\n";
-
-  if ( is_member_of('Admin', 'Support') ) {
-    include( "organisation-list.php" );
-    $orglist = "<option value=\"\">--- All Organisations ---</option>\n" . get_organisation_list( "$org_code", 30 );
-    echo "<td class=smb>&nbsp;Organisation:</td><td class=sml><select class=sml name=\"org_code\">\n$orglist</select></td>\n";
-  }
-  echo "<td valign=middle class=smb align=center><input type=submit value=\"RUN QUERY\" alt=go name=submit class=\"submit\"></td><td class=smb width=100px> &nbsp; &nbsp; &nbsp; </td>\n";
-  echo "</tr></table></td></tr>\n";
-
-
-  if ( is_member_of('Admin', 'Support') ) {
-    $user_org_code = "";
-  }
-  else {
-    $user_org_code = "$session->org_code";
-  }
-  echo "<tr><td width=100%><table border=0 cellspacing=0 cellpadding=0 width=100%><tr valign=middle>\n";
-  $user_list = "<option value=\"\">--- Any Requester ---</option>"; // . get_user_list( "", $user_org_code, "" );
-  echo "<td class=smb>By:</td><td class=sml><select class=sml name=requested_by>$user_list</select></td>\n";
-  if ( ! is_member_of('Admin', 'Support')  && ! isset($interested_in) ) $interested_in = $session->user_no;
-  $user_list = "<option value=\"\">--- Any Interested User ---</option>"; // . get_user_list( "", $user_org_code, $interested_in );
-  echo "<td class=smb>Watching:</td><td class=sml><select class=sml name=interested_in>$user_list</select></td>\n";
-  $user_list = "<option value=\"\">--- Any Assigned Staff ---</option><option value=\"-1\">Not Yet Allocated</option>"; // . get_user_list( "Support", "", $allocated_to );
-  echo "<td class=smb>ToDo:</td><td class=sml><select class=sml name=allocated_to>$user_list</select></td>\n";
-  echo "</tr></table></td></tr>\n";
-
-  $request_types = ""; // get_code_list( "request", "request_type", "$type_code" );
-?>
-<tr><td><table border=0 cellspacing=0 cellpadding=0 width=100%><tr valign=middle>
-<td class=smb align=right>Last&nbsp;Action&nbsp;From:</td>
-<td nowrap class=smb><input type=text size=10 name=from_date class=sml value="<?php echo "$from_date"; ?>">
-<a href="javascript:show_calendar('search.from_date');" onmouseover="window.status='Date Picker';return true;" onmouseout="window.status='';return true;"><img valign="middle" src="/<?php echo $images; ?>/date-picker.gif" border=0></a>
-</td>
-
-<td class=smb align=right>&nbsp;To:</td>
-<td nowrap class=smb><input type=text size=10 name=to_date class=sml value="<?php echo "$to_date"; ?>">
-<a href="javascript:show_calendar('search.to_date');" onmouseover="window.status='Date Picker';return true;" onmouseout="window.status='';return true;"><img valign="middle" src="/<?php echo $images; ?>/date-picker.gif" border=0></a>
-</td>
-<td class=smb align=right>&nbsp;Type:</td>
-<td nowrap class=smb><select name="type_code" class=sml><option value="">-- All Types --</option><?php echo "$request_types"; ?></select></td>
-</tr></table></td>
-</tr>
-<?php
-  echo "<tr><td>\n";
-  echo "<table border=0 cellspacing=0 cellpadding=0><tr valign=middle><td class=smb align=right valign=top>When:</td><td class=sml valign=top>\n";
-  $query = "SELECT * FROM lookup_code WHERE source_table='request' ";
-  $query .= " AND source_field='status_code' ";
-  $query .= " ORDER BY source_table, source_field, lookup_seq, lookup_code ";
-  $rid = pg_Exec( $dbconn, $query);
-  if ( $rid && pg_NumRows($rid) > 1 ) {
-    $nrows = pg_NumRows($rid);
-    for ( $i=0; $i<$nrows; $i++ ) {
-      $status = pg_Fetch_Object( $rid, $i );
-      echo "<label for=\"incstat[$status->lookup_code]\" style=\"white-space: nowrap\"><input type=\"checkbox\" id=\"incstat[$status->lookup_code]\" name=\"incstat[$status->lookup_code]\"";
-      if ( !isset( $incstat) || isset($incstat[$status->lookup_code]) ) echo " checked";
-      echo " value=1>" . str_replace( " ", "&nbsp;", $status->lookup_desc) . "</label> &nbsp; \n";
-//        if ( $i == intval(($nrows + 1) / 3) ) echo "&nbsp;<br>";
-    }
-    echo "<input type=checkbox name=inactive";
-    if ( $inactive != "" ) echo " checked";
-    echo " value=1>Inactive";
-    echo "</td>\n";
-  }
-  echo "<td valign=middle class=smb align=center><input type=submit value=\"RUN\" alt=\"Run\" title=\"Run a query with these settings\" name=submit class=\"submit\"></td>\n";
-  echo "</tr></table>\n</td></tr>\n";
-
+/*
   if ( isset($choose_columns) && $choose_columns ) {
     echo "<tr><td>\n";
     echo "<table border=0 cellspacing=0 cellpadding=0 align=left>\n";
     echo "<tr valign=middle>\n";
-    echo "<td valign=middle align=right class=smb>Columns:</td><td class=sml valign=top>";
+    echo "<td valign=middle align=right class=srchf>Columns:</td><td class=srchf valign=top>";
     // echo "<select name=\"columns[]\" multiple size=\"6\">\n";
     reset($available_columns);
     $cols_set = array_flip($columns);
@@ -261,18 +267,21 @@ if ( !isset( $style ) || ($style != "plain" && $style != "stripped") ) {
     echo "<tr><td>\n";
     echo "<table border=0 cellspacing=0 cellpadding=0 align=left>\n";
     echo "<tr valign=middle>\n";
-    echo "<td valign=middle align=right class=smb>WHERE:</td><td class=sml valign=top><input type=text size=100 value=\"".htmlentities($where_clause)."\" name=where_clause class=\"sml\"></td>\n";
+    echo "<td valign=middle align=right class=srchf>WHERE:</td><td class=srchf valign=top><input type=text size=100 value=\"".htmlentities($where_clause)."\" name=where_clause class=\"srchf\"></td>\n";
     echo "</tr></table>\n</td></tr>\n";
   }
 
   echo "<table border=0 cellspacing=0 cellpadding=0 align=center>\n";
   echo "<tr valign=middle>\n";
-  echo "<td valign=middle align=right class=smb>Max results:</td><td class=sml valign=top><input type=text size=6 value=\"$maxresults\" name=maxresults class=\"sml\"></td>\n";
-  echo "<td valign=middle align=right class=sml>&nbsp;&nbsp;&nbsp;&nbsp;<input type=\"checkbox\" id=\"save_query_order\" value=\"1\" name=\"save_query_order\" class=\"sml\" /></td><td class=\"smb\" valign=\"middle\"><label for=\"save_query_order\" >Save&nbsp;Order?&nbsp;&nbsp;&nbsp;</label></td>\n";
-  echo "<td valign=middle align=right class=smb>&nbsp; &nbsp; Save query as:</td>\n";
-  echo "<td valign=middle align=center><input type=text size=20 value=\"$savelist\" name=savelist class=\"sml\"></td>\n";
+  echo "<td valign=middle align=right class=srchf>Max results:</td><td class=srchf valign=top><input type=text size=6 value=\"$maxresults\" name=maxresults class=\"srchf\"></td>\n";
+  echo "<td valign=middle align=right class=srchf>&nbsp;&nbsp;&nbsp;&nbsp;<input type=\"checkbox\" id=\"save_query_order\" value=\"1\" name=\"save_query_order\" class=\"srchf\" /></td><td class=\"srchf\" valign=\"middle\"><label for=\"save_query_order\" >Save&nbsp;Order?&nbsp;&nbsp;&nbsp;</label></td>\n";
+  echo "<td valign=middle align=right class=srchf>&nbsp; &nbsp; Save query as:</td>\n";
+  echo "<td valign=middle align=center><input type=text size=20 value=\"$savelist\" name=savelist class=\"srchf\"></td>\n";
   echo "<td valign=middle align=left><input type=submit value=\"SAVE QUERY\" alt=save name=submit class=\"submit\"></td>\n";
   echo "</tr></table>\n</td></tr>\n";
 
   echo "</table>\n</form>\n";
+*/
+
 } // if  not plain  or stripped style
+?>

@@ -104,6 +104,18 @@ textarea.ftextarea {
   border: thin inset;
 }
 
+span.srchp {
+  font: bold 1em arial narrow, helvetica narrow, times new roman, times, sans-serif;
+  padding-left: 0.3em;
+}
+
+span.srchf, input.srchf, select.srchf, label.srchf {
+  font-family: arial narrow, helvetica narrow, times new roman, times, sans-serif;
+/*  height: 1.5em; */
+  padding-right: 0.3em;
+  margin: 0.3em 0;
+  /* line-height: 2.1em; */
+}
 
 /* For the display of important messages to the user, such as
    validation failures and so forth. */

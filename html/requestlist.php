@@ -26,7 +26,7 @@
 
   // If they didn't provide a $columns, we use a default.
   if ( !isset($columns) || $columns == "" || $columns == array() ) {
-    $columns = array("request_id","lfull","request_on","lbrief","status_desc","request_type_desc","request.last_activity");
+    $columns = array("request_id","lfull","request_on","lbrief","status_desc","request_tags","request_type_desc","request.last_activity");
     if ( "$format" == "edit" )  //adds in the Active field header for the Brief (editable) report
       array_push( $columns, "request.active");
   }
@@ -42,6 +42,7 @@
           "request_on" => "Request On",
           "lbrief" => "Description",
           "request_type_desc" => "Type",
+          "request_tags" => "Tags",
           "status_desc" => "Status",
           "request.last_activity" => "Last Chng",
           "request.active" => "Active",
@@ -204,6 +205,7 @@ function header_row() {
           "brief"       => "lbrief",
           "status"      => "status_desc",
           "type"        => "request_type_desc",
+          "tags"        => "request_tags",
           "last_change" => "request.last_activity"
    );
 
@@ -233,6 +235,9 @@ function show_column_value( $column_name, $row ) {
     case "lby_fullname":
     case "request_by":
       echo "<td class=sml nowrap><a href=\"mailto:$row->by_email\">$row->by_fullname</a></td>\n";
+      break;
+    case "request_tags":
+      echo "<td class=\"sml\">$row->request_tags</td>\n";
       break;
     case "request_on":
       echo "<td class=sml align=center>$row->date_requested</td>\n";
@@ -531,6 +536,7 @@ else {
     else {
 
       $maxresults = ( isset($maxresults) && intval($maxresults) > 0 ? intval($maxresults) : 100 );
+      $flipped_columns = array_flip($columns);
 
       $query .= "SELECT request.request_id, brief, usr.fullname, usr.email, request_on, status.lookup_desc AS status_desc, last_activity, detailed ";
       $query .= ", request_type.lookup_desc AS request_type_desc, lower(usr.fullname) AS lfull, lower(brief) AS lbrief ";
@@ -539,6 +545,9 @@ else {
       //provides extra fields that are needed to create a Brief (editable) report
       $query .= ", request.active, last_status ";
       $query .= ", creator.email AS by_email, creator.fullname AS by_fullname, lower(creator.fullname) AS lby_fullname ";
+      if ( isset($flipped_columns['request_tags']) ) {
+        $query .= ", request_tags(request.request_id) ";
+      }
       $query .= "FROM ";
       if ( intval("$interested_in") > 0 ) $query .= "request_interested, ";
       if ( intval("$allocated_to") > 0 ) $query .= "request_allocated, ";

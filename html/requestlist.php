@@ -21,6 +21,7 @@
   if ( !isset($from_date) ) $from_date = "";
   if ( !isset($to_date) ) $to_date = "";
   if ( !isset($where_clause) ) $where_clause = "";
+  if ( !isset($columns) ) $columns = "";
 
 //Uses a URL variable format = edit in order to indicate that the report should be in the Brief (editable) format
 
@@ -176,18 +177,31 @@
   }
 
   function header_row() {
-    global $format;
+    global $format, $columns;
+
+    $available_columns = array( "request_id" => "WR&nbsp;#",
+          "lfull" => "Request For",
+          "request_on" => "Request On",
+          "lbrief" => "Description",
+          "status_desc" => "Status",
+          "request_type_desc" => "Type",
+          "request.last_activity" => "Last Chng",
+          "active" => "Active",
+          "" => "",
+     );
+
+    // If they didn't provide a $columns, we use a default.
+    if ( $columns == "" ) {
+      $columns = "request_id,lfull,request_on,lbrief,status_desc,request_type_desc,request.last_activity";
+      if ( "$format" == "edit" )  //adds in the Active field header for the Brief (editable) report
+        $columns .= ",active";
+    }
 
     echo "<tr>\n";
-    column_header("WR&nbsp;#", "request_id");
-    column_header("Request By", "lfull" );
-    column_header("Request On", "request_on" );
-    column_header("Description", "lbrief");
-    column_header("Status", "status_desc" );
-    column_header("Type", "request_type_desc" );
-    column_header("Last Chng", "request.last_activity");
-    if ( "$format" == "edit" )  //adds in the Active field header for the Brief (editable) report
-        column_header("Active", "active");
+    $col_array = explode( ',', $columns );
+    while( list($k,$v) = each( $col_array ) ) {
+      column_header($available_columns[$v], $v);
+    }
     echo "</tr>";
   }
 
@@ -265,7 +279,7 @@ if ( ! is_member_of('Request') || ((isset($error_msg) || isset($error_qry)) && "
 }
 else {
   if ( !isset( $style ) || ($style != "plain" && $style != "stripped") ) {
-    echo "<form Action=\"$PHP_SELF";
+    echo "<form name=\"search\" Action=\"$PHP_SELF";
     if ( "$org_code$qs" != "" ) {
       echo "?";
       if ( "$org_code" != "" ) echo "org_code=$org_code" . ( "$qs" == "" ? "" : "&");
@@ -327,12 +341,12 @@ else {
 <tr><td><table border=0 cellspacing=0 cellpadding=0 width=100%><tr valign=middle>
 <td class=smb align=right>Last&nbsp;Action&nbsp;From:</td>
 <td nowrap class=smb><input type=text size=10 name=from_date class=sml value="<?php echo "$from_date"; ?>">
-<a href="javascript:show_calendar('forms[0].from_date');" onmouseover="window.status='Date Picker';return true;" onmouseout="window.status='';return true;"><img valign="middle" src="/<?php echo $images; ?>/date-picker.gif" border=0></a>
+<a href="javascript:show_calendar('search.from_date');" onmouseover="window.status='Date Picker';return true;" onmouseout="window.status='';return true;"><img valign="middle" src="/<?php echo $images; ?>/date-picker.gif" border=0></a>
 </td>
 
 <td class=smb align=right>&nbsp;To:</td>
 <td nowrap class=smb><input type=text size=10 name=to_date class=sml value="<?php echo "$to_date"; ?>">
-<a href="javascript:show_calendar('forms[0].to_date');" onmouseover="window.status='Date Picker';return true;" onmouseout="window.status='';return true;"><img valign="middle" src="/<?php echo $images; ?>/date-picker.gif" border=0></a>
+<a href="javascript:show_calendar('search.to_date');" onmouseover="window.status='Date Picker';return true;" onmouseout="window.status='';return true;"><img valign="middle" src="/<?php echo $images; ?>/date-picker.gif" border=0></a>
 </td>
 <td class=smb align=right>&nbsp;Type:</td>
 <td nowrap class=smb><select name="type_code" class=sml><option value="">-- All Types --</option><?php echo "$request_types"; ?></select></td>

@@ -23,8 +23,6 @@
 </table>
 <?php
   }
-  echo "</body>\n</html>";
-
 if ( is_object ( $settings ) ) {
 
   if ( ! is_numeric( $settings->get('counter')) )
@@ -49,3 +47,7 @@ if ( is_object ( $settings ) ) {
   }
 
 ?>
+<div id="overDiv" style="position:absolute; visibility:hidden; z-index:1000;"></div>
+<script language="JavaScript" src="js/overlib.js"></script>
+</body>
+</html>

@@ -294,7 +294,7 @@
   $query .= "ORDER BY request_allocated.allocated_on ";
   $allocq = pg_Exec( $wrms_db, $query);
   $rows = pg_NumRows($allocq);
-  if ( $rows > 0 ) {
+  if ( $rows > 0 || (! $plain && (($roles['wrms']['Admin'] || $roles['wrms']['Support'] ))) ) {
     echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=3>&nbsp;</TD></TR>\n";
     echo "<TR>$hdcell<TD CLASS=h3 COLSPAN=2 ALIGN=RIGHT bgcolor=$colors[8]><FONT SIZE=+1 color=$colors[1]><B>Work Allocated To</B></FONT></TD></TR>\n";
     echo "<TR VALIGN=TOP><th>&nbsp;</th><td>";

@@ -23,7 +23,7 @@
 </table>
 <?php
   }
-if ( is_object ( $settings ) ) {
+if ( is_object ( $settings ) && $settings->is_modified() ) {
 
   if ( ! is_numeric( $settings->get('counter')) )
     $settings->set('counter', 0 );

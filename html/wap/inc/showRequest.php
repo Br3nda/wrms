@@ -40,7 +40,7 @@ Status: <select name=\"active\">
     }
   }
   else {
-    $request .= "I'm sorry the request id you gave was invalid";
+    $request = "<p>I'm sorry the request id you gave was invalid</p>";
   }
 
 ?>

@@ -507,19 +507,21 @@ function dates_equal( $date1, $date2 ) {
  
     // Charge details (Inv No) added
     if (isset($charged_details)) foreach($charged_details as $timesheet_id => $charged_detail) {
-        $query = "UPDATE request_timesheet SET " .
-                 "ok_to_charge = true, " .
-                 "charged_details = '$charged_detail', " .
-                 "work_charged = 'now', " .
-                 "charged_by_id = $session->user_no " .
-                 "WHERE timesheet_id = $timesheet_id" ;
-        $rid = awm_pgexec( $dbconn, $query, "req-action" );
-        if ( ! $rid ) {
-            $because .= "<H3>Update Charge Detail Inv No Failed</H3>";
-            $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $dbconn ) . "</TT>";
-            $because .= "<P>The failed query was:</P><TT>$query</TT>";
-            awm_pgexec( $dbconn, "ROLLBACK;" );
-            return;
+        if ( "$charged_detail" <> "" ) {
+	    $query = "UPDATE request_timesheet SET " .
+		     "ok_to_charge = true, " .
+		     "charged_details = '$charged_detail', " .
+		     "work_charged = 'now', " .
+		     "charged_by_id = $session->user_no " .
+		     "WHERE timesheet_id = $timesheet_id" ;
+	    $rid = awm_pgexec( $dbconn, $query, "req-action" );
+	    if ( ! $rid ) {
+		$because .= "<H3>Update Charge Detail Inv No Failed</H3>";
+		$because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $dbconn ) . "</TT>";
+		$because .= "<P>The failed query was:</P><TT>$query</TT>";
+		awm_pgexec( $dbconn, "ROLLBACK;" );
+		return;
+	    }
         }
     }
 

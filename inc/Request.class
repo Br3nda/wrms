@@ -81,7 +81,7 @@ class Request {
      $ef = new EntryForm( $REQUEST_URI, $this, $edit );
      $ef->NoHelp();  // Prefer this style, for the moment
 
-     if ( $edit ) $html .= $ef->StartForm( "autocomplete=off" );
+     if ( $edit ) $html .= $ef->StartForm( array("autocomplete" => "off", "onsubmit" => "return CheckRequestForm();" ) );
 
      $html .= "<table width=\"100%\" class=\"data\" cellspacing=\"0\" cellpadding=\"0\">\n";
 
@@ -116,9 +116,13 @@ class Request {
 
      // Organisation drop-down
      if ( $session->AllowedTo("Admin") || $session->AllowedTo("Support") ) {
-       $sql = "SELECT org_code, org_name FROM organisation WHERE active ORDER BY lower(org_name)";
+       $sql = "SELECT org_code, org_name || ' (' || abbreviation || ')' AS org_name ";
+       $sql .= "FROM organisation WHERE active AND abbreviation !~ '^ *$' ";
+       $sql .= "AND EXISTS(SELECT user_no FROM usr WHERE usr.org_code = organisation.org_code AND usr.status != 'I') ";
+       $sql .= "AND EXISTS(SELECT work_system.system_code FROM org_system JOIN work_system ON (org_system.system_code = work_system.system_code) WHERE org_system.org_code = organisation.org_code AND work_system.active) ";
+       $sql .= "ORDER BY lower(org_name)";
        $html .= $ef->DataEntryLine( "Organisation", "$this->org_name", "lookup", "org_code",
-                 array("_sql" => $sql, "onchange" => "sync_selects();" ) );
+                 array("_sql" => $sql, "_null" => "--- select an organisation ---", "onchange" => "OrganisationChanged();" ) );
      }
      else {
        $html .= $ef->DataEntryLine( "Organisation", "$this->org_name", "", "" );
@@ -132,13 +136,14 @@ class Request {
        $sql .= "WHERE status != 'I' AND organisation.active ";
        if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) )
          $sql .= "AND organisation.org_code = $session->org_code AND usr.org_code = $session->org_code ";
+       $sql .= "AND EXISTS(SELECT work_system.system_code FROM org_system JOIN work_system ON (org_system.system_code = work_system.system_code) WHERE org_system.org_code = organisation.org_code AND work_system.active) ";
      }
      else {
        $sql .= "WHERE organisation.org_code = $this->org_code AND usr.org_code = $this->org_code ";
      }
      $sql .= "ORDER BY lower(fullname)";
      $html .= $ef->DataEntryLine( "Person", "$this->fullname", "lookup", "requester_id",
-               array("_sql" => $sql, "onchange" => "sync_selects();") );
+               array("_sql" => $sql, "_null" => "--- select a person ---", "onchange" => "PersonChanged();" ) );
 
      // System (within Organisation) drop-down
      $sql = "SELECT work_system.system_code, system_desc FROM work_system ";
@@ -155,7 +160,7 @@ class Request {
      }
      $sql .= "ORDER BY lower(system_desc)";
      $html .= $ef->DataEntryLine( "System", "$this->system_desc", "lookup", "system_code",
-               array("_sql" => $sql, "onchange" => "sync_selects();") );
+               array("_sql" => $sql, "_null" => "--- select a system ---", "onchange" => "SystemChanged();") );
 
      // Type of Request
      $html .= $ef->DataEntryLine( "Type", $this->request_type_desc, "lookup", "request_type",

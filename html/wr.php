@@ -11,6 +11,8 @@ if ( !$session->logged_in ) {
 require_once("maintenance-page.php");
 require_once("Request.class");
 
+echo '<script language="JavaScript" src="/js/request.js"></script>' . "\n";
+
 $wr = new Request($request_id);
 if ( $wr->request_id == 0 ) {
   unset( $request_id );

@@ -153,5 +153,7 @@
 <viewitem url="inc/DataEntry.php" />
 </projectview>
 <item url="inc/Theme.php" />
+<item url="html/js/request.js" />
+<item url="html/js.php" />
 </project>
 </webproject>

@@ -1,0 +1,14 @@
+#
+# Virtual Host def for WRMS on piaget (eduforge)
+<VirtualHost opwrms.catalyst.net.nz>
+  ServerName opwrms.catalyst.net.nz
+  ServerAdmin wrmsadmin@catalyst.net.nz
+  DirectoryIndex index.php index.html
+  DocumentRoot /home/opwrms/wrms/html
+  ErrorLog /home/opwrms/logs/web/error.log
+  TransferLog /home/opwrms/logs/web/access.log
+  php_value include_path /home/opwrms/inc
+  php_value magic_quotes_gpc 0
+
+</VirtualHost>
+

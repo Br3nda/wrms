@@ -162,8 +162,12 @@ function awm_pgexec( $myconn, $query, $location="", $abort_on_fail=FALSE, $mydbg
     $result = pg_Exec( $myconn, "ROLLBACK;" );  // $dbconnection doesn't actually exist, changed to $myconn
     error_log( "$sysabbr $locn QF-ABRT: $query", 0);
   }
-  else if ( !$result )
-    error_log( "$sysabbr $locn QF: $query", 0);
+  else if ( !$result ) {
+    while( strlen( $query ) > 0 ) {
+      error_log( "$sysabbr $locn QF: $taken for: " . substr( $query, 0, 220) , 0);
+      $query = substr( "$query", 220 );
+    }
+  }
   else if ( $debuglevel > 4  || $mydbg > 4 ) {
     error_log( "$sysabbr $locn URI: $REQUEST_URI", 0);
     while( strlen( $query ) > 0 ) {

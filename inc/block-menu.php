@@ -70,7 +70,8 @@
   }
 
   if ( $roles[wrms][Admin] || $roles[wrms][Support] ) {
-    echo "<br><img class=blocksep src=\"images/menuBreak.gif\" width=\"130\" height=\"9\"><br>\n &nbsp;<a href=$base_url/form.php?f=orglist class=block>All&nbsp;Organisations</a>";
+    echo "<br><img class=blocksep src=\"images/menuBreak.gif\" width=\"130\" height=\"9\"><br>\n &nbsp;<a href=$base_url/timesheet.php class=block>Timesheet Entry</a>";
+    echo "<br>\n &nbsp;<a href=$base_url/form.php?f=orglist class=block>All&nbsp;Organisations</a>";
     echo "<br>\n &nbsp;<a href=$base_url/form.php?f=syslist class=block>All&nbsp;Systems</a>";
     echo "<br>\n &nbsp;<a href=$base_url/form.php?f=timelist&user_no=$session->user_no&uncharged=1 class=block>My&nbsp;Uncharged&nbsp;Work</a>";
     echo "<br>\n &nbsp;<a href=$base_url/form.php?f=work&user_no=$session->user_no&uncharged=1 class=block>Gav's&nbsp;Work</a>";

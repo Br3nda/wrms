@@ -169,17 +169,18 @@ CREATE TABLE request_timesheet (
   request_id INT4,
   work_on TIMESTAMP,
   ok_to_charge BOOL,
-	work_quantity FLOAT8,
+  work_quantity FLOAT8,
   work_duration INTERVAL,
   work_by_id INT4,
   work_by TEXT,
   work_description TEXT,
   work_rate FLOAT8,
   work_charged TIMESTAMP,
-	charged_amount FLOAT8,
-	charged_by_id INT4,
-	work_units TEXT,
-	charged_details TEXT
+  charged_amount FLOAT8,
+  charged_by_id INT4,
+  work_units TEXT,
+  charged_details TEXT,
+  entry_details TEXT
 );
 CREATE INDEX request_timesheet_skey1 ON request_timesheet ( work_on, work_by_id, request_id );
 CREATE INDEX request_timesheet_skey2 ON request_timesheet ( ok_to_charge, request_id );

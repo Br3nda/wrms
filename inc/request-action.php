@@ -413,8 +413,8 @@ function dates_equal( $date1, $date2 ) {
       /* non-null timesheet was entered */
       $new_work_details = tidy( $new_work_details );
 //      $query = "DELETE FROM request_timesheet WHERE request_id=$request_id AND work_on='$new_work_on'; ";
-      $query = "INSERT INTO request_timesheet (request_id,  work_on, work_quantity, work_units, work_rate, work_by_id, work_by, work_description ) ";
-      $query .= "VALUES( $request_id, '$new_work_on', '$new_work_quantity', '$new_work_units', '$new_work_rate', $session->user_no, '$session->username', '$new_work_details')";
+      $query = "INSERT INTO request_timesheet (request_id,  work_on, work_quantity, work_units, work_rate, work_by_id, work_by, work_description, entry_details ) ";
+      $query .= "VALUES( $request_id, '$new_work_on', '$new_work_quantity', '$new_work_units', '$new_work_rate', $session->user_no, '$session->username', '$new_work_details', '$request_id' )";
       $rid = awm_pgexec( $wrms_db, $query, "req-action" );
       if ( ! $rid ) {
         $errmsg = pg_ErrorMessage( $wrms_db );

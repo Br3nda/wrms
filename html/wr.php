@@ -26,6 +26,7 @@ $new = isset($edit) && intval($edit) && !isset($id);
 if ( $M != "LC" && $wr->AllowedTo("update") && isset($_POST['submit']) ) {
   if ( $wr->Validate($wrf) ) {
     $wr->Write($wrf);
+    $wr = new Request($request_id);
   }
 }
 

@@ -67,6 +67,7 @@ class EntryField
          reset( $this->attributes );
          while( list($k,$v) = each( $this->attributes ) ) {
            if ( substr($k, 0, 1) != '_' ) continue;
+           if ( $k == '_help' ) continue;
            $k = substr($k,1);
            $r .= "<option value=\"".htmlentities($k)."\"";
            if ( "$this->current" == "$k" ) $r .= " selected";
@@ -103,6 +104,10 @@ class EntryField
        case "checkbox":
          $checked =  ( $this->current == 't' || $this->current == 'on' ? " checked" : "" );
          $r .= "input type=\"checkbox\" name=\"$this->fname\"$checked%%attributes%%>\n";
+         break;
+
+       case "button":
+         $r .= "input type=\"button\" name=\"$this->fname\"%%attributes%%>\n";
          break;
 
        case "textarea":

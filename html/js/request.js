@@ -6,6 +6,7 @@ var system_code = "";
 var popt_rx = /^Person: <option value="(.+)">(.+)<\/option>/i
 var sopt_rx = /^System: <option value="(.+)">(.+)<\/option>/i
 var number_rx = /^[0-9\.]*$/
+var date_rx = /^([0-9][0-9]?-[0-1]?[0-9]-[0-9][0-9]*|today|yesterday|now|tomorrow)$/
 
 var person_options;
 var system_options;
@@ -124,25 +125,37 @@ function ValidNumber( num_value ) {
   }
 }
 
-function CheckNumber(objField,min,max)
+function CheckDate(objField)
 {
-  CheckNum = parseFloat(objField.value)
-  if (isNaN(CheckNum)) {
-    alert("That is not a number")
-    objField.focus();
-    return objField.value;
-  }
-  else {
-    if (CheckNum > min && CheckNum < max)
-      return CheckNum;
-    else {
-      alert("This field must be greater than " + min + " and less than " + max)
+  if ( objField.value != "" ) {
+    if ( ! objField.value.match( date_rx ) ) {
+      alert("That is not a valid date");
       objField.focus();
-      return CheckNum
     }
   }
-  // Never reached...
-  return CheckNum;
+  return objField.value;
+}
+
+function CheckNumber(objField,min,max)
+{
+  if ( objField.value != "" ) {
+    CheckNum = parseFloat(objField.value);
+    if (isNaN(CheckNum)) {
+      alert("That is not a number");
+      objField.focus();
+      return objField.value;
+    }
+    else {
+      if (CheckNum >= min && CheckNum <= max)
+        return CheckNum;
+      else {
+        alert("This field must be greater than or equal to " + min + " and less than or equal to " + max)
+        objField.focus();
+        return CheckNum
+      }
+    }
+  }
+  return "";
 }
 
 function CheckRequestForm() {
@@ -176,4 +189,50 @@ function CheckRequestForm() {
     }
   }
   return true;
+}
+
+//////////////////////////////////////////////////////////
+// Since PHP wants a field returning multiple values to
+// be named like "variable[]"
+//////////////////////////////////////////////////////////
+function GetFieldFromName(fname) {
+  for ( i=0; i < document.forms.form.elements.length ; i++ ) {
+    if ( document.forms.form.elements[i].name == fname ) {
+      return document.forms.form.elements[i];
+    }
+  }
+  alert("Field " + append_fname + " was not found in the form!");
+  return false;
+}
+
+//////////////////////////////////////////////////////////
+// Insert new values into the list from the selection
+//////////////////////////////////////////////////////////
+function AllocateSelected(select_from, append_fname) {
+  append_to = GetFieldFromName(append_fname)
+  if ( ! append_to  ) return false;
+
+  if ( select_from.options.length == 0 ) return false;
+  sel_id = select_from.value;
+  if ( append_to.value == "" ) {
+    append_to.value = sel_id;
+  }
+  else {
+    append_to.value += "," + sel_id;
+  }
+  i = append_to.options.length;
+  append_to.options[i] = select_from.options[select_from.selectedIndex];
+  append_to.options[i].selected = true;
+  append_to.size = i + 1;
+  select_from.options[select_from.selectedIndex] = null;
+}
+
+function UnallocateSelected(remove_from, display_to) {
+  sel_id = select_from.value;
+  if ( append_to.value == "" ) {
+    append_to.value = sel_id;
+  }
+  else {
+    append_to.value += "," + sel_id;
+  }
 }

@@ -96,7 +96,11 @@ class Request {
      $html .= $this->RenderNotes($ef);
      $html .= $this->RenderStatuses($ef);
 
-     if ( $edit ) $html .= $ef->SubmitButton( "submit", ($this->new_record ? "Create" : "Update") );
+     if ( $edit ) {
+       $html .= $ef->DataEntryLine( "Quiet update", "%s", "checkbox", "brief",
+               array( "size" => 70, "title" => "Check the box if this update should not send e-mail notifications") );
+       $html .= $ef->SubmitButton( "submit", ($this->new_record ? "Create" : "Update") );
+     }
      $html .= "</table>\n";
      if ( $edit ) $html .= $ef->EndForm();
 
@@ -216,9 +220,9 @@ class Request {
      }
 
      if ( $ef->editmode ) {
-       $html .= '<tr><td colspan="2"><table><tr>'."\n";
+       $html .= '<tr><th class="prompt">Add File</th><td><table><tr>'."\n";
        // Select the file
-       $html .= '<th class="prompt">Add File</th><td class="entry">';
+       $html .= '<td class="entry">';
        $html .= $ef->DataEntryField( "", "file", "att_filename",
                  array("title" => "Enter the name of the file to be attached" ) );
        $html .= '</td>';
@@ -236,6 +240,7 @@ class Request {
 
 
    /////////////////////////////////////////////////////////////
+   // Render the Quotations section of the W/R
    /////////////////////////////////////////////////////////////
    function RenderQuotations( $ef ) {
      global $session;
@@ -281,14 +286,15 @@ class Request {
      }
 
      if ( $ef->editmode ) {
-       $html .= '<tr><td colspan="2"><table><tr>'."\n";
+       $html .= '<tr><th class="prompt">Add Quote</th><td><table><tr>'."\n";
 
-       $html .= '<th class="prompt">Add Quote</th><td class="entry">';
+       $html .= '<td class="entry">';
        $html .= $ef->DataEntryField( "", "text", "quote_brief",
                  array("title" => "Enter brief description of the quote", "size" => 40 ) );
        $html .= '</td>';
 
        $html .= '<th class="prompt">Type</th><td class="entry">';
+       if ( !isset($_POST['quote_type']) ) $_POST['quote_type'] = 'E';  // Default to Estimate
        $html .= $ef->DataEntryField( "", "lookup", "quote_type",
                  array("_type" => "request_quote|quote_type", "style" => "width: 6em;",
                        "title" => "The type of quote you are entering" ) );
@@ -301,26 +307,27 @@ class Request {
        $html .= '</td>';
 
        $html .= '<td class="entry">';
+       if ( !isset($_POST['quote_units']) ) $_POST['quote_units'] = 'hours';  // Default to Hours
        $html .= $ef->DataEntryField( "", "lookup", "quote_units",
                  array("_type" => "request_quote|quote_units", "style" => "width: 6em;",
                        "title" => "The units for the amount of the quote you are adding" ) );
        $html .= '</td>';
 
-       $html .= '</tr>';
+       $html .= '</tr></table></td></tr>'."\n";
 
        // Enter the description
-       $html .= '<tr><th class="prompt">Description</th><td class="entry" colspan="5">';
+       $html .= '<tr><th class="prompt">Description</th><td class="entry">';
        $html .= $ef->DataEntryField( "", "textarea", "quote_details",
                  array("title" => "Enter a detailed description for the quote.", "cols" => 70, "rows" => 4 ) );
        $html .= '</td>';
 
-       $html .= '</tr></table></td></tr>'."\n";
      }
      return $html;
    }
 
 
    /////////////////////////////////////////////////////////////
+   // Render the details of any requests related to/from this one
    /////////////////////////////////////////////////////////////
    function RenderRelations( $ef ) {
      global $session;
@@ -403,9 +410,9 @@ class Request {
      }
 
      if ( $ef->editmode ) {
-       $html .= '<tr><td colspan="2"><table><tr>'."\n";
+       $html .= '<tr><th class="prompt">From W/R</th><td><table><tr>'."\n";
 
-       $html .= '<th class="prompt">From W/R</th><td class="entry">';
+       $html .= '<td class="entry">';
        $html .= $ef->DataEntryField( "", "integer", "parent_request_id",
                  array("title" => "Enter the W/R# of the parent request", "size" => 8,
                        "onblur" => "this.value=CheckNumber(this,0,99999999)" ) );
@@ -423,11 +430,57 @@ class Request {
    }
 
    /////////////////////////////////////////////////////////////
+   // Display the people who are allocated to work on this
    /////////////////////////////////////////////////////////////
    function RenderAllocations( $ef ) {
      global $session;
      $html = "";
-     $html .= $ef->BreakLine("Work Allocated To");
+     $sql = "SELECT request_allocated.*, usr.fullname, usr.email, ";
+     $sql .= "to_char(allocated_on, 'HH24:MI DD-MM-YYYY') AS alloc_on ";
+     $sql .= "FROM request_allocated JOIN usr ON ( allocated_to_id = user_no ) ";
+     $sql .= "WHERE request_id = $this->request_id ";
+     $sql .= "ORDER BY request_id, allocated_on";
+     # Select the records
+     $q = new PgQuery($sql);
+     $q->Exec('WR::Attachments') ;
+     if ( $ef->editmode || $q->rows )
+       $html .= $ef->BreakLine("Work Allocated To");
+     if ( $q->rows ) {
+       $html .= '<tr><th class="prompt">&nbsp;</th><td class="entry" style="vertical-align: middle;">'."\n";
+       $attachment_format = '<a href="/usr.php/user_no=%d">%s</a>';
+       $attachment_format .= '<a href="/wr.php/request_id=%d&deallocate=%d"><img src="'.$GLOBALS['images'].'/delete.png" border="none"></a>&nbsp;'."\n";
+       while( $row = $q->Fetch() ) {
+         $html .= sprintf( $attachment_format,
+                    $row->allocated_to_id, $row->fullname,
+                    $this->request_id, $row->allocated_to_id
+                  );
+       }
+       $html .= '</td></tr>'."\n";
+     }
+
+     if ( $ef->editmode ) {
+       $html .= '<tr><th class="prompt">Allocate</th>'."\n";
+       // Select the file
+       $usr_sql = "SELECT user_no, abbreviation || ': ' || fullname ";
+       $usr_sql .= "FROM usr JOIN organisation ON ( usr.org_code = organisation.org_code) ";
+       $usr_sql .= "WHERE status != 'I' AND organisation.org_code IN ( $this->org_code, $session->org_code )";
+       $usr_sql .= " ORDER BY organisation.org_code, fullname;";
+       $html .= '<td class="entry">';
+       $html .= $ef->DataEntryField( "", "lookup", "allocatable",
+                 array("title" => "Select the person to allocate this W/R to",
+                       "style" => "vertical-align: top; width: 20em;", "_sql"  => $usr_sql ) );
+
+       // Enter the description
+       $html .= $ef->DataEntryField( "", "button", "add_allocation",
+                 array("title" => "Add this person to the allocations for this work request",
+                       "value" => "Add Person", "style" => "vertical-align: top;",
+                       "onClick" => "return AllocateSelected(document.forms.form.allocatable,'new_allocations[]');" ) );
+
+       $html .= $ef->DataEntryField( "", "select", "new_allocations[]",
+                 array("title" => "Unselect the person not allocate this W/R to them",
+                       "style" => "width: 20em;", "multiple"  => "true", "size" => 1 ) );
+       $html .= '</td></tr>'."\n";
+     }
      return $html;
    }
 
@@ -436,16 +489,137 @@ class Request {
    function RenderTimesheets( $ef ) {
      global $session;
      $html = "";
-     $html .= $ef->BreakLine("Work Done");
+     $sql = "SELECT request_timesheet.*, usr.fullname, usr.email, ";
+     $sql .= "to_char(work_on, 'DD-MM-YYYY') AS work_on ";
+     $sql .= "FROM request_timesheet JOIN usr ON ( request_timesheet.work_by_id = usr.user_no ) ";
+     $sql .= "WHERE request_id = $this->request_id ";
+     $sql .= "ORDER BY request_id, usr.fullname";
+     # Select the records
+     $q = new PgQuery($sql);
+     $q->Exec('WR::Timesheet') ;
+     if ( $ef->editmode || $q->rows ) {
+       $html .= $ef->BreakLine("Work Done");
+       $line_format = '<tr class="row%d"><td class="entry" style="white-space: nowrap;">%s</td>';
+       $line_format .= '<td class="entry">%s</td>';
+       $line_format .= '<td class="entry" style="white-space: nowrap; text-align: right; ">%s %s</td>';
+       $line_format .= '<td class="entry" style="white-space: nowrap; text-align: right; ">%s</td>';
+       $line_format .= '<td class="entry" style="white-space: nowrap; text-align: right; ">%s</td>';
+       $line_format .= '<td class="entry" width="50%%">%s</td></tr>'."\n";
+
+       $html .= '<tr><td colspan="2"><table width="100%">'."\n";
+       $html .= '<tr><th class="pcol">Done By</th>';
+       $html .= '<th class="pcol">Done On</th>';
+       $html .= '<th class="pcol">Quantity</th>';
+       $html .= '<th class="pcol">Rate</th>';
+       $html .= '<th class="pcol">Cost</th>';
+       $html .= '<th class="pcol">Description</th></tr>'."\n";
+     }
+     if ( $q->rows ) {
+       $total = 0;
+       while( $row = $q->Fetch() ) {
+         $html .= sprintf( $line_format,
+                    ($q->rownum % 2), $row->fullname, $row->work_on, $row->work_quantity, $row->work_units,
+                    $row->work_rate, $row->work_quantity * $row->work_rate, $row->work_description
+                  );
+         $total += ($row->work_quantity * $row->work_rate);
+       }
+       $html .= sprintf( $line_format,
+                    (($q->rownum + 1) % 2), "<b>Total</b>", "", "", "", "", "<b>$total</b>", "" );
+     }
+
+     if ( $ef->editmode ) {
+
+       if ( !isset($_POST['work_units']) ) $_POST['work_units'] = 'hours';  // Default to Hours
+
+       $work_on = $ef->DataEntryField( "", "number", "work_on",
+                   array("title" => "Enter the date of this work", "size" => 10,
+                         "onblur" => "this.value=CheckDate(this)" ) );
+
+       $work_quantity = $ef->DataEntryField( "", "number", "work_quantity",
+                   array("title" => "Enter the number of units of work",
+                         "size" => 8, "onblur" => "this.value=CheckNumber(this,0,999999999)" ) );
+
+       $work_units = $ef->DataEntryField( "", "lookup", "work_units",
+                   array("_type" => "request_quote|quote_units", "style" => "width: 5em;",
+                         "title" => "The type of units for this work" ) );
+
+       $work_rate = $ef->DataEntryField( "", "number", "work_rate",
+                   array("title" => "Enter the rate / unit for this work",
+                         "size" => 10, "onblur" => "this.value=CheckNumber(this,0,999999999)" ) );
+
+       $work_desc = $ef->DataEntryField( "", "text", "work_description",
+                   array("title" => "Enter brief description of the work done", "size" => 40 ) );
+
+       $html .= sprintf( $line_format, ($q->rownum % 2),
+                $session->fullname,
+                $work_on,
+                $work_quantity,
+                "<br />$work_units",
+                $work_rate,
+                "",
+                $work_desc
+                );
+
+     }
+
+     if ( $ef->editmode || $q->rows )
+       $html .= '</table></td></tr>'."\n";
+
      return $html;
    }
 
    /////////////////////////////////////////////////////////////
+   // Display the people who are being notified about changes
    /////////////////////////////////////////////////////////////
    function RenderInterests( $ef ) {
      global $session;
      $html = "";
-     $html .= $ef->BreakLine("Interested Users");
+
+     $sql = "SELECT request_interested.*, usr.fullname, usr.email ";
+     $sql .= "FROM request_interested JOIN usr ON ( request_interested.user_no = usr.user_no ) ";
+     $sql .= "WHERE request_id = $this->request_id ";
+     $sql .= "ORDER BY request_id, usr.fullname";
+     # Select the records
+     $q = new PgQuery($sql);
+     $q->Exec('WR::Interests') ;
+     if ( $ef->editmode || $q->rows )
+       $html .= $ef->BreakLine("Interested Users");
+     if ( $q->rows ) {
+       $html .= '<tr><th class="prompt">&nbsp;</th><td class="entry" style="vertical-align: middle;">'."\n";
+       $line_format = '<a href="/usr.php/user_no=%d">%s</a>';
+       $line_format .= '<a href="/wr.php/request_id=%d&unsubscribe=%d"><img src="'.$GLOBALS['images'].'/delete.png" border="none"></a>&nbsp;'."\n";
+       while( $row = $q->Fetch() ) {
+         $html .= sprintf( $line_format,
+                    $row->user_no, $row->fullname,
+                    $this->request_id, $row->user_no
+                  );
+       }
+       $html .= '</td></tr>'."\n";
+     }
+
+     if ( $ef->editmode ) {
+       $html .= '<tr><th class="prompt">Subscribe</th>'."\n";
+       // Select the file
+       $usr_sql = "SELECT user_no, abbreviation || ': ' || fullname ";
+       $usr_sql .= "FROM usr JOIN organisation ON ( usr.org_code = organisation.org_code) ";
+       $usr_sql .= "WHERE status != 'I' AND organisation.org_code IN ( $this->org_code, $session->org_code )";
+       $usr_sql .= " ORDER BY organisation.org_code, fullname;";
+       $html .= '<td class="entry">';
+       $html .= $ef->DataEntryField( "", "lookup", "subscribable",
+                 array("title" => "Select the person to subscribe to this W/R",
+                       "style" => "vertical-align: top; width: 20em;", "_sql"  => $usr_sql ) );
+
+       // Enter the description
+       $html .= $ef->DataEntryField( "", "button", "add_subscription",
+                 array("title" => "Add this person to the subscriber list for this work request",
+                       "value" => "Add Person", "style" => "vertical-align: top;",
+                       "onClick" => "return AllocateSelected(document.forms.form.subscribable,'new_subscriptions[]');" ) );
+
+       $html .= $ef->DataEntryField( "", "select", "new_subscriptions[]",
+                 array("title" => "Unselect the person to not them to this W/R",
+                       "style" => "width: 20em;", "multiple"  => "true", "size" => 1 ) );
+       $html .= '</td></tr>'."\n";
+     }
      return $html;
    }
 
@@ -454,7 +628,48 @@ class Request {
    function RenderNotes( $ef ) {
      global $session;
      $html = "";
-     $html .= $ef->BreakLine("Notes");
+     $sql = "SELECT request_note.*, ru.fullname AS note_by, ";
+     $sql .= "to_char(note_on, 'HH24:MI DD-MM-YYYY') AS noted_on ";
+     $sql .= "FROM request_note ";
+     $sql .= "LEFT OUTER JOIN usr ru ON ( request_note.note_by_id = ru.user_no ) ";
+     $sql .= "WHERE request_id = $this->request_id ";
+     $sql .= "ORDER BY request_id, note_on";
+     # Select the records
+     $q = new PgQuery($sql);
+     $q->Exec('WR::Notes');
+     if ( $ef->editmode || $q->rows )
+       $html .= $ef->BreakLine("Notes");
+     if ( $q->rows ) {
+       $html .= '<tr><th class="pcol">&nbsp;</th><td><table width="100%">'."\n";
+       $html .= '<tr><th class="pcol">Noted By/On</th>';
+//       $html .= '<th class="pcol">Noted On</th>';
+       $html .= '<th class="pcol">Details</th></tr>'."\n";
+       $line_format = '<tr class="row%d"><td class="entry" width="8%%" style="white-space: nowrap;">%s<br />%s</td>';
+//       $line_format .= '<td class="entry" width="8%%" style="white-space: nowrap;">%s</td>';
+       $line_format .= '<td class="entry">%s</td></tr>'."\n";
+       while( $row = $q->Fetch() ) {
+         $html .= sprintf( $line_format,
+                    ($q->rownum % 2), $row->note_by, $row->noted_on, $row->note_detail
+                  );
+       }
+       $html .= '</table></td></tr>'."\n";
+     }
+
+     if ( $ef->editmode ) {
+       $html .= '<tr><th class="prompt">&nbsp;<br />Add Note</th><td><table><tr>'."\n";
+
+       // Enter the description
+       $html .= '<tr><td class="entry">';
+       $html .= $ef->DataEntryField( "", "textarea", "note_detail",
+                 array("title" => "Enter a note for this request", "cols" => 70, "rows" => 10 ) );
+       $html .= '</td>';
+
+       $html .= '<td class="entry">';
+       $html .= $ef->DataEntryField( "", "checkbox", "convert_html",
+                 array("title" => "Process HTML as text, so that the HTML is not displayed inline" ) );
+       $html .= 'Convert HTML</td></table>';
+
+     }
      return $html;
    }
 
@@ -463,7 +678,48 @@ class Request {
    function RenderStatuses( $ef ) {
      global $session;
      $html = "";
-     $html .= $ef->BreakLine("Changes in Status");
+     $sql = "SELECT request_status.*, ru.fullname AS status_by, ";
+     $sql .= "to_char(status_on, 'HH24:MI DD-MM-YYYY') AS status_on, lookup_desc AS status_type_desc ";
+     $sql .= "FROM request_status ";
+     $sql .= "LEFT OUTER JOIN usr ru ON ( request_status.status_by_id = ru.user_no ) ";
+     $sql .= "LEFT OUTER JOIN lookup_code ON ( source_table = 'request' AND source_field = 'status_code' AND lookup_code = request_status.status_code) ";
+     $sql .= "WHERE request_id = $this->request_id ";
+     $sql .= "ORDER BY request_id, request_status.status_on";
+     # Select the records
+     $q = new PgQuery($sql);
+     $q->Exec('WR::Statuses');
+     if ( $ef->editmode || $q->rows )
+       $html .= $ef->BreakLine("Changes in Status");
+     if ( $q->rows ) {
+       $html .= '<tr><th class="pcol">&nbsp;</th><td><table width="100%">'."\n";
+       $html .= '<tr><th class="pcol">Changed By</th>';
+       $html .= '<th class="pcol">Changed On</th>';
+       $html .= '<th class="pcol">Changed To</th></tr>'."\n";
+       $line_format = '<tr class="row%d"><td class="entry" style="white-space: nowrap;">%s</td>';
+       $line_format .= '<td class="entry" style="white-space: nowrap;">%s</td>';
+       $line_format .= '<td class="entry" style="white-space: nowrap;">%s - %s</td></tr>'."\n";
+       while( $row = $q->Fetch() ) {
+         $html .= sprintf( $line_format,
+                    ($q->rownum % 2), $row->status_by, $row->status_on,
+                    $row->status_code, $row->status_type_desc
+                  );
+       }
+       $html .= '</table></td></tr>'."\n";
+     }
+
+     if ( $ef->editmode ) {
+       $html .= '<tr><th class="prompt">Change Status</th><td><table><tr>'."\n";
+
+       $html .= '<td class="entry">';
+       if ( !isset($_POST['status_code']) ) $_POST['status_code'] = $this->last_status;  // Default to current status
+       $html .= $ef->DataEntryField( "", "lookup", "status_code",
+                 array("_type" => "request|status_code", "style" => "width: 15em;",
+                       "title" => "The new status of the request" ) );
+       $html .= '</td>';
+
+       $html .= '</tr></table></td></tr>'."\n";
+
+     }
      return $html;
    }
 
@@ -521,12 +777,24 @@ class Request {
        $db_errors = ! $this->AddParent();
      }
 
+     if ( !$db_errors && isset($_POST['new_allocations']) ) {
+       $db_errors = ! $this->NewAllocations();
+     }
+
+     if ( !$db_errors && isset($_POST['new_subscriptions']) ) {
+       $db_errors = ! $this->NewSubscriptions();
+     }
+
      $qry = new PgQuery( ( $db_errors ? "ROLLBACK;" : "COMMIT;") );  $qry->Exec("WR::Write");
      if ( $db_errors ) {
        $client_messages[] = "ERROR: Database problem  - Request not written.";
      }
      else {
        $client_messages[] = "Request details written.";
+       // Since we wrote it all successfully, clear the $_POST array
+       // so that the posted data isn't all re-used in the form fields,
+       // and we use the on-disk data instead.
+       $_POST = array();
      }
      return true;
    }
@@ -606,6 +874,50 @@ class Request {
        return false;
      }
      $client_messages[] = "W/R linked to this request</h3>";
+     return true;
+   }
+
+   /////////////////////////////////////////////////////////////
+   /////////////////////////////////////////////////////////////
+   function NewAllocations( ) {
+     global $session, $client_messages;
+     error_log( "$sysabbr Request::NewAllocations: DBG: Adding allocations: " . join(",", $_POST['new_allocations']), 0);
+
+     $new_allocations = preg_replace( "/[^0-9,]/", "", join(",", $_POST['new_allocations']));
+     $sql = "INSERT INTO request_allocated ( request_id, allocated_on, allocated_to_id ) ";
+     $sql .= "SELECT $this->request_id, current_timestamp, user_no ";
+     $sql .= "FROM usr WHERE user_no IN ( $new_allocations ) ";
+     $sql .= "AND NOT EXISTS( SELECT 1 FROM request_allocated WHERE request_id = $this->request_id ";
+     $sql .=                  "AND request_allocated.allocated_to_id = usr.user_no) ";
+     $sql .= "AND usr.org_code IN ( $this->org_code, $session->org_code ); ";
+     $qry = new PgQuery($sql);
+     if ( ! $qry->Exec('WR::NewAllocations') ) {
+       $client_messages[] = "$qry->errorstring";
+       return false;
+     }
+     $client_messages[] = sprintf("Request allocated to %d people.", count($_POST['new_allocations']));
+     return true;
+   }
+
+   /////////////////////////////////////////////////////////////
+   /////////////////////////////////////////////////////////////
+   function NewSubscriptions( ) {
+     global $session, $client_messages;
+     error_log( "$sysabbr Request::NewSubscriptions: DBG: Adding subscriptions: " . join(",", $_POST['new_subscriptions']), 0);
+
+     $new_subscriptions = preg_replace( "/[^0-9,]/", "", join(",", $_POST['new_subscriptions']));
+     $sql = "INSERT INTO request_interested ( request_id, user_no, username ) ";
+     $sql .= "SELECT $this->request_id, user_no, username ";
+     $sql .= "FROM usr WHERE user_no IN ( $new_subscriptions ) ";
+     $sql .= "AND NOT EXISTS( SELECT 1 FROM request_interested WHERE request_id = $this->request_id ";
+     $sql .=                  "AND request_interested.user_no = usr.user_no) ";
+     $sql .= "AND usr.org_code IN ( $this->org_code, $session->org_code ); ";
+     $qry = new PgQuery($sql);
+     if ( ! $qry->Exec('WR::NewSubscriptions') ) {
+       $client_messages[] = "$qry->errorstring";
+       return false;
+     }
+     $client_messages[] = sprintf("Request subscription added for %d people.", count($_POST['new_subscriptions']));
      return true;
    }
 }

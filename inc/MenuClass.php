@@ -29,9 +29,9 @@ class MenuOption {
 
    // Gimme the HTML
    function Render( ) {
-     $r = sprintf('<a href="%s" class="%s" title="%s"%s>%s</a>',
-             $this->target, $this->style, htmlentities($this->title), "%%attributes%%",
-             htmlentities($this->label) );
+     $r = sprintf('<span class="%s_left"></span><a href="%s" class="%s" title="%s"%s>%s</a><span class="%s_right"></span>',
+             $this->style, $this->target, $this->style, htmlentities($this->title), "%%attributes%%",
+             htmlentities($this->label), $this->style );
 
      // Now process the generic attributes
      reset( $this->attributes );
@@ -58,27 +58,27 @@ class MenuOption {
      $this->style = $style;
      return $this;
    }
-   
+
    // This menu option is now promoted to the head of a tree
    function AddSubmenu( &$submenu_set ) {
      $this->submenu_set = &$submenu_set;
      return $this;
    }
-   
+
    function IsActive( ) {
      return ( $this->active );
    }
 }
 
 
-// Class implementing a hierarchical 
+// Class implementing a hierarchical
 class MenuSet {
   var $div_class;    // CSS style to use for the div around the options
   var $main_class;   // CSS style to use for normal menu option
   var $active_class; // CSS style to use for active menu option
   var $options;      // An array of MenuOption objects
   var $parent;       // Any menu option that happens to parent this set
-  
+
   // Constructor
   function MenuSet( $div_class, $main_class, $active_class ) {
     $this->options = array();
@@ -86,7 +86,7 @@ class MenuSet {
     $this->active_class = $active_class;
     $this->div_class = $div_class;
   }
-  
+
   // Add an option, which is a link.
   function &AddOption( $label, $target, $title="", $active=false, $sortkey=0 ) {
     $new_option =& new MenuOption( $label, $target, $title, $this->main_class, $sortkey );
@@ -112,8 +112,8 @@ class MenuSet {
     $submenu_set->parent = &$new_option ;
     $new_option->AddSubmenu( &$submenu_set );
     return $new_option ;
-  }  
-  
+  }
+
   // This is called to see if a menu has any options that are active,
   // most likely so that we can then set that menu active, as is done
   // by LinkActiveSubMenus - should be private.
@@ -123,7 +123,7 @@ class MenuSet {
       if ( $v->IsActive() ) return true;
     }
     return false;
-  }  
+  }
 
   // Currently needs to be called manually before rendering but
   // really should probably be called as part of the render now,
@@ -136,8 +136,8 @@ class MenuSet {
         $this->options[$k]->Active( $this->active_class );
       }
     }
-  }  
-  
+  }
+
   // Gimme the HTML.  Now.
   function Render( ) {
     $render_sub_menus = false;

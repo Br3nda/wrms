@@ -87,15 +87,15 @@ class Field
           break;
 
         case "radio":
-	  $r = "";
+    $r = "";
           $fmt .= "<label><input type=\"radio-set\" name=\"$this->name\" value=\"%s\"%s%%attributes%%>&nbsp;%s&nbsp; </label>";
           if ( isset($this->attributes["_values"]) ) {
-	    foreach( $this->attributes["_values"] as $k => $v ) {
-	      $selected = ($this->current == $k ? " selected" : "" );
-	      $r .= sprintf( $fmt, $k, $selected, $v );
-	    }
-	  }
-	  else {
+      foreach( $this->attributes["_values"] as $k => $v ) {
+        $selected = ($this->current == $k ? " selected" : "" );
+        $r .= sprintf( $fmt, $k, $selected, $v );
+      }
+    }
+    else {
             if ( isset($this->attributes["_sql"]) ) {
               $qry = new PgQuery( $this->attributes["_sql"] );
             }
@@ -104,7 +104,7 @@ class Field
             }
             error_log( "$sysname DBG: lookup $this->name via: $qry->querystring" );
             $r .= $qry->BuildRadioSet( $fmt, $this->current, "rndr:$this->name" );
-	  }
+    }
           break;
 
         case "date":

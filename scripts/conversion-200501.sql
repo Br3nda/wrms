@@ -10,7 +10,7 @@ CREATE INDEX organisation_tag_sk1 ON organisation_tag( tag_sequence, lower(tag_d
 CREATE TABLE request_tag (
    request_id INT4 REFERENCES request,
    tag_id INT4 REFERENCES organisation_tag,
-   tagged_on TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp
+   tagged_on TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp,
    PRIMARY KEY ( request_id, tag_id )
 );
 CREATE INDEX request_tag_sk1 ON request_tag( tag_id );

@@ -58,8 +58,8 @@
         printf("<tr class=row%1d>", $i % 2);
 
 
-        echo "<td class=sml>&nbsp;<a href=\"form.php?form=organisation&org_code=$thisorganisation->org_code\">$thisorganisation->abbreviation</a>&nbsp;</td>\n";
-        echo "<td class=sml>&nbsp;<a href=\"form.php?form=organisation&org_code=$thisorganisation->org_code\">$thisorganisation->org_name";
+        echo "<td class=sml>&nbsp;<a href=\"org.php?org_code=$thisorganisation->org_code\">$thisorganisation->abbreviation</a>&nbsp;</td>\n";
+        echo "<td class=sml>&nbsp;<a href=\"org.php?org_code=$thisorganisation->org_code\">$thisorganisation->org_name";
         if ( "$thisorganisation->org_name" == "" ) echo "-- no description --";
         echo "</a>&nbsp;</td>\n";
         if ( is_member_of('Admin','Support') ) {

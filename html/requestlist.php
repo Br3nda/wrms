@@ -538,7 +538,7 @@ else {
       // increase the default anyway, because saved queries are more carefully
       // crafted, and less likely to list the whole database
       $maxresults = ( $maxresults == 100 && $thisquery->maxresults != 100 ? $thisquery->maxresults : 500 );
-      if ( $thisquery->rlsort ) {
+      if ( $thisquery->rlsort && ! isset($_GET['rlsort']) ) {
         $rlsort = $thisquery->rlsort;
         $rlseq = $thisquery->rlseq;
       }

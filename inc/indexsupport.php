@@ -22,7 +22,7 @@ see their currently active requests.
   $query .= "FROM organisation WHERE active AND last_org_request(org_code) IS NOT NULL AND active_org_requests(org_code) > 0 ";
   $query .= "ORDER BY LOWER(organisation.org_name) ";
   $query .= "LIMIT 100 ";
-  $result = awm_pgexec( $dbconn, $query, "orglist-form", false, 7 );
+  $result = awm_pgexec( $dbconn, $query, "indexsupport", false, 5 );
   if ( $result && pg_NumRows( $result ) ) {
     echo "<table border=\"0\" align=center width=100%><tr>\n";
     echo "<th class=cols align=left>Organisation Name</th>";

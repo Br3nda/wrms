@@ -305,6 +305,7 @@ class User {
     if ( $q && $q->Exec("User::RenderSystemRoles1") && $q->rows ) {
       $roles = array('_' => '-- No Access --');
       while( $row = $q->Fetch() ) {
+        $display_roles["_$row->lookup_code"] = $row->lookup_desc;
         if ( !($session->AllowedTo('Admin') || $session->AllowedTo('Support'))
                 && ($row->lookup_code == 'A' || $row->lookup_code == 'S') ) continue;
         $roles["_$row->lookup_code"] = $row->lookup_desc;
@@ -386,7 +387,8 @@ SCRIPT;
         $html .= "<a href=\"/system.php?system_code=$row->system_code\">$row->system_desc</a>";
         $html .= "</td>";
         $html .= '<td class="entry">';
-        if ( $ef->editmode  && ($session->AllowedTo('Admin') || $session->AllowedTo('Support') || $session->AllowedTo('OrgMgr')) ) {
+        if ( $ef->editmode  && ($session->AllowedTo('Admin') || $session->AllowedTo('Support') ||
+             ($session->AllowedTo('OrgMgr') && !($row->role == 'A' || $row->role == 'S') ) ) ) {
           $options = array_merge($roles, array("title" => "Select the role this person has in relation to this system"));
           $html .= sprintf("<span style=\"color: %s; white-space: normal;\">", ( "$row->role" == "" ? "black" : "red") );
           $this->role[$row->system_code] = $row->role;
@@ -394,7 +396,7 @@ SCRIPT;
           $html .= "</span>";
         }
         else {
-          $html .= $row->role . " - " . $roles["_$row->role"];
+          $html .= $row->role . " - " . $display_roles["_$row->role"];
         }
         $html .= "</td></tr>";
       }

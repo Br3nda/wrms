@@ -20,6 +20,31 @@ function duration( $t1, $t2 )                   // Enter two times from microtim
   return $s1;                                  // Return duration of time
 }
 
+  /**
+  * Quote the given string so it can be safely used within string delimiters
+  * in a query.
+  * @param $string mixed Data to be quoted
+  * @return mixed "NULL" string, quoted string or original data
+  */
+  function qpg($str = null)
+  {
+    switch (strtolower(gettype($str))) {
+      case 'null':
+        return 'NULL';
+      case 'integer':
+      case 'double' :
+        return $str;
+      case 'boolean':
+        return $str ? 'TRUE' : 'FALSE';
+      case 'string':
+      default:
+        $str = str_replace("'", "''", $str);
+        //PostgreSQL treats a backslash as an escape character.
+        $str = str_replace('\\', '\\\\', $str);
+        return "'$str'";
+    }
+  }
+
 ///////////////////
 //   Log Error   //
 ///////////////////
@@ -104,21 +129,7 @@ class PgQuery
   */
   function quote($str = null)
   {
-    switch (strtolower(gettype($str))) {
-      case 'null':
-        return 'NULL';
-      case 'integer':
-      case 'double' :
-        return $str;
-      case 'boolean':
-        return $str ? 'TRUE' : 'FALSE';
-      case 'string':
-      default:
-        $str = str_replace("'", "''", $str);
-        //PostgreSQL treats a backslash as an escape character.
-        $str = str_replace('\\', '\\\\', $str);
-        return "'$str'";
-    }
+    return qpg($str);
   }
 
   function Plain( $field )

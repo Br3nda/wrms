@@ -17,12 +17,11 @@
   if ( !isset($from_date) ) $from_date = "";
   if ( !isset($to_date) ) $to_date = "";
   if ( !isset($where_clause) ) $where_clause = "";
+  if ( !isset($default_search_statuses) ) $default_search_statuses = '@NRILKTQADSPZU';
 
   // If they didn't provide a $columns, we use a default.
   if ( !isset($columns) || $columns == "" || $columns == array() ) {
     $columns = array("request_id","lfull","request_on","lbrief","status_desc","request_type_desc","request.last_activity");
-    if ( "$format" == "edit" )  //adds in the Active field header for the Brief (editable) report
-      array_push( $columns, "active");
   }
   elseif ( ! is_array($columns) )
     $columns = explode( ',', $columns );
@@ -42,17 +41,44 @@
    );
 
 
+function ggv($var, $i = "nope", $j = "nope") {
+
+  $answer = null;
+
+  // Return the post value, or failing that, the GET value...
+  if ( isset($_POST[$var]) ) $answer = $_POST[$var];
+  else if ( isset($_GET[$var]) ) $answer = $_GET[$var];
+
+  if ( "$i" != "nope" ) {
+    $answer = $answer[$i];
+    if ( "$j" != "nope" ) {
+      $answer = $answer[$j];
+    }
+  }
+  return $answer;
+}
+
+
 /////////////////////////////////////////////////////////////
 // Render - Return HTML to show the W/R
 //   A separate function is called for each logical area
 //   on the W/R.
 /////////////////////////////////////////////////////////////
 function RenderSearchForm( $target_url ) {
-  global $session, $images;
+  global $session, $images, $search_record;
 
   $html = "";
+  $search_record = (object) array();
+//  $session->Log( 'DBG: isset($_POST[submit])=%s isset($_GET[saved_query])=%s', isset($_POST[submit]), isset($_GET['saved_query'] ) );
+  if ( !isset($_POST['submit']) && isset($_GET['saved_query'])) {
+    $qry = new PgQuery("SELECT query_params FROM saved_queries WHERE (user_no = ? OR public ) AND lower(query_name) = lower(?);",
+                     $session->user_no, $_GET['saved_query'] );
+    if ( $qry->Exec('RenderSearchForm') && $qry->rows == 1 && $row = $qry->Fetch() ) {
+      $_POST = unserialize($row->query_params);
+    }
+  }
 
-  $ef = new EntryForm( $REQUEST_URI, $this, true );
+  $ef = new EntryForm( $REQUEST_URI, $search_record, true );
 
   // We do the formatting fairly carefully here...
   $ef->SimpleForm('<span style="white-space: nowrap"><span class="srchp">%s:</span><span class="srchf">%s</span></span> ' );
@@ -155,6 +181,7 @@ function RenderSearchForm( $target_url ) {
   $qry = new PgQuery( $sql );
   if ( $qry->Exec("RenderSearchForm") && $qry->rows > 0 ) {
     while ( $status = $qry->Fetch() ) {
+      $ef->record->incstat[$status->lookup_code] = (strpos($GLOBALS['default_search_statuses'],$status->lookup_code) != false?1:'');
       $html .= $ef->DataEntryField( "%s", "checkbox", "incstat[$status->lookup_code]",
               array("_label" => $status->lookup_desc, "class" => "srchf", "value" => 1 ) );
     }
@@ -214,10 +241,10 @@ function RenderSearchForm( $target_url ) {
 //   the search screen.
 /////////////////////////////////////////////////////////////
 function RenderTagsPanel( $ef ) {
-  global $session, $images, $taglist_count;
+  global $session, $images;
 
   $html = "";
-  $org_code = intval($GLOBALS['org_code']);
+  $org_code = intval(ggv('org_code'));
 
   // Tags List format is as simple as possible...
   $ef->TempLineFormat('<span class="srchf" style="white-space: nowrap">%s%s</span>' );
@@ -248,12 +275,12 @@ function RenderTagsPanel( $ef ) {
   $tag_lb_v = "";
   $tag_list_v = "";
   $tag_rb_v = "";
-  $taglist_count = intval($taglist_count);
+  $taglist_count = intval(ggv('taglist_count'));
   for ( $i=0; $i < $taglist_count; $i++ ) {
-    $tag_and_v .= $GLOBALS['tag_and'][$i] . ',';
-    $tag_lb_v .= $GLOBALS['tag_lb'][$i] . ',';
-    $tag_list_v .= $GLOBALS['tag_list'][$i] . ',';
-    $tag_rb_v .= $GLOBALS['tag_rb'][$i] . ',';
+    $tag_and_v .= ggv('tag_and',$i) . ',';
+    $tag_lb_v .= ggv('tag_lb',$i) . ',';
+    $tag_list_v .= ggv('tag_list',$i) . ',';
+    $tag_rb_v .= ggv('tag_rb',$i) . ',';
   }
 
   $html .= "<div id=\"moretags\" style=\"display :inline;\">";
@@ -277,20 +304,18 @@ function RenderTagsPanel( $ef ) {
 // selections for the search screen.
 /////////////////////////////////////////////////////////////
 function RenderColumnSelections( $ef ) {
-  global $available_columns, $columns;
+  global $available_columns, $columns, $search_record;
 
+  $flipped_columns = array_flip($columns);
   $html .= '<div id="columnselect">';
   $html .= '<span class="srchp">Columns:</span>';
-  reset($available_columns);
-  $save_cols = $columns;
-  $columns = array_flip($columns);
   $i=0;
-  while( list($k,$v) = each( $available_columns ) ) {
-    $html .= $ef->DataEntryField( "%s", "checkbox", "columns[$i]",
+  foreach( $available_columns AS $k => $v ) {
+    $ef->record->columns[$k] = (intval($flipped_columns[$k])?$k:'');
+    $html .= $ef->DataEntryField( "%s", "checkbox", "columns[$k]",
               array("_label" => $v, "class" => "srchf", "value" => $k ) );
     $i++;
   }
-  $columns = $save_cols;
   $html .= "</div>\n";
 
   return $html;
@@ -301,27 +326,11 @@ if ( !isset( $style ) || ($style != "plain" && $style != "stripped") ) {
   $form_url_parameters = array();
   if ( isset($org_code) && intval($org_code) > 0 )  array_push( $form_url_parameters, "org_code=$org_code");
   if ( isset($qs) && "$qs" != "" )                  array_push( $form_url_parameters, "qs=$qs");
-  if ( isset($choose_columns) && $choose_columns )  array_push( $form_url_parameters, "choose_columns=1");
   $form_url = "$PHP_SELF";
   for( $i=0; $i < count($form_url_parameters) && $i < 20; $i++ ) {
     $form_url .= ( $i == 0 ? '?' : '&' ) . $form_url_parameters[$i] ;
   }
   echo RenderSearchForm($form_url);
-
-/*
-
-
-  echo "<table border=0 cellspacing=0 cellpadding=0 align=center>\n";
-  echo "<tr valign=middle>\n";
-  echo "<td valign=middle align=right class=srchf>Max results:</td><td class=srchf valign=top><input type=text size=6 value=\"$maxresults\" name=maxresults class=\"srchf\"></td>\n";
-  echo "<td valign=middle align=right class=srchf>&nbsp;&nbsp;&nbsp;&nbsp;<input type=\"checkbox\" id=\"save_query_order\" value=\"1\" name=\"save_query_order\" class=\"srchf\" /></td><td class=\"srchf\" valign=\"middle\"><label for=\"save_query_order\" >Save&nbsp;Order?&nbsp;&nbsp;&nbsp;</label></td>\n";
-  echo "<td valign=middle align=right class=srchf>&nbsp; &nbsp; Save query as:</td>\n";
-  echo "<td valign=middle align=center><input type=text size=20 value=\"$savelist\" name=savelist class=\"srchf\"></td>\n";
-  echo "<td valign=middle align=left><input type=submit value=\"SAVE QUERY\" alt=save name=submit class=\"submit\"></td>\n";
-  echo "</tr></table>\n</td></tr>\n";
-
-  echo "</table>\n</form>\n";
-*/
 
 } // if  not plain  or stripped style
 ?>

@@ -6,13 +6,12 @@
   /////////////////////////////////////////////////////////////////////////////////////////////////
 
   $search_query = "";
-  if ( isset($savedquery) && "$savedquery" != "" ) {
+  if ( !isset($_POST['submit']) && isset($_GET['saved_query'])) {
     $sql =  "SELECT * FROM saved_queries ";
     $sql .= "WHERE (user_no = '$session->user_no' OR public ) ";
     $sql .= "AND query_name = ?;";
-    $qry = new PgQuery( $sql, $savedquery );
+    $qry = new PgQuery( $sql, $saved_query );
     $qry->Exec("WRSearch::Build");
-    $result = awm_pgexec( $dbconn, $qquery, "requestlist", false, 7);
     $thisquery = $qry->Fetch();
     $search_query = $thisquery->query_sql ;
 
@@ -117,13 +116,17 @@
           $saved_sort = $rlsort;
           $saved_seq = $rlseq;
         }
-        $savelist = tidy($savelist);
-        $qquery   = tidy($search_query);
-        $rlsort   = tidy($rlsort);
-        $rlseq    = tidy($rlseq);
-        $search_query = "DELETE FROM saved_queries WHERE user_no = '$session->user_no' AND LOWER(query_name) = LOWER('$savelist');
-INSERT INTO saved_queries (user_no, query_name, query_sql, maxresults, rlsort, rlseq)
-   VALUES( '$session->user_no', '$savelist', '$qquery', $maxresults, '$rlsort', '$rlseq');
+        $qparams   = qpg(serialize($_POST));
+        $savelist = qpg($savelist);
+        $qquery   = qpg($search_query);
+        $save_rlsort   = qpg($rlsort);
+        $save_rlseq    = qpg($rlseq);
+        $save_public   = qpg(intval($public)  > 0);
+        $save_in_menu  = qpg(intval($in_menu) > 0);
+        $search_query = "DELETE FROM saved_queries WHERE user_no = $session->user_no AND LOWER(query_name) = LOWER($savelist);
+INSERT INTO saved_queries (user_no, query_name, query_sql, maxresults, rlsort, rlseq, public, updated, in_menu, query_params)
+   VALUES( $session->user_no, $savelist, $qquery, ".intval($maxresults).",
+    $save_rlsort, $save_rlseq, $save_public, current_timestamp, $save_in_menu, $qparams);
 $search_query";
       }
     }

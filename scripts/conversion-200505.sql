@@ -24,6 +24,8 @@ GRANT SELECT,INSERT,DELETE,UPDATE ON group_member TO general;
 ALTER TABLE group_member ADD CONSTRAINT group_fk FOREIGN KEY (group_no) REFERENCES ugroup(group_no);
 ALTER TABLE group_member ADD CONSTRAINT user_fk FOREIGN KEY (user_no) REFERENCES usr(user_no);
 
+UPDATE saved_queries SET in_menu = TRUE;
+
 -- Set a user as having a particular system-related role
 CREATE or REPLACE FUNCTION set_system_role (int4, text, text ) RETURNS int4 AS '
    DECLARE
@@ -53,3 +55,4 @@ CREATE or REPLACE FUNCTION set_system_role (int4, text, text ) RETURNS int4 AS '
 COMMIT;
 
 VACUUM FULL VERBOSE ANALYZE group_member;
+VACUUM FULL VERBOSE ANALYZE saved_queries;

@@ -33,12 +33,16 @@
   }
 
   if ( is_member_of('Admin', 'Support', 'Manage', 'Request') ) {
-    $tooltip = "Run this saved work request report";
+    $tooltip = "Run this saved search";
+    $tooltip2 = "Edit this saved search";
     $qry = new PgQuery( "SELECT * FROM saved_queries WHERE user_no = '$session->user_no' ORDER BY query_name" );
     if ( $qry->Exec("block-menu") && $qry->rows > 0) {
       echo "<br><img class=blocksep src=\"/$images/menuBreak.gif\" width=\"130\" height=\"9\">";
       while ( $thisquery = $qry->Fetch() ) {
         echo "<br>\n &nbsp;<a href=\"$base_url/requestlist.php?style=plain&saved_query=" . urlencode($thisquery->query_name) . "\" class=block title=\"$tooltip\" alt=\"$tooltip\"><b>&raquo;</b>$thisquery->query_name</a>";
+        if ( $thisquery->query_params != "" ) {
+          echo "&nbsp;<a href=\"$base_url/wrsearch.php?saved_query=" . urlencode($thisquery->query_name) . "\" class=block title=\"$tooltip2\"><b>&laquo;e&raquo;</b></a>";
+        }
       }
     }
   }

@@ -19,9 +19,7 @@
     echo "<br>\n &nbsp;<a href=$base_url/request.php class=block>New&nbsp;Request</a>";
     $tooltip = "Search and list work requests";
     echo "<br>\n &nbsp;<a href=$base_url/requestlist.php class=block title=\"$tooltip\" alt=\"$tooltip\">List&nbsp;Requests</a>";
-  }
 
-  if ( is_member_of('Admin', 'Support', 'Manage') ) {
     $tooltip = "A comprehensive search facility for reporting on work requests";
     echo "<br>\n &nbsp;<a href=$base_url/requestlist.php?qs=complex class=block title=\"$tooltip\" alt=\"$tooltip\">Request&nbsp;Search</a>";
   }
@@ -31,7 +29,7 @@
     echo  "<br>\n &nbsp;<a href=\"$base_url/request.php?request_id=$request_id&style=plain\" target=_new class=block title=\"$tooltip\" alt=\"$tooltip\">Printable View</a>";
   }
 
-  if ( is_member_of('Admin', 'Support', 'Manage') ) {
+  if ( is_member_of('Admin', 'Support', 'Manage', 'Request') ) {
     $tooltip = "Run this saved work request report";
     $query = "SELECT * FROM saved_queries WHERE user_no = '$session->user_no' ORDER BY query_name";
     $result = awm_pgexec( $dbconn, $query, "block-menu");

@@ -108,6 +108,8 @@ function dates_equal( $date1, $date2 ) {
     else
       $requsr = $session;
 
+    error_log( "$sysabbr: DBG: New urgency is: >>$new_urgency<<" );
+    $new_urgency = intval($new_urgency);
     if ( ! isset( $new_status ) || "$new_status" == "" ) $new_status = "N";
     $sla_split = explode('|', $new_sla_code, 2);
     $sla_type = strtoupper( $sla_split[1] );
@@ -118,7 +120,7 @@ function dates_equal( $date1, $date2 ) {
     if ( "$new_agreed_due_date" <> "" ) $query .= ", agreed_due_date";
     $query .= ") ";
     $query .= "VALUES( $request_id, '$requsr->username', '" . tidy($new_brief) . "','" . tidy($new_detail) . "', ";
-    $query .= "TRUE, '$new_status', '$new_urgency', $new_importance, '$new_system_code' , '$new_type', $requsr->user_no, 'now', ";
+    $query .= "TRUE, '$new_status', '$new_urgency', $new_importance, '$new_system_code' , '$new_type', $requsr->user_no, current_timestamp, ";
     $query .= "'" . intval($sla_split[0]) . " hours', " . $session->user_no;
     if ( ereg( "[BEO]", $sla_type ) ) $query .= ", '$sla_type' ";
     if ( "$new_requested_by_date" <> "" ) $query .= ", '$new_requested_by_date'";
@@ -128,7 +130,7 @@ function dates_equal( $date1, $date2 ) {
     if ( ! $rid ) return;
 
     $query = "INSERT INTO request_status (request_id, status_by, status_on, status_code, status_by_id) ";
-    $query .= "VALUES( $request_id, '$session->username', 'now', '$new_status', $session->user_no)";
+    $query .= "VALUES( $request_id, '$session->username', current_timestamp, '$new_status', $session->user_no)";
     $rid = awm_pgexec( $dbconn, $query, "req-action", true, 7 );
     if ( ! $rid ) {
         $because .= "<H3>&nbsp;Status Change Failed!</H3>\n";
@@ -291,7 +293,7 @@ function dates_equal( $date1, $date2 ) {
     if ( $statusable && $status_changed ) {
       // Changed Status Stuff
       $query = "INSERT INTO request_status (request_id, status_by, status_on, status_code, status_by_id) ";
-      $query .= "VALUES( $request_id, '$session->username', 'now', '$new_status', $session->user_no)";
+      $query .= "VALUES( $request_id, '$session->username', current_timestamp, '$new_status', $session->user_no)";
       $rid = awm_pgexec( $dbconn, $query, "req-action" );
       if ( ! $rid ) {
         $errmsg = pg_ErrorMessage( $dbconn );
@@ -333,7 +335,7 @@ function dates_equal( $date1, $date2 ) {
       $query .= " importance = $new_importance,";
     if ( isset($new_system_code) && $request->system_code != $new_system_code )
       $query .= " system_code = '$new_system_code',";
-    $query .= " last_activity = 'now' ";
+    $query .= " last_activity = current_timestamp ";
     $query .= "WHERE request.request_id = '$request_id'; ";
     $rid = awm_pgexec( $dbconn, $query, "req-action", true, 7 );
     if ( ! $rid ) {
@@ -442,7 +444,7 @@ function dates_equal( $date1, $date2 ) {
       if ( intval("$convert_html") > 0 ) $insert_note = htmlspecialchars($insert_note);
       $insert_note = tidy($insert_note);
       $query = "INSERT INTO request_note (request_id, note_by, note_by_id, note_on, note_detail) ";
-      $query .= "VALUES( $request_id, '$session->username', $session->user_no, 'now', '$insert_note')";
+      $query .= "VALUES( $request_id, '$session->username', $session->user_no, current_timestamp, '$insert_note')";
       $rid = awm_pgexec( $dbconn, $query, "req-action", true );
       if ( ! $rid ) return;
     }

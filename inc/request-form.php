@@ -183,7 +183,7 @@
   }
   else {
     if ( $editable || $prioritisable  ) {
-      printf( "<SELECT class=sml name=\"new_%s\">$urgencies</SELECT>", ($use_sla ? "sla_code" : "urgency"));
+      printf( "<SELECT class=sml name=\"new_urgency\">$urgencies</SELECT>", ($use_sla ? "sla_code" : "urgency"));
       if ( $session->current_sla ) {
         echo " <b>OR</b> ";
         echo "<select class=sml name=\"new_sla_code\">$sla_urgencies</select>";

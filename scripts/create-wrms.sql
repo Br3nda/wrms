@@ -78,11 +78,11 @@ CREATE TABLE request (
   detailed TEXT,
   system_code TEXT
 ) ;
-CREATE INDEX xak0_request ON request ( active int4_ops, request_id );
-CREATE INDEX xak1_request ON request ( active int4_ops, severity_code );
-CREATE INDEX xak2_request ON request ( active int4_ops, severity_code, request_by );
-CREATE INDEX xak3_request ON request ( active int4_ops, request_by );
-CREATE INDEX xak4_request ON request ( active int4_ops, last_status );
+CREATE INDEX xak0_request ON request ( active, request_id );
+CREATE INDEX xak1_request ON request ( active, severity_code );
+CREATE INDEX xak2_request ON request ( active, severity_code, request_by );
+CREATE INDEX xak3_request ON request ( active, request_by );
+CREATE INDEX xak4_request ON request ( active, last_status );
 GRANT INSERT,UPDATE,SELECT ON request TO general;
 GRANT SELECT,UPDATE ON request_request_id_seq TO PUBLIC;
 

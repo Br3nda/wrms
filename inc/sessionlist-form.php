@@ -6,7 +6,7 @@
 </form>
 
 <?php
-  if ( !($roles['Admin'] || $roles['Support']) ) $session_id = $session->session_id;
+  if ( ! is_member_of('Admin','Support') ) $session_id = $session->session_id;
   if ( "$search_for$system_code " != "" ) {
     $query = "SELECT *, (session_end - session_start)::interval AS duration FROM usr, session ";
     $query .= "WHERE usr.user_no = session.user_no ";
@@ -34,7 +34,7 @@
       for ( $i=0; $i < pg_NumRows($result); $i++ ) {
         $thissession = pg_Fetch_Object( $result, $i );
 
-        if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
+        if ( $i % 2  == 0 ) echo "<tr bgcolor=$colors[6]>";
         else echo "<tr bgcolor=$colors[7]>";
 
         echo "<td align=center>&nbsp;$thissession->session_id&nbsp;</td>\n";
@@ -51,7 +51,6 @@
       echo "</table>\n";
     }
   }
-?>
-</TABLE>
-</FORM>
 
+  echo "</table>\n</form>\n";
+?>

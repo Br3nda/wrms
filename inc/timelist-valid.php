@@ -5,7 +5,7 @@
     $because .= "You must log on with a valid password and maintainer ID\n";
 
   // Validate that they are only maintaining their own timesheets
-  if ( $roles['wrms']['Admin'] ) {
+  if ( is_member_of('Admin') ) {
     // OK, they can do anything :-)
   }
   else

@@ -5,10 +5,10 @@
     $because .= "You must log on with a valid password and maintainer ID\n";
 
   // Validate that they are only maintaining an organisation they are allowed to access
-  if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
+  if ( is_member_of('Admin','Support') ) {
     // OK, they can do anything :-)
   }
-  else if ( $roles['wrms']['Manage'] ) {
+  else if ( is_member_of('Manage') ) {
     if ( "$M" == "add" )
       $because .= "You may not create organisations.\n";
     else {

@@ -5,7 +5,7 @@
 
   if ( $logged_on ) {
     include("$base_dir/inc/getrequest.php");
-    if ( "$submit" != "" ) {
+    if ( isset($submit) && "$submit" != "" ) {
       include("$base_dir/inc/request-valid.php");
       if ( "$because" == "" )
         include("$base_dir/inc/request-action.php");

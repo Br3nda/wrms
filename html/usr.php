@@ -4,10 +4,13 @@
   include("inc/organisation-list.php");
   include("inc/tidy.php");
 
-  if ( ! ($roles['wrms']['Admin'] || $roles['wrms']['Support'] || $roles['wrms']['Manage']) )
+  if ( ! isset($user_no) ) $user_no = 0;
+  $user_no = intval($user_no);
+  if ( ! is_member_of('Admin','Support','Manage') ) {
     $user_no = $session->user_no;
+  }
 
-  if ( "$submit" != "" ) {
+  if ( isset($submit) && "$submit" != "" ) {
     include("inc/getusr.php");
     include("inc/validateusr.php");
     if ( $because == "" ) {
@@ -23,17 +26,18 @@
 
   include("inc/getusr.php");
 
-  if ( ! ($roles['wrms']['Admin'] || $roles['wrms']['Support']) && ($session->org_code <> $usr->org_code && intval("$user_no") <> 0) )
-    $because = "You may only view users from your organisation";
+  if ( ! is_member_of('Admin','Support') && $session->org_code <> $usr->org_code && $user_no <> 0 ) {
+    $because = "<p class=error>You may only view users from your organisation.</p>";
+  }
 
   $title = "$system_name User Manager";
   include("inc/headers.php");
 
   // Pre-build the list of systems
-  if ( "$error_qry" == "" ) {
+  if ( !isset($error_qry) || "$error_qry" == "" ) {
     $query = "SELECT DISTINCT ON (work_system.system_code) * FROM work_system, org_system ";
-    $query .= " WHERE work_system.system_code=org_system.system_code ";
-    if ( ! ($roles['wrms']['Admin'] || $roles['wrms']['Support'] ) ) {
+    $query .= " WHERE work_system.system_code = org_system.system_code AND work_system.active ";
+    if ( ! is_member_of('Admin','Support')  ) {
       $query .= " AND org_system.org_code='$session->org_code' ";
     }
     $query .= " ORDER BY work_system.system_code ";
@@ -49,12 +53,12 @@
   $hdcell = "";
   $tbldef = "<table width=100% cellspacing=0 border=0 cellpadding=2";
 
-  if ( ! ($roles['wrms']['Admin'] || $roles['wrms']['Support']) && ($session->org_code <> $usr->org_code && intval("$user_no") <> 0) )
-      return;
-
   echo "<table border=0 cellspacing=0 cellpadding=0 width=90% height=30><tr valign=bottom><td>\n";
-  if ( "$because" != "" ) {
+  if ( isset($because) && "$because" != "" ) {
     echo "$because";
+    if ( ! is_member_of('Admin','Support') && $session->org_code <> $usr->org_code && $user_no <> 0 ) {
+      return;
+    }
   }
   else {
     echo "<h3 style=\"padding: 0pt; margin: 0pt; \">User Profile";
@@ -62,7 +66,7 @@
     echo "</h3>\n";
   }
   echo "</td>\n";
-  if ( $roles['wrms']['Admin'] ) {
+  if ( is_member_of('Admin') ) {
     echo "<td align=right><form action=usr.php method=post>";
     echo "<input type=hidden name=user_no value=$user_no>";
     echo "<input type=hidden name=M value=delete>";
@@ -86,12 +90,12 @@
 <tr>
 	<th align=right class=rows>User Name</th>
 	<td>";
-if ( $roles['wrms']['Admin'] || ("$usr->username" == ""))
+if ( is_member_of('Admin') || ("$usr->username" == ""))
   echo "<input Type=\"Text\" Name=\"UserName\" Size=\"15\" Value=\"";
 else
   echo "<h3>";
 echo "$usr->username";
-if ( $roles['wrms']['Admin'] || ("$usr->username" == "") ) echo "\">";
+if ( is_member_of('Admin') || ("$usr->username" == "") ) echo "\">";
 echo "</td>\n</tr>\n";
 
   echo "<tr>
@@ -164,7 +168,7 @@ echo "</td>\n</tr>\n";
 </tr>\n";
 
 
-  if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] || $roles['wrms']['Manage'] ) {
+  if ( is_member_of('Admin','Support','Manage') ) {
     echo "\n<tr>\n<th align=right class=rows>Status</th>";
     echo "<td VALIGN=TOP>\n<table border=0 cellspacing=0 cellpadding=3><tr>\n";
     echo "<td>";
@@ -173,7 +177,7 @@ echo "</td>\n</tr>\n";
     echo "</td>\n</tr></table></td></tr>\n";
   }
 
-  if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
+  if ( is_member_of('Admin','Support') ) {
     $org_code_list = get_organisation_list( "$usr->org_code" );
     echo "<tr>\n";
     echo "<th align=right class=rows>Organisation</th>\n";
@@ -190,15 +194,15 @@ echo "</td>\n</tr>\n";
     echo "</td></tr>";
   }
 
-  if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] || $roles['wrms']['Manage'] ) {
+  if ( is_member_of('Admin','Support','Manage') ) {
     // This displays checkboxes to select the users special roles.
     echo "\n<tr>\n<th align=right class=rows>User Roles</th>";
     echo "<td valign=top>\n<table border=0 cellspacing=0 cellpadding=3><tr>\n";
     for ( $i=0, $j=0; $i <pg_NumRows($grp_res); $i++) {
       $grp = pg_Fetch_Object( $grp_res, $i );
-      if ( "$grp->group_name" == "Admin" && !$roles[wrms][Admin] ) continue;
-      if ( "$grp->group_name" == "Support" && !($roles[wrms][Admin] || $roles[wrms][Support]) ) continue;
-      if ( "$grp->group_name" == "Manage" && !($roles[wrms][Admin] || $roles[wrms][Support] || $roles[wrms][Manage]) ) continue;
+      if ( "$grp->group_name" == "Admin" && ! is_member_of('Admin') )continue;
+      if ( "$grp->group_name" == "Support" && ! is_member_of('Admin','Support') ) continue;
+      if ( "$grp->group_name" == "Manage" && ! is_member_of('Admin','Support','Manage') ) continue;
       if ( $j > 0 && ($j % 3) == 0 ) echo "</tr><tr>";
       echo "<td><input type=checkbox name=\"NewUserRole[$grp->module_name][$grp->group_name]\"";
       if ( isset($UserRole) && is_array($UserRole) && $UserRole[$grp->module_name][$grp->group_name] ) echo " CHECKED";
@@ -234,14 +238,14 @@ echo "</td>\n</tr>\n";
       $code = $UserCat[$sys->system_code];
     else
       $code = "";
-    if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] || $roles['wrms']['Manage'] ) {
+    if ( is_member_of('Admin','Support','Manage') ) {
       echo "<select class=sml style=\"width: 150px;\" name=\"NewUserCat[$sys->system_code]\">\n";
 
       echo "<option value=\"\"";
-      if ( "$code" == "" && ($roles['wrms']['Admin'] || $roles['wrms']['Support']) ) echo " selected";
+      if ( "$code" == "" && is_member_of('Admin','Support') ) echo " selected";
       echo ">--- no access ---</option>\n";
 
-      if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
+      if ( is_member_of('Admin','Support') ) {
         echo "<option value=A";
         if ( "$code" == 'A') echo " selected";
         echo ">Administration</option>\n";
@@ -256,7 +260,7 @@ echo "</td>\n</tr>\n";
       echo ">Client Coordinator</option>\n";
 
       echo "<option value=E";
-      if ( "$code" == 'E' || ("$code" == "" && !($roles['wrms']['Admin'] || $roles['wrms']['Support'])) ) echo " selected";
+      if ( "$code" == 'E' || ("$code" == "" && ! is_member_of('Admin','Support') ) ) echo " selected";
       echo ">Enter Requests</option>\n";
 
       echo "<option value=R";

@@ -22,8 +22,7 @@
     $query .= " WHERE request.request_id = '$request_id'";
     $query .= " AND request.requester_id = usr.user_no ";
     $query .= " AND organisation.org_code = usr.org_code ";
-    if (! ($roles['wrms']['Admin'] || $roles['wrms']['Support']) )
-      $query .= " AND organisation.org_code = '$session->org_code' ";
+    if (! is_member_of('Admin','Support') ) $query .= " AND organisation.org_code = '$session->org_code' ";
     $query .= " AND status.source_table='request' AND status.source_field='status_code' AND status.lookup_code = request.last_status";
     $query .= " AND request_type.source_table='request' AND request_type.source_field='request_type' AND request.request_type = request_type.lookup_code";
     $query .= " AND urgency.source_table='request' AND urgency.source_field='urgency' AND int4(urgency.lookup_code)=request.urgency";
@@ -45,19 +44,24 @@
     }
     $request = pg_Fetch_Object( $rid, 0 );
   }
+  else {
+    $is_request = false ;
+    $request = "";
+  }
 
   /* get the user's roles relative to the current request */
   include( "$base_dir/inc/get-request-roles.php");
 
-  if ( strtolower("$request->active") == "t" ) $request->active = "TRUE";
+  if ( isset( $request->active ) && strtolower("$request->active") == "t" ) $request->active = "TRUE";
 
   /* Current request is editable if the user requested it or user is sysmgr, cltmgr or allocated the job */
+  if ( ! isset($style) ) $style = "";
   if ( ! isset($plain) && isset($style) ) $plain = ("$style" == "plain");
   $statusable = ($author || $sysmgr || $cltmgr || $allocated_to );
   $quotable = $statusable;
-  $editable = ($sysmgr || $allocated_to || ! isset($request_id) );
+  $editable = ($sysmgr || $allocated_to || ! $is_request );
   if ( $editable ) $editable = ! $plain;
 
-  error_log( "getrequest: plain=$plain, editable=$editable, statusable=$statusable, cltmgr=$cltmgr, sysmgr=$sysmgr, author=$author, allocated_to=$allocated_to, request_id=$request_id", 0);
+//  error_log( "getrequest: plain=$plain, editable=$editable, statusable=$statusable, cltmgr=$cltmgr, sysmgr=$sysmgr, author=$author, allocated_to=$allocated_to, request_id=$request_id", 0);
 
 ?>

@@ -38,5 +38,5 @@
   }
 
   // Also set $sysmgr if the person is Admin...
-  if ( $roles['wrms']['Admin'] ) $sysmgr = TRUE;
+  if ( is_member_of('Admin') ) $sysmgr = TRUE;
 ?>

@@ -5,8 +5,8 @@
   $title = "$system_name User Search";
   include("inc/headers.php");
 
-  if ( ! ($roles['wrms']['Admin'] || $roles[wrms]['Support']  || $roles[wrms]['Manage']) || "$error_msg$error_qry" != "" ) {
-    include( "inc/error.php" );
+  if ( ! is_member_of('Admin','Support','Manage') ) {
+    echo "<p class=error>Unauthorised</p>\n";
   }
   else {
     echo "<form Action=\"$base_url/usrsearch.php\" Method=\"post\">\n";
@@ -14,12 +14,12 @@
     echo "<table align=center cellspacing=0 cellpadding=2><tr valign=middle>\n";
     echo "<td class=smb><b>Name:</b></td><td><input class=sml type=text size=\"8\" name=search_for value=\"$search_for\"></td>\n";
 
-    if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
+    if ( is_member_of('Admin','Support') ) {
       include( "inc/organisation-list.php" );
       $orglist = "<option value=\"\">--- All Organisations ---</option>\n" . get_organisation_list( "$org_code", 20 );
       echo "<td class=smb>Org:</td><td><select class=sml name=\"org_code\">\n$orglist</select></td>\n";
     }
-    if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] || $roles['wrms']['Manage']) {
+    if ( is_member_of('Admin','Support','Manage') ) {
       include( "inc/system-list.php" );
       $syslist = "<option value=\"\">--- All Systems ---</option>\n" . get_system_list( "VOECS", "$system_code", 20 );
       echo "<td class=smb><b>Type:</b></td><td><select class=sml name=\"system_code\">\n$syslist</select></td>\n";
@@ -29,7 +29,7 @@
     echo "<td><input type=submit class=submit alt=go value=\"GO>>\" name=submit></td>\n";
     echo "</tr></table>\n</form>\n";
 
-    if ( "$search_for$org_code$system_code$status " != "" && ( $roles['wrms']['Manage'] || $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) ) {
+    if ( "$search_for$org_code$system_code$status " != "" ) {
 
       $query = "SELECT *, to_char( last_update, 'dd/mm/yyyy' ) AS last_update, to_char( last_accessed, 'dd/mm/yyyy' ) AS last_accessed ";
       $query .= "FROM usr, organisation";
@@ -46,10 +46,12 @@
         $query .= " OR username ~* '$search_for' ";
         $query .= " OR email ~* '$search_for' )";
       }
-      if ( $roles[wrms][Manage] && ! ($roles[wrms][Admin] || $roles[wrms][Support]) )
+      if ( is_member_of('Manage') && ! is_member_of('Admin','Support') ) {
         $query .= " AND usr.org_code='$session->org_code' ";
-      else if ( isset( $org_code ) && $org_code != "" )
+      }
+      else if ( isset( $org_code ) && $org_code != "" ) {
         $query .= " AND usr.org_code='$org_code' ";
+      }
 
       if ( isset( $system_code ) && $system_code <> ""  ) {
         $query .= " AND system_usr.system_code='$system_code'";
@@ -93,7 +95,7 @@
         echo "<td class=sml>$thisusr->last_accessed&nbsp;</td>\n";
 
         echo "<td class=sml><a class=submit href=\"requestlist.php?user_no=$thisusr->user_no\">Requested</a>\n";
-        if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
+        if ( is_member_of('Admin','Support') ) {
           echo "<a class=submit href=\"requestlist.php?allocated_to=$thisusr->user_no\">Allocated</a>\n";
           echo "<a class=submit href=\"form.php?user_no=$thisusr->user_no&form=timelist&uncharged=1\">Work</a>\n";
         }

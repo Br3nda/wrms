@@ -17,7 +17,7 @@
   else {
     $query .= "UPDATE organisation ";
     $query .= "SET org_name='$t_org_name', ";
-    if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
+    if ( is_member_of('Admin','Support') ) {
       if ( isset($debtor_no) ) $query .= " debtor_no=" . intval($debtor_no) . ", ";
       if ( isset($current_sla) ) $query .= " current_sla=" . ("$current_sla" == "t" ? "TRUE" : "FALSE") . ", ";
       if ( isset($work_rate) ) $query .= " work_rate='$work_rate', ";

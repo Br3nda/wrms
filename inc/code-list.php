@@ -10,8 +10,10 @@ function get_code_list( $table, $field, $current="", $misc="", $tag="option", $v
     $prestuff = "input type=";
     $selected = " checked";
   }
-  else
+  else {
+    $prestuff = "";
     $selected = " selected";
+  }
 
   for ( $i=0; $i < $rows; $i++ ) {
     $lookup_code = pg_Fetch_Object( $rid, $i );

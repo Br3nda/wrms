@@ -5,7 +5,7 @@
   if ( isset($f) ) $form = $f;
   $form = eregi_replace( "[^a-z0-9_]", "", $form);
 
-  if ( "$submit" <> "") {
+  if ( isset($submit) && "$submit" <> "") {
     include("inc/$form-valid.php");
     if ( "$because" == "" ) include("inc/$form-action.php");
   }

@@ -37,7 +37,7 @@
       $usr->settings->set('bigboxcols', "$UserBoxCols");
 
       $UserStatus  = ( !isset($UserStatus) || "$UserStatus" == "A" ? "A" : "I" );
-      if ( ! ($roles['wrms']['Admin'] || $roles['wrms']['Support']) && $M == "add" ) {
+      if ( ! is_member_of('Admin','Support') && $M == "add" ) {
         $UserOrganisation = $session->org_code;
       }
       if ( "$M" == "add" ) {
@@ -54,7 +54,7 @@
       }
       else {
         $query = "UPDATE usr SET email='$UserEmail', fullname='$UserFullName', ";
-        if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
+        if ( is_member_of('Admin','Support') ) {
           if ( "$UserOrganisation" <> "" ) $query .= " org_code='$UserOrganisation', ";
         }
         else

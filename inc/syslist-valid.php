@@ -12,7 +12,7 @@
   }
 
   // Validate that they are only maintaining a request for a system_code they
-  if ( $roles[wrms][Admin] ) {
+  if ( is_member_of('Admin') ) {
     // OK, they can do anything :-)
   }
   else if ( $system_code_roles["$fsystem_code"] == "V" ) {

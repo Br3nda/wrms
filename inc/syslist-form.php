@@ -11,8 +11,8 @@
 </form>
 
 <?php
-  if ( !($roles['wrms']['Admin'] || $roles['wrms']['Support']) ) $org_code = $session->org_code;
-  if ( "$search_for$org_code " != ""  && ( $roles['wrms']['Manage'] || $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) ) {
+  if ( ! is_member_of('Admin','Support') ) $org_code = $session->org_code;
+  if ( "$search_for$org_code " != ""  && is_member_of('Admin','Support', 'Manage') ) {
     $query = "SELECT DISTINCT ON (system_code) work_system.* ";
     if ( "$org_code" <> "" ) $query .= ", org_code ";
     $query .= "FROM work_system ";
@@ -58,7 +58,7 @@
         echo "</a>&nbsp;</td>\n";
         echo "<td class=sml><a class=submit href=\"requestlist.php?system_code=$thissystem->system_code\">Requests</a>\n";
         echo "<a class=submit href=\"usrsearch.php?system_code=$thissystem->system_code\">Users</a>\n";
-        if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
+        if ( is_member_of('Admin','Support') ) {
           echo "<a class=submit href=\"form.php?system_code=$thissystem->system_code&form=timelist\">Work</a>\n";
           echo "<a class=submit href=\"form.php?form=orglist&system_code=$thissystem->system_code\">Organisations</a>\n";
         }

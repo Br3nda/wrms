@@ -40,7 +40,7 @@
         echo "<h1>Help about $topic</h1>";
         echo "<h2> It seems this help hasn't been written yet :-(</h2>\n";
       }
-      if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
+      if ( is_member_of('Admin','Support') ) {
         $seq = intval($seq);
         echo "<form method=post action=\"/help.php?h=" . htmlspecialchars($topic) . "&seq=$seq\" enctype=\"multipart/form-data\">\n";
         echo "<table>\n";
@@ -58,7 +58,7 @@
       $help = pg_Fetch_Object($rid,0);
       echo link_writeups("<h1>$help->title</h1>\n");
       echo link_writeups("$help->content\n");
-      if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
+      if ( is_member_of('Admin','Support') ) {
         echo "<p><br><p><br><a href=\"/help.php?action=edit&h=" . htmlspecialchars($help->topic) . "&seq=$help->seq\">edit this help text</a>\n";
         echo " &nbsp;| &nbsp;<a href=\"/help.php?action=add&h=" . htmlspecialchars($help->topic) . "\">add new help text</a>\n";
       }
@@ -75,7 +75,7 @@
         if ( (isset($seq) && $help->seq == $seq) || isset($show_all) ) {
           echo link_writeups("<li><b><big>$help->title</big></b></li>\n");
           echo link_writeups("$help->content\n");
-          if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
+          if ( is_member_of('Admin','Support') ) {
             echo "<p align=right><a href=\"/help.php?action=edit&h=" . htmlspecialchars($help->topic) . "&seq=$help->seq\">edit this help text</a></p>\n";
           }
         }
@@ -83,7 +83,7 @@
           echo link_writeups("<li><a href=\"/help.php?h=" . htmlspecialchars($help->topic) . "&seq=$help->seq\">$help->title</a></li>\n");
       }
       echo "</ol>";
-      if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
+      if ( is_member_of('Admin','Support') ) {
         echo "<p align=right><a href=\"/help.php?action=add&h=" . htmlspecialchars($topic) . "\">add new help text</a>\n";
       }
       if ( !isset($show_all) )

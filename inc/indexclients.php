@@ -5,13 +5,13 @@ one of the recently modified requests from the list below.<br></p>";
 
   $query = "SELECT DISTINCT request.request_id, brief, fullname, email, last_activity, status.lookup_desc AS status_desc, ";
   $query .= "request.system_code, request_type.lookup_desc AS request_type_desc ";
-  if ( $roles['wrms']['Admin'] || $roles['wrms']['Support']  ) {
+  if ( is_member_of('Admin','Support') ) {
     // Satisfy v7 requirement for order field in target list
     $query .= ", request.urgency, request.importance ";
   }
   $query .= "FROM request, request_interested, usr, lookup_code AS status, lookup_code AS request_type ";
   $query .= "WHERE request.request_id=request_interested.request_id ";
-  if ( $roles['wrms']['Manage'] && ! ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] )  ) {
+  if ( is_member_of('Manage')  && ! is_member_of('Admin', 'Support') ) {
     $query .= " AND usr.org_code=$session->org_code ";
   }
   else {
@@ -21,7 +21,7 @@ one of the recently modified requests from the list below.<br></p>";
   $query .= "AND request.requester_id=usr.user_no ";
   $query .= "AND status.source_table='request' AND status.source_field='status_code' AND status.lookup_code=request.last_status ";
   $query .= "AND request_type.source_table='request' AND request_type.source_field='request_type' AND request.request_type = request_type.lookup_code ";
-  if ( $roles['wrms']['Admin'] || $roles['wrms']['Support']  ) {
+  if ( is_member_of('Admin','Support') ) {
     $query .= "AND request.active AND request.last_status~*'[AILNRQAT]' ";
     $query .= "ORDER BY last_activity DESC LIMIT 50 ";
   }

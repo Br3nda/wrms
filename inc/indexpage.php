@@ -1,6 +1,6 @@
 <?php
 if ( $logged_on ) {
-  if ( $roles['wrms']['Admin'] || $roles['wrms']['Support']  ) {
+  if ( is_member_of('Admin','Support') ) {
     include("inc/indexsupport.php");
   }
   else {

@@ -12,7 +12,7 @@
     $sys = pg_Fetch_Object( $rid, 0 );
   }
 
-  if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
+  if ( is_member_of('Admin','Support') ) {
     // Pre-build the list of organisations
     if ( "$error_qry" == "" ) {
       $query = "SELECT * FROM organisation";
@@ -70,7 +70,7 @@ with them.</P><?php
 <TD><input type=checkbox value="t" name=active<?php if ( strtolower(substr("$sys->active",0,1)) == "t" ) echo " checked"; ?>></TD></TR>
 
 <?php
-  if ( $roles[wrms][Admin] && pg_NumRows($org_res) > 0 ) {
+  if ( is_member_of('Admin') && pg_NumRows($org_res) > 0 ) {
     // This displays checkboxes to select the systems organisations.
     echo "\n<tr><th align=right valign=top>&nbsp;<BR>Organisations:</th>\n";
     echo "<td><table border=0 cellspacing=0 cellpadding=2><tr>\n";

@@ -2,10 +2,11 @@
   include( "$base_dir/inc/code-list.php");
   include( "$base_dir/inc/user-list.php" );
   include( "$base_dir/inc/html-format.php");
+
   $status_list   = get_code_list( "request", "status_code", "$request->last_status" );
-  $is_request = isset( $request );
   $use_sla = ( $is_request && $request->current_sla == 't' && $request->sla_response_time > 0 ) || (!$is_request && $session->current_sla == 't') ;
-  $use_sla = ( $is_request && $request->current_sla == 't' ) || (!$is_request && ($session->current_sla == 't' || $roles['wrms']['Admin'] || $roles['wrms']['Support']) ) ;
+  $use_sla = ( $is_request && $request->current_sla == 't' )
+                 || ( !$is_request && ($session->current_sla == 't' || is_member_of('Admin', 'Support' ) ) ) ;
   $attach_types = get_code_list( "request", "attach_type", "" );
 
   if ( $editable ) {
@@ -16,8 +17,8 @@
     $urgencies = get_code_list( "request", "urgency", "$request->urgency" );
     $importances = get_code_list( "request", "importance", "$request->importance" );
 
-    if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] || $roles['wrms']['Manage']  ) {
-      if ( $roles['wrms']['Admin'] || $roles['wrms']['Support']  ) {
+    if ( is_member_of('Admin', 'Support' ,'Manage') ) {
+      if ( is_member_of('Admin', 'Support')  ) {
         $user_list = "<option value=\"\">--- not selected ---</option>\n" . get_user_list( "", "", "" );
         $support_list = "<option value=\"\">--- not assigned ---</option>\n";
         $support_list .= get_user_list( "Support", "", $session->user_no );
@@ -43,7 +44,7 @@
   $hdcell = "";
   $tbldef = "<table width=100% cellspacing=0 border=0 cellpadding=2";
   echo "$tbldef>\n<tr><td align=left>\n";;
-  if ( "$because" != "" )
+  if ( isset($because) && "$because" != "" )
     echo $because;
   else if ( ! $plain ) {
     ?><p class=helptext>Use this form to enter changes to details for the
@@ -59,13 +60,13 @@
   echo "Request details</td></TR>\n";
 
   if ( !$is_request  ) {
-    if ( $roles[wrms][Admin] || $roles[wrms][Support] || $roles[wrms][Manage] ) {
+    if ( is_member_of('Admin', 'Support', 'Manage') ) {
       echo "<tr><th class=rows align=right>On Behalf Of:</th><td colspan=2 valign=middle align=left>";
       echo "<select class=sml name=\"new_user_no\">$user_list</select>\n";
       echo " &nbsp; <label><input class=sml type=checkbox name=\"in_notify\" value=1 checked>&nbsp;update user on the status of this request.</label>\n";
       echo "</td></tr>\n";
     }
-    if ( $roles[wrms][Admin] || $roles[wrms][Support] ) {
+    if ( is_member_of('Admin', 'Support' ) ) {
       echo "<TR><TH align=right class=rows>Assign to:</TH>";
       echo "<TD colspan=2 ALIGN=LEFT><SELECT class=sml NAME=\"new_assigned\">$support_list</SELECT></TD></TR>";
     }
@@ -76,31 +77,32 @@
   echo "</th>\n";
   if ( $is_request ) echo "<td align=center class=h2>$request->request_id</td>\n";
   echo "<td";
-  if ( !isset( $request ) ) echo " colspan=2";
+  if ( ! $is_request ) echo " colspan=2";
   if ( $editable ) {
     echo "><input class=sml type=\"text\" name=\"new_brief\" size=40 value=\"";
     if ( $is_request ) echo htmlspecialchars($request->brief);
     echo "\">";
   }
-  else
+  else {
     echo " valign=middle><h2>$request->brief";
+  }
   echo "</td></tr>\n";
 
   if ( $is_request ) {
     // --------------------- FROM -----------------------
-    if ( strcmp( $request->eta, "") )
+    if ( $is_request && strcmp( $request->eta, "") )
       echo " &nbsp; &nbsp; &nbsp; <b class=smb>ETA:</b> " .  substr( nice_date($request->eta), 7);
-    if ( $roles['wrms']['Admin'] || $roles['wrms']['Support']  ) {
+    if ( is_member_of('Admin', 'Support' ) ) {
       echo "<TR><th class=rows align=right>On Behalf Of:</TH>";
       echo "<td align=center>" . nice_date($request->request_on) . "</td>";
       echo "<TD ALIGN=LEFT COLSPAN=2>\n";
-      if ( $editable && ($roles[wrms][Admin] || $roles[wrms][Support] || $roles[wrms][Manage] ) ) {
+      if ( $editable  ) {
         echo "<select class=sml name=\"new_user_no\">" . get_user_list( "", "", $request->requester_id ) . "</select>\n";
       }
       else {
         echo "$request->fullname\n";
       }
-      if ( strcmp( $request->eta, "") )
+      if ( $is_request && strcmp( $request->eta, "") )
         echo " &nbsp; &nbsp; &nbsp; <b class=smb>ETA:</b> " .  substr( nice_date($request->eta), 7);
       echo "</TD></TR>\n";
     }
@@ -108,7 +110,7 @@
       echo "<TR><th class=rows align=right>For:</TH>";
       echo "<TD ALIGN=CENTER>$request->fullname</TD>\n";
       echo "<TD ALIGN=LEFT><b class=smb>Entered:</b> " . nice_date($request->request_on);
-      if ( strcmp( $request->eta, "") )
+      if ( $is_request && strcmp( $request->eta, "") )
         echo " &nbsp; &nbsp; &nbsp; <b class=smb>ETA:</b> " .  substr( nice_date($request->eta), 7);
       echo "</TD></TR>\n";
     }
@@ -118,10 +120,10 @@
     echo "<TD ALIGN=CENTER>";
     if ( $editable ) {
       echo "<LABEL><INPUT class=sml TYPE=\"checkbox\" NAME=\"new_active\" VALUE=\"TRUE\"";
-      if ( strtolower( substr( "$request->active", 0, 1)) == "t" ) echo " CHECKED";
+      if ( $is_request && strtolower( substr( "$request->active", 0, 1)) == "t" ) echo " CHECKED";
         echo ">&nbsp;Active</LABEL>";
     }
-    else if ( strtolower( substr( "$request->active", 0, 1)) == "t" ) echo "Active";
+    else if ( $is_request && strtolower( substr( "$request->active", 0, 1)) == "t" ) echo "Active";
     else echo "Inactive";
     echo "</TD>\n<TD ALIGN=LEFT>&nbsp;$request->last_status - $request->status_desc</TD></TR>\n";
   }
@@ -132,7 +134,7 @@
     if ( $is_request )
       echo "<TD ALIGN=CENTER>$request->system_code</TD>\n";
     echo "<td align=left";
-    if ( !isset( $request ) ) echo " colspan=2";
+    if ( ! $is_request ) echo " colspan=2";
     if ( $editable )
       echo "><SELECT class=sml NAME=\"new_system_code\">$system_codes</SELECT>";
     else
@@ -144,7 +146,7 @@
   echo "<tr><th class=rows align=right>Type:</th>\n";
   if ( $is_request ) echo "<TD ALIGN=CENTER>&nbsp;</TD>\n";
   echo "<td align=left";
-  if ( !isset( $request ) ) echo " colspan=2";
+  if ( ! $is_request  ) echo " colspan=2";
   if ( $editable )
     echo "><SELECT class=sml NAME=\"new_type\">$request_types</SELECT>";
   else
@@ -157,7 +159,7 @@
     printf( "<td align=center>%s</td>\n", ( $use_sla && ($request->sla_response_time > 0) ? $request->sla_response_type . '-' . $request->sla_response_time : $request->urgency_desc));
   }
   printf( "<td align=left%s>",  ($is_request ?  "" : " colspan=2"));
-  if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
+  if ( is_member_of('Admin', 'Support')  ) {
     if ( $editable ) {
       echo "<select class=sml name=\"new_urgency\">$urgencies</select>";
       if ( !$is_request || $use_sla ) {
@@ -166,7 +168,7 @@
         echo " <b class=smb>(if SLA applies)</b> ";
       }
     }
-    else if ( $use_sla && ($request->sla_response_time > 0) )
+    else if ( $use_sla && $is_request && ($request->sla_response_time > 0) )
       echo "$request->sla_response_desc";
     else
       echo "$request->urgency_desc";
@@ -181,7 +183,7 @@
         echo " <b class=smb>(if SLA applies)</b> ";
       }
     }
-    else if ( $use_sla && ($request->sla_response_time > 0) )
+    else if ( $use_sla && $is_request && ($request->sla_response_time > 0) )
       echo "$request->sla_response_desc";
     else
       echo "$request->urgency_desc";
@@ -197,7 +199,7 @@
   if ( $editable ) {
     echo "<input class=sml name=\"new_requested_by_date\" value=\"$request->requested_by_date\" size=10>";
   }
-  else if ( "$request->requested_by_date" == "" )
+  else if ( ! $is_request || "$request->requested_by_date" == "" )
     echo " -- not set -- ";
   else
     echo "$request->requested_by_date";
@@ -205,10 +207,10 @@
 
   // ---------------Agreed Due By -------------------
   echo "<b class=smb>Agreed:</b>";
-  if ( ($roles['wrms']['Admin'] || $roles['wrms']['Support']) && $editable ) {
+  if ( is_member_of('Admin', 'Support') && $editable ) {
     echo "<input class=sml name=\"new_agreed_due_date\" value=\"$request->agreed_due_date\" size=10>";
   }
-  else if ( "$request->agreed_due_date" == "" )
+  else if ( $is_request && "$request->agreed_due_date" == "" )
     echo " -- not set -- ";
   else
     echo "$request->agreed_due_date";
@@ -235,7 +237,7 @@
   echo "</td></tr>\n";
 
   // ----------------- NOTIFY (for normal users) -----------------
-  if ( ! ($roles['wrms']['Admin'] || $roles['wrms']['Support'] || $roles['wrms']['Manage'] || $is_request) ) {
+  if ( ! is_request || is_member_of('Admin', 'Support', 'Manage') ) {
     echo "<tr><th class=rows align=right>Notify:</th>\n";
     echo "<td colspan=2><label><input type=checkbox name=\"in_notify\" value=1 checked>&nbsp;Keep me updated on the status of this request.</label></td></tr>\n";
   }
@@ -243,7 +245,7 @@
   echo "</table>\n";
 
   //---------------- Attachment Details */
-  if ( isset( $request ) || $roles[wrms][Admin] || $roles[wrms][Support] ) {
+  if ( ! $is_request || is_member_of('Admin', 'Support', 'Manage') ) {
     if ( isset( $request ) ) {
       $query = "SELECT * FROM request_attachment WHERE request_attachment.request_id = $request->request_id ";
       $query .= "ORDER BY request_attachment.attachment_id;";
@@ -288,7 +290,7 @@
       printf("<tr class=row%1d>", ($i % 2) );
       echo "<td><input class=sml name=new_attachment_file size=20 type=file></td>\n";
       echo "<td><select class=sml name=new_attachment_type>$attach_types</select></td>\n";
-      if ( $roles[wrms][Admin] || $roles[wrms][Support] ) {
+      if ( is_member_of('Admin', 'Support' ) ) {
         echo "<td nowrap><label>Show inline<input name=new_attach_inline type=checkbox value=1></label><input name=new_attach_x size=3 type=text>x<input name=new_attach_y size=3 type=text></td>";
         echo "<td>";
       }
@@ -358,9 +360,9 @@
     echo "</TABLE>";
   }  // if quotable
 
-  if ( !$plain && ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] || $roles['wrms']['Manage'] ) ) {
+  if ( !$plain && is_member_of('Admin', 'Support', 'Manage') ) {
     $user_list = "<option value=\"\">--- no change ---</option>\n";
-    if ( $roles['wrms']['Admin'] || $roles['wrms']['Support']  ) {
+    if ( is_member_of('Admin', 'Support') ) {
       $support_list = $user_list;
       $support_list .= get_user_list( "Support", "", "" );
       $user_list .= get_user_list( "", "", "" );
@@ -379,7 +381,7 @@
   $query .= "ORDER BY request_allocated.allocated_on ";
   $allocq = awm_pgexec( $wrms_db, $query);
   $rows = pg_NumRows($allocq);
-  if ( isset( $request ) && ( $rows > 0 || (! $plain && (($roles['wrms']['Admin'] || $roles['wrms']['Support'] )))) ) {
+  if ( $is_request && ( $rows > 0 || (! $plain && is_member_of('Admin', 'Support', 'Manage') ) ) ) {
     echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=3>&nbsp;</TD></TR>\n";
     echo "<TR>$hdcell<TD CLASS=h3 COLSPAN=2 ALIGN=RIGHT>Work Allocated To</TD></TR>\n";
     echo "<TR VALIGN=TOP><td>";
@@ -394,8 +396,9 @@
         echo "</a>\n";
     }
 
-    if ( $plain || !($roles['wrms']['Admin'] || $roles['wrms']['Support'] ) )
+    if ( $plain || ! is_member_of('Admin', 'Support') ) {
       echo "</TD>\n<TD>&nbsp;";  // Or we could correct the cellspan above for this case...
+    }
     else {
       echo "</TD>\n<td align=right nowrap>Add:&nbsp;<select class=sml name=\"new_allocation\">$support_list</SELECT>\n";
     }
@@ -404,7 +407,7 @@
 
   /***** Timesheet Details */
   /* we only show timesheet details if they exist */
-  if ( isset( $request ) && ($roles['wrms']['Admin'] || $roles['wrms']['Support'] ) ) {
+  if ( $is_request && is_member_of('Admin', 'Support', 'Manage') ) {
     $query = "SELECT *, date_part('epoch',request_timesheet.work_duration) AS seconds ";
     $query .= "FROM request_timesheet, usr ";
     $query .= "WHERE request_timesheet.request_id = $request->request_id ";
@@ -440,7 +443,7 @@
       echo "<td align=right nowrap>$work->work_rate&nbsp;</td>\n";
       echo "<td align=right nowrap>$tmp&nbsp;</td>\n";
       echo "<td>$work->work_description</td>\n";
-      if ( "$style" != "plain" && ($roles['wrms']['Admin'] || $roles['wrms']['Support'] ) ) {
+      if ( ! $plain && is_member_of('Admin', 'Support', 'Manage') ) {
         echo "<td align=right nowrap><a class=submit href=\"request.php?submit=deltime";
         echo "&request_id=$request_id&timesheet_id=$work->timesheet_id\">";
         echo "DEL</a></td>";
@@ -492,13 +495,14 @@
     for( $i=0; $i<$rows; $i++ ) {
       $interested = pg_Fetch_Object( $peopleq, $i );
       if ( $i > 0 ) echo ", ";
-      if ( ($allocated_to || $sysmgr || $roles['wrms']['Manage']) && ! $plain )
+      if ( ! $plain && ($allocated_to || $sysmgr || is_member_of('Admin', 'Support', 'Manage')) ) {
         echo "<a href=\"request.php?submit=deregister&user_no=$interested->user_no&request_id=$request_id\">\n";
+      }
       echo "$interested->fullname ($interested->abbreviation)\n";
       if ( ($allocated_to || $sysmgr) && ! $plain )
         echo "</a>\n";
     }
-    }
+  }
 
     if ( !$plain ) {
       $notify_to = notify_emails( $wrms_db, $request_id );
@@ -512,7 +516,7 @@
       }
 
       echo "</TD>\n<TD ALIGN=RIGHT nowrap>";
-      if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] || $roles['wrms']['Manage']  ) {
+      if ( is_member_of('Admin', 'Support', 'Manage') ) {
         echo "Add:&nbsp;<select class=sml name=\"new_interest\">$user_list</SELECT>\n";
       }
       else
@@ -615,7 +619,7 @@ if ( "$style" != "plain" ) {
   else
     echo " Enter Request ";
   echo "\"></b>";
-  if ( $roles['wrms']['Admin'] || $roles['wrms']['Support']  ) {
+  if ( is_member_of('Admin', 'Support') ) {
     echo "&nbsp; &nbsp; <label><input type=checkbox name=send_no_mail value=1> Do not send e-mail update </label>";
   }
   echo "</td>\n</tr></table></form>";

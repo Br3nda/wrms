@@ -4,6 +4,7 @@ $begin_processing = microtime();
 $dbconn = pg_Connect("dbname=wrms user=general");
 $wrms_db = $dbconn;
 include_once("inc/PgQuery.php");
+awm_pgexec( $wrms_db, "SET SQL_Inheritance TO OFF;", "always" );
 
 $admin_email = "wrmsadmin@catalyst.net.nz";
 $basefont = "verdana,sans-serif";
@@ -13,6 +14,7 @@ $left_panel = true;
 $right_panel = false;
 $hurl = "";
 if ( !isset($request_id) ) $request_id= 0;
+if ( !isset($style) ) $style = "";
 $request_id = intval($request_id);
 
 $base_dns = "http://$HTTP_HOST";
@@ -93,7 +95,7 @@ $fonts = array( "tahoma",		// primary font
 // Set the bebug variable initially to '0'. This variable is made available 
 // to all local routines for verbose printing. 
 
-if ( !isset($debuglevel) ) $debuglevel = 1;
+if ( !isset($debuglevel) ) $debuglevel = 5;
 
 class Setting {
   var $parameters;  // parameters we have set
@@ -112,6 +114,7 @@ class Setting {
   }
 
   function get ($key) {
+    if ( !isset( $this->parameters[$key] ) ) return "";
     return $this->parameters[$key];
   }
 
@@ -240,6 +243,17 @@ function link_writeups( $instr ) {
   $instr = ereg_replace("\[([^]|]+)\|([^]|]+)\]", "<a class=wu href=\"/wu.php?wu=\\1$last_node\">\\2</a>", $instr);
   $instr = ereg_replace("\[([^]|]+)\]", "<a class=wu href=\"/wu.php?wu=\\1$last_node\">\\1</a>", $instr);
   return $instr;
+}
+
+function is_member_of( ) {
+  global $roles;
+
+  $argc = func_num_args();
+  for( $i = 0; $i < $argc; $i++ ) {
+    $arg = func_get_arg($i);
+    if ( isset($roles['wrms'][$arg]) && $roles['wrms'][$arg] ) return true;
+  }
+  return false;
 }
 
 ?>

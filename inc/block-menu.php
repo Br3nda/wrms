@@ -11,7 +11,7 @@
   $tooltip = "Log me out and stop logging me in automatically";
   echo  "<br>\n &nbsp;<a href=\"/?M=LO&forget=1$hurl\" class=block title=\"$tooltip\" alt=\"$tooltip\">Forget Me</a>";
 
-  if ( $roles['wrms']['Request'] ) {
+  if ( is_member_of('Request') ) {
     echo "<br><img class=blocksep src=\"images/menuBreak.gif\" width=\"130\" height=\"9\">";
     $tooltip = "Go to the WRMS home page";
     echo "<br>\n &nbsp;<a href=$base_url/index.php class=block title=\"$tooltip\" alt=\"$tooltip\">WRMS&nbsp;Home</a>";
@@ -21,7 +21,7 @@
     echo "<br>\n &nbsp;<a href=$base_url/requestlist.php class=block title=\"$tooltip\" alt=\"$tooltip\">List&nbsp;Requests</a>";
   }
 
-  if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] || $roles['wrms']['Manage'] ) {
+  if ( is_member_of('Admin', 'Support', 'Manage') ) {
     $tooltip = "A comprehensive search facility for reporting on work requests";
     echo "<br>\n &nbsp;<a href=$base_url/requestlist.php?qs=complex class=block title=\"$tooltip\" alt=\"$tooltip\">Request&nbsp;Search</a>";
   }
@@ -31,7 +31,7 @@
     echo  "<br>\n &nbsp;<a href=\"$base_url/request.php?request_id=$request_id&style=plain\" target=_new class=block title=\"$tooltip\" alt=\"$tooltip\">Printable View</a>";
   }
 
-  if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] || $roles['wrms']['Manage'] ) {
+  if ( is_member_of('Admin', 'Support', 'Manage') ) {
     $tooltip = "Run this saved work request report";
     $query = "SELECT * FROM saved_queries WHERE user_no = '$session->user_no' ORDER BY query_name";
     $result = awm_pgexec( $dbconn, $query, "block-menu");
@@ -49,7 +49,7 @@
   echo "Go to: </td><td><input type=hidden value=\"$style\" name=style>";
   echo "<input type=text size=7 value=\"$request_id\" name=request_id></td></tr></form></table>";
 
-  if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] || $roles['wrms']['Manage'] ) {
+  if ( is_member_of('Admin', 'Support', 'Manage') ) {
     echo "<img class=blocksep src=\"images/menuBreak.gif\" width=\"130\" height=\"9\">";
     $tooltip = "Review and update details about your organisation.";
     echo "<br>\n &nbsp;<a href=\"$base_url/form.php?form=organisation&org_code=$session->org_code\" class=block title=\"$tooltip\" alt=\"$tooltip\">My&nbsp;Organisation</a>";
@@ -61,7 +61,7 @@
     echo "<br>\n &nbsp;<a href=\"$base_url/form.php?form=syslist&org_code=$session->org_code\" class=block title=\"$tooltip\" alt=\"$tooltip\">Our&nbsp;Systems</a>";
   }
 
-  if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
+  if ( is_member_of('Admin', 'Support' ) ) {
     echo "<br><img class=blocksep src=\"images/menuBreak.gif\" width=\"130\" height=\"9\"><br>\n &nbsp;<a href=$base_url/timesheet.php class=block>Timesheet Entry</a>";
     echo "<br>\n &nbsp;<a href=$base_url/form.php?f=orglist class=block>All&nbsp;Organisations</a>";
     echo "<br>\n &nbsp;<a href=$base_url/form.php?f=syslist class=block>All&nbsp;Systems</a>";
@@ -71,7 +71,7 @@
     echo "<br>\n &nbsp;<a href=$base_url/form.php?f=timelist&uncharged=1&charge=1 class=block>Work&nbsp;To&nbsp;Charge</a>";
   }
 
-  if ( $roles['wrms']['Admin'] ) {
+  if ( is_member_of('Admin') ) {
     echo "<br><img class=blocksep src=\"images/menuBreak.gif\" width=\"130\" height=\"9\"><br>\n &nbsp;<a href=$base_url/lookups.php class=block>Lookup&nbsp;Codes</a>";
     echo "<br>\n &nbsp;<a href=$base_url/form.php?form=sessionlist class=block>Sessions</a>";
   }

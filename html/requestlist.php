@@ -35,7 +35,8 @@
 //------------------------------------------------------
   function RequestEditPermissions($request_id)
   {
-     global $session, $roles, $wrms_db, $base_dir;
+     //  This code was written by Simon and gets marked 3/10 - could do better.
+     global $session, $wrms_db, $base_dir;
      $plain = FALSE;
 
      include("inc/getrequest.php");
@@ -74,7 +75,6 @@
         $ReturnedRequestId = $EditableRequests[$i][0];
 
         //Retrieve current request status and active field values from the database
-        $result = awm_pgexec( $wrms_db, "SET SQL_Inheritance TO OFF;" );
         $query = "SELECT last_status, active FROM request WHERE request_id = $ReturnedRequestId;";
         $rid = awm_pgexec( $wrms_db, $query, "requestlist", TRUE, 7 );
         if ( !$rid || pg_numrows($rid) > 1 || pg_numrows($rid) == 0 )
@@ -197,7 +197,7 @@
      Process_Brief_editable_Requests();
   }
 
-  if ( isset($system_code) && $system_code == "." ) unset( $system_code );
+  if ( $system_code == "." ) $system_code = "";
 
   $title = "$system_name Request List";
 
@@ -218,7 +218,7 @@
   $header_cell = "<th class=cols><a class=cols href=\"$PHP_SELF?rlsort=%s&rlseq=%s";
   if ( isset($qs) ) $header_cell .= "&qs=$qs";
   if ( isset($org_code) ) $header_cell .= "&org_code=$org_code";
-  if ( isset($system_code) ) $header_cell .= "&system_code=$system_code";
+  if ( $system_code != "" ) $header_cell .= "&system_code=$system_code";
   if ( isset($search_for) ) $header_cell .= "&search_for=$search_for";
   if ( isset($inactive) ) $header_cell .= "&inactive=$inactive";
   if ( isset($requested_by) ) $header_cell .= "&requested_by=$requested_by";
@@ -259,7 +259,7 @@ function column_header( $ftext, $fname ) {
 
   include("inc/headers.php");
 
-if ( ! $roles['wrms']['Request'] || ((isset($error_msg) || isset($error_qry)) && "$error_msg$error_qry" != "") ) {
+if ( ! is_member_of('Request') || ((isset($error_msg) || isset($error_qry)) && "$error_msg$error_qry" != "") ) {
   include( "inc/error.php" );
 }
 else {
@@ -274,10 +274,12 @@ else {
     echo "</h3>\n";
 
     include("inc/system-list.php");
-    if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] )
+    if ( is_member_of('Admin', 'Support' ) ) {
       $system_list = get_system_list( "", "$system_code", 35);
-    else
+    }
+    else {
       $system_list = get_system_list( "CES", "$system_code", 35);
+    }
 
     echo "<table border=0 cellspacing=2 cellpadding=0 align=center class=row0 width=100% style=\"border: 1px dashed #aaaaaa;\">\n<tr>\n";
     echo "<td width=100%><table border=0 cellspacing=0 cellpadding=0 width=100%><tr valign=middle>\n";
@@ -286,7 +288,7 @@ else {
 
     echo "<td class=smb>&nbsp;System:</td><td class=sml><select class=sml name=system_code><option value=\".\">--- All Systems ---</option>$system_list</select></td>\n";
 
-  if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
+  if ( is_member_of('Admin', 'Support') ) {
     include( "inc/organisation-list.php" );
     $orglist = "<option value=\"\">--- All Organisations ---</option>\n" . get_organisation_list( "$org_code", 30 );
     echo "<td class=smb>&nbsp;Organisation:</td><td class=sml><select class=sml name=\"org_code\">\n$orglist</select></td>\n";
@@ -297,22 +299,22 @@ else {
 
 
   if ( "$qs" == "complex" ) {
-    if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] || $roles['wrms']['Manage'] ) {
-      if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
+    if ( is_member_of('Admin', 'Support', 'Manage') ) {
+      if ( is_member_of('Admin', 'Support') ) {
         $user_org_code = "";
       }
       else {
         $user_org_code = "$session->org_code";
       }
       echo "<tr><td width=100%><table border=0 cellspacing=0 cellpadding=0 width=100%><tr valign=middle>\n";
-      if ( $roles['wrms']['Admin'] || $roles['wrms']['Support']  || $roles['wrms']['Manage']) {
+      if ( is_member_of('Admin', 'Support', 'Manage') ) {
         $user_list = "<option value=\"\">--- Any Requester ---</option>" . get_user_list( "", $user_org_code, "" );
         echo "<td class=smb>By:</td><td class=sml><select class=sml name=requested_by>$user_list</select></td>\n";
-        if ( !($roles['wrms']['Admin'] || $roles['wrms']['Support']) && !isset($interested_in) ) $interested_in = $session->user_no;
+        if ( ! is_member_of('Admin', 'Support')  && ! isset($interested_in) ) $interested_in = $session->user_no;
         $user_list = "<option value=\"\">--- Any Interested User ---</option>" . get_user_list( "", $user_org_code, $interested_in );
         echo "<td class=smb>Watching:</td><td class=sml><select class=sml name=interested_in>$user_list</select></td>\n";
       }
-      if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
+      if ( is_member_of('Admin', 'Support') ) {
         $user_list = "<option value=\"\">--- Any Assigned Staff ---</option>" . get_user_list( "Support", "", $allocated_to );
         echo "<td class=smb>ToDo:</td><td class=sml><select class=sml name=allocated_to>$user_list</select></td>\n";
       }
@@ -349,12 +351,12 @@ else {
         echo "<input type=checkbox name=incstat[$status->lookup_code]";
         if ( !isset( $incstat) || $incstat[$status->lookup_code] <> "" ) echo " checked";
         echo " value=1>" . str_replace( " ", "&nbsp;", $status->lookup_desc) . " &nbsp; ";
-        if ( $i == intval($nrows / 2) ) echo "&nbsp;<br>";
+        if ( $i == intval(($nrows + 1) / 2) ) echo "&nbsp;<br>";
       }
       echo "<input type=checkbox name=inactive";
       if ( isset($inactive) ) echo " checked";
       echo " value=1>Inactive";
-      echo "c</td>\n";
+      echo "</td>\n";
     }
     echo "<td valign=middle class=smb align=center><input type=submit value=\"RUN QUERY\" alt=go name=submit class=\"submit\"></td>\n";
     echo "</tr></table>\n</td></tr>\n";
@@ -362,9 +364,10 @@ else {
     echo "<tr><td>\n";
     echo "<table border=0 cellspacing=0 cellpadding=0 align=center>\n";
     echo "<tr valign=middle>\n";
-    echo "<td valign=middle class=smb align=right>Save query as:</td><td class=sml valign=top>\n";
-    echo "<td valign=middle class=smb align=center><input type=text size=20 value=\"$savelist\" name=savelist class=\"sml\"></td>\n";
-    echo "<td valign=middle class=smb align=left><input type=submit value=\"SAVE QUERY\" alt=save name=submit class=\"submit\"></td>\n";
+    echo "<td valign=middle align=right class=smb>Max results:</td><td class=sml valign=top><input type=text size=6 value=\"$maxresults\" name=maxresults class=\"sml\"></td>\n";
+    echo "<td valign=middle align=right class=smb>&nbsp; &nbsp; Save query as:</td>\n";
+    echo "<td valign=middle align=center><input type=text size=20 value=\"$savelist\" name=savelist class=\"sml\"></td>\n";
+    echo "<td valign=middle align=left><input type=submit value=\"SAVE QUERY\" alt=save name=submit class=\"submit\"></td>\n";
     echo "</tr></table>\n</td></tr>\n";
   }
 ?>
@@ -381,7 +384,7 @@ else {
   //
   /////////////////////////////////////////////////////////////////////////////////////////////////
 
-  if ( "$qry$search_for$org_code$system_code " != "" ) {
+  // if ( "$qry$search_for$org_code$system_code" != "" ) {
     // Recommended way of limiting queries to not include sub-tables for 7.1
     $result = awm_pgexec( $wrms_db, "SET SQL_Inheritance TO OFF;" );
     $query = "";
@@ -410,8 +413,9 @@ else {
       $query .= " WHERE request.request_by=usr.username ";
       $query .= " AND request_type.source_table='request' AND request_type.source_field='request_type' AND request.request_type = request_type.lookup_code";
       if ( "$inactive" == "" )        $query .= " AND active ";
-      if (! ($roles['wrms']['Admin'] || $roles['wrms']['Support']) )
+      if ( ! is_member_of('Admin', 'Support' ) ) {
         $query .= " AND org_code = '$session->org_code' ";
+      }
       else if ( isset($org_code) && intval($org_code) > 0 )
         $query .= " AND org_code='$org_code' ";
 
@@ -430,10 +434,8 @@ else {
       }
       if ( "$system_code" != "" )     $query .= " AND system_code='$system_code' ";
       if ( "$type_code" != "" )     $query .= " AND request_type=" . intval($type_code);
-      error_log( "type_code = >>$type_code<<", 0);
 
       if ( "$from_date" != "" )     $query .= " AND request.last_activity >= '$from_date' ";
-
       if ( "$to_date" != "" )     $query .= " AND request.last_activity<='$to_date' ";
 
       if ( isset($incstat) && is_array( $incstat ) ) {
@@ -452,11 +454,11 @@ INSERT INTO saved_queries (user_no, query_name, query_sql) VALUES( '$session->us
 $query";
         }
       }
-    }
+    // }
 
     $query .= " AND status.source_table='request' AND status.source_field='status_code' AND status.lookup_code=request.last_status ";
     $query .= " ORDER BY $rlsort $rlseq ";
-    $query .= " LIMIT 100 ";
+    $query .= " LIMIT $maxresults ";
     $result = awm_pgexec( $wrms_db, $query, "requestlist", false, 7 );
 
     if ( "$style" != "stripped" ) {
@@ -500,7 +502,7 @@ $query";
     $show_notes = ($format == "ultimate" || $format == "detailed" );
     $show_details = ($format == "ultimate" || $format == "detailed" || "$format" == "activity" || "$format" == "quotes" );
     $show_quotes = ( $format == "ultimate" || "$format" == "activity" || "$format" == "quotes" );
-    $show_work = ( $format == "ultimate" || "$format" == "activity" ) && ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] );
+    $show_work = ( ($format == "ultimate" || "$format" == "activity" ) &&  is_member_of('Admin', 'Support' ) );
     if ( $show_details ) {
       include("inc/html-format.php");
     }
@@ -667,15 +669,20 @@ $query";
     {
       echo "<br clear=all><hr>\n<table cellpadding=5 cellspacing=5 align=right><tr><td>Rerun as report: </td>\n<td>\n";
       printf( "<a href=\"$this_page\" target=_new>Brief</a>\n", "stripped", "brief");
-      if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] )
+      printf( " &nbsp;|&nbsp; <a href=\"$this_page&maxresults=5000\">All Rows</a>\n", $style, $format);
+      if ( is_member_of('Admin', 'Support') ) {
         printf( " &nbsp;|&nbsp; <a href=\"$this_page\" target=_new>Activity</a>\n", "stripped", "activity");
+      }
       printf( " &nbsp;|&nbsp; <a href=\"$this_page\" target=_new>Detailed</a>\n", "stripped", "detailed");
-      if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] || $roles['wrms']['Manage'] )
+      if ( is_member_of('Admin', 'Support', 'Manage') ) {
         printf( " &nbsp;|&nbsp; <a href=\"$this_page\" target=_new>Quotes</a>\n", "stripped", "quotes");
-      if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] )
+      }
+      if ( is_member_of('Admin', 'Support') ) {
         printf( " &nbsp;|&nbsp; <a href=\"$this_page\" target=_new>Ultimate</a>\n", "stripped", "ultimate");
-      if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] )
+      }
+      if ( is_member_of('Admin', 'Support') ) {
         printf( " &nbsp;|&nbsp; <a href=\"$this_page\" target=_new>Brief (editable)</a>\n", "stripped", "edit");  //uses the format = edit setting in this link for the Brief (editable) report
+      }
       if ( "$qry" != "" ) {
         echo "</td><td>|&nbsp; &nbsp; or <a href=\"$PHP_SELF?qs=complex&qry=$uqry&action=delete\" class=sbutton>Delete</a> it\n";
       }

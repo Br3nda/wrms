@@ -72,7 +72,7 @@ th.h3, td.h3  {font: bold $fontsizes[3] $fonts[0], sans-serif; color: $colors[fg
 .msgtitle		{font: bold $fontsizes[1] $fonts[1], sans-serif; font-weight: 700; color: $colors[blockfront]; background: $colors[blocktitle]; margin: 6px 0px 0px 0px; }
 .msginfo		{font: $fontsizes[0] $fonts[1], sans-serif; margin: 0; text-align: right; color: $colors[fg2]; background: $colors[bg2]; }
 .mand		{font: bold $fontsizes[0] $fonts[1], sans-serif; background: $colors[9];}
-.smb		{font: bold $fontsizes[0] $fonts[narrow], sans-serif; color: $colors[fg1]; }
+.smb {font: $fontsizes[0] $fonts[narrow], sans-serif; color: $colors[fg1]; }
 .row0 { background: $colors[row0]; color: $colors[link2]; }
 .row1 { background: $colors[row1]; color: $colors[link2]; }
 a.row0, a.row1 { color: $colors[link2]; }
@@ -98,7 +98,7 @@ th.cols, th.rows, a.cols  {font: small-caps bold $fontsizes[1] $fonts[0], sans-s
   // Now start the body
   echo "</head>\n";
   echo "<body bgcolor=\"$colors[bg1]\" fgcolor=\"$colors[fg1]\" leftmargin=\"0\" marginheight=\"0\" marginwidth=\"0\" topmargin=\"0\" text=\"$colors[fg1]\" link=\"$colors[link1]\" vlink=\"$colors[link1]\" alink=\"$colors[link2]\" background=\"images/tanTile.gif\">\n";
-  if ( "$style" != "stripped" ) {
+  if ( ! isset($style) || "$style" != "stripped" ) {
 
 ?>
 <table width="100%" border="0" cellspacing="0" cellpadding="0">

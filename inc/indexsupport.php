@@ -15,7 +15,7 @@ how many requests are active for each organisation.  Click on the name of an org
 see their currently active requests.
 <?php
   // Should already be tested, but we might as well check again.
-  if ( ! ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) ) return;
+  if ( ! is_member_of('Admin','Support') ) return;
 
   $query = "SELECT *, to_char( last_org_request(org_code), 'D Mon YYYY') AS last_request_date, ";
   $query .= "active_org_requests(org_code) ";

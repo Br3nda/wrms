@@ -30,12 +30,12 @@ function nice_time( $in_time ) {
     echo "<td class=smb>Find:</td>\n";
     printf("<td class=sml><input class=sml type=text size=\"10\" name=search_for value=\"%s\"></td>\n", htmlspecialchars($search_for));
 
-    if ( $roles['wrms']['Admin'] || $roles['wrms']['Support']  || $roles['wrms']['Manage']) {
+    if ( is_member_of('Admin','Support', 'Manage') ) {
       $user_list = "<option value=\"\">--- Any Requester ---</option>" . get_user_list( "", $user_org_code, "$requested_by" );
       echo "<td class=smb>&nbsp;&nbsp;Request&nbsp;By:</td><td class=sml><select class=sml name=requested_by>$user_list</select></td>\n";
     }
 
-    if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
+    if ( is_member_of('Admin','Support') ) {
       $user_list = "<option value=\"\">--- All Users ---</option>" . get_user_list( "Support", "", $user_no );
     }
     echo "<td class=smb align=right>&nbsp;&nbsp;Work&nbsp;By:</td><td class=sml><select class=sml name=user_no>$user_list</select></td>\n";
@@ -44,13 +44,13 @@ function nice_time( $in_time ) {
     printf("<td align=right><input type=checkbox value=1 name=charge%s></td><td align=left class=smb><label for=charge>Charge</label></td>\n", ("$charge"<>"" ? " checked" : ""));
     echo "</tr></table></td>\n<tr><td><table border=0 cellpadding=0 cellspacing=0 width=100%>\n";
     include("inc/system-list.php");
-    if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] )
+    if ( is_member_of('Admin','Support') )
       $system_list = get_system_list( "", "$system_code", 35);
     else
       $system_list = get_system_list( "CES", "$system_code", 35);
     echo "<td class=smb>System:</td><td class=sml><font size=1><select class=sml name=system_code><option value=\"\">--- All Systems ---</option>$system_list</select></font></td>\n";
 
-    if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
+    if ( is_member_of('Admin','Support') ) {
       include( "inc/organisation-list.php" );
       $orglist = "<option value=\"\">--- All Organisations ---</option>\n" . get_organisation_list( "$org_code", 35 );
       echo "<td class=smb>&nbsp; &nbsp;Organisation:</td><td class=sml><select class=sml name=\"org_code\">\n$orglist</select></td>\n";
@@ -243,7 +243,7 @@ function nice_time( $in_time ) {
   }
   echo "</table></form>\n";
 
-    if ( ($roles['wrms']['Admin'] || $roles['wrms']['Support'] ) && ( "$style" != "stripped" )) {
+    if ( is_member_of('Admin','Support') && ( "$style" != "stripped" )) {
       $this_page = "$PHP_SELF?f=$form&style=%s&format=%s";
       if ( "$qry" != "" ) $this_page .= "&qry=$qry";
       if ( "$search_for" != "" ) $this_page .= "&search_for=$search_for";

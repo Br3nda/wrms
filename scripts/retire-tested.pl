@@ -56,7 +56,7 @@ sub retire_request {
 	$query .= "UPDATE request SET last_status='F', last_activity='now',";
 	$query .= " active=FALSE";
 	$query .= " WHERE request_id=$request_id;";
-#  print "$query\n";
+  print "$query\n";
   $update = $conn->exec( $query );
   $status = $update->resultStatus;
   # print STDERR "$status \t$query\n";
@@ -75,7 +75,7 @@ $query .= " AND request_status.status_on < ('today'::datetime - '$retire_days da
 $query .= " AND request.requester_id = usr.user_no";
 $requests = $conn->exec( $query );
 $status = $requests->resultStatus;
-# print STDERR "$status \t$query\n";
+print STDERR "$status \t$query\n";
 if ( $status >= PGRES_BAD_RESPONSE ) {
   print STDERR "ERROR: $query\n" . $conn->errorMessage . "\n";
 }

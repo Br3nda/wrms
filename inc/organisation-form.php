@@ -14,7 +14,7 @@
 <P class=helptext>Use this form to maintain organisations who may have requests associated
 with them.</P>
 <FORM METHOD=POST ACTION="form.php?form=<?php echo "$form"; ?>" ENCTYPE="multipart/form-data">
-
+<input type=hidden name=org_code value="<?php echo "$org->org_code"; ?>">
 <TABLE WIDTH=100% cellspacing=0 border=0>
 
 <TR><TD COLSPAN=2>&nbsp;</TD></TR>

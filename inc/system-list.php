@@ -2,19 +2,18 @@
 function get_system_list( $access="*", $current="" ) {
   global $wrms_db;
   global $session;
-  $lookup_code_list = "";
+  $system_code_list = "";
 
-  $query = "SELECT DISTINCT ON lookup_code lookup_code, lookup_desc FROM lookup_code ";
-  if ( $access <> "*" ) $query .= ", system_usr";
-  $query .= " WHERE source_table='user' AND source_field='system_code' ";
+  $query = "SELECT DISTINCT ON system_code work_system.system_code, system_desc ";
+  $query .= "FROM work_system ";
   if ( $access <> "*" ) {
-    $query .= " AND lookup_code=system_code ";
+    $query .= ", system_usr";
+    $query .= " WHERE work_system.system_code=system_usr.system_code ";
     $query .= " AND user_no=$session->user_no ";
     $query .= " AND role~*'[$access]'";
   }
-  $query .= " ORDER BY source_table, source_field, lookup_seq, lookup_code";
+  $query .= " ORDER BY work_system.system_code";
   if ( $access <> "*" ) $query .= ", role";
-  $query .= ", lookup_seq";
   $rid = pg_Exec( $wrms_db, $query);
   if ( ! $rid ) {
     echo "<p>$query";
@@ -23,13 +22,13 @@ function get_system_list( $access="*", $current="" ) {
     // Build table of systems found
     $rows = pg_NumRows( $rid );
     for ( $i=0; $i < $rows; $i++ ) {
-      $lookup_code = pg_Fetch_Object( $rid, $i );
-      $lookup_code_list .= "<OPTION VALUE=\"$lookup_code->lookup_code\"";
-      if ( "$lookup_code->lookup_code" == "$current" ) $lookup_code_list .= " SELECTED";
-      $lookup_code->lookup_desc = substr( $lookup_code->lookup_desc, 0, 35);
-      $lookup_code_list .= ">$lookup_code->lookup_desc";
+      $system_code = pg_Fetch_Object( $rid, $i );
+      $system_code_list .= "<OPTION VALUE=\"$system_code->system_code\"";
+      if ( "$system_code->system_code" == "$current" ) $system_code_list .= " SELECTED";
+      $system_code->system_desc = substr( $system_code->system_desc, 0, 35);
+      $system_code_list .= ">$system_code->system_desc";
     }
   }
 
-  return $lookup_code_list;
+  return $system_code_list;
 }

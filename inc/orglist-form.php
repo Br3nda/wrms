@@ -17,12 +17,19 @@
 </form>  
 
 <?php
-  if ( "$search_for" != "" ) {
+  if ( "$search_for$system_code" != "" ) {
     $query = "SELECT * FROM organisation ";
+    if ( "$system_code" <> "" ) $query .= ", org_system ";
     $query .= " WHERE active ";
-    $query .= " AND (org_code ~* '$search_for' ";
-    $query .= " OR org_name ~* '$search_for' ) ";
-    $query .= " ORDER BY org_code ";
+    if ( "$search_for" <> "" ) {
+      $query .= " AND (org_code ~* '$search_for' ";
+      $query .= " OR org_name ~* '$search_for' ) ";
+    }
+    if ( "$system_code" <> "" ) {
+      $query .= " AND org_system.org_code = organisation.org_code ";
+      $query .= " AND org_system.system_code='$system_code' ";
+    }
+    $query .= " ORDER BY organisation.org_code ";
     $query .= " LIMIT 100 ";
     $result = pg_Exec( $wrms_db, $query );
     if ( ! $result ) {

@@ -35,12 +35,12 @@ UPDATE usr SET org_code=TEXT(awm_perorg_rel.perorg_id)
 		  AND awm_perorg_rel.perorg_rel_id=awm_usr.perorg_id;
 
 
-DELETE FROM lookup_code WHERE source_table='user' AND source_field='system_code';
-INSERT INTO lookup_code (source_table, source_field, lookup_code, lookup_desc, lookup_misc)
-   SELECT 'user', 'system_code', system_code, system_desc, notify_usr FROM work_system;
-INSERT INTO lookup_code (source_table, source_field, lookup_code, lookup_seq, lookup_desc )
-    VALUES('codes', 'menus', 'user|system_code', 1, 'Systems');
-DROP TABLE work_system;
+--DELETE FROM lookup_code WHERE source_table='user' AND source_field='system_code';
+--INSERT INTO lookup_code (source_table, source_field, lookup_code, lookup_desc, lookup_misc)
+--   SELECT 'user', 'system_code', system_code, system_desc, notify_usr FROM work_system;
+--INSERT INTO lookup_code (source_table, source_field, lookup_code, lookup_seq, lookup_desc )
+--    VALUES('codes', 'menus', 'user|system_code', 1, 'Systems');
+--DROP TABLE work_system;
 
 DELETE FROM lookup_code WHERE source_table='request' AND source_field='status_code';
 INSERT INTO lookup_code ( source_table, source_field, lookup_code, lookup_desc, lookup_misc)
@@ -72,6 +72,12 @@ UPDATE request_quote SET quote_by_id=usr.user_no WHERE usr.username=request_quot
 UPDATE request_status SET status_by_id=usr.user_no WHERE usr.username=request_status.status_by;
 UPDATE request_timesheet SET work_by_id=usr.user_no WHERE usr.username=request_timesheet.work_by;
 UPDATE system_update SET update_by_id=usr.user_no WHERE usr.username=system_update.update_by;
+
+ALTER TABLE organisation ADD COLUMN abbreviation TEXT;
+UPDATE organisation SET abbreviation=awm_perorg.perorg_sort_key
+    WHERE text(awm_perorg.perorg_id)=organisation.org_code;
+UPDATE org_system SET org_code=organisation.org_code
+    WHERE organisation.abbreviation=org_system.org_code;
 
 INSERT INTO lookup_code (source_table, source_field, lookup_code, lookup_seq, lookup_desc )
     VALUES('codes', 'menus', 'codes|menus', 999, 'Codes&nbsp;Tables');

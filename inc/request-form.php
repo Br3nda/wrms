@@ -47,20 +47,20 @@ function dump_array( $arr  ) {
 }
 
 //  dump_array($request);
+$hdcell="<th width=7%><img src=images/clear.gif width=70 height=2></th>";
 ?>
 
-<FORM METHOD=POST ACTION=request.php ENCTYPE="multipart/form-data">
 <TABLE WIDTH=100% cellspacing=0 border=0>
-<TR><TD ALIGN=LEFT><P CLASS=helptext">Use this form to enter changes to details for the
+<TR><TD ALIGN=LEFT><P CLASS=helptext>Use this form to enter changes to details for the
 requests of your systems, or to enter details for new requests.</P><?php
   if ( "$request->request_id" != "" )
-    echo "</TD><TD ALIGN=RIGHT nowrap><font size=-1><A HREF=\"request.php?action=register&request_id=$request_id\">$tell</a></font></form>";
+    echo "</TD><TD ALIGN=RIGHT nowrap><font size=-1><A HREF=\"request.php?action=register&request_id=$request_id\">$tell</a></font>";
 ?></TD>
 </TR>
 </TABLE>
 
 <TABLE width=100% cellspacing=0 border=0>
-<TR><TD CLASS=h3 COLSPAN=3 ALIGN=RIGHT><FONT SIZE=+1><B>Request details</B></FONT></TD></TR>
+<TR><?php echo $hdcell; ?><TD CLASS=h3 COLSPAN=3 ALIGN=RIGHT><FONT SIZE=+1><B>Request details</B></FONT></TD></TR>
 <TR>
 <?php
   echo "<TH ALIGN=RIGHT>";
@@ -183,9 +183,9 @@ requests of your systems, or to enter details for new requests.</P><?php
     $rows = pg_NumRows($updateq);
     if ( $rows > 0 ) {
 ?>
- <TABLE BORDER=0 ALIGN=CENTER WIDTH=100%>
+ <TABLE BORDER=0 cellspacing=0 cellpadding=4 ALIGN=CENTER WIDTH=100%>
  <TR><TD CLASS=sml COLSPAN=5>&nbsp;</TD></TR>
- <TR><TD CLASS=h3 COLSPAN=5 ALIGN=RIGHT><FONT SIZE=+1><B>Program Update Details</B></FONT></TD></TR>
+ <TR><?php echo $hdcell; ?><TD CLASS=h3 COLSPAN=4 ALIGN=RIGHT><FONT SIZE=+1><B>Program Update Details</B></FONT></TD></TR>
  <TR><TH>ID</TH><TH>Done By</TH><TH>Done On</TH><TH>Description</TH><TH>&nbsp;</TH></TR>
 <?php
       for( $i=0; $i<$rows; $i++ ) {
@@ -218,8 +218,9 @@ requests of your systems, or to enter details for new requests.</P><?php
     $rows = pg_NumRows($quoteq);
     if ( $rows > 0 ) {
 ?>
- &nbsp;<BR CLEAR=ALL><H2>Quotations</H2>
- <TABLE BORDER=1 ALIGN=CENTER WIDTH=100%>
+ <TABLE BORDER=0 cellspacing=0 cellpadding=4 ALIGN=CENTER WIDTH=100%>
+ <TR><TD CLASS=sml COLSPAN=7>&nbsp;</TD></TR>
+ <TR><?php echo $hdcell; ?><TD CLASS=h3 COLSPAN=6 ALIGN=RIGHT><FONT SIZE=+1><B>Quotations</B></FONT></TD></TR>
  <TR><TH>Quote</TH><TH>WR #</TH><TH>Done By</TH><TH>Brief</TH><TH>Done On</TH><TH>Type</TH><TH>Amount</TH></TR>
 <?php
 
@@ -254,13 +255,16 @@ requests of your systems, or to enter details for new requests.</P><?php
   $allocq = pg_Exec( $wrms_db, $query);
   $rows = pg_NumRows($allocq);
   if ( $rows > 0 ) {
-    echo "&nbsp;<BR CLEAR=ALL><H2>Work Allocated To</H2><P ALIGN=\"LEFT\">";
+    echo "<TABLE border=0 cellspacing=0 cellpadding=4 ALIGN=CENTER WIDTH=100%>\n";
+    echo "<TR><TD CLASS=sml COLSPAN=2>&nbsp;</TD></TR>\n";
+    echo "<TR>$hdcell<TD CLASS=h3 ALIGN=RIGHT><FONT SIZE=+1><B>Work Allocated To</B></FONT></TD></TR>\n";
+    echo "<TR VALIGN=TOP><th>&nbsp;</th><td>";
     for( $i=0; $i<$rows; $i++ ) {
       $alloc = pg_Fetch_Object( $allocq, $i );
       if ( $i > 0 ) echo ", ";
       echo "$alloc->fullname ($alloc->org_code)";
     }
-    echo "</P>";
+    echo "</TD></TR></TABLE>\n";
   }
 ?>
 
@@ -276,9 +280,11 @@ requests of your systems, or to enter details for new requests.</P><?php
   $rows = pg_NumRows($workq);
   if ( $rows > 0 ) {
 ?>
- &nbsp;<BR CLEAR=ALL><H2>Work Done</H2>
- <TABLE BORDER=1 ALIGN=CENTER WIDTH=100%>
+ <TABLE BORDER=0 cellspacing=0 cellpadding=4 ALIGN=CENTER WIDTH=100%>
+ <TR><TD CLASS=sml COLSPAN=5>&nbsp;</TD></TR>
+ <TR><?php echo $hdcell; ?><TD CLASS=h3 COLSPAN=4 ALIGN=RIGHT><FONT SIZE=+1><B>Work Done</B></FONT></TD></TR>
  <TR VALIGN=TOP>
+   <th>&nbsp;</th>
    <TH ALIGN=LEFT>Done By</TH>
    <TH>Done On</TH>
    <TH>Hours</TH>
@@ -288,7 +294,7 @@ requests of your systems, or to enter details for new requests.</P><?php
       for( $i=0; $i<$rows; $i++ ) {
         $work = pg_Fetch_Object( $workq, $i );
 
-        echo "<TR><TD>$work->perorg_name</TD>\n";
+        echo "<TR><th>&nbsp;</th><TD>$work->perorg_name</TD>\n";
         echo "<TD>" . nice_date($work->work_on) . "</TD>\n";
         echo "<TD ALIGN=RIGHT>" . sprintf( "%.2f", round(($work->seconds / 900) + 0.4 ) / 4) . "&nbsp;</TD>\n";
         echo "<TD>$work->work_description</TD></TR>\n";
@@ -309,13 +315,16 @@ requests of your systems, or to enter details for new requests.</P><?php
   $peopleq = pg_Exec( $wrms_db, $query);
   $rows = pg_NumRows($peopleq);
   if ( $rows > 0 ) {
-    echo "&nbsp;<BR CLEAR=ALL><H2>Other Interested Users</H2><P ALIGN=\"LEFT\">\n";
+    echo "<TABLE BORDER=0 cellspacing=0 cellpadding=4 ALIGN=CENTER WIDTH=100% CLASS=mgn>\n";
+    echo "<TR><TD CLASS=sml COLSPAN=4>&nbsp;</TD></TR>\n";
+    echo "<TR>$hdcell<TD CLASS=h3 COLSPAN=3 ALIGN=RIGHT><FONT SIZE=+1><B>Other Interested Users</B></FONT></TD></TR>\n";
+    echo "<TR VALIGN=TOP><th nowrap>&nbsp; &nbsp; &nbsp; </th><td>";
     for( $i=0; $i<$rows; $i++ ) {
       $interested = pg_Fetch_Object( $peopleq, $i );
       if ( $i > 0 ) echo ", ";
       echo "$interested->fullname ($interested->org_code)\n";
     }
-    echo "</P>\n";
+    echo "</TD></TR></TABLE>\n";
   }
 ?>
 
@@ -325,18 +334,21 @@ requests of your systems, or to enter details for new requests.</P><?php
   $rows = pg_NumRows($noteq);
   if ( $rows > 0 ) {
 ?>
-&nbsp;<BR CLEAR=ALL>
-<H2>Associated Notes</H2>
-<TABLE BORDER=1 ALIGN=CENTER WIDTH=100%>
+
+<TABLE BORDER=0 cellspacing=0 cellpadding=4 ALIGN=CENTER WIDTH=100%>
+ <TR><TD CLASS=sml COLSPAN=4>&nbsp;</TD></TR>
+ <TR><?php echo $hdcell; ?><TD CLASS=h3 COLSPAN=3 ALIGN=RIGHT><FONT SIZE=+1><B>Associated Notes</B></FONT></TD></TR>
 <TR VALIGN=TOP>
+  <TH NOWRAP>&nbsp; &nbsp; </TH>
   <TH ALIGN=LEFT>Noted By</TH>
-  <TH>Noted On</TH>
-  <TH>Details</TH>
+  <TH ALIGN=LEFT>Noted On</TH>
+  <TH ALIGN=LEFT>Details</TH>
 </TR>
 <?php /*** the actual details of notes */
     for( $i=0; $i<$rows; $i++ ) {
       $request_note = pg_Fetch_Object( $noteq, $i );
-      echo "<TR VALIGN=TOP><TD>$request_note->note_by</TD><TD>";
+      echo "<TR VALIGN=TOP><TH NOWRAP>&nbsp; &nbsp; </TH>";
+      echo "<TD>$request_note->note_by</TD><TD>";
       echo nice_date($request_note->note_on);
       echo "</TD>\n<TD>" . html_format($request_note->note_detail) . "</TD></TR>\n";
     }
@@ -353,38 +365,36 @@ requests of your systems, or to enter details for new requests.</P><?php
   $rows = pg_NumRows($stat_res);
   if ( $rows > 0 ) {
 ?>
-&nbsp;<BR CLEAR=ALL>
-<H2>Changes in Status</H2>
-<TABLE BORDER=1 ALIGN=CENTER WIDTH=100% CLASS=mgn>
+<TABLE BORDER=0 cellspacing=0 cellpadding=4 ALIGN=CENTER WIDTH=100% CLASS=mgn>
+ <TR><TD CLASS=sml COLSPAN=4>&nbsp;</TD></TR>
+ <TR><?php echo $hdcell; ?><TD CLASS=h3 COLSPAN=3 ALIGN=RIGHT><FONT SIZE=+1><B>Changes in Status</B></FONT></TD></TR>
 <TR VALIGN=TOP>
+  <TH NOWRAP>&nbsp; &nbsp; &nbsp; </TH>
   <TH ALIGN=LEFT WIDTH="15%">Changed By</TH>
-  <TH WIDTH="25%">Changed On</TH>
-  <TH WIDTH="60%">Changed To</TH>
+  <TH WIDTH="25%" ALIGN=LEFT>Changed On</TH>
+  <TH WIDTH="60%" ALIGN=LEFT>Changed To</TH>
 </TR>
 <?php /* the actual status stuff */
     for( $i=0; $i<$rows; $i++ ) {
       $request_status = pg_Fetch_Object( $stat_res, $i );
-      echo "<TR VALIGN=TOP><TD>$request_status->fullname</TD>\n<TD>" . nice_date($request_status->status_on) . "</TD> <TD>$request_status->status_code - $request_status->lookup_desc</TD></TR>\n";
+      echo "<TR VALIGN=TOP><TH>&nbsp; &nbsp; &nbsp; </TH>";
+      echo "<TD>$request_status->fullname</TD>\n<TD>" . nice_date($request_status->status_on) . "</TD> <TD>$request_status->status_code - $request_status->lookup_desc</TD></TR>\n";
     }
     echo "</TABLE>\n";
   }  // if rows > 0
 
   if ( ! $plain ) {
 
-    /* separate updateable bits from main informaton screens */
-    echo "&nbsp;<P>&nbsp;<BR CLEAR=ALL><HR>";
-
-    /* only update status if administrator - anyone can add a note though */
-    echo "<H2>";
-    if ( $administrator ) echo "Change Status or ";
-    echo "Add Notes</H2>";
-
 ?>
 
 <FORM ACTION="request-changed.php3" METHOD=POST>
 <?php echo "<INPUT TYPE=\"hidden\" NAME=\"request_id\" VALUE=\"$request->request_id\">"; ?>
-<TABLE BORDER=1 ALIGN=CENTER WIDTH=100%>
-<?php /**** only update status & eta if they are administrator */
+<TABLE BORDER=0 cellspacing=0 cellpadding=4 ALIGN=CENTER WIDTH=100%>
+ <TR><TD CLASS=sml COLSPAN=4> &nbsp; </TD></TR>
+ <TR><?php echo $hdcell; ?><TD CLASS=h3 COLSPAN=3 ALIGN=RIGHT><FONT SIZE=+1><B><?php
+  /**** only update status & eta if they are administrator */
+  if ( $administrator ) echo "Change Status or ";
+  echo "Add Notes</B></FONT></TD></TR>\n";
   if ( $administrator && $notable ) {
     echo "<TR>";
     echo "<TH ALIGN=RIGHT>New Status:</TH>";
@@ -398,7 +408,7 @@ requests of your systems, or to enter details for new requests.</P><?php
   }
 ?>
 
-<TR VALIGN=TOP>
+<TR VALIGN=TOP border=0 cellspacing=0 cellpadding=4>
   <TH ALIGN=RIGHT>New Note:</TH>
   <TD ALIGN=LEFT COLSPAN=3><TEXTAREA NAME="new_note" ROWS=10 COLS=70  WRAP="SOFT"></TEXTAREA></TD>
 </TR>

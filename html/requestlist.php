@@ -28,7 +28,7 @@
 </form>  
 
 <?php
-  if ( "$search_for$org_code" != "" ) {
+  if ( "$search_for$org_code$system_code" != "" ) {
     $query = "SELECT request_id, brief, fullname, email, lookup_desc AS status_desc FROM request, usr, lookup_code AS status ";
     $query .= " WHERE request.request_by=usr.username ";
     if ( "$inactive" == "" )        $query .= " AND active ";
@@ -61,7 +61,7 @@
         else echo "<tr bgcolor=$colors[7]>";
 
         echo "<td class=sml align=center><a href=\"request.php?request_id=$thisrequest->request_id\">$thisrequest->request_id</a></td>\n";
-        echo "<td class=sml><a href=\"mailto:$thisrequest->pemail\">$thisrequest->fullname</a></td>\n";
+        echo "<td class=sml><a href=\"mailto:$thisrequest->email\">$thisrequest->fullname</a></td>\n";
         echo "<td class=sml><a href=\"request.php?request_id=$thisrequest->request_id\">$thisrequest->brief";
         if ( "$thisrequest->brief" == "" ) echo "-- no description --";
         echo "</a></td>\n";

@@ -279,7 +279,9 @@
 
 
     if ( $in_notify ) {
-      $rid = pg_Exec( $wrms_db, "INSERT INTO request_interested (request_id, username, user_no ) VALUES( $request_id, '$requsr->username', $requsr->user_no) ");
+      $query = "INSERT INTO request_interested (request_id, username, user_no ) ";
+      $query .= " VALUES( $request_id, '$requsr->username', $requsr->user_no); ");
+      $rid = pg_Exec( $wrms_db, $query );
       if ( ! $rid ) {
         $because .= "<H3>&nbsp;Submit Interest Failed!</H3>\n";
         $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
@@ -306,9 +308,9 @@
         $sys_notify = pg_Fetch_Object( $rid, $i );
 
         if ( !$in_notify || strcmp( $sys_notify->user_no, $requsr->user_no) ) {
-          $query = "SELECT set_interested( $sys_notify->user_no, $request_id )";
-          $rid = pg_exec( $wrms_db, $query );
-          if ( ! $rid ) {
+          $query = "SELECT set_interested( $sys_notify->user_no, $request_id ); ";
+          $rrid = pg_exec( $wrms_db, $query );
+          if ( ! $rrid ) {
             $because .= "<H3>System Manager Interest Failed!</H3>\n";
             $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
             $because .= "<P>The failed query was:</P><TT>$query</TT>";
@@ -337,8 +339,8 @@
 
         if ( !$in_notify || strcmp( $admin_notify->user_no, $requsr->user_no) ) {
           $query = "SELECT set_interested( $admin_notify->user_no, $request_id )";
-          $rid = pg_exec( $wrms_db, $query );
-          if ( ! $rid ) {
+          $rrid = pg_exec( $wrms_db, $query );
+          if ( ! $rrid ) {
             $because .= "<H3>Organisation Manager Interest Failed!</H3>\n";
             $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
             $because .= "<P>The failed query was:</P><TT>$query</TT>";

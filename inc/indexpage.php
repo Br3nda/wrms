@@ -13,15 +13,19 @@ one of the recently modified requests from the list below.</H4>
   }
   $query .= "FROM request, request_interested, usr, lookup_code AS status ";
   $query .= "WHERE request.request_id=request_interested.request_id ";
-  $query .= "AND request_interested.user_no=$session->user_no ";
+  $query .= "AND (request_interested.user_no=$session->user_no ";
+  $query .= "OR request.requester_id=$session->user_no) ";
+  $query .= "AND request.requester_id=usr.user_no ";
   $query .= "AND status.source_table='request' AND status.source_field='status_code' AND status.lookup_code=request.last_status ";
-  $query .= "AND request.request_by=usr.username ";
   if ( "$session->status" == "S" ) {
     $query .= "AND request.active AND request.last_status~*'[AILNRQA]' ";
     $query .= "ORDER BY request.importance DESC, request.urgency DESC, request.request_id LIMIT 50 ";
   }
-  else
+  else {
+    $query .= "AND request.active AND request.last_status~*'[AILNRQA]' ";
     $query .= "ORDER BY last_activity DESC LIMIT 20 ";
+  }
+  error_log( "indexpage query: $query", 0);
   $result = pg_Exec( $wrms_db, $query );
   if ( ! $result ) {
     $error_loc = "indexpage.php";

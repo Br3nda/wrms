@@ -1,7 +1,12 @@
 <?php
 function get_code_list( $table, $field, $current="" ) {
   global $wrms_db;
-  $rid = pg_Exec( $wrms_db, "SELECT * FROM lookup_code WHERE source_table = '$table' AND source_field = '$field' ORDER BY source_table, source_field, lookup_seq, lookup_code");
+  $query = "SELECT * FROM lookup_code WHERE source_table = '$table' AND source_field = '$field' ORDER BY source_table, source_field, lookup_seq, lookup_code";
+  $rid = pg_Exec( $wrms_db, $query);
+  if ( ! $rid ) {
+    error_log( "Query error: $query", 0);
+    return "";
+  }
   $rows = pg_NumRows( $rid );
   $lookup_code_list = "";
   for ( $i=0; $i < $rows; $i++ ) {

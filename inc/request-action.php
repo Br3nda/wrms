@@ -131,8 +131,7 @@ function dates_equal( $date1, $date2 ) {
     $query .= "VALUES( $request_id, '$session->username', 'now', '$new_status', $session->user_no)";
     $rid = awm_pgexec( $wrms_db, $query, "req-action", true, 7 );
     if ( ! $rid ) {
-//      $because .= "<P>The failed query was:</P><TT>$query</TT>";
-//      awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
+        $because .= "<H3>&nbsp;Status Change Failed!</H3>\n";
       return;
     }
 
@@ -142,7 +141,7 @@ function dates_equal( $date1, $date2 ) {
       $query .= " VALUES( $request_id, '$requsr->username', $requsr->user_no); ";
       $rid = awm_pgexec( $wrms_db, $query, "req-action", true, 7 );
       if ( ! $rid ) {
-//        $because .= "<H3>&nbsp;Submit Interest Failed!</H3>\n";
+        $because .= "<H3>&nbsp;Submit Interest Failed!</H3>\n";
 //        $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
 //        $because .= "<P>The failed query was:</P><TT>$query</TT>";
 //        awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
@@ -170,7 +169,7 @@ function dates_equal( $date1, $date2 ) {
           $query = "SELECT set_interested( $sys_notify->user_no, $request_id ); ";
           $rrid = awm_pgexec( $wrms_db, $query, "req-action", true, 7 );
           if ( ! $rrid ) {
-//            $because .= "<H3>System Manager Interest Failed!</H3>\n";
+            $because .= "<H3>System Manager Interest Failed!</H3>\n";
 //            $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
 //            $because .= "<P>The failed query was:</P><TT>$query</TT>";
 //            awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
@@ -199,11 +198,11 @@ function dates_equal( $date1, $date2 ) {
 
         if ( !$in_notify || strcmp( $sys_notify->user_no, $requsr->user_no) ) {
           $query = "SELECT set_interested( $sys_notify->user_no, $request_id ); ";
-          $rrid = awm_pgexec( $wrms_db, $query, "req-action" );
+          $rrid = awm_pgexec( $wrms_db, $query, "req-action", true );
           if ( ! $rrid ) {
             $because .= "<H3>Organisational Cooordinator Interest Failed!</H3>\n";
-            $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
-            $because .= "<P>The failed query was:</P><TT>$query</TT>";
+//            $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
+//            $because .= "<P>The failed query was:</P><TT>$query</TT>";
             awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
             return;
           }

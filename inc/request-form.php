@@ -596,15 +596,15 @@
 
 if ( "$style" != "plain" ) {
   echo "$tbldef>\n";
-  echo "<tr><td align=left class=smb>";
-  echo "<B><input type=\"submit\" class=submit name=\"submit\" VALUE=\"";
+  echo "<tr><td align=left>";
+  echo "<b><input type=\"submit\" class=submit name=\"submit\" VALUE=\"";
   if ( $is_request )
     echo " Apply Changes ";
   else
     echo " Enter Request ";
   echo "\"></b>";
   if ( $roles['wrms']['Admin'] || $roles['wrms']['Support']  ) {
-    echo "&nbsp; &nbsp; <label><input type=checkbox name=send_no_mail value=1 CHECKED>Do not send e-mail update</label>";
+    echo "&nbsp; &nbsp; <label><input type=checkbox name=send_no_mail value=1> Do not send e-mail update </label>";
   }
   echo "</td>\n</tr></table></form>";
 }

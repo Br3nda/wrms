@@ -176,7 +176,7 @@ function dates_equal( $date1, $date2 ) {
     $query .= "WHERE system_usr.system_code = '$new_system_code' ";
     $query .= "AND system_usr.role = 'C' " ;
     $query .= "AND system_usr.user_no = usr.user_no " ;
-    $query .= "AND usr.org_code=$requsr->org_code; " ;
+    $query .= "AND usr.org_code=$requsr->org_code " ;
     $query .= "AND usr.status = 'A' " ;
     $rid = awm_pgexec( $wrms_db, $query, "req-action", true, 7);
     if ( ! $rid  ) {

@@ -12,13 +12,13 @@ global $colors;
   $instr = ereg_replace(" _([^ ]+)_ ", " <b>\\1</b> ", $instr);
 
   // A URL surrounded like [http://my.url] gets converted to a link
-  $instr = ereg_replace(" \[(https?://[^]]+)\] ", " <a href=\"\\1\" target=_new>\\1</a> ", $instr);
+  $instr = ereg_replace("\[(https?://[^]]+)\]", " <a href=\"\\1\" target=_new>\\1</a> ", $instr);
 
   // A URL like " http://my.url " also gets converted to a link
-  $instr = ereg_replace(" (https?://[^ ]+) ", " <a href=\"\\1\" target=_new>\\1</a> ", $instr);
+  $instr = ereg_replace("(https?://[^ ]+)", " <a href=\"\\1\" target=_new>\\1</a> ", $instr);
 
   // A URL like " mailto:user@domain.name " also gets converted to a link
-  $instr = ereg_replace(" mailto:([^ ]+@[^ ]+) ", " <a href=\"mailto:\\1\">\\1</a> ", $instr);
+  $instr = ereg_replace("mailto:([^ ]+@[^ ]+)", " <a href=\"mailto:\\1\">\\1</a> ", $instr);
 
   // A phrase like " W/R #99999 " (and variants) gets converted to a link
   $instr = preg_replace("/(W\/?R ?#?([[:digit:]]{4,6}))([^[:digit:]]|$)/i",

@@ -40,7 +40,8 @@ CREATE TABLE request_action (
 CREATE INDEX request_action_sk1 ON request_action( action_id );
 
 GRANT INSERT, UPDATE, SELECT, DELETE ON
-  request_action, organisation_action, organisation_action_action_id_seq
+  request_action, organisation_action, organisation_action_action_id_seq,
+  attachment_type
   TO general;
 
 -- Put some relational integrity constraints in place...

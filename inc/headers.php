@@ -11,7 +11,10 @@
 
   echo '<script language="JavaScript" src="js/date-picker.js"></script>' . "\n";
 
-  $BaseFontsize = intval($settings->get('fontsize'));
+  if ( is_object($settings) )
+    $BaseFontsize = intval($settings->get('fontsize'));
+  else
+    $BaseFontsize = 11;
   if ( $BaseFontsize < 5 || $BaseFontsize > 25 ) $BaseFontsize = 10;
 
   for ( $i=0; $i < 6; $i++) {

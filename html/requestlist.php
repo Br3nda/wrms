@@ -491,6 +491,7 @@ $query";
 
     if ( $result ) {
       $grand_total = 0.0;
+      $grand_qty_total = 0.0;
 
       // Build table of requests found
       for ( $i=0; $i < pg_NumRows($result); $i++ ) {
@@ -558,6 +559,7 @@ $query";
           $subquery .= "AND usr.user_no = request_quote.quote_by_id ";
           $subquery .= "ORDER BY request_id, quoted_on ";
           $total = 0.0;
+          $qty_total = 0.0;
           $subres = awm_pgexec( $dbconn, $subquery, "requestlist" );
           for ( $j=0; $subres && $j < pg_NumRows($subres); $j++ ) {
             $thisquote = pg_Fetch_Object( $subres, $j );
@@ -594,6 +596,7 @@ $query";
           $subquery .= "AND usr.user_no = request_timesheet.work_by_id ";
           $subquery .= "ORDER BY request_id, work_on ";
           $total = 0.0;
+          $qty_total = 0.0;
           $subres = awm_pgexec( $dbconn, $subquery, "requestlist" );
           for ( $j=0; $subres && $j < pg_NumRows($subres); $j++ ) {
             $thiswork = pg_Fetch_Object( $subres, $j );
@@ -605,12 +608,14 @@ $query";
             printf("<td align=right>%9.2f &nbsp; </td>\n", $thiswork->work_rate);
             $value = $thiswork->work_quantity * $thiswork->work_rate;
             $total += $value;
+            $qty_total += $work_quantity;
             printf("<td align=right>%9.2f &nbsp; </td>\n", $value);
             echo "</tr>\n";
           }
           if ( $j > 0 )
-            printf( "<tr class=row%1d>\n<td colspan=6>&nbsp; &nbsp; &nbsp; Request #$thisrequest->request_id total</td>\n<td align=right>%9.2f &nbsp; </td>\n</tr>\n", $i % 2, $total);
+            printf( "<tr class=row%1d>\n<td colspan=4>&nbsp; &nbsp; &nbsp; Request #$thisrequest->request_id total</td>\n<td align=right>%9.2f &nbsp; </td><td>&nbsp;</td><td align=right>%9.2f &nbsp; </td>\n</tr>\n", $i % 2, $qty_total, $total);
           $grand_total += $total;
+          $grand_qty_total += $qty_total;
         }
 
         if ( $show_details )
@@ -621,7 +626,7 @@ $query";
       }
     }
     if ( $show_work )
-      printf( "<tr class=row%1d>\n<th align=left colspan=6>Grand Total</th>\n<th align=right>%9.2f &nbsp; </th>\n</tr>\n", $i % 2, $grand_total);
+      printf( "<tr class=row%1d>\n<th align=left colspan=4>Grand Total</th>\n<th align=right>%9.2f &nbsp; </th><th>&nbsp;</th><th align=right>%9.2f &nbsp; </th>\n</tr>\n", $i % 2, $grand_qty_total, $grand_total);
 
     if ( "$format" == "edit" )
        if ( $EditableRequests_count == 0 )

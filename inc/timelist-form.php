@@ -81,7 +81,7 @@ function nice_time( $in_time ) {
 </table>\n</form>\n";
   }
 
-
+  $numcols = 7;
   if ( "$search_for$system_code " != "" ) {
     $query = "SELECT request.*, organisation.*, request_timesheet.*, ";
     $query .= " worker.fullname AS worker_name, requester.fullname AS requester_name";
@@ -104,7 +104,8 @@ function nice_time( $in_time ) {
     if ( "$system_code" <> "" ) {
       $query .= " AND request.system_code='$system_code' ";
     }
-    if ( "$org_code" <> "" ) {
+    if ( isset($org_code) && $org_code > 0 ) {
+      $numcols--;  // No organisation column
       $query .= " AND requester.org_code='$org_code' ";
     }
     if ( "$from_date" != "" ) {
@@ -115,6 +116,7 @@ function nice_time( $in_time ) {
     }
 
     if ( "$uncharged" != "" ) {
+      $numcols++;  // No charged on column
       if ( "$charge" != "" )
         $query .= " AND request_timesheet.ok_to_charge=TRUE ";
       $query .= " AND request_timesheet.work_charged IS NULL ";
@@ -213,12 +215,10 @@ function nice_time( $in_time ) {
         if ( "$uncharged" != "" ) {
           echo "</tr>\n";
           printf( "<tr class=row%1d>\n", ($i % 2));
-          echo "<td class=smb align=right>Request:</td>\n";
-          echo "<td class=sml align=center>#$timesheet->request_id</td>\n";
-          echo "<td class=sml colspan=4><a href=\"$base_url/request.php?request_id=$timesheet->request_id\">$timesheet->brief</a></td>\n";
+          echo "<td class=sml colspan=$numcols>&nbsp; &nbsp; &nbsp; <a href=\"$base_url/request.php?request_id=$timesheet->request_id\">$timesheet->brief</a></td>\n";
           echo "</tr>\n";
           printf( "<tr class=row%1d>\n", ($i % 2));
-          echo "<td colspan=6><table align=right border=0 cellspacing=0 cellpadding=0 width=100%><tr>\n";
+          echo "<td colspan=$numcols><table align=right border=0 cellspacing=0 cellpadding=0 width=100%><tr>\n";
           echo "<td class=sml align=right>";
           printf("<input type=\"checkbox\" value=\"1\" id=\"$timesheet->timesheet_id\" name=\"chg_ok[$timesheet->timesheet_id]\"%s>", ( "$timesheet->ok_to_charge" == "t" ? " checked" : ""));
           printf("<input type=hidden name=\"chg_worker[$timesheet->timesheet_id]\" value=\"%s\">", htmlspecialchars($timesheet->worker_name));
@@ -226,7 +226,7 @@ function nice_time( $in_time ) {
           printf("<input type=hidden name=\"chg_request[$timesheet->timesheet_id]\" value=\"%s\">", htmlspecialchars($timesheet->request_id));
           printf("<input type=hidden name=\"chg_requester[$timesheet->timesheet_id]\" value=\"%s\">", htmlspecialchars($timesheet->requester_name));
           echo "</td>\n";
-          echo "<td class=smb valign=top><label for=\"$timesheet->timesheet_id\" class=smb>OK to Charge</label>&nbsp;</td>\n";
+          echo "<td class=smb><label for=\"$timesheet->timesheet_id\" class=smb>OK to Charge</label>&nbsp;</td>\n";
           echo "<td class=smb align=right>&nbsp;Invoice:</td>\n";
           echo "<td class=sml><font size=2><input type=text size=6 name=\"chg_inv[$timesheet->timesheet_id]\" value=\"\"></font>&nbsp;</td>\n";
           echo "<td class=smb align=right>&nbsp;Amount:</td>\n";
@@ -238,13 +238,13 @@ function nice_time( $in_time ) {
         echo "</tr>\n";
       }
       if ( "$uncharged" != "" ) {
-        echo "<tr><td colspan=6><input type=submit class=submit alt=\"apply changes\" name=submit value=\"Apply Charges\"></td></tr>\n";
+        echo "<tr><td colspan=$numcols><input type=submit class=submit alt=\"apply changes\" name=submit value=\"Apply Charges\"></td></tr>\n";
         echo "</form>\n";
       }
       printf( "<tr class=row%1d>\n", ($i % 2));
       printf( "<td align=right colspan=" . ("$org_code" == "" ? "4" : "3" ) . ">%9.2f hours</td>\n", $total_hours);
       printf( "<th colspan=2 align=right>%9.2f</td>\n", $grand_total);
-      echo "<td colspan=3>&nbsp;</td></tr>\n";
+      echo "<td colspan=2>&nbsp;</td></tr>\n";
       echo "</table>\n";
     }
   }

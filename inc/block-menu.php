@@ -13,6 +13,14 @@
 
   if ( $roles[wrms][Request] ) {
     echo "<br><img class=blocksep src=\"images/menuBreak.gif\" width=\"130\" height=\"9\"><br>\n &nbsp;<a href=$base_url/request.php class=block>New&nbsp;Request</a>";
+    $query = "SELECT * FROM saved_queries WHERE user_no = '$session->user_no' ORDER BY query_name";
+    $result = awm_pgexec( $dbconn, $query, "block-menu");
+    if ( $result && pg_NumRows($result) > 0) {
+      for ( $i=0; $i < pg_NumRows($result); $i++ ) {
+        $thisquery = pg_Fetch_Object( $result, $i );
+        echo "<br>\n &nbsp;<a href=\"$base_url/requestlist.php?style=plain&qry=" . urlencode($thisquery->query_name) . "\" class=block>$thisquery->query_name</a>";
+      }
+    }
     echo "<br>\n &nbsp;<a href=$base_url/index.php class=block>My&nbsp;Requests</a>";
     echo "<br>\n &nbsp;<a href=$base_url/requestlist.php class=block>List&nbsp;Requests</a>";
   }

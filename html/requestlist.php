@@ -147,7 +147,7 @@ else {
     echo "<tr valign=middle>\n";
     echo "<td valign=middle class=smb align=right>Save query as:</td><td class=sml valign=top>\n";
     echo "<td valign=middle class=smb align=center><input type=text size=20 value=\"$savelist\" name=savelist class=\"sml\"></td>\n";
-    echo "<td valign=middle class=smb align=left><input type=submit value=\"SAVE QUERY\" alt=go name=submit class=\"submit\"></td>\n";
+    echo "<td valign=middle class=smb align=left><input type=submit value=\"SAVE QUERY\" alt=save name=submit class=\"submit\"></td>\n";
     echo "</tr></table>\n</td></tr>\n";
   }
 ?>
@@ -164,57 +164,73 @@ else {
   //
   /////////////////////////////////////////////////////////////////////////////////////////////////
 
-  if ( "$search_for$org_code$system_code " != "" ) {
-    // Recommended way of limiting queries to not include sub-tables for 7.1
-    $result = awm_pgexec( $wrms_db, "SET SQL_Inheritance TO OFF;" );
-
-    $query = "SELECT request.request_id, brief, fullname, email, request_on, status.lookup_desc AS status_desc, last_activity, detailed ";
-    $query .= ", request_type.lookup_desc AS request_type_desc, lower(fullname) AS lfull, lower(brief) AS lbrief ";
-    $query .= ", to_char( request.last_activity, 'FMdd Mon yyyy') AS last_change ";
-    $query .= ", to_char( request.request_on, 'FMdd Mon yyyy') AS date_requested ";
-    $query .= "FROM ";
-    if ( intval("$interested_in") > 0 ) $query .= "request_interested, ";
-    if ( intval("$allocated_to") > 0 ) $query .= "request_allocated, ";
-    $query .= "request, usr, lookup_code AS status ";
-    $query .= ", lookup_code AS request_type";
-
-    $query .= " WHERE request.request_by=usr.username ";
-    $query .= " AND request_type.source_table='request' AND request_type.source_field='request_type' AND request.request_type = request_type.lookup_code";
-    if ( "$inactive" == "" )        $query .= " AND active ";
-    if (! ($roles['wrms']['Admin'] || $roles['wrms']['Support']) )
-      $query .= " AND org_code = '$session->org_code' ";
-    else if ( isset($org_code) && intval($org_code) > 0 )
-      $query .= " AND org_code='$org_code' ";
-
-    if ( intval("$user_no") > 0 )
-      $query .= " AND requester_id = " . intval($user_no);
-    else if ( intval("$requested_by") > 0 )
-      $query .= " AND requester_id = " . intval($requested_by);
-    if ( intval("$interested_in") > 0 )
-      $query .= " AND request_interested.request_id=request.request_id AND request_interested.user_no = " . intval($interested_in);
-    if ( intval("$allocated_to") > 0 )
-      $query .= " AND request_allocated.request_id=request.request_id AND request_allocated.allocated_to_id = " . intval($allocated_to);
-
-    if ( "$search_for" != "" ) {
-      $query .= " AND (brief ~* '$search_for' ";
-      $query .= " OR detailed ~* '$search_for' ) ";
+  if ( "$qry$search_for$org_code$system_code " != "" ) {
+    if ( "$qry" != "" ) {
+      $qry = tidy($qry);
+      $qquery = "SELECT * FROM saved_queries WHERE user_no = '$session->user_no' AND query_name = '$qry';";
+      $result = awm_pgexec( $dbconn, $qquery, "requestlist", false, 7);
+      $thisquery = pg_Fetch_Object( $result, 0 );
+      $query = $thisquery->query_sql;
     }
-    if ( "$system_code" != "" )     $query .= " AND system_code='$system_code' ";
-    if ( "$type_code" != "" )     $query .= " AND request_type=" . intval($type_code);
-    error_log( "type_code = >>$type_code<<", 0);
+    else {
+      // Recommended way of limiting queries to not include sub-tables for 7.1
+      $result = awm_pgexec( $wrms_db, "SET SQL_Inheritance TO OFF;" );
 
-    if ( "$from_date" != "" )     $query .= " AND request.last_activity >= '$from_date' ";
+      $query = "SELECT request.request_id, brief, fullname, email, request_on, status.lookup_desc AS status_desc, last_activity, detailed ";
+      $query .= ", request_type.lookup_desc AS request_type_desc, lower(fullname) AS lfull, lower(brief) AS lbrief ";
+      $query .= ", to_char( request.last_activity, 'FMdd Mon yyyy') AS last_change ";
+      $query .= ", to_char( request.request_on, 'FMdd Mon yyyy') AS date_requested ";
+      $query .= "FROM ";
+      if ( intval("$interested_in") > 0 ) $query .= "request_interested, ";
+      if ( intval("$allocated_to") > 0 ) $query .= "request_allocated, ";
+      $query .= "request, usr, lookup_code AS status ";
+      $query .= ", lookup_code AS request_type";
 
-    if ( "$to_date" != "" )     $query .= " AND request.last_activity<='$to_date' ";
+      $query .= " WHERE request.request_by=usr.username ";
+      $query .= " AND request_type.source_table='request' AND request_type.source_field='request_type' AND request.request_type = request_type.lookup_code";
+      if ( "$inactive" == "" )        $query .= " AND active ";
+      if (! ($roles['wrms']['Admin'] || $roles['wrms']['Support']) )
+        $query .= " AND org_code = '$session->org_code' ";
+      else if ( isset($org_code) && intval($org_code) > 0 )
+        $query .= " AND org_code='$org_code' ";
 
-    if ( isset( $incstat) ) {
-      $query .= " AND (request.last_status ~* '[";
-      while( list( $k, $v) = each( $incstat ) ) {
-        $query .= $k ;
+      if ( intval("$user_no") > 0 )
+        $query .= " AND requester_id = " . intval($user_no);
+      else if ( intval("$requested_by") > 0 )
+        $query .= " AND requester_id = " . intval($requested_by);
+      if ( intval("$interested_in") > 0 )
+        $query .= " AND request_interested.request_id=request.request_id AND request_interested.user_no = " . intval($interested_in);
+      if ( intval("$allocated_to") > 0 )
+        $query .= " AND request_allocated.request_id=request.request_id AND request_allocated.allocated_to_id = " . intval($allocated_to);
+
+      if ( "$search_for" != "" ) {
+        $query .= " AND (brief ~* '$search_for' ";
+        $query .= " OR detailed ~* '$search_for' ) ";
       }
-      $query .= "]') ";
-    }
+      if ( "$system_code" != "" )     $query .= " AND system_code='$system_code' ";
+      if ( "$type_code" != "" )     $query .= " AND request_type=" . intval($type_code);
+      error_log( "type_code = >>$type_code<<", 0);
 
+      if ( "$from_date" != "" )     $query .= " AND request.last_activity >= '$from_date' ";
+
+      if ( "$to_date" != "" )     $query .= " AND request.last_activity<='$to_date' ";
+
+      if ( isset( $incstat) ) {
+        $query .= " AND (request.last_status ~* '[";
+        while( list( $k, $v) = each( $incstat ) ) {
+          $query .= $k ;
+        }
+        $query .= "]') ";
+        error_log( "1-> $query", 0);
+        if ( eregi("save", "$submit") && "$savelist" != "" ) {
+          $savelist = tidy($savelist);
+          $qquery = tidy($query);
+          $query = "DELETE FROM saved_queries WHERE user_no = '$session->user_no' AND LOWER(query_name) = LOWER('$savelist');
+INSERT INTO saved_queries (user_no, query_name, query_sql) VALUES( '$session->user_no', '$savelist', '$qquery');
+$query";
+        }
+      }
+    }
 
     $query .= " AND status.source_table='request' AND status.source_field='status_code' AND status.lookup_code=request.last_status ";
     $query .= " ORDER BY $rlsort $rlseq ";

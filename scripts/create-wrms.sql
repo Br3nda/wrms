@@ -42,9 +42,8 @@ CREATE FUNCTION get_usr_setting(TEXT,TEXT)
     RETURNS TEXT
     AS 'SELECT setting_value FROM usr_setting
             WHERE usr_setting.username = $1
-            AND usr_setting.setting_name = $2'
+            AND usr_setting.setting_name = $2 '
     LANGUAGE 'sql';
-
 
 CREATE TABLE organisation (
   org_code SERIAL PRIMARY KEY,
@@ -353,6 +352,17 @@ CREATE TABLE org_usr (
 );
 GRANT SELECT,INSERT,UPDATE ON org_usr TO PUBLIC;
 GRANT ALL ON org_usr TO andrew;
+
+CREATE TABLE saved_queries (
+    user_no INT4,
+    query_name TEXT,
+    query_sql TEXT,
+    query_params TEXT,
+    PRIMARY KEY (user_no, query_name)
+);
+GRANT SELECT,INSERT,UPDATE ON saved_queries TO PUBLIC;
+GRANT ALL ON saved_queries TO andrew;
+
 
 CREATE TABLE help_hit (
     user_no INT4,

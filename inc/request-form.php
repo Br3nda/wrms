@@ -1,5 +1,6 @@
 <?php
   include( "$base_dir/inc/code-list.php");
+  include( "$base_dir/inc/user-list.php" );
   include( "$base_dir/inc/html-format.php");
   $status_list   = get_code_list( "request", "status_code", "$request->last_status" );
 
@@ -11,7 +12,6 @@
     $importances = get_code_list( "request", "importance", "$request->importance" );
 
     if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] || $roles['wrms']['Manage']  ) {
-      include( "$base_dir/inc/user-list.php" );
       if ( $roles['wrms']['Admin'] || $roles['wrms']['Support']  ) {
         $user_list = get_user_list( "", "", $session->user_no );
         $support_list = "<option value=\"\">--- not assigned ---</option>\n";

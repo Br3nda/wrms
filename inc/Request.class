@@ -299,7 +299,7 @@ class Request {
      $html .= $this->RenderStatuses($ef);
 
      if ( $edit ) {
-       $html .= $ef->DataEntryLine( "Quiet update", "%s", "checkbox", "brief",
+       $html .= $ef->DataEntryLine( "Quiet update", "%s", "checkbox", "send_no_email",
                array( "size" => 70, "title" => "Check the box if this update should not send e-mail notifications") );
        $html .= $ef->SubmitButton( "submit", ($this->new_record ? "Create" : "Update") );
      }
@@ -1069,6 +1069,11 @@ class Request {
    function NotifyEmail ()
    {
      global $base_dns, $session, $system_name, $admin_email, $debug_email;
+
+     if ( $this->chtype != 'create' && $_POST['send_no_email'] == 'on' ) {
+       // This is an update, and the user has asked for it to be quiet.
+       return;
+     }
 
      $mail = &new phpmailer ();
      // $mail->IsSendmail();  // Use sendmail to send

@@ -50,6 +50,7 @@ see their currently active requests.
       echo "</td></tr>\n";
     }
     echo "</table>\n";
+    // echo "<p>$query</p>";
   }
 
 ?>

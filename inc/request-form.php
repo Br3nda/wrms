@@ -66,8 +66,11 @@
   if ( isset($request) ) echo "<td align=center class=h2>$request->request_id</td>\n";
   echo "<td";
   if ( !isset( $request ) ) echo " colspan=2";
-  if ( $editable )
-    echo "><INPUT TYPE=\"text\" NAME=\"new_brief\" SIZE=55 VALUE=\"$request->brief\">"; 
+  if ( $editable ) {
+    echo "><INPUT TYPE=\"text\" NAME=\"new_brief\" SIZE=55 VALUE=\"";
+    echo htmlspecialchars($request->brief);
+    echo "\">"; 
+  }
   else
     echo " valign=middle><h2>$request->brief";
 

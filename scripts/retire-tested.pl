@@ -5,7 +5,7 @@
 #
 
 # A few semi-constants...
-$retire_days = 60;
+$retire_days = 35;
 $base_url = "http://wrms.cat-it.co.nz";
 $mailprog = "sendmail -t";
 # $mailprog = "pretendmail";

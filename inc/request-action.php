@@ -127,7 +127,7 @@
       $query .= " active = $new_active,";
     if ( isset($new_status) && $request->last_status != $new_status )
       $query .= " last_status = '$new_status',";
-    if ( isset($new_request_type) && $request->request_type != $new_request_type )
+    if ( isset($new_type) && $request->request_type != $new_type )
       $query .= " request_type = $new_type,";
     if ( isset($new_urgency) && $request->urgency != $new_urgency )
       $query .= " urgency = $new_urgency,";
@@ -395,8 +395,10 @@
     $msg .= "Urgency:      $request->urgency_desc\n"
           . "Importance:   $request->importance_desc\n";
 
-    $msg .= "Request On:   $request->request_on\n"
-          . ucfirst($chtype) . "d by:   $session->fullname\n";
+    if ( $chtype == "change" )
+      $msg .= "Request On:   $request->request_on\n";
+
+    $msg .= "ucfirst($chtype) . "d by:   $session->fullname\n";
 
     if ( $requsr->user_no <> $session->user_no )
       $msg .= ucfirst($chtype) . "d for:  $requsr->fullname\n";
@@ -409,7 +411,7 @@
     }
 
     if ( $chtype == "change" && $request->active != $new_active ) {
-      $msg .= "<Request has been ";
+      $msg .= "Request has been ";
       if ( $new_active == "TRUE" ) $msg .= "re-"; else $msg .= "de-";
       $msg .= "activated\n";
     }

@@ -2,6 +2,8 @@
   include("inc/always.php");
   include("inc/options.php");
 
+  if ( isset($system_code) && $system_code == "." ) unset( $system_code );
+
   $title = "$system_name Request List";
   include("inc/starthead.php");
   include("inc/styledef.php");
@@ -26,8 +28,8 @@
 <table border=0 cellspacing=0 cellpadding=2 align=center bgcolor=<?php echo $colors[6]; ?>>
 <tr valign=middle>
 <td class=smb align=right>Search:</td><td class=sml><font size=1><input class=sml TYPE="Text" Size="10" Name="search_for" Value="<?php echo "$search_for"; ?>"></font></td>
-<td class=smb align=right>&nbsp; System:</td><td class=sml><font size=1><select class=sml name=system_code><?php echo "$system_list"; ?></select></font></td>
-<td rowspan=2 valign=middle class=sml><input TYPE=Image src=images/in-go.gif alt=go WIDTH=44 BORDER=0 HEIGHT=26 name=submit></td></tr>
+<td class=smb align=right>&nbsp; System:</td><td class=sml><font size=1><select class=sml name=system_code><option value=".">All Systems</option><?php echo "$system_list"; ?></select></font></td>
+<td rowspan=2 valign=middle class=sml>&nbsp;<BR><input TYPE=Image src=images/in-go.gif alt=go WIDTH=44 BORDER=0 HEIGHT=26 name=submit></td></tr>
 <?php
   $query = "SELECT * FROM lookup_code WHERE source_table='request' ";
   $query .= " AND source_field='status_code' ";

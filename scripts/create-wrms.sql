@@ -26,8 +26,6 @@ CREATE TABLE usr (
     mail_style CHAR,
     config_data TEXT,
     note CHAR );
-GRANT SELECT,INSERT,UPDATE ON usr, usr_user_no_seq TO general;
-GRANT ALL ON usr, usr_user_no_seq TO andrew;
 CREATE FUNCTION max_usr() RETURNS INT4 AS 'SELECT max(user_no) FROM usr' LANGUAGE 'sql';
 CREATE INDEX xak1_usr ON usr ( org_code, username );
 
@@ -36,7 +34,6 @@ CREATE TABLE usr_setting (
   setting_name TEXT,
   setting_value TEXT
 );
-GRANT INSERT,UPDATE,SELECT ON usr_setting TO general;
 CREATE INDEX xpk_usr_setting ON usr_setting ( username, setting_name );
 
 CREATE FUNCTION get_usr_setting(TEXT,TEXT)
@@ -58,7 +55,6 @@ CREATE TABLE organisation (
   org_name TEXT,
   admin_usr TEXT
 ) ;
-GRANT INSERT,UPDATE,SELECT ON organisation, organisation_org_code_seq TO general;
 CREATE FUNCTION max_organisation() RETURNS INT4 AS 'SELECT max(org_code) FROM organisation' LANGUAGE 'sql';
 
 
@@ -90,7 +86,6 @@ CREATE INDEX xak1_request ON request ( active, severity_code );
 CREATE INDEX xak2_request ON request ( active, severity_code, request_by );
 CREATE INDEX xak3_request ON request ( active, request_by );
 CREATE INDEX xak4_request ON request ( active, last_status );
-GRANT INSERT,UPDATE,SELECT ON request, request_request_id_seq TO general;
 
 CREATE FUNCTION active_request(INT4)
     RETURNS BOOL
@@ -116,7 +111,6 @@ CREATE TABLE work_system (
   support_user_no INT4,
   notify_usr TEXT
 ) ;
-GRANT INSERT,UPDATE,SELECT ON work_system TO general;
 
 CREATE TABLE org_system (
   org_code INT4 NOT NULL,
@@ -124,7 +118,6 @@ CREATE TABLE org_system (
   support_user_no INT4,
   system_code TEXT
 ) ;
-GRANT DELETE,INSERT,UPDATE,SELECT ON org_system TO general;
 CREATE INDEX xpk_org_system ON org_system ( org_code, system_code );
 CREATE INDEX xak1_org_system ON org_system ( system_code, org_code );
 
@@ -136,7 +129,6 @@ CREATE TABLE request_status (
   status_code TEXT
 ) ;
 CREATE UNIQUE INDEX xpk_request_status ON request_status ( request_id, status_on );
-GRANT INSERT,SELECT ON request_status TO general;
 
 CREATE TABLE request_quote (
   quote_id SERIAL PRIMARY KEY,
@@ -151,7 +143,6 @@ CREATE TABLE request_quote (
   quote_details TEXT
 );
 CREATE INDEX xak1_request_quote ON request_quote ( request_id );
-GRANT INSERT,UPDATE,SELECT ON request_quote, request_quote_quote_id_seq TO general;
 
 CREATE FUNCTION max_quote() RETURNS INT4 AS 'SELECT max(quote_id) FROM request_quote' LANGUAGE 'sql';
 
@@ -162,7 +153,6 @@ CREATE TABLE request_allocated (
 	allocated_to_id INT4,
   allocated_to TEXT
 );
-GRANT INSERT,UPDATE,SELECT,DELETE ON request_allocated TO general;
 
 CREATE TABLE request_timesheet (
   timesheet_id SERIAL PRIMARY KEY,
@@ -184,9 +174,14 @@ CREATE TABLE request_timesheet (
 );
 CREATE INDEX request_timesheet_skey1 ON request_timesheet ( work_on, work_by_id, request_id );
 CREATE INDEX request_timesheet_skey2 ON request_timesheet ( ok_to_charge, request_id );
-GRANT INSERT,UPDATE,SELECT ON request_timesheet, request_timesh_timesheet_id_seq TO general;
 CREATE FUNCTION max_timesheet() RETURNS INT4 AS 'SELECT max(timesheet_id) FROM request_timesheet' LANGUAGE 'sql';
 
+CREATE TABLE timesheet_note (
+  note_date TIMESTAMP,
+  note_by_id INT4,
+  note_detail TEXT,
+	PRIMARY KEY ( note_date, note_by_id )
+) ;
 
 CREATE TABLE request_note (
   request_id INT4,
@@ -197,7 +192,6 @@ CREATE TABLE request_note (
 	PRIMARY KEY ( request_id, note_on )
 ) ;
 -- CREATE UNIQUE INDEX xpk_request_note ON request_note ( request_id, note_on );
-GRANT INSERT,SELECT ON request_note TO general;
 
 CREATE FUNCTION get_last_note_on(INT4)
     RETURNS TIMESTAMP
@@ -211,7 +205,6 @@ CREATE TABLE request_interested (
 	PRIMARY KEY ( request_id, username )
 ) ;
 -- CREATE UNIQUE INDEX xpk_request_interested ON request_interested ( request_id, username );
-GRANT INSERT,SELECT,UPDATE,DELETE ON request_interested TO general;
 
 CREATE TABLE request_request (
   request_id INT4,
@@ -221,14 +214,13 @@ CREATE TABLE request_request (
 	PRIMARY KEY ( request_id, link_type, to_request_id )
 ) ;
 CREATE INDEX request_request_sk1 ON request_request ( to_request_id );
-GRANT INSERT,SELECT,UPDATE,DELETE ON request_request TO general;
 
 
 CREATE TABLE request_history (
   modified_on TIMESTAMP DEFAULT TEXT 'now'
 ) INHERITS (request );
-GRANT INSERT,SELECT,UPDATE ON request_history TO general;
 CREATE INDEX xpk_request_history ON request_history ( request_id, modified_on );
+
 
 ---------------------------------------------------------------
 -- Generic 'associated file' mechanism
@@ -247,7 +239,6 @@ CREATE TABLE request_attachment (
   att_height INT4
 ) ;
 CREATE INDEX request_attachment_skey ON request_attachment ( request_id );
-GRANT INSERT,UPDATE,SELECT ON request_attachment, request_attac_attachment_id_seq TO general;
 
 CREATE FUNCTION max_attachment() RETURNS INT4 AS 'SELECT max(attachment_id) FROM request_attachment' LANGUAGE 'sql';
 
@@ -264,7 +255,6 @@ CREATE TABLE lookup_code (
 );
 CREATE INDEX lookup_code_key ON lookup_code ( source_table, source_field, lookup_seq, lookup_code );
 CREATE UNIQUE INDEX lookup_code_ak1 ON lookup_code ( source_table, source_field, lookup_code );
-GRANT SELECT,INSERT,UPDATE ON lookup_code TO general;
 
 
 
@@ -296,8 +286,6 @@ CREATE TABLE module (
 	 module_description TEXT,
 	 module_seq INT4
 );
-GRANT SELECT ON module TO general;
-GRANT ALL ON module TO andrew;
 CREATE INDEX xak1module ON module ( module_seq, module_name );
 
 
@@ -305,16 +293,12 @@ CREATE TABLE ugroup (
     group_no SERIAL,
 		module_name TEXT,
     group_name TEXT );
-GRANT SELECT ON ugroup TO general;
-GRANT ALL ON ugroup, ugroup_group_no_seq TO andrew;
 CREATE FUNCTION max_group() RETURNS INT4 AS 'SELECT max(group_no) FROM ugroup' LANGUAGE 'sql';
 
 
 CREATE TABLE group_member (
     group_no INT4,
     user_no INT4 );
-GRANT SELECT,INSERT,UPDATE,DELETE ON group_member TO general;
-GRANT ALL ON group_member TO andrew;
 
 
 CREATE TABLE session (
@@ -324,8 +308,6 @@ CREATE TABLE session (
     session_start TIMESTAMP DEFAULT TEXT 'now',
     session_end TIMESTAMP DEFAULT TEXT 'now',
     session_config TEXT );
-GRANT SELECT,INSERT,UPDATE ON session, session_session_id_seq TO general;
-GRANT ALL ON session, session_session_id_seq TO andrew;
 CREATE FUNCTION max_session() RETURNS INT4 AS 'SELECT max(session_id) FROM session' LANGUAGE 'sql';
 
 CREATE TABLE system_usr (
@@ -334,8 +316,6 @@ CREATE TABLE system_usr (
 		role CHAR,
 		PRIMARY KEY ( user_no, system_code, role )
 );
-GRANT SELECT,INSERT,UPDATE,DELETE ON system_usr TO general;
-GRANT ALL ON system_usr TO andrew;
 
 -- I think this is bogus and not used, if it ever was.
 CREATE TABLE org_usr (
@@ -344,8 +324,6 @@ CREATE TABLE org_usr (
 		role CHAR,
 		PRIMARY KEY ( user_no, org_code, role )
 );
-GRANT SELECT,INSERT,UPDATE ON org_usr TO general;
-GRANT ALL ON org_usr TO andrew;
 
 CREATE TABLE saved_queries (
     user_no INT4,
@@ -355,8 +333,6 @@ CREATE TABLE saved_queries (
     query_params TEXT,
     PRIMARY KEY (user_no, query_name)
 );
-GRANT SELECT,INSERT,UPDATE,DELETE ON saved_queries TO general;
-GRANT ALL ON saved_queries TO andrew;
 
 
 CREATE TABLE help_hit (
@@ -366,8 +342,6 @@ CREATE TABLE help_hit (
     last TIMESTAMP,
     PRIMARY KEY (user_no, topic)
 );
-GRANT SELECT,INSERT,UPDATE ON help_hit TO general;
-GRANT ALL ON help_hit TO andrew;
 
 CREATE TABLE help (
     topic TEXT,
@@ -376,8 +350,6 @@ CREATE TABLE help (
     content LZTEXT,
     PRIMARY KEY (topic, seq)
 );
-GRANT SELECT,INSERT,UPDATE ON help TO general;
-GRANT ALL ON help TO andrew;
 
 CREATE TABLE infonode (
     node_id SERIAL PRIMARY KEY,
@@ -388,8 +360,6 @@ CREATE TABLE infonode (
 );
 CREATE INDEX infonode_skey1 ON infonode (created_by, created_on);
 CREATE INDEX infonode_skey2 ON infonode (created_on);
-GRANT SELECT,INSERT,UPDATE ON infonode, infonode_node_id_seq TO general;
-GRANT ALL ON infonode, infonode_node_id_seq TO andrew;
 
 CREATE TABLE wu (
     node_id INT4,
@@ -403,8 +373,6 @@ CREATE TABLE wu (
 );
 CREATE INDEX wu_skey1 ON wu (wu_by, wu_on);
 CREATE INDEX wu_skey2 ON wu (wu_on);
-GRANT SELECT,INSERT,UPDATE ON wu TO general;
-GRANT ALL ON wu TO andrew;
 
 CREATE TABLE wu_vote (
     node_id INT4,
@@ -415,8 +383,6 @@ CREATE TABLE wu_vote (
     vote_on TIMESTAMP DEFAULT 'now',
     PRIMARY KEY ( node_id, wu_by, vote_by )
 );
-GRANT SELECT,INSERT,UPDATE ON wu_vote TO general;
-GRANT ALL ON wu_vote TO andrew;
 
 CREATE TABLE nodetrack (
     node_from INT4,
@@ -425,8 +391,32 @@ CREATE TABLE nodetrack (
     PRIMARY KEY (node_from, node_to)
 );
 CREATE INDEX nodetrack_skey1 ON nodetrack(node_from, node_to);
-GRANT SELECT,INSERT,UPDATE ON nodetrack TO general;
-GRANT ALL ON nodetrack TO andrew;
 
+GRANT SELECT ON module, ugroup TO general;
+
+GRANT INSERT, UPDATE, SELECT ON
+  request, request_request_id_seq,
+  request_quote, request_quote_quote_id_seq,
+  request_status, request_note, request_interested,
+  request_request, request_history, request_attachment,
+  lookup_code,
+  session, session_session_id_seq,
+  work_system,
+  usr, usr_user_no_seq, usr_setting,
+  org_usr, organisation, organisation_org_code_seq,
+  help, help_hit,
+  infonode, infonode_node_id_seq, wu, wu_vote, nodetrack
+  TO general;
+
+
+GRANT INSERT,UPDATE,SELECT, DELETE ON
+  request_timesheet, request_timesh_timesheet_id_seq,
+  request_allocated,
+  org_system,
+  timesheet_note,
+  group_member,
+  system_usr,
+  saved_queries
+  TO general;
 
 \i procedures.sql

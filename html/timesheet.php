@@ -3,6 +3,7 @@
   include("inc/options.php");
   include("inc/tidy.php");
 
+  $debuglevel = 5;
   if ( "$submit" <> "") {
     include("inc/timesheet-valid.php");
     if ( "$because" == "" ) include("inc/timesheet-action.php");
@@ -54,6 +55,8 @@ function get_numeric_setting( $name, $current, $default ) {
   $period_list .= "<option value=30" . ($period_minutes == 30 ? " selected" : "") . ">Half Hourly</option>\n";
   $period_list .= "<option value=15" . ($period_minutes == 15 ? " selected" : "") . ">Quarter Hour</option>\n";
   $period_list .= "<option value=120" . ($period_minutes == 120 ? " selected" : "") . ">Two Hourly</option>\n";
+  $period_list .= "<option value=240" . ($period_minutes == 240 ? " selected" : "") . ">Four Hourly</option>\n";
+  $period_list .= "<option value=480" . ($period_minutes == 480 ? " selected" : "") . ">Eight Hourly</option>\n";
   $period_list .= "</select>\n";
 
 // Helper function for building select lists of times, since we need From: and To:
@@ -67,7 +70,7 @@ function build_time_list( $name, $from, $current, $delta ) {
   return $time_list;
 }
 
-  echo '<form name=control method=post action="/timesheet.php" enctype="multipart/form-data"><table width="100%" border="1" cellpadding="0" cellspacing="0">';
+  echo '<form name=control method=post action="/timesheet.php" enctype="multipart/form-data"><table width="100%" border="0" cellpadding="1" cellspacing="2">';
   echo "<tr>\n";
   echo "<th>Week Starting:</th><td>$week_list</td>\n";
   echo "<th>Periods:</th><td>$period_list</td>\n";
@@ -79,25 +82,36 @@ function build_time_list( $name, $from, $current, $delta ) {
 
   // Read the timesheets from the file and build reasonable bits from them
   $ts_user = intval($session->user_no);
-  $query = "SELECT *, EXTRACT( EPOCH FROM work_on ) AS started, ";
-  $query .= "EXTRACT( EPOCH FROM (work_on + work_duration) ) AS finished, ";
-  $query .= "EXTRACT( DOW FROM work_on ) AS dow ";
+  $query = "SELECT *, EXTRACT( EPOCH FROM CAST ( work_on AS TIMESTAMP WITHOUT TIME ZONE ) ) AS started, ";
+  $query .= "EXTRACT( EPOCH FROM CAST ( (work_on + work_duration) AS TIMESTAMP WITHOUT TIME ZONE ) ) AS finished, ";
+  $query .= "EXTRACT( DOW FROM work_on ) AS dow, 0 AS offset ";
+  $query .= "FROM request_timesheet WHERE work_by_id = $ts_user ";
+  $query .= "AND work_on >= '" . date( 'Y-M-d', $sow ) . "' ";
+  $query .= "AND work_on < '" . date( 'Y-M-d', $sow + (7 * 86400) ) . "' ";
+  $query .= "ORDER BY work_on ASC; ";
+
+  // The query above requires 7.2, so the below (including hacks with $ts->offset) works with 7.0
+  // currently in production...
+  $query = "SELECT *, date_part( 'epoch', work_on ) AS started, ";
+  $query .= "date_part( 'epoch', (work_on + work_duration)) AS finished, ";
+  $query .= "date_part( 'dow', work_on ) AS dow, ";
+  $query .= "date_part( 'epoch', '1970-1-1'::timestamp) AS offset ";
   $query .= "FROM request_timesheet WHERE work_by_id = $ts_user ";
   $query .= "AND work_on >= '" . date( 'Y-M-d', $sow ) . "' ";
   $query .= "AND work_on < '" . date( 'Y-M-d', $sow + (7 * 86400) ) . "' ";
   $query .= "ORDER BY work_on ASC; ";
   $result = awm_pgexec( $dbconn, $query, 'timesheet' );
-  $tm = array();
+//  echo "<p>Results: " . pg_NumRows($result);
   if ( $result && pg_NumRows($result) ) {
-//    echo "<p>Results!</p>";
+  //  echo "<p>Results!</p>";
     for( $i = 0; $i < pg_NumRows($result); $i++ ) {
       $ts = pg_Fetch_Object( $result, $i );
-      $our_dow = ($ts->dow + 1) % 7;
-      $start_tod = intval( ($ts->started % 86400) / 60 );
-      $finish_tod = intval( ($ts->finished % 86400) / 60 );
+      $our_dow = ($ts->dow + 6) % 7;
+      $start_tod = intval( (($ts->started + $ts->offset) % 86400) / 60 );
+      $finish_tod = intval( (($ts->finished + $ts->offset) % 86400) / 60 );
       $duration = $finish_tod - $start_tod;
-//      echo "<p>$start_tod: $duration - $ts->work_units - " . ($ts->work_quantity * 60) . "</p>";
-      if ( $duration == 0 || ($start_tod + $duration) == 0 ) {
+      // echo "<p>Day $our_dow, $ts->request_id/$ts->work_description: $start_tod: $duration - $ts->work_units - " . ($ts->work_quantity * 60) . "   =$ts->started=$ts->finished=</p>";
+      if ( $duration == 0 || "$ts->finished" == "" || ($start_tod + $duration) == 0 ) {
         if ( "$ts->work_units" == "hours" )  $duration = $ts->work_quantity * 60;
       }
       if ( $duration == 0 ) continue;
@@ -111,28 +125,50 @@ function build_time_list( $name, $from, $current, $delta ) {
         $start_tod = $eod - $duration;
       }
 
-//      echo "<p>$start_tod - $duration</p>";
+      // echo "<p>$out_dow from $start_tod for $duration</p>";
       for ( $j = 0, $base = intval($start_tod / $period_minutes) * $period_minutes; $j < $duration; $j += $period_minutes ) {
-        $tm[$our_dow][$base + $j] = "$ts->request_id/$ts->work_description" . ("$ts->entry_details" == "$ts->request_id" ? "" : "@|@$sow" );
+        $tm[$our_dow][sprintf("m%d", $base + $j)] = "$ts->request_id/$ts->work_description" . ("$ts->entry_details" == "$ts->request_id" ? "" : "@|@$sow" );
       }
+    }
+  }
+
+  $query = "SELECT *, date_part( 'dow', note_date ) AS dow FROM timesheet_note ";
+  $query .= "WHERE note_by_id = $ts_user ";
+  $query .= "AND note_date >= '" . date( 'Y-M-d', $sow ) . "' ";
+  $query .= "AND note_date < '" . date( 'Y-M-d', $sow + (7 * 86400) ) . "' ";
+  $query .= "ORDER BY note_date ASC; ";
+  $result = awm_pgexec( $dbconn, $query, 'timesheet' );
+  if ( $result && pg_NumRows($result) ) {
+    for( $i = 0; $i < pg_NumRows($result); $i++ ) {
+      $tn = pg_Fetch_Object( $result, $i );
+      $tnote[$tm->dow] = $tn->note_detail ;
     }
   }
 
 
   // Now display the actual timesheet for entry
-  echo '<form name=data method=post action="/timesheet.php" enctype="multipart/form-data"><table width="100%" border="0" cellpadding="0" cellspacing="0">' . "\n";
-  echo "<tr class=row1><th class=colhead>&nbsp;</th><th class=colhead>Monday</th><th class=colhead>Tuesday</th><th class=colhead>Wednesday</th>";
-  echo "<th class=colhead>Thursday</th><th class=colhead>Friday</th><th class=colhead>Saturday</th><th class=colhead>Sunday</th></tr>\n";
+  echo '<form name=data method=post action="/timesheet.php" enctype="multipart/form-data"><table width="100%" border="0" cellpadding="1" cellspacing="2">' . "\n";
+  echo "<tr class=row1><th class=cols>&nbsp;</th><th class=cols>Monday</th><th class=cols>Tuesday</th><th class=cols>Wednesday</th>";
+  echo "<th class=cols>Thursday</th><th class=cols>Friday</th><th class=cols>Saturday</th><th class=cols>Sunday</th></tr>\n";
   for ( $tod = $sod, $r=0; $tod < $eod; $tod += $period_minutes, $r++ ) {
-    echo "";
     printf( "<tr class=row%d>\n<th>%02d:%02d</th>\n", $r % 2, $tod / 60, $tod % 60 );
     for ( $dow=0; $dow < 7; $dow++ ) {
-      echo "<td><input type=text size=14 name=\"tm[$dow][$tod]\" value=\"";
-      echo $tm[$dow][$tod];
+      echo "<td><input tabindex=$dow$tod type=text size=14 name=\"tm[$dow][m$tod]\" value=\"";
+      echo $tm[$dow]["m$tod"];
       echo "\">&nbsp;</td>\n";
     }
     echo "</tr>\n";
   }
+  echo "<tr><td>&nbsp;</td>";
+  for ( $dow=0; $dow < 7; $dow++ ) {
+    echo "<td><textarea rows=4 cols=10 name=\"tnote[$dow]\">";
+    echo $tnote[$dow];
+    echo "</textarea></td>\n";
+  }
+  echo "</tr>\n";
+  echo "<tr><td><input type=hidden name=sow value=$sow><input type=hidden name=eod value=$eod></td><td align=center><input type=submit name=submit value=submit class=submit></td>";
+  echo "<td colspan=6>Enter times as [WR#]/[Description], e.g. \"1537/Made the tea\".  Where you work on
+  the same thing for several periods, you need only enter the description against the first entry for each day.</td></tr>\n";
   echo "</table>\n</form>\n";
 
   // Display a list of W/R's this person has worked on recently
@@ -149,11 +185,11 @@ function build_time_list( $name, $from, $current, $delta ) {
   $result = awm_pgexec( $dbconn, $query, 'timesheet' );
   if ( $result && pg_NumRows($result) ) {
     echo "<h3>Recent Requests You Have Worked On</h3>\n";
-    echo '<table width="100%" border="0" cellpadding="0" cellspacing="0">';
-    echo "<tr class=row1><th class=colhead>WR #</th><th class=colhead align=left>For</th><th class=colhead align=left>System</th><th class=colhead align=left>Request</th></tr>\n";
+    echo '<table width="100%" border="0" cellpadding="1" cellspacing="2">';
+    echo "<tr class=row1><th class=cols>WR #</th><th class=cols align=left>For</th><th class=cols align=left>System</th><th class=cols align=left>Request</th></tr>\n";
     for( $i=0; $i < pg_NumRows($result); $i++ ) {
       $wr = pg_Fetch_Object( $result, $i );
-      echo "<tr class=row" . $i%2 . "><th>$wr->request_id</th><td>$wr->abbreviation</td><td>$wr->system_desc</td><td>$wr->brief</td></tr>\n";
+      echo "<tr class=row" . $i%2 . "><th><a href=request.php?request_id=$wr->request_id>$wr->request_id</a></th><td>$wr->abbreviation</td><td>$wr->system_desc</td><td>$wr->brief</td></tr>\n";
     }
     echo "</table>\n";
   }

@@ -9,7 +9,7 @@ $debuglevel = 7;
       $query .= ", $key = '" . tidy($value) . "' ";
     }
     $query = substr( $query, 2);
-    $query = "UPDATE help SET $query WHERE topic = '" . tidy($topic) . "'; ";
+    $query = "UPDATE help SET $query WHERE topic = '" . tidy($topic) . "' AND seq = " . intval($seq) . "; ";
   }
   else {
     $fields = "";

@@ -14,7 +14,7 @@
   }
 
   $title = "$system_name - " . ucfirst($form);
-  $right_panel = false;
+  $right_panel = true;
   error_log( "2", 0);
   include("inc/headers.php");
 

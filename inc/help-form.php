@@ -41,7 +41,8 @@
         echo "<h2> It seems this help hasn't been written yet :-(</h2>\n";
       }
       if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
-        echo "<form method=post action=\"/form.php?form=help&topic=" . htmlspecialchars($topic) . "\" enctype=\"multipart/form-data\">\n";
+        $seq = intval($seq);
+        echo "<form method=post action=\"/form.php?form=help&topic=" . htmlspecialchars($topic) . "&seq=$seq\" enctype=\"multipart/form-data\">\n";
         echo "<table>\n";
         echo "<tr><th>Topic</th><td>$topic</td></tr>\n";
         echo "<tr><th>Sequence</th><td><input type=text size=5 value=\"$help->seq\" name=\"new[seq]\"></td></tr>\n";

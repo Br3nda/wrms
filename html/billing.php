@@ -143,7 +143,7 @@
 	
         // Add request_timesheet work types to list of select fields.
 
-	echo "<th class=cols>work amount</th><th class=cols>units</th<th class=cols>inv no</th><th class=cols>linked id</th><th class=cols>link type</th><th class=cols>work amount</th><th class=cols>units</th><th class=cols>inv no</th></tr>\n";
+	echo "<th class=cols>work amount</th><th class=cols>units</th<th class=cols>inv no</th><th class=cols>linked id</th><th class=cols>link type</th><th class=cols>work amount</th><th class=cols>units</th><th class=cols>status</th><th class=cols>inv no</th></tr>\n";
 
 	// Print result rows.
 
@@ -160,11 +160,13 @@
 		  $w_result = awm_pgexec( $dbconn, $w_query, "billing.work", false, 7 );
 
 		  // work on linked WRs
-		  $lw_query  = "SELECT rr.to_request_id, rr.link_type, sum(rt.work_quantity) AS quantity, rt.work_units AS units, rt.charged_details AS \"inv no\"";
+		  $lw_query  = "SELECT rr.to_request_id, rr.link_type, sum(rt.work_quantity) AS quantity, rt.work_units AS units, lc.lookup_desc, rt.charged_details AS \"inv no\"";
                   $lw_query .= " FROM request_request rr ";
       		  $lw_query .= " LEFT OUTER JOIN request_timesheet rt ON rt.request_id = rr.to_request_id ";
+      		  $lw_query .= " LEFT OUTER JOIN request r ON r.request_id = rr.to_request_id ";
+                  $lw_query .= " LEFT OUTER JOIN lookup_code lc ON lc.source_table = 'request' AND lc.source_field = 'status_code' AND lc.lookup_code  = r.last_status";
 		  $lw_query .= " WHERE rr.request_id = " . $row["id"] ;
-		  $lw_query .= " GROUP BY rr.to_request_id, rr.link_type, rt.work_units, rt.charged_details";
+		  $lw_query .= " GROUP BY rr.to_request_id, rr.link_type, rt.work_units, lc.lookup_desc, rt.charged_details";
 		  $lw_result = awm_pgexec( $dbconn, $lw_query, "billing.linkedwork", false, 7 );
 
 		  $prev_id = $row["id"] ;
@@ -182,8 +184,12 @@
 			echo "</td>";
 		}
 
-                if ($max_res == 0) echo "<td class=sml></td><td class=sml></td><td class=sml></td><td class=sml></td><td class=sml></td><td class=sml></td><td class=sml></td><td class=sml></td></tr>\n";
+                // No work or linked WRs found
+                if ($max_res == 0) echo "<td class=sml></td><td class=sml></td><td class=sml></td><td class=sml></td><td class=sml></td><td class=sml></td><td class=sml></td><td class=sml></td><td class=sml></td></tr>\n";
+
+                // Work or linked WR found.
 		else for ($j = 0; $j < $max_res; $j++) {
+                  // Display work for this WR
 		  if ($j < pg_numrows($w_result)) { 
 		    $w_row = pg_fetch_row($w_result);
 
@@ -194,6 +200,7 @@
 		  else echo "<td class=sml></td><td class=sml></td><td class=sml></td>";		  
 		  
 		  if ($j < pg_numrows($lw_result)) {
+                    // Display work on linked WR
 		    $lw_row = pg_fetch_row($lw_result);
 
 		    for ($k = 0; $k < pg_numfields($lw_result) ; $k++) {
@@ -204,8 +211,7 @@
          	      echo "</td>";
 		    }
 		  }
-		  
-                  else echo "<td class=sml></td><td class=sml></td><td class=sml></td><td class=sml></td><td class=sml></td>"; 
+                  else echo "<td class=sml></td><td class=sml></td><td class=sml></td><td class=sml></td><td class=sml></td><td class=sml></td>"; 
 		  echo "</tr>\n";
 		  if ($j < $max_res) printf( "<tr class=row%1d>", $i % 2);
 		}

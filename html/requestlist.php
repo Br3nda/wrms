@@ -315,8 +315,8 @@ else {
         $user_list = "<option value=\"\">--- Any Interested User ---</option>" . get_user_list( "", $user_org_code, $interested_in );
         echo "<td class=smb>Watching:</td><td class=sml><select class=sml name=interested_in>$user_list</select></td>\n";
       }
-      if ( is_member_of('Admin', 'Support') ) {
-        $user_list = "<option value=\"\">--- Any Assigned Staff ---</option>" . get_user_list( "Support", "", $allocated_to );
+      if ( is_member_of('Admin', 'Support', 'Manage') ) {
+        $user_list = "<option value=\"\">--- Any Assigned Staff ---</option><option value=\"-1\">Not Yet Allocated</option>" . get_user_list( "Support", "", $allocated_to );
         echo "<td class=smb>ToDo:</td><td class=sml><select class=sml name=allocated_to>$user_list</select></td>\n";
       }
       echo "</tr></table></td></tr>\n";
@@ -435,6 +435,8 @@ else {
         $query .= " AND request_interested.request_id=request.request_id AND request_interested.user_no = " . intval($interested_in);
       if ( intval("$allocated_to") > 0 )
         $query .= " AND request_allocated.request_id=request.request_id AND request_allocated.allocated_to_id = " . intval($allocated_to);
+      else if ( intval("$allocated_to") < 0 )
+        $query .= " AND NOT EXISTS( SELECT request_id FROM request_allocated WHERE request_allocated.request_id=request.request_id )";
 
       if ( "$search_for" != "" ) {
         $query .= " AND (brief ~* '$search_for' ";

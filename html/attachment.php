@@ -15,14 +15,14 @@ if ( !$session->logged_in ) {
   exit;
 }
 
-  if ( !( $session->AllowedTo('Admin') || $session->AllowedTo('Support') ) {
+  if ( !( $session->AllowedTo('Admin') || $session->AllowedTo('Support') ) ) {
     $sql = "SELECT * FROM request_attachment NATURAL JOIN request ";
     $sql .= "JOIN usr ON request.requester_id = usr.user_no ";
     $sql .= "WHERE attachment_id = $id ";
     $sql .= "AND org_code = $session->org_code ; ";
 
     $qry = new PgQuery( $sql );
-    if ( !$qry->Exec("attachment") || $qry->rows == 0 ) {
+//    if ( !$qry->Exec("attachment") || $qry->rows == 0 ) {
   }
 
   $sql = "SELECT * FROM request_attachment, lookup_code ";
@@ -33,7 +33,7 @@ if ( !$session->logged_in ) {
 
   $qry = new PgQuery( $sql );
   if ( $qry->Exec("attachment") && $qry->rows > 0 ) {
-    $attachment = $qry->Fetch()
+    $attachment = $qry->Fetch();
   }
   else {
     $qry = new PgQuery( "SELECT * FROM request_attachment WHERE attachment_id = $id;" );
@@ -43,7 +43,7 @@ if ( !$session->logged_in ) {
       exit;
     }
 
-    $attachment = $qry->Fetch()
+    $attachment = $qry->Fetch();
 
     include_once("guess-file-type.php");
     $attachment->lookup_code = guess_file_type( $attachment->att_filename, "$attachment_dir/$id" );
@@ -60,10 +60,9 @@ if ( !$session->logged_in ) {
   if ( $written != $bytes ) error_log( "$sysabbr attachment: DBG: Didn't write complete file - $bytes vs. $written sent.", 0);
   error_log( "$sysabbr attachment: DBG: Served '$attachment->att_filename' as '$attachment->lookup_misc' ($attachment->lookup_code), $bytes bytes");
 
-  if ( $debuglevel > 0 ) {
+  if ( $debuglevel > 1 ) {
     $total_query_time = sprintf( "%3.06lf", $total_query_time );
     $total_time = sprintf( "%3.06lf", duration( $begin_processing, microtime() ));
-    error_log( "$sysabbr attachment: completed: TQ=$total_query_time ($total_query_count queries) TT=$total_time URI: $REQU
-EST_URI", 0);
+    error_log( "$sysabbr attachment: completed: TQ=$total_query_time ($total_query_count queries) TT=$total_time URI: $REQUEST_URI");
   }
 ?>

@@ -1,17 +1,12 @@
 <?php
   include("always.php");
   require_once("authorisation-page.php");
-  if ( !$session->logged_in ) {
-    include("headers.php");
-    echo "<h3>Please log on for access to work requests</h3>\n";
-    include("footers.php");
-    exit;
-  }
+  $session->LoginRequired();
 
-  if ( isset($qry) && "$qry" != "" && "$action" == "delete" ) {
-    $q = new PgQuery( "DELETE FROM saved_queries WHERE user_no = '$session->user_no' AND lower(query_name) = lower(?);", $qry);
+  if ( isset($saved_query) && "$saved_query" != "" && "$action" == "delete" ) {
+    $q = new PgQuery( "DELETE FROM saved_queries WHERE user_no = '$session->user_no' AND lower(query_name) = lower(?);", $saved_query);
     $q->Exec("wrsearch");
-    unset($qry);
+    unset($saved_query);
   }
 
   require_once("maintenance-page.php");

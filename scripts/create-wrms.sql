@@ -382,7 +382,8 @@ GRANT INSERT, UPDATE, SELECT ON
   request, request_request_id_seq,
   request_quote, request_quote_quote_id_seq,
   request_status, request_note, request_interested,
-  request_request, request_history, request_attachment,
+  request_request, request_history,
+  request_attachment,
   lookup_code,
   session, session_session_id_seq,
   work_system,
@@ -391,6 +392,10 @@ GRANT INSERT, UPDATE, SELECT ON
   help, help_hit,
   infonode, infonode_node_id_seq, wu, wu_vote, nodetrack
   TO general;
+
+-- One of these will fail for 7.2, one for 7.3
+GRANT INSERT, UPDATE, SELECT ON request_attachment_attachment_id_seq TO general;
+GRANT INSERT, UPDATE, SELECT ON request_attac_attachment_id_seq TO general;
 
 
 GRANT INSERT,UPDATE,SELECT, DELETE ON

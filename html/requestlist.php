@@ -73,6 +73,9 @@
   } // if  not plain style
 
   if ( "$search_for$org_code$system_code " != "" ) {
+    // Recommended way of limiting queries to not include sub-tables for 7.1
+    $result = awm_pgexec( $wrms_db, "SET SQL_Inheritance TO OFF;" );
+
     $query = "SELECT request_id, brief, fullname, email, lookup_desc AS status_desc, last_activity ";
     $query .= "FROM request, usr, lookup_code AS status ";
 

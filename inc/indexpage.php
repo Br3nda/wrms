@@ -5,7 +5,7 @@ if ( $logged_on ) { ?>
 <H4>Please select an action from the menus at the top of the page, or select
 one of the recently modified requests from the list below.</H4>
 <?php
-  $query = "SELECT DISTINCT request.request_id, brief, fullname, email, last_activity, lookup_desc AS status_desc ";
+  $query = "SELECT DISTINCT request.request_id, brief, fullname, email, last_activity, lookup_desc AS status_desc, request.system_code ";
   if ( $roles['wrms']['Admin'] || $roles['wrms']['Support']  ) {
     // Satisfy v7 requirement for order field in target list
     $query .= ", request.urgency, request.importance ";
@@ -13,7 +13,10 @@ one of the recently modified requests from the list below.</H4>
   $query .= "FROM request, request_interested, usr, lookup_code AS status ";
   $query .= "WHERE request.request_id=request_interested.request_id ";
   if ( $roles['wrms']['Manage'] && ! ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] )  ) {
-    $query .= "AND usr.org_code=$session->org_code ";
+//    $query .= "AND EXISTS (SELECT system_usr.system_code FROM system_usr, work_system WHERE system_usr.system_code=work_system.system_code";
+//    $query .= " AND user_no=$session->user_no ";
+//    $query .= " AND role~*'[CES]') ";
+    $query .= " AND usr.org_code=$session->org_code ";
   }
   else {
     $query .= "AND (request_interested.user_no=$session->user_no ";

@@ -1,6 +1,8 @@
 <?php
 $begin_processing = microtime();
 
+error_log( "=============================================== $PHP_SELF" );
+
 $dbconn = pg_Connect("dbname=wrms user=general");
 $wrms_db = $dbconn;
 include_once("inc/PgQuery.php");
@@ -16,6 +18,7 @@ $hurl = "";
 if ( !isset($request_id) ) $request_id= 0;
 if ( !isset($style) ) $style = "";
 $request_id = intval($request_id);
+
 
 $base_dns = "http://$HTTP_HOST";
 $base_url = "";

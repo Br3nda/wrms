@@ -388,15 +388,14 @@ else {
     // Recommended way of limiting queries to not include sub-tables for 7.1
     $result = awm_pgexec( $wrms_db, "SET SQL_Inheritance TO OFF;" );
     $query = "";
-    if ( "$qry" != "" ) {
+    if ( isset($qry) && "$qry" != "" ) {
       $qry = tidy($qry);
-      $qquery .= "SELECT * FROM saved_queries WHERE user_no = '$session->user_no' AND query_name = '$qry';";
+      $qquery = "SELECT * FROM saved_queries WHERE user_no = '$session->user_no' AND query_name = '$qry';";
       $result = awm_pgexec( $dbconn, $qquery, "requestlist", false, 7);
       $thisquery = pg_Fetch_Object( $result, 0 );
       $query = $thisquery->query_sql ;
     }
     else {
-
 
       $query .= "SELECT request.request_id, brief, fullname, email, request_on, status.lookup_desc AS status_desc, last_activity, detailed ";
       $query .= ", request_type.lookup_desc AS request_type_desc, lower(fullname) AS lfull, lower(brief) AS lbrief ";
@@ -454,7 +453,7 @@ INSERT INTO saved_queries (user_no, query_name, query_sql) VALUES( '$session->us
 $query";
         }
       }
-    // }
+    }
 
     $query .= " AND status.source_table='request' AND status.source_field='status_code' AND status.lookup_code=request.last_status ";
     $query .= " ORDER BY $rlsort $rlseq ";
@@ -689,7 +688,7 @@ $query";
       echo "</td></tr></table>\n";
     }
 
-  }
+  // }
 
 } /* The end of the else ... clause waaay up there! */
 

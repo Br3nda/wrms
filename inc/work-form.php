@@ -92,7 +92,7 @@ function nice_time( $in_time ) {
         echo "<td class=sml valign=top>$timesheet->requester_name</td>\n";
  	echo "<td class=sml valign=top>$timesheet->abbreviation</td>\n";
  	echo "<td class=sml valign=top>$timesheet->debtor_no</td>\n";
-        echo "<td class=sml valign=top>$timesheet->request_id</td>\n";
+        echo "<td class=sml valign=top><a href=\"/request.php?request_id=$timesheet->request_id\">$timesheet->request_id</a></td>\n";
 
         $sub_query = "SELECT status_on, status_code, lookup_code.lookup_desc ";
         $sub_query .= "  FROM request_status, lookup_code";

@@ -21,6 +21,12 @@ function nice_time( $in_time ) {
   $query .= "AND awm_perorg_rel.perorg_rel_id = requester_id ";
   $query .= "AND awm_perorg_rel.perorg_rel_type = 'Employer' ";
   $query .= "AND awm_perorg.perorg_id = awm_perorg_rel.perorg_id";
+  if ( "$after" != "" )
+    $query .= " AND request_timesheet.work_on>'$after' ";
+  if ( "$before" != "" )
+    $query .= " AND request_timesheet.work_on<'$before' ";
+  if ( "$uncharged" != "" )
+    $query .= " AND request_timesheet.work_charged IS NULL ";
   $query .= " ORDER BY work_on DESC";
   $rid = pg_Exec( $dbid,$query );
   $rows = pg_NumRows( $rid );
@@ -31,10 +37,10 @@ function nice_time( $in_time ) {
     echo "<TD>" . nice_time($timesheet->work_duration) . "</TD>";
     echo "<TD>$timesheet->work_by</TD>";
     echo "<TD>$timesheet->perorg_name</TD>";
-    if ( "$timesheet->charged_on" == "" )
+    if ( "$timesheet->work_charged" == "" )
       echo "<TD>uncharged</TD>";
     else
-      echo "<TD>" . substr( nice_date($timesheet->charged_on), 7) . "</TD>";
+      echo "<TD>" . substr( nice_date($timesheet->work_charged), 7) . "</TD>";
     echo "<TD>" . html_format( $timesheet->work_description) . " <I> <A HREF=modify-request.php3?request_id=$timesheet->request_id>(WR #$timesheet->request_id)</A></I></TD>";
     echo "</TR>\n";
   }

@@ -34,7 +34,6 @@ th.prompt {
   vertical-align: top;
   padding: 0.1em 0.5em 0 0;
   color: white;
-  background: #632;
   background: black;
   width: 8em;
   font-family: sans-serif;
@@ -49,7 +48,6 @@ th.pcol {
   vertical-align: top;
   padding: 0.1em 0.5em 0;
   color: white;
-  background: #632;
   background: black;
   width: 8em;
   font-family: sans-serif;
@@ -59,6 +57,24 @@ th.pcol {
 
 td.entry {
   padding: 0.1em 0.2em;
+}
+
+span.prompt {
+  margin: 0;
+  padding: 0;
+  text-align: right;
+  vertical-align: top;
+  padding: 0.1em 0 0 0.2em;
+  color: #632;
+  font-weight: 700;
+  width: 8em;
+  font-family: sans-serif;
+  border: none;
+  line-height: 2em;
+}
+
+span.entry {
+  padding: 0.1em 1em 0 0.2em;
 }
 
 input.ftext {

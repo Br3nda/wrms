@@ -151,6 +151,7 @@ class EntryForm
   var $class;           // The CSS class of the form
   var $break_line_format;
   var $table_line_format;
+  var $saved_line_format;
 
   function EntryForm( $action, &$record, $editmode=false )
   {
@@ -180,7 +181,18 @@ class EntryForm
 
   function SimpleForm( ) {
     $this->break_line_format = '%s'."\n";
-    $this->table_line_format = '<span class="prompt">%s</span>&nbsp;<span class="entry">%s</span>'."\n";
+    $this->table_line_format = '<span class="prompt">%s:</span>&nbsp;<span class="entry">%s</span>'."\n";
+  }
+
+  function TempLineFormat( $new_format = '<span class="prompt">%s:</span>&nbsp;<span class="entry">%s</span>' ) {
+    $this->saved_line_format = $this->table_line_format;
+    $this->table_line_format = $new_format ."\n";
+  }
+
+  function RevertLineFormat( $new_format = '<span class="prompt">%s</span>&nbsp;<span class="entry">%s</span>' ) {
+    if ( isset($this->saved_line_format) ) {
+      $this->table_line_format = $this->saved_line_format;
+    }
   }
 
   function StartForm( $extra_attributes='' ) {

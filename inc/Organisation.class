@@ -73,6 +73,7 @@ class Organisation {
      $html .= $this->RenderDetails($ef);
      $html .= $this->RenderSystems($ef);
      $html .= $this->RenderTags($ef);
+     $html .= $this->RenderActions($ef);
 
      if ( $edit ) $html .= $ef->SubmitButton( "submit", ($this->new_record ? "Create" : "Update") );
      $html .= "</table>\n";
@@ -174,10 +175,7 @@ class Organisation {
      $html = "";
      $sql = "SELECT * ";
      $sql .= "FROM organisation_tag  ";
-     if ( $ef->editmode && ($session->AllowedTo('Admin') || $session->AllowedTo('Support')) ) {
-       $sql .= "WHERE organisation_tag.org_code = ".intval($org_code);
-     }
-     elseif ( $session->AllowedTo('Admin') || $session->AllowedTo('Support') ) {
+     if ( $session->AllowedTo('Admin') || $session->AllowedTo('Support') ) {
        $sql .= "WHERE organisation_tag.org_code = ".intval($org_code);
      }
      else {
@@ -190,7 +188,7 @@ class Organisation {
      $column = 0;
      $html .= $ef->BreakLine("Organisation Tags for Requests");
      if ( $q && $q->Exec() && $q->rows ) {
-       $html .= '<tr><td colspan="2"><table>'."\n";
+       $html .= '<tr><th class="prompt">&nbsp;</th><td><table>'."\n";
 
        while( $row = $q->Fetch() ) {
          if ( $column % 3 == 0 ) $html .= "<tr>";
@@ -223,6 +221,74 @@ class Organisation {
        $_POST['new_tag'] = '';
        $html .= $ef->DataEntryLine( "New W/R Tag", '', "text", "new_tag",
                  array("size" => "20", "title" => "Enter a new tag to classify W/Rs for this organisation.") );
+     }
+
+     return $html;
+   }
+
+
+   function RenderActions( $ef ) {
+     global $session, $org_code;
+     $html = "";
+     $sql = "SELECT * ";
+     $sql .= "FROM organisation_action  ";
+     if ( $session->AllowedTo('Admin') || $session->AllowedTo('Support') ) {
+       $sql .= "WHERE organisation_action.org_code = ".intval($org_code);
+     }
+     else {
+       $sql .= "WHERE organisation_action.org_code = ".intval($session->org_code);
+     }
+     $sql .= "ORDER BY action_sequence, lower(action_description)";
+
+     # Select the records
+     $q = new PgQuery($sql);
+     $column = 0;
+     $max_sequence = 100;
+     $html .= $ef->BreakLine("Required Actions for Requests");
+     if ( $q && $q->Exec() && $q->rows ) {
+       $html .= '<tr><th class="prompt">&nbsp;</th><td><table>'."\n";
+
+       while( $row = $q->Fetch() ) {
+         if ( $row->action_sequence >= $max_sequence ) $max_sequence = $row->action_sequence + 100;
+         if ( $column % 3 == 0 ) $html .= "<tr>";
+         $html .= "<td width=\"33%\">";
+         if ( $ef->editmode  && ($session->AllowedTo('Admin') || $session->AllowedTo('Support')) ) {
+           $ef->record->action_active[$row->action_id] = "$row->active";
+           error_log( "Action active: $row->action_id, $row->active" );
+           $_POST['action_active'][$row->action_id] = $row->active;
+           $html .= sprintf("<label style=\"color: %s\">", ( "$row->active" != "t" ? "darkgrey" : "black") );
+           $html .= $ef->DataEntryField( "", "checkbox", "action_active[$row->action_id]",
+                 array("title" => "Is this request action active for this organisation?" ) );
+           $html .= " $row->action_description</label>";
+         }
+         else {
+           $html .= "$row->action_description";
+         }
+         $html .= "</td>";
+         if ( ++$column % 3 == 0 ) $html .= "</tr>";
+       }
+
+       while ( $column % 3 != 0 ) {
+       $html .= "<td></td>";
+         if ( ++$column % 3 == 0 ) $html .= "</tr>";
+       }
+       $html .= '</table></td></tr>'."\n";
+     }
+
+     if ( $ef->editmode && ($session->AllowedTo('Admin') || $session->AllowedTo('Support')) ) {
+       $ef->TempLineFormat();  // Set the line format to in-line temporarily
+       $html .= '<tr><th class="prompt">New Action</th><td>&nbsp;';
+
+       // New action - always force field value to blank - if we're rendering we've written it already...
+       $_POST['new_action_desc'] = '';
+       $html .= $ef->DataEntryLine( "Name", '', "text", "new_action_desc",
+                 array("size" => "20", "title" => "Enter a new required action for W/Rs for this organisation.") );
+       $_POST['new_action_seq'] = $max_sequence;
+       $html .= $ef->DataEntryLine( "Sequence", '', "int", "new_action_seq",
+                 array("size" => "5", "title" => "Enter a sequence number for this action to control display order on the request screen.") );
+
+       $ef->RevertLineFormat();  // Revert to the saved line format
+       $html .= "</td></tr>\n";
      }
 
      return $html;
@@ -322,6 +388,27 @@ class Organisation {
          $client_messages[] = "ERROR: $qry->errorstring";
          $db_errors = true;
        }
+
+       $actions = "";
+       while( isset($_POST['action_active']) && is_array($_POST['action_active']) && list($k,$v) = each($_POST['action_active']) ) {
+         if ( $v ) {
+           $actions .= ( "$actions" == "" ? "" : ", " );
+           $actions .= "'" . str_replace("'","''",str_replace('\\','', $k)) . "'";
+         }
+       }
+
+       // Actually delete any inactive org_actions if no W/R references them, otherwise really do make them inactive.
+       $sql = "DELETE FROM organisation_action WHERE org_code = $this->org_code "
+            . ($actions == "" ? "" : "AND action_id NOT IN ( $actions ) ")
+            . "AND NOT EXISTS( SELECT 1 FROM request_action WHERE request_action.action_id = organisation_action.action_id LIMIT 1); ";
+       $sql .= "UPDATE organisation_action SET active = FALSE WHERE org_code = $this->org_code "
+             . ($actions == "" ? "" : "AND action_id NOT IN ( $actions ) ")
+             . "AND EXISTS( SELECT 1 FROM request_action WHERE request_action.action_id = organisation_action.action_id LIMIT 1); ";
+       $qry = new PgQuery($sql);
+       if ( !$qry->Exec("Org::Write") ) {
+         $client_messages[] = "ERROR: $qry->errorstring";
+         $db_errors = true;
+       }
      }
 
      if ( !$db_errors && $systems != "" ) {
@@ -341,6 +428,16 @@ class Organisation {
        $sql = "INSERT INTO organisation_tag (org_code, tag_description ) ";
        $sql .= "VALUES ( $this->org_code, ? ); ";
        $qry = new PgQuery($sql, $_POST['new_tag']);
+       if ( !$qry->Exec("Org::Write") ) {
+         $client_messages[] = "ERROR: $qry->errorstring";
+         $db_errors = true;
+       }
+     }
+
+     if ( !$db_errors && $_POST['new_action_desc'] != "" ) {
+       $sql = "INSERT INTO organisation_action (org_code, action_description, action_sequence ) ";
+       $sql .= "VALUES ( $this->org_code, ?, ? ); ";
+       $qry = new PgQuery($sql, $_POST['new_action_desc'], $_POST['new_action_seq']);
        if ( !$qry->Exec("Org::Write") ) {
          $client_messages[] = "ERROR: $qry->errorstring";
          $db_errors = true;

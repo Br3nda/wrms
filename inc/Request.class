@@ -64,9 +64,9 @@ class Request {
      $sql .= " LEFT OUTER JOIN lookup_code AS sla_response ON sla_response.source_table='request' AND sla_response.source_field='sla_response' AND sla_response.lookup_code=request_sla_code(sla_response_time,sla_response_type)";
      $sql .= " LEFT OUTER JOIN lookup_code AS importance ON importance.source_table='request' AND importance.source_field='importance' AND int4(importance.lookup_code)=request.importance";
      $sql .= " LEFT OUTER JOIN work_system USING( system_code )";
-     $sql .= " JOIN system_usr ON $session->user_no = system_usr.user_no AND request.system_code = system_usr.system_code ";
+     $sql .= " LEFT OUTER JOIN system_usr ON $session->user_no = system_usr.user_no AND request.system_code = system_usr.system_code ";
      $sql .= " WHERE request.request_id = '$id' ";
-//     echo "<p>$sql<p>";
+     // echo "<p>$sql<p>";
 
      if ( $qry = new PgQuery($sql) ) {
        if ( $qry->Exec("ReadRequest")
@@ -90,14 +90,14 @@ class Request {
            $tmnu->AddOption("User","/usr.php?user_no=$this->user_no&request_id=$id","View the details for the requesting user");
          }
          else {
-           error_log( sprintf("%s: DBG: User %d cannot access request %d.", $this->user_no, $id) );
+           error_log( sprintf("%s: DBG: User %d cannot access request %d.", $sysabbr, $session->user_no, $id) );
            $client_messages[] = "Request $id is unavailable - do you have the number right?";
            $this->new_record = false;
          }
        }
        else {
          // Request not found that the user can read.
-         error_log( sprintf("%s: DBG: User %d cannot access request %d.", $this->user_no, $id) );
+         error_log( sprintf("%s: DBG: User %d cannot access request %d.", $sysabbr, $session->user_no, $id) );
          $client_messages[] = "Request $id is unavailable - do you have the number right?";
          $this->new_record = false;
        }
@@ -129,6 +129,9 @@ class Request {
    function Actions( ) {
      global $session, $action, $sysabbr, $client_messages;
      switch( $action ) {
+       case 'removeatt':
+         $this->RemoveAttachment(intval($GLOBALS['attachment_id']));
+         break;
        case 'removets':
          $this->RemoveTimesheet(intval($GLOBALS['timesheet_id']));
          break;
@@ -143,6 +146,31 @@ class Request {
          $client_messages[] = "ERROR: Unrecognised action: '$action'";
      }
    }
+
+   /////////////////////////////////////////////////////////////
+   // RemoveAttachment - Detach the specified attachment from the W/R
+   /////////////////////////////////////////////////////////////
+   function RemoveAttachment( $attachment_id ) {
+     global $client_messages;
+     $sql = "SELECT * FROM request_attachment ";
+     $sql .= "WHERE request_id = $this->request_id ";
+     $sql .= "AND attachment_id = $attachment_id ";
+     # Select the records
+     $q = new PgQuery($sql);
+     $q->Exec('WR::RemoveAttachment') ;
+     if ( $q->rows > 0 ) {
+       $row = $q->Fetch();
+       $client_messages[] = "Attachment $attachment_id dissassociated from request $this->request_id.";
+
+       $sql = "UPDATE request_attachment SET request_id = -1 ";
+       $sql .= "WHERE request_id = $this->request_id ";
+       $sql .= "AND attachment_id = $attachment_id ";
+       # Select the records
+       $q = new PgQuery($sql);
+       $q->Exec('WR::RemoveAttachment') ;
+     }
+   }
+
 
    /////////////////////////////////////////////////////////////
    // RemoveTimesheet - Remove the specified timesheet from the W/R
@@ -1029,6 +1057,7 @@ class Request {
      $send_to = $this->GetRecipients();
      foreach ( $send_to as $email => $name ) {
        if ( isset($debug_email) ) {
+         if ( $debug_to != "" ) $debug_to .= ", ";
          $debug_to .= "$name <$email>";
        }
        else {
@@ -1042,7 +1071,7 @@ class Request {
 
      $chtype = strtolower($_POST['submit']);
 
-     $mail->Subject = 'WR #' . $this->request_id . '['.$this->system_code.'/'.$this->username.'] '.$chtype.'d: '
+     $mail->Subject = 'WR #' . $this->request_id . ' ['.$this->system_code.'/'.$this->username.'] '.$chtype.'d: '
                       . $this->brief;
 
      $tbody  = "Request No:  $this->request_id\n"
@@ -1052,31 +1081,31 @@ class Request {
              . "Urgency:     $this->urgency_desc\n";
 
      $hbody  = "<table width=100%>"
-             . "<tr><th>Request No</th><td>$this->request_id</td></tr>"
-             . "<tr><th>Overview</th><td>$this->brief</td></tr>"
-             . "<tr><th>Type</th><td>$this->request_type_desc</td></tr>"
-             . "<tr><th>Importance</th><td>$this->importance_desc</td></tr>"
-             . "<tr><th>Urgency</th><td>$this->urgency_desc</td></tr>";
+             . "<tr><th width='10%' align='left'>Request No</th><td>$this->request_id</td></tr>"
+             . "<tr><th width='10%' align='left'>Overview</th><td>$this->brief</td></tr>"
+             . "<tr><th width='10%' align='left'>Type</th><td>$this->request_type_desc</td></tr>"
+             . "<tr><th width='10%' align='left'>Importance</th><td>$this->importance_desc</td></tr>"
+             . "<tr><th width='10%' align='left'>Urgency</th><td>$this->urgency_desc</td></tr>";
 
      if ( $chtype == "update" ) {
-       $tbody .= "Request On:   $request->request_on\n";
-       $hbody .= "<tr><th>Request On</th><td>$request->request_on</td></tr>";
+       $tbody .= "Request On:  $this->request_on\n";
+       $hbody .= "<tr><th width='10%' align='left'>Request On</th><td>$this->request_on</td></tr>";
      }
 
-     $tbody .= ucfirst($chtype) . "d by:   $session->fullname\n";
-     $hbody .= "<tr><th>".ucfirst($chtype)."d by</th><td>$session->fullname</td></tr>";
+     $tbody .= ucfirst($chtype) . "d by:  $session->fullname\n";
+     $hbody .= "<tr><th width='10%' align='left'>".ucfirst($chtype)."d by</th><td>$session->fullname</td></tr>";
 
      if ( $requsr->user_no <> $session->user_no ) {
-       $tbody .= ucfirst($chtype) . "d for:  $this->fullname\n";
-       $hbody .= "<tr><th>".ucfirst($chtype)."d for</th><td>$this->fullname</td></tr>";
+       $tbody .= ucfirst($chtype) . "d for: $this->fullname\n";
+       $hbody .= "<tr><th width='10%' align='left'>".ucfirst($chtype)."d for</th><td>$this->fullname</td></tr>";
      }
 
-     $tbody .= ucfirst($chtype) . "d on:   " . date( "D d M H:i:s Y" ) . "\n";
-     $hbody .= "<tr><th>".ucfirst($chtype)."d on</th><td>". date( "D d M H:i:s Y" ) ."</td></tr></table>";
+     $tbody .= ucfirst($chtype) . "d on:  " . date( "D d M H:i:s Y" ) . "\n";
+     $hbody .= "<tr><th width='10%' align='left'>".ucfirst($chtype)."d on</th><td>". date( "D d M H:i:s Y" ) ."</td></tr></table>";
 
      if ( isset($debug_email) ) {
        $tbody .= "Debug To:    $debug_to\n";
-       $hbody .= "<tr><th>Debug To</th><td>$debug_to</td></tr>";
+       $hbody .= "<tr><th width='10%' align='left'>Debug To</th><td>$debug_to</td></tr>";
      }
      $tbody .= "\n\n";
      $hbody .= "</table>\n<ul>";
@@ -1152,8 +1181,9 @@ class Request {
        $this->send_an_email = true;
      }
 
-     $previous = preg_replace( '/\s+/', ' ', stripslashes($_POST['detailed']));
-     $current  = preg_replace( '/\s+/', ' ', stripslashes($this->detailed));
+     $previous = preg_replace( '/\s+/', '', html_entity_decode(stripslashes($_POST['detailed'])));
+     $current  = preg_replace( '/\s+/', '', html_entity_decode(stripslashes($this->detailed)));
+     $detail_changed = ( $previous != $current );
      if ( $chtype == "update" && $detail_changed ) {
        $this->mail_message_data[]['text']
             = " * Previous Description:\n"
@@ -1166,11 +1196,18 @@ class Request {
        $this->send_an_email = true;
      }
 
-     if ( $chtype == "create" || ( $chtype == "change" && $detail_changed ) )
-       $msg .= "\nDetailed Description:\n"
-             . "====================\n"
-             . stripslashes($request->detailed) . "\n\n";
-
+     if ( $chtype == "create" || ( $chtype == "change" && $detail_changed ) ) {
+       $this->mail_message_data[]['text']
+            = " * Detailed Description:\n"
+            . "   =====================\n"
+            . stripslashes($_POST['detailed']) . "\n\n";
+       $this->mail_message_data[]['html']
+            = "<li>Detailed Description:<br />\n"
+            . "=====================<br />\n"
+            . stripslashes($_POST['detailed']) . "<br /></li>\n";
+       $this->send_an_email = true;
+     }
+     return $this->send_an_email;
    }
 
 

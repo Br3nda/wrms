@@ -279,11 +279,6 @@ CREATE or REPLACE FUNCTION request_tags( INT ) RETURNS TEXT AS '
    END;
 ' LANGUAGE 'plpgsql';
 
-CREATE OR REPLACE FUNCTION get_usr_setting(TEXT,TEXT)
-    RETURNS TEXT
-    AS 'SELECT setting_value FROM usr_setting
-            WHERE usr_setting.username = $1
-            AND usr_setting.setting_name = $2 ' LANGUAGE 'sql';
 
 
 CREATE OR REPLACE FUNCTION active_request(INT4)
@@ -292,10 +287,7 @@ CREATE OR REPLACE FUNCTION active_request(INT4)
 CREATE OR REPLACE FUNCTION max_request()
     RETURNS INT4
     AS 'SELECT max(request_id) FROM request' LANGUAGE 'sql';
-CREATE OR REPLACE FUNCTION get_request_org(INT4)
-    RETURNS INT4
-    AS 'SELECT usr.org_code FROM request, usr WHERE request.request_id = $1 AND request.request_by = usr.username
-    ' LANGUAGE 'sql';
+
 CREATE OR REPLACE FUNCTION request_sla_code(INTERVAL,CHAR)
     RETURNS TEXT
     AS 'SELECT text( date_part( ''hour'', $1) ) || ''|'' || text(CASE WHEN $2 ='' '' THEN ''O'' ELSE $2 END)

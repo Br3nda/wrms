@@ -23,8 +23,8 @@ CREATE or REPLACE FUNCTION request_tags( INT ) RETURNS TEXT AS '
 
 BEGIN;
 
-SELECT check_wrms_revision(1,99,5);  -- Will fail if this revision doesn't exist, or a later one does
-SELECT new_wrms_revision(1,99,6, 'Baguette' );
+SELECT check_wrms_revision(2,0,0);  -- Will fail if this revision doesn't exist, or a later one does
+SELECT new_wrms_revision(2,0,1, 'Baguette' );
 
 ALTER TABLE organisation DROP COLUMN admin_user_no;
 ALTER TABLE organisation DROP COLUMN support_user_no;
@@ -33,12 +33,19 @@ ALTER TABLE organisation DROP COLUMN admin_usr;
 ALTER TABLE usr DROP COLUMN access_level;
 ALTER TABLE usr DROP COLUMN linked_user;
 
--- Change the "enabled" column to a boolean...
+-- Change the "enabled" and "validated" columns to booleans...
 ALTER TABLE usr ADD COLUMN enabled_new BOOLEAN;
 UPDATE usr SET enabled_new = (enabled > 0) ;
 ALTER TABLE usr DROP COLUMN enabled;
 ALTER TABLE usr RENAME enabled_new TO enabled;
 ALTER TABLE usr ALTER COLUMN enabled SET DEFAULT TRUE;
+
+ALTER TABLE usr ADD COLUMN validated_new BOOLEAN;
+UPDATE usr SET validated_new = (validated > 0) ;
+ALTER TABLE usr DROP COLUMN validated;
+ALTER TABLE usr RENAME validated_new TO validated;
+ALTER TABLE usr ALTER COLUMN validated SET DEFAULT FALSE;
+
 ALTER TABLE usr DROP COLUMN organisation;
 
 ALTER TABLE ugroup DROP COLUMN module_name;
@@ -50,6 +57,8 @@ ALTER TABLE org_system DROP COLUMN admin_user_no;
 ALTER TABLE org_system DROP COLUMN support_user_no;
 
 DROP TABLE usr_setting;
+DROP FUNCTION get_request_org(integer);
+DROP FUNCTION get_usr_setting(text, text);
 
 ALTER TABLE request DROP COLUMN request_by;
 ALTER TABLE request_history DROP COLUMN request_by;
@@ -65,6 +74,9 @@ ALTER TABLE request_timesheet DROP COLUMN work_by;
 
 -- And finally commit that to make it a logical unit...
 COMMIT;
+
+DROP TABLE old_group_member;
+DROP TABLE module;
 
 CLUSTER group_member;
 CLUSTER system_usr;

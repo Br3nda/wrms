@@ -46,7 +46,7 @@ CREATE UNIQUE INDEX org_system_sk1 ON org_system ( system_code, org_code );
 
 -- This is the table of users fir the system
 CREATE TABLE usr (
-  user_no SERIAL,
+  user_no SERIAL PRIMARY KEY,
   username TEXT NOT NULL UNIQUE,
   password TEXT,
   email TEXT,
@@ -76,14 +76,6 @@ CREATE FUNCTION max_usr() RETURNS INT4 AS 'SELECT max(user_no) FROM usr' LANGUAG
 CREATE UNIQUE INDEX usr_sk1 ON usr ( org_code, user_no );
 
 
-CREATE TABLE usr_setting (
-  user_no TEXT REFERENCES usr ( user_no ),
-  setting_name TEXT,
-  setting_value TEXT
-);
-CREATE INDEX xpk_usr_setting ON usr_setting ( username, setting_name );
-
-
 CREATE TABLE system_usr (
   user_no INT4 REFERENCES usr ( user_no ),
   system_code TEXT REFERENCES work_system ( system_code ),
@@ -105,7 +97,8 @@ CREATE TABLE group_member (
   user_no INT4 REFERENCES usr ( user_no ),
   PRIMARY KEY ( group_no, user_no )
 );
-CREATE UNIQUE INDEX group_member_sk1 ON group_member ( user_no, group_no );
+ALTER TABLE group_member ADD UNIQUE (user_no,group_no);
+-- CREATE UNIQUE INDEX group_member_sk1 ON group_member ( user_no, group_no );
 
 
 CREATE TABLE attachment_type (
@@ -305,7 +298,9 @@ CREATE TABLE session (
     help BOOL,
     session_start TIMESTAMP DEFAULT current_timestamp,
     session_end TIMESTAMP DEFAULT current_timestamp,
-    session_config TEXT );
+    session_config TEXT,
+    session_key TEXT
+);
 CREATE FUNCTION max_session() RETURNS INT4 AS 'SELECT max(session_id) FROM session' LANGUAGE 'sql';
 
 
@@ -318,7 +313,7 @@ CREATE TABLE saved_queries (
     maxresults INT,
     rlsort TEXT,
     rlseq TEXT,
-    pubic BOOLEAN DEFAULT FALSE,
+    public BOOLEAN DEFAULT FALSE,
     updated TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp,
     in_menu BOOLEAN DEFAULT FALSE,
     PRIMARY KEY (user_no, query_name)
@@ -411,7 +406,7 @@ GRANT INSERT, UPDATE, SELECT ON
   attachment_type,
   session, session_session_id_seq,
   work_system,
-  usr, usr_user_no_seq, usr_setting,
+  usr, usr_user_no_seq,
   organisation, organisation_org_code_seq,
   help, help_hit,
   infonode, infonode_node_id_seq, wu, wu_vote, nodetrack
@@ -434,15 +429,15 @@ GRANT INSERT,UPDATE,SELECT, DELETE ON
 
 -- One of these sets will fail for 7.2, one for 7.3
 -- 7.2 and earlier
-GRANT INSERT, UPDATE, SELECT ON request_attac_attachment_id_seq TO general;
-GRANT INSERT,UPDATE,SELECT ON request_timesh_timesheet_id_seq TO general;
+-- GRANT INSERT, UPDATE, SELECT ON request_attac_attachment_id_seq TO general;
+-- GRANT INSERT,UPDATE,SELECT ON request_timesh_timesheet_id_seq TO general;
 -- 7.3 and later...
 GRANT INSERT, UPDATE, SELECT ON request_attachment_attachment_id_seq TO general;
 GRANT INSERT,UPDATE,SELECT ON request_timesheet_timesheet_id_seq TO general;
 
 \i procedures.sql
 
-SELECT new_wrms_revision(1,99,6, 'Baguette' );
+SELECT new_wrms_revision(2,0,1, 'Baguette' );
 
 ALTER TABLE group_member CLUSTER ON group_member_user_no_key;
 ALTER TABLE system_usr CLUSTER ON system_usr_pkey;
@@ -455,7 +450,7 @@ ALTER TABLE request_quote CLUSTER ON request_quote_pkey;
 ALTER TABLE request_action CLUSTER ON request_action_pkey;
 ALTER TABLE request_tag CLUSTER ON request_tag_pkey;
 ALTER TABLE request_request CLUSTER ON request_request_sk1;
-ALTER TABLE request_timesheet CLUSTER ON request_timesheet_req;
+ALTER TABLE request_timesheet CLUSTER ON request_timesheet_sk1;
 
 CLUSTER group_member;
 CLUSTER system_usr;

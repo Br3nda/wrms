@@ -196,7 +196,7 @@ class Organisation {
     $column = 0;
     if ( $q && $q->Exec() && $q->rows ) {
       $html .= $ef->BreakLine("Active Systems");
-      $html .= '<tr><th class="prompt">&nbsp;</th><td class="entry"><table width="100%" class="entry">'."\n";
+      $html .= '<tr><td class="entry" colspan="2"><table width="100%" class="entry">'."\n";
       while( $row = $q->Fetch() ) {
         if ( $column % 3 == 0 ) $html .= "<tr>";
         $html .= "<td width=\"33%\">";

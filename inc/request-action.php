@@ -398,7 +398,7 @@
     if ( $chtype == "change" )
       $msg .= "Request On:   $request->request_on\n";
 
-    $msg .= "ucfirst($chtype) . "d by:   $session->fullname\n";
+    $msg .= ucfirst($chtype) . "d by:   $session->fullname\n";
 
     if ( $requsr->user_no <> $session->user_no )
       $msg .= ucfirst($chtype) . "d for:  $requsr->fullname\n";

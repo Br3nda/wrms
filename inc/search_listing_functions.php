@@ -252,6 +252,24 @@ function data_row( $row, $rc ) {
   echo "</tr>\n";
 }
 
+
+//Builds up and outputs the HTML for a linked column header on the request list
+function column_header( $ftext, $fname ) {
+  global $rlsort, $rlseq, $header_cell, $images;
+  $fseq = "";
+  $seq_image = "";
+  if ( "$rlsort" == "$fname" ) {
+    $fseq = ( "$rlseq" == "DESC" ? "ASC" : "DESC");
+    $seq_image .= "&nbsp;<img border=0 src=\"/$images/sort-$rlseq.png\">";
+  }
+  printf( $header_cell, $fname, $fseq, $ftext, $seq_image );
+}
+
+
+///////////////////////////////////////////////////////////
+// And this is not a function now
+///////////////////////////////////////////////////////////
+
   if ( "$format" == "edit" && isset($submitBriefEditable) ) // If changes have been returned from Brief (editable) then function is called update the database with the changes
   {
      $ChangedRequests_count = 0;
@@ -295,23 +313,10 @@ function data_row( $row, $rc ) {
       $header_cell .= "&incstat[$k]=$v";
     }
   }
-  if ( "$savedquery" != "" ) $header_cell .= "&savedquery=$savedquery";
+  if ( "$saved_query" != "" ) $header_cell .= "&saved_query=$saved_query";
   if ( "$style" != "" ) $header_cell .= "&style=$style";
   if ( "$format" != "" ) $header_cell .= "&format=$format";
   if ( isset($choose_columns) && $choose_columns ) $header_cell .= "&choose_columns=1";
   $header_cell .= "\">%s";      // %s for the Cell heading
   $header_cell .= "%s</a></th>";    // %s For the image
-
-//Builds up and outputs the HTML for a linked column header on the request list
-function column_header( $ftext, $fname ) {
-  global $rlsort, $rlseq, $header_cell, $images;
-  $fseq = "";
-  $seq_image = "";
-  if ( "$rlsort" == "$fname" ) {
-    $fseq = ( "$rlseq" == "DESC" ? "ASC" : "DESC");
-    $seq_image .= "&nbsp;<img border=0 src=\"/$images/sort-$rlseq.png\">";
-  }
-  printf( $header_cell, $fname, $fseq, $ftext, $seq_image );
-}
-
 ?>

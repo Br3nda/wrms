@@ -34,7 +34,8 @@ elseif ( $M != "LC" && isset($action) ) {
   $wr->Actions($wrf);
 }
 
-  include("headers.php");
+  require_once("top-menu-bar.php");
+  require_once("headers.php");
   echo '<script language="JavaScript" src="/js/request.js"></script>' . "\n";
 
   echo $wr->Render();

@@ -1,9 +1,10 @@
 <?php
   include("always.php");
-  include("options.php");
-  include("maintenance-page.php");
+  require_once("authorisation-page.php");
+  require_once("maintenance-page.php");
 
   $title = "$system_name User Search";
+  require_once("top-menu-bar.php");
   include("headers.php");
 
   if ( ! is_member_of('Admin','Support','Manage') ) {
@@ -83,10 +84,10 @@
 
         printf("<tr class=row%1d>\n", $i % 2);
 
-        echo "<td class=sml><a href=\"usr.php?user_no=$thisusr->user_no\">$thisusr->username</a></td>\n";
-        echo "<td class=sml><a href=\"usr.php?user_no=$thisusr->user_no\">$thisusr->fullname</a></td>\n";
+        echo "<td class=sml><a href=\"user.php?user_no=$thisusr->user_no\">$thisusr->username</a></td>\n";
+        echo "<td class=sml><a href=\"user.php?user_no=$thisusr->user_no\">$thisusr->fullname</a></td>\n";
         if ( "$org_code" == "" )
-          echo "<td class=sml><a href=\"form.php?form=organisation&org_code=$thisusr->org_code\">$thisusr->org_name</a></td>\n";
+          echo "<td class=sml><a href=\"org.php?org_code=$thisusr->org_code\">$thisusr->org_name</a></td>\n";
         echo "<td class=sml><a href=\"mailto:$thisusr->email\">$thisusr->email</a>&nbsp;</td>\n";
         if ( isset( $system_code ) && $system_code <> "" )
           echo "<td class=sml>$thisusr->lookup_desc ($thisusr->role)&nbsp;</td>\n";

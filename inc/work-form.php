@@ -10,10 +10,16 @@ function nice_time( $in_time ) {
 
 <?php
   if ( "$search_for$system_code " != "" ) {
+    if ( !isset($maxresults) || intval($maxresults) == 0 ) $maxresults = 200;
     $query = "SELECT request.*, organisation.*, request_timesheet.*, ";
     $query .= " worker.fullname AS worker_name, requester.fullname AS requester_name, ";
-    $query .= " last_status_on(request.request_id) AS status_on, last_status AS status, get_status_desc(last_status) AS status_desc";
-    $query .= " FROM request, usr AS worker, usr AS requester, organisation, request_timesheet ";
+    $query .= " last_status_on(request.request_id) AS status_on, last_status AS status, get_status_desc(last_status) AS status_desc ";
+    $query .= " FROM request ";
+    if ( ! is_member_of('Admin', 'Support') ) {
+      $query .= "JOIN work_system USING (system_code) ";
+      $query .= "JOIN system_usr ON (work_system.system_code = system_usr.system_code AND system_usr.user_no = $session->user_no) ";
+    }
+    $query .= ", usr AS worker, usr AS requester, organisation, request_timesheet ";
     $query .= " WHERE request_timesheet.request_id = request.request_id";
     $query .= " AND worker.user_no = work_by_id ";
     $query .= " AND requester.user_no = requester_id ";
@@ -46,16 +52,16 @@ function nice_time( $in_time ) {
 
     if( "$order_by" == "" && isset ($sort) && is_array($sort) ) {
       while( list( $k, $v ) = each ( $sort ) ) {
-	      $order_by = " ORDER BY $k";
+        $order_by = " ORDER BY $k";
       }
     }
 
     $query .= " $order_by ";
-    $query .= " LIMIT 100 ";
+    $query .= " LIMIT $maxresults ";
 
     $result = awm_pgexec( $dbconn, $query );
     if ( ! $result ) {
-      $error_loc = "timelist-form.php";
+      $error_loc = "work-form.php";
       $error_qry = "$query";
       include("error.php");
     }
@@ -71,9 +77,9 @@ function nice_time( $in_time ) {
         else echo "<tr class=bgcolor1>";
 
         echo "<td class=sml valign=top>$timesheet->requester_name</td>\n";
- 	echo "<td class=sml valign=top>$timesheet->abbreviation</td>\n";
- 	echo "<td class=sml valign=top>$timesheet->debtor_no</td>\n";
-        echo "<td class=sml valign=top><a href=\"/request.php?request_id=$timesheet->request_id\">$timesheet->request_id</a></td>\n";
+        echo "<td class=sml valign=top>$timesheet->abbreviation</td>\n";
+        echo "<td class=sml valign=top>$timesheet->debtor_no</td>\n";
+        echo "<td class=sml valign=top><a href=\"/wr.php?request_id=$timesheet->request_id\">$timesheet->request_id</a></td>\n";
 
         echo "<td class=sml valign=top>" ;
         echo "$timesheet->status_desc";
@@ -134,7 +140,11 @@ function nice_time( $in_time ) {
       echo       "<th class=cols>Requested by";
       echo         '<select class=sml name="filter[request.requester_id]">' . "\n";
       echo           "<option class=sml value=''>All</option>\n";
-      $select_query = "SELECT user_no, fullname FROM usr ORDER BY fullname";
+      $select_query = "SELECT user_no, fullname FROM usr ";
+      if ( ! is_member_of('Admin', 'Support') ) {
+        $select_query .= "WHERE usr.org_code = $session->org_code";
+      }
+      $select_query .= "ORDER BY fullname";
       $select_result = awm_pgexec( $dbconn, $select_query );
       for ( $i=0; $i < pg_NumRows($select_result); $i++ ) {
         $select_option = pg_Fetch_Object( $select_result, $i );
@@ -150,7 +160,11 @@ function nice_time( $in_time ) {
       echo       "<th class=cols>Org.";
       echo         '<select class=sml name="filter[organisation.org_code]">' . "\n";
       echo           "<option class=sml value=''>All</option>\n";
-      $select_query = "SELECT org_code, abbreviation FROM organisation ORDER BY abbreviation";
+      $select_query = "SELECT org_code, abbreviation FROM organisation ";
+      if ( ! is_member_of('Admin', 'Support') ) {
+        $select_query .= "WHERE organisation.org_code = $session->org_code";
+      }
+      $select_query .= "ORDER BY abbreviation";
       $select_result = awm_pgexec( $dbconn, $select_query );
       for ( $i=0; $i < pg_NumRows($select_result); $i++ ) {
         $select_option = pg_Fetch_Object( $select_result, $i );
@@ -167,7 +181,7 @@ function nice_time( $in_time ) {
       echo         '<input TYPE="Image" src="/$images/down.gif" alt="Sort" BORDER="0" name="sort[organisation.org_code]" >';
       echo       "</th>\n";
 
-      echo       '<th class=cols>WR No.<input TYPE="Image" src="/$images/down.gif" alt="Sort" BORDER="0" name="sort[request_timesheet.request_id]" ></th>' . "\n";
+      echo       '<th class=cols>WR No.<input TYPE="Image" src="/'.$images.'/down.gif" alt="Sort" BORDER="0" name="sort[request_timesheet.request_id]" ></th>' . "\n";
 
       echo       "<th class=cols>WR Status";
       echo         '<select class=sml name="filter[request.last_status]">' . "\n";
@@ -194,7 +208,7 @@ function nice_time( $in_time ) {
       echo         '<table cellpadding=2 cellspacing=0 border=0>';
       echo           '<tr>';
       echo             '<td></td>';
-      echo             '<td align="middle"><input TYPE="Image" src="/$images/up.gif" alt="Sort Ascending" BORDER="0" name="sort_asc[request_timesheet.work_description]" ></td>';
+      echo             '<td align="middle"><input TYPE="Image" src="/'.$images.'/up.gif" alt="Sort Ascending" BORDER="0" name="sort_asc[request_timesheet.work_description]" ></td>';
       echo           '</tr>';
       echo           '<tr>';
       echo             '<td><input TYPE="Image" src="/$images/hide.gif" alt="Hide Work Description" BORDER="0" name="hide[request_timesheet.work_description]" ></td>';
@@ -202,7 +216,7 @@ function nice_time( $in_time ) {
       echo           '</tr>';
       echo           '<tr>';
       echo             '<td></td>';
-      echo             '<td align="middle"><input TYPE="Image" src="/$images/down.gif" alt="Sort Descending" BORDER="0" name="sort[request_timesheet.work_description]" ></td>';
+      echo             '<td align="middle"><input TYPE="Image" src="/'.$images.'/down.gif" alt="Sort Descending" BORDER="0" name="sort[request_timesheet.work_description]" ></td>';
       echo           '</tr>';
       echo         '</table>';
       echo       "</th>\n";
@@ -213,13 +227,13 @@ function nice_time( $in_time ) {
       echo         '<a href="javascript:show_calendar(\'options.done_on_from_date\');"';
       echo           ' onmouseover="window.status=\'Date Picker\';return true;"';
       echo           ' onmouseout="window.status=\'\';return true;">';
-      echo           '<img valign="middle" src="/$images/date-picker.gif" border=0>';
+      echo           '<img valign="middle" src="/'.$images.'/date-picker.gif" border=0>';
       echo         '</a><br>';
       echo         '<input type="text" name="done_on_to_date" size=10 maxlength=10 class=sml >';
       echo         '<a href="javascript:show_calendar(\'options.done_on_to_date\');"';
       echo           ' onmouseover="window.status=\'Date Picker\';return true;"';
       echo           ' onmouseout="window.status=\'\';return true;">';
-      echo           '<img valign="middle" src="/$images/date-picker.gif" border=0>';
+      echo           '<img valign="middle" src="/'.$images.'/date-picker.gif" border=0>';
       echo         '</a>';
       echo       "</th>\n";
       echo       "<th class=cols>Qty.</th>\n";

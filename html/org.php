@@ -29,11 +29,9 @@ if ( $M != "LC" && $org->AllowedTo("update") && isset($_POST['submit']) ) {
   }
 }
 
-  include("headers.php");
-echo '<script language="JavaScript" src="/js/organisation.js"></script>' . "\n";
-
-
-echo $org->Render();
-
+  require_once("top-menu-bar.php");
+  require_once("headers.php");
+  echo '<script language="JavaScript" src="/js/organisation.js"></script>' . "\n";
+  echo $org->Render();
   include("footers.php");
 ?>

@@ -4,6 +4,7 @@
 
   $right_panel = false;
   $title = $system_name;
+  require_once("top-menu-bar.php");
   include("headers.php");
 
   if ( "$error_loc$error_msg$warn_msg" <> "" ) {

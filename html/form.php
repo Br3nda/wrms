@@ -1,8 +1,8 @@
 <?php
   include("always.php");
-//require_once("Session.php");
-  include("options.php");
+  require_once("authorisation-page.php");
   require_once("maintenance-page.php");
+
   include("tidy.php");
   if ( isset($f) ) $form = $f;
   $form = eregi_replace( "[^a-z0-9_]", "", $form);
@@ -14,7 +14,8 @@
 
   $title = "$system_name - " . ucfirst($form);
   $right_panel = false;
-  include("headers.php");
+  require_once("top-menu-bar.php");
+  require_once("headers.php");
 
   include("$form-form.php");
 

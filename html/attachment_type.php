@@ -28,7 +28,8 @@ if ( $M != "LC" && $att->AllowedTo("update") && isset($_POST['submit']) ) {
   }
 }
 
-  include("headers.php");
+  require_once("top-menu-bar.php");
+  require_once("headers.php");
 
   echo $att->Render();
 

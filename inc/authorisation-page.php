@@ -13,13 +13,16 @@
   if ( isset($E) ) $username = $E;
   if ( isset($L) ) $password = $L;
 
-//  error_log( "E=$E, L=$L, LI=$LI, M=$M, session_id=$session_id" );
   require_once("Session.php");
 
   $logged_on = $session->logged_in;
   $settings = new Setting( $session->config_data );
   while( list( $k, $v ) = each( $session->roles ) ) {
     $roles["wrms"]["$k"] = 1;
+  }
+
+  if ( !($session->AllowedTo("Admin") && $session->AllowedTo("Support") ) ) {
+    $org_code = $session->org_code;
   }
 
   if ( is_object($settings) ) {

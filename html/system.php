@@ -14,14 +14,11 @@ require_once("WorkSystem.class");
 $ws = new WorkSystem($system_code);
 if ( $ws->system_code == "" ) {
   unset( $system_code );
-  $edit = 1;
-  $title = ( $system_code != "" ? "System Unavailable" : "New System" );
+  $title = ( isset($GLOBALS['edit']) ? "System Unavailable" : "New System" );
 }
 else {
   $title = "$ws->system_code - $ws->system_desc";
 }
-$show = 0;
-$new = isset($edit) && intval($edit) && !isset($id);
 
 if ( $M != "LC" && $ws->AllowedTo("update") && isset($_POST['submit']) ) {
   if ( $ws->Validate($wsf) ) {
@@ -29,11 +26,9 @@ if ( $M != "LC" && $ws->AllowedTo("update") && isset($_POST['submit']) ) {
   }
 }
 
-  include("headers.php");
-echo '<script language="JavaScript" src="/js/worksystem.js"></script>' . "\n";
-
-
-echo $ws->Render();
-
+  require_once("top-menu-bar.php");
+  require_once("headers.php");
+  echo '<script language="JavaScript" src="/js/worksystem.js"></script>' . "\n";
+  echo $ws->Render();
   include("footers.php");
 ?>

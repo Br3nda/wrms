@@ -108,6 +108,9 @@ function RenderSearchForm( $target_url ) {
 
   // System (within Organisation) drop-down
   $sql = "SELECT work_system.system_code, system_desc FROM work_system ";
+  if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) ) {
+    $sql .= "JOIN system_usr ON (work_system.system_code=system_usr.system_code AND system_usr.user_no=$session->user_no) ";
+  }
   $sql .= "WHERE active ";
   $sql .= "AND EXISTS (SELECT 1 FROM org_system WHERE org_system.system_code = work_system.system_code ";
   if ( $org_code != 0 && ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) )
@@ -122,14 +125,13 @@ function RenderSearchForm( $target_url ) {
                   "class" => "srchf",
                   "style" => "width: 18em") );
 
-  // Person within Organisation drop-down
-  $sql = "SELECT user_no, fullname ";
-  $sql .= " ||' ('||abbreviation||')' ";
-  $sql .= "FROM usr JOIN organisation ON organisation.org_code = usr.org_code ";
-  $sql .= "WHERE status != 'I' AND organisation.active ";
-  if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) )
-    $sql .= "AND organisation.org_code = usr.org_code AND usr.org_code IN ( $session->org_code ) ";
-  $sql .= "AND EXISTS(SELECT work_system.system_code FROM org_system JOIN work_system ON (org_system.system_code = work_system.system_code) WHERE org_system.org_code = organisation.org_code AND work_system.active) ";
+  $sql = "SELECT user_no, fullname || ' (' || abbreviation || ')' AS name ";
+  $sql .= "FROM usr JOIN organisation ON (usr.org_code = organisation.org_code) ";
+  $sql .= "WHERE status != 'I' ";
+  if ( $org_code != 0 && ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) )
+    $sql .= "AND organisation.org_code = $org_code ";
+  else if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) )
+    $sql .= "AND organisation.org_code = $session->org_code ";
   $sql .= "ORDER BY lower(fullname)";
   $html .= $ef->DataEntryLine( "By", "", "lookup", "requester_id",
             array("_sql" => $sql, "_null" => "-- Any Requester --", "onchange" => "PersonChanged();",
@@ -137,6 +139,33 @@ function RenderSearchForm( $target_url ) {
                   "class" => "srchf",
                   "style" => "width: 12em" ) );
 
+  // Person within Organisation drop-down
+  $sql = "SELECT user_no, fullname ";
+  $sql .= " ||' ('||abbreviation||')' ";
+  $sql .= "FROM usr JOIN organisation USING (org_code) ";
+  $sql .= "WHERE status != 'I' AND organisation.active ";
+  if ( isset($org_code) && $org_code > 0 && ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) ) {
+    $sql .= "AND organisation.org_code = usr.org_code AND usr.org_code IN ( $org_code, $session->org_code ) ";
+    $sql .= "OR EXISTS (SELECT 1 FROM organisation oo ";
+    $sql .= "JOIN org_system USING (org_code) ";
+    $sql .= "JOIN work_system USING (system_code) ";
+    $sql .= "JOIN system_usr ON (work_system.system_code=system_usr.system_code AND system_usr.user_no=$session->user_no) ";
+    $sql .= "JOIN system_usr worker ON (work_system.system_code=worker.system_code AND worker.user_no=usr.user_no) ";
+    $sql .= "AND oo.org_code IN ( $org_code, $session->org_code ) ";
+    $sql .= "AND worker.role = 'S') ";
+  }
+  elseif ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) ) {
+    $sql .= "AND organisation.org_code = usr.org_code AND usr.org_code IN ( $session->org_code ) ";
+    $sql .= "OR EXISTS (SELECT 1 FROM organisation oo ";
+    $sql .= "JOIN org_system USING (org_code) ";
+    $sql .= "JOIN work_system USING (system_code) ";
+    $sql .= "JOIN system_usr ON (work_system.system_code=system_usr.system_code AND system_usr.user_no=$session->user_no) ";
+    $sql .= "JOIN system_usr worker ON (work_system.system_code=worker.system_code AND worker.user_no=usr.user_no) ";
+    $sql .= "AND oo.org_code = $session->org_code ";
+    $sql .= "AND worker.role = 'S') ";
+  }
+  $sql .= "AND EXISTS(SELECT work_system.system_code FROM org_system JOIN work_system ON (org_system.system_code = work_system.system_code) WHERE org_system.org_code = organisation.org_code AND work_system.active) ";
+  $sql .= "ORDER BY lower(fullname)";
 
   // Person Interested in W/R
   $html .= $ef->DataEntryLine( "Watching", "", "lookup", "subscribable",

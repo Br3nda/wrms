@@ -13,9 +13,13 @@
 <?php
   if ( ! is_member_of('Admin','Support') ) $org_code = $session->org_code;
   if ( "$search_for$org_code " != ""  && is_member_of('Admin','Support', 'Manage') ) {
-    $query = "SELECT DISTINCT ON (system_code) work_system.* ";
+    $maxresults = ( isset($maxresults) && intval($maxresults) > 0 ? intval($maxresults) : 500 );
+    $query = "SELECT work_system.* ";
     if ( "$org_code" <> "" ) $query .= ", org_code ";
     $query .= "FROM work_system ";
+    if ( ! is_member_of('Admin', 'Support') ) {
+      $query .= "JOIN system_usr ON (work_system.system_code = system_usr.system_code AND system_usr.user_no = $session->user_no) ";
+    }
     if ( "$org_code" <> "" ) $query .= ", org_system ";
 
     if ( "I" == "$status" )
@@ -32,7 +36,7 @@
       $query .= "AND org_system.org_code='$org_code' ";
     }
     $query .= " ORDER BY work_system.system_code ";
-    $query .= " LIMIT 100 ";
+    $query .= " LIMIT $maxresults ";
     $result = awm_pgexec( $dbconn, $query, "syslist", false, 7 );
     if ( ! $result ) {
       $error_loc = "syslist-form.php";
@@ -40,7 +44,13 @@
       include("error.php");
     }
     else {
-      echo "<small>" . pg_NumRows($result) . " systems found";
+      if ( $result && pg_NumRows($result) > 0 ) {
+        echo "\n<small>";
+        echo pg_NumRows($result) . " requests found";
+        if ( pg_NumRows($result) == $maxresults ) echo " (limit reached)";
+        if ( isset($saved_query) && $saved_query != "" ) echo " for <b>$saved_query</b>";
+        echo "</small>";
+      }
       echo "<table border=\"0\" align=center><tr>\n";
       echo "<th class=cols>System</th>";
       echo "<th class=cols align=left>&nbsp;Full Name</th>";
@@ -65,7 +75,7 @@
 
         echo "</td></tr>\n";
       }
-      echo "<tr><td class=mand colspan=3 align=center><a class=submit href=\"form.php?form=system\">Add A New System</a>";
+      echo "<tr><td class=mand colspan=3 align=center><a class=submit href=\"system.php\">Add A New System</a>";
       echo "</table>\n";
     }
   }

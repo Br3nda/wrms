@@ -39,7 +39,13 @@
     $search_query .= "FROM ";
     if ( intval("$interested_in") > 0 ) $search_query .= "request_interested, ";
     if ( intval("$allocated_to") > 0 ) $search_query .= "request_allocated, ";
-    $search_query .= "request, usr, lookup_code AS status ";
+    $search_query .= "request";
+    if ( ! is_member_of('Admin', 'Support') ) {
+      $search_query .= "JOIN work_system USING (system_code) ";
+      $search_query .= "JOIN system_usr ON (work_system.system_code = system_usr.system_code AND system_usr.user_no = $session->user_no) ";
+    }
+    $search_query .= ", usr";
+    $search_query .= ", lookup_code AS status ";
     $search_query .= ", lookup_code AS request_type";
     $search_query .= ", usr AS creator";
 
@@ -133,6 +139,6 @@ $search_query";
   }
 
   $search_query .= " ORDER BY $rlsort $rlseq ";
-  if ( !isset($maxresults) || intval($maxresults) == 0 ) $maxresults = 100;
+  if ( !isset($maxresults) || intval($maxresults) == 0 ) $maxresults = 200;
   $search_query .= " LIMIT $maxresults ";
 ?>

@@ -115,7 +115,8 @@ function nice_time( $in_time ) {
       $query .= " AND request_timesheet.work_charged IS NULL ";
     }
     $query .= " ORDER BY $tlsort $tlseq ";
-    // $query .= " LIMIT 100 ";
+    if ( !isset($maxresults) || intval($maxresults) == 0 ) $maxresults = 1000;
+    $query .= " LIMIT $maxresults ";
     $result = awm_pgexec( $dbconn, $query, 'timelist', FALSE, 7 );
     if ( $result ) {
 
@@ -173,6 +174,7 @@ function nice_time( $in_time ) {
       }
       if (  "$style" != "stripped" ) {
         echo "<p><small>&nbsp;" . pg_NumRows($result) . " timesheets found\n";
+        if ( pg_NumRows($result) == $maxresults ) echo " (limit reached)";
         if ( "$uncharged" != "" ) {
           printf( "<form enctype=\"multipart/form-data\" method=post action=\"%s%s\">\n", $REQUEST_URI, ( ! strpos( $REQUEST_URI, "uncharged" ) ? "&uncharged=1" : ""));
         }
@@ -198,7 +200,7 @@ function nice_time( $in_time ) {
         echo "<td class=sml nowrap>$timesheet->requester_name</td>\n";
         if ( "$GLOBALS[org_code]" == "" )
           echo "<td class=sml nowrap>$timesheet->abbreviation</td>\n";
-        echo "<td class=sml align=center nowrap><a href=\"$base_url/request.php?request_id=$timesheet->request_id\">$timesheet->request_id</a></td>\n";
+        echo "<td class=sml align=center nowrap><a href=\"$base_url/wr.php?request_id=$timesheet->request_id\">$timesheet->request_id</a></td>\n";
         echo "<td class=sml>" . substr( nice_date($timesheet->work_on), 7) . "</td>\n";
         echo "<td class=sml>$timesheet->work_quantity $timesheet->work_units</td>\n";
         echo "<td class=sml align=right>$timesheet->work_rate&nbsp;</td>\n";
@@ -211,7 +213,7 @@ function nice_time( $in_time ) {
         echo "<td class=sml>" . html_format( $timesheet->work_description) . "</td>";
 
         if ( "$uncharged" != "" ) {
-          echo "<td class=sml <a href=\"$base_url/request.php?request_id=$timesheet->request_id\">$timesheet->brief</a></td>\n";
+          echo "<td class=sml <a href=\"$base_url/wr.php?request_id=$timesheet->request_id\">$timesheet->brief</a></td>\n";
           echo "<td class=sml align=right>";
           printf("<input type=\"checkbox\" value=\"1\" id=\"$timesheet->timesheet_id\" name=\"chg_ok[$timesheet->timesheet_id]\"%s>", ( "$timesheet->ok_to_charge" == "t" ? " checked" : ""));
           printf("<input type=hidden name=\"chg_worker[$timesheet->timesheet_id]\" value=\"%s\">", htmlspecialchars($timesheet->worker_name));

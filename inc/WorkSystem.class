@@ -4,62 +4,97 @@
 /////////////////////////////////////////////////////////////
 require_once("html-format.php");
 class WorkSystem {
-   var $system_code;
-   var $new_record;
+  var $system_code;
+  var $new_record;
 
-   function WorkSystem( $id, $new_record = false ) {
-     global $session;
-     if ( !$session->logged_in ) return false;
-     $loaded = false;
-     $id = str_replace("'","''",str_replace("\\","",trim("$id")));
-     if ( $new_record != true ) {
-       // Try and load it from file
-       $sql = "SELECT work_system.* ";
-       $sql .= " FROM work_system ";
-       $sql .= " WHERE work_system.system_code = '$id'";
-       if ( !($session->AllowedTo('Admin') || $session->AllowedTo('Support')) )
-         $sql .= " AND work_system.system_code = '$session->system_code' ";
+  function WorkSystem( $id ) {
+    global $session;
+    if ( !$session->logged_in ) return false;
+    $this->new_record = true;
 
-       if ( $qry = new PgQuery($sql) ) {
-         if ( $qry->Exec("newWorkSystem")
-                  && $qry->rows == 1 && $row = $qry->Fetch() ) {
-           $this->new_record = false;
-           while( list($k,$v) = each($row) ) {
-             if ( isset($debuggroups['WorkSystem']) && $debuggroups['WorkSystem'] ) {
-               error_log( sprintf("%s: DBG: \$this->{'%-25.25s = %s", $sysabbr, "$k'}", $v) );
-             }
-             $this->{$k} = $v;
-           }
-         }
-       }
-     }
-     else {
-       $this->new_record = true;
-       $this->system_code = $id;
-       // Assign some defaults because it looks like we're starting a new one
-       if ( isset($_GET['system_template']) ) {
-         // Oh goody, we can get some defaults from a saved template :-)
-         $loaded = false;  // templates aren't done yet :-(
-       }
-       if ( ! $loaded ) {
-         // Initialise to standard default values
-       }
-     }
-   }
+    $id = str_replace("'","",str_replace("\\","",trim("$id")));
+    if ( $id != "" ) {
+      // Try and load it from file
+      $this->ReadWorkSystem($id);
+    }
+    if ( $this->system_code == "" && ($session->AllowedTo('Admin') || $session->AllowedTo('Support')) ) {
+      $session->Log("DBG: Initialising new work_system values");
+      $GLOBALS['edit'] = 1;
+      $this->new_record = true;
 
-   /////////////////////////////////////////////////////////////
+      // Assign some template-based defaults
+      if ( isset($_GET['user_template']) ) {
+        // templates aren't done yet :-(
+      }
+    }
+    elseif ( $this->system_code == "" ) {
+      return false;
+    }
+  }
+
+  /////////////////////////////////////////////////////////////
+  // ReadWorkSystem - Read the work_system
+  /////////////////////////////////////////////////////////////
+  function ReadWorkSystem( $id )  {
+    global $session, $client_messages, $debuggroups;
+
+    // Try and load it from file
+    $sql = "SELECT work_system.* ";
+    $sql .= " FROM work_system ";
+    $sql .= " WHERE work_system.system_code = '$id'";
+
+    if ( $qry = new PgQuery($sql) ) {
+      if ( $qry->Exec("newWorkSystem")
+              && $qry->rows == 1 && $row = $qry->Fetch() ) {
+
+        $this->system_code = $row->system_code;
+        if ( !$this->AllowedTo('view') ) {
+          unset($GLOBALS['edit']);
+          $this->new_record = true;
+          $this->system_code = "";
+          $client_messages[] = "You may not view this system, or create new systems.";
+          return;
+        }
+        $this->new_record = false;
+        while( list($k,$v) = each($row) ) {
+          if ( isset($debuggroups['WorkSystem']) && $debuggroups['WorkSystem'] ) {
+            $session->Log( "DBG: \$this->{'%-25.25s = %s", $sysabbr, "$k'}", $v );
+          }
+          $this->{$k} = $v;
+        }
+      }
+      else {
+        if ( !$this->AllowedTo('create') ) {
+          unset($GLOBALS['edit']);
+          $client_messages[] = "You may not view this system, or create new systems.";
+        }
+        $this->new_record = true;
+      }
+    }
+  }
+
+  /////////////////////////////////////////////////////////////
   // AllowedTo - Can the user do that to this work_system
-   /////////////////////////////////////////////////////////////
-   function AllowedTo( $action ) {
-     global $session;
-     if ( $session->AllowedTo('Admin') || $session->AllowedTo('Support') ) {
-       return true;  // Of course they can!
-     }
-     elseif ( $action != 'update' ) {
-       return true;
-     }
-     return false;
-   }
+  /////////////////////////////////////////////////////////////
+  function AllowedTo( $action ) {
+    global $session, $debuggroups;
+
+    $answer = false;
+    if ( $session->AllowedTo('Admin') || $session->AllowedTo('Support') ) {
+      $answer = true;  // Of course they can!
+    }
+    elseif ( $action == 'view' && isset($session->system_roles[$this->system_code]) ) {
+      $answer = true;
+    }
+    if ( isset($debuggroups['WorkSystem']) && $debuggroups['WorkSystem'] ) {
+      $roles = "";
+      foreach( $session->system_roles AS $k => $v ) { $roles .= ($roles == "" ? "":",") . "$k=$v"; }
+      $session->Log("WS::AllowedTo: action '%s' to %s, System:%s, SysRole:%s, Roles:%s - result is: %d",
+                        $action, $session->username, $this->system_code, $session->system_roles[$this->system_code],
+                        $roles, $answer );
+    }
+    return $answer;
+  }
 
    /////////////////////////////////////////////////////////////
    // Render - Return HTML to show the W/R
@@ -67,13 +102,16 @@ class WorkSystem {
    //   on the W/R.
    /////////////////////////////////////////////////////////////
    function Render( ) {
-     global $edit;
-     $html = "";
 
-     $ef = new EntryForm( $REQUEST_URI, $this, $edit );
+     if ( ! $this->AllowedTo('view') ) {
+       return;
+     }
+
+     $ef = new EntryForm( $REQUEST_URI, $this, $GLOBALS['edit'] );
      $ef->NoHelp();  // Prefer this style, for the moment
 
-     if ( $edit ) $html .= $ef->StartForm( array("autocomplete" => "off", "onsubmit" => "return CheckWorkSystemForm();" ) );
+     $html = "";
+     if ( $ef->editmode ) $html .= $ef->StartForm( array("autocomplete" => "off", "onsubmit" => "return CheckWorkSystemForm();" ) );
 
      $html .= "<table width=\"100%\" class=\"data\" cellspacing=\"0\" cellpadding=\"0\">\n";
 
@@ -81,7 +119,7 @@ class WorkSystem {
      $html .= $this->RenderOrganisations($ef);
 
      $html .= "</table>\n";
-     if ( $edit ) {
+     if ( $ef->editmode ) {
        $html .= '<div id="footer">';
        $html .= $ef->SubmitButton( "submit", ($this->new_record ? "Create" : "Update") );
        $html .= '</div>';
@@ -93,7 +131,7 @@ class WorkSystem {
 
 
    function RenderDetails( $ef ) {
-     global $edit, $session, $bigboxcols, $bigboxrows;
+     global $session;
      $html = "";
      $html .= $ef->BreakLine("System Details");
 
@@ -112,7 +150,7 @@ class WorkSystem {
    }
 
    function RenderOrganisations( $ef ) {
-     global $session, $system_code;
+     global $session;
      $html = "";
      $sql = "SELECT organisation.*, ";
      $sql .= "exists( SELECT 1 from org_system WHERE org_system.org_code = organisation.org_code AND system_code = ? ) AS applies ";
@@ -171,6 +209,11 @@ class WorkSystem {
      error_log("$system_name: vpw: DBG: Validating work_system");
 
      if ( isset($_POST) ) {
+       if ( ! $this->AllowedTo('update') ) {
+         $client_messages[] = "You may not update this system.";
+         return;
+       }
+
        $valid = true;
        $_POST['active'] = ( isset($_POST['active']) ? $_POST['active'] : 'f' );
 

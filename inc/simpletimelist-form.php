@@ -40,11 +40,11 @@ function nice_time( $in_time ) {
     $selected_a = ( $date_restriction == 'any' ) ? ' selected="selected"' : '';
 
     echo "&nbsp;Show from:&nbsp;<select name=\"date_restriction\">
-	<option value=\"0\"$selected_0>This month</option>
-	<option value=\"1\"$selected_1>Last month</option>
-	<option value=\"2\"$selected_2>2 months ago</option>
-	<option value=\"3\"$selected_3>3 months ago</option>
-	<option value=\"all\"$selected_a>No date restriction</option>
+  <option value=\"0\"$selected_0>This month</option>
+  <option value=\"1\"$selected_1>Last month</option>
+  <option value=\"2\"$selected_2>2 months ago</option>
+  <option value=\"3\"$selected_3>3 months ago</option>
+  <option value=\"all\"$selected_a>No date restriction</option>
 </select>";
 
     echo "<input type=submit class=submit alt=go id=\"go\" name=\"go\" value=\"GO>>\"name=go>
@@ -69,42 +69,43 @@ function nice_time( $in_time ) {
 
     switch ( $date_restriction )
     {
-    	case ( '0' ):
-		$from_date = date('Y/m/') . '1';
-		$query .= " AND request_timesheet.work_on::date >= '$from_date'::date";
-		break;
-	case ( '1' ):
-		$from_date = date('Y/m/', strtotime('-1 month')) . '1';
-		$to_date = date('Y/m/', strtotime('-1 month')) . date('j', strtotime('-1 month'));
-		$query .= " AND request_timesheet.work_on::date >= '$from_date'::date";
-		$query .= " AND request_timesheet.work_on::date <= '$to_date'::date + '23:59'::interval";
-		break;
-	case ( '2' ):
-		$from_date = date('Y/m/', strtotime('-2 months')) . '1';
-		$to_date = date('Y/m/', strtotime('-2 months')) . date('j', strtotime('-2 months'));
-		$query .= " AND request_timesheet.work_on::date >= '$from_date'::date";
-		$query .= " AND request_timesheet.work_on::date <= '$to_date'::date + '23:59'::interval";
-		break;
-	case ( '3' ):
-		$from_date = date('Y/m/', strtotime('-3 months')) . '1';
-		$to_date = date('Y/m/', strtotime('-3 months')) . date('j', strtotime('-3 months'));
-		$query .= " AND request_timesheet.work_on::date >= '$from_date'::date";
-		$query .= " AND request_timesheet.work_on::date <= '$to_date'::date + '23:59'::interval";
-		break;
-	default:
-		if ( isset($from_date) )
-		{
-			$query .= " AND request_timesheet.work_on::date >= '$from_date'::date";
-		}
-		if ( isset($to_date) )
-		{
-			$query .= " AND request_timesheet.work_on::date <= '$to_date'::date";
-		}
-		break;
-	}
+      case ( '0' ):
+    $from_date = date('Y/m/') . '1';
+    $query .= " AND request_timesheet.work_on::date >= '$from_date'::date";
+    break;
+  case ( '1' ):
+    $from_date = date('Y/m/', strtotime('-1 month')) . '1';
+    $to_date = date('Y/m/', strtotime('-1 month')) . date('j', strtotime('-1 month'));
+    $query .= " AND request_timesheet.work_on::date >= '$from_date'::date";
+    $query .= " AND request_timesheet.work_on::date <= '$to_date'::date + '23:59'::interval";
+    break;
+  case ( '2' ):
+    $from_date = date('Y/m/', strtotime('-2 months')) . '1';
+    $to_date = date('Y/m/', strtotime('-2 months')) . date('j', strtotime('-2 months'));
+    $query .= " AND request_timesheet.work_on::date >= '$from_date'::date";
+    $query .= " AND request_timesheet.work_on::date <= '$to_date'::date + '23:59'::interval";
+    break;
+  case ( '3' ):
+    $from_date = date('Y/m/', strtotime('-3 months')) . '1';
+    $to_date = date('Y/m/', strtotime('-3 months')) . date('j', strtotime('-3 months'));
+    $query .= " AND request_timesheet.work_on::date >= '$from_date'::date";
+    $query .= " AND request_timesheet.work_on::date <= '$to_date'::date + '23:59'::interval";
+    break;
+  default:
+    if ( isset($from_date) )
+    {
+      $query .= " AND request_timesheet.work_on::date >= '$from_date'::date";
+    }
+    if ( isset($to_date) )
+    {
+      $query .= " AND request_timesheet.work_on::date <= '$to_date'::date";
+    }
+    break;
+  }
 
     $query .= " ORDER BY $tlsort $tlseq ";
-    // $query .= " LIMIT 100 ";
+    if ( !isset($maxresults) || intval($maxresults) == 0 ) $maxresults = 1000;
+    $query .= " LIMIT 1000 ";
     $result = awm_pgexec( $dbconn, $query, 'simpletimelist', false, 7 );
     if ( $result ) {
 
@@ -113,7 +114,7 @@ function nice_time( $in_time ) {
       if ( isset($user_no) ) $header_cell .= "&amp;user_no=$user_no";
       if ( isset($from_date) ) $header_cell .= "&from_date=$from_date";
       if ( isset($to_date) ) $header_cell .= "&to_date=$to_date";
-	if ( isset($date_restriction) ) $header_cell .= "&amp;date_restriction=$date_restriction";
+  if ( isset($date_restriction) ) $header_cell .= "&amp;date_restriction=$date_restriction";
       if ( isset($incstat) && is_array( $incstat ) ) {
         reset($incstat);
         while( list($k,$v) = each( $incstat ) ) {
@@ -150,6 +151,7 @@ function nice_time( $in_time ) {
       }
       if (  "$style" != "stripped" ) {
         echo "<p><small>&nbsp;" . pg_NumRows($result) . " timesheets found\n";
+        if ( pg_NumRows($result) == $maxresults ) echo " (limit reached)";
         if ( "$uncharged" != "" ) {
           printf( "<form enctype=\"multipart/form-data\" method=post action=\"%s%s\">\n", $REQUEST_URI, ( ! strpos( $REQUEST_URI, "uncharged" ) ? "&uncharged=1" : ""));
         }
@@ -160,7 +162,7 @@ function nice_time( $in_time ) {
       $grand_total = 0.0;
       $total_hours = 0.0;
 
-	$requests = array();
+  $requests = array();
 
       // Build table of organisations found
       for ( $i=0; $i < pg_NumRows($result); $i++ ) {
@@ -172,27 +174,27 @@ function nice_time( $in_time ) {
           case 'days':  $total_hours += doubleval( $timesheet->work_quantity * 8 );  break;
         }
 
-	  $requests[$timesheet->request_id]['hours'] += $timesheet->work_quantity;
-	  $requests[$timesheet->request_id]['name'] = $timesheet->brief;
+    $requests[$timesheet->request_id]['hours'] += $timesheet->work_quantity;
+    $requests[$timesheet->request_id]['name'] = $timesheet->brief;
 
         printf( "<tr class=row%1d>\n", ($i % 2));
 
         echo "<td class=sml nowrap>$timesheet->requester_name</td>\n";
         if ( "$GLOBALS[org_code]" == "" )
           echo "<td class=sml nowrap>$timesheet->abbreviation</td>\n";
-        echo "<td class=sml align=center nowrap><a href=\"$base_url/request.php?request_id=$timesheet->request_id\">$timesheet->request_id</a></td>\n";
+        echo "<td class=sml align=center nowrap><a href=\"$base_url/wr.php?request_id=$timesheet->request_id\">$timesheet->request_id</a></td>\n";
         echo "<td class=sml>" . substr( nice_date($timesheet->work_on), 7) . "</td>\n";
         echo "<td class=sml>$timesheet->work_quantity $timesheet->work_units</td>\n";
         echo "<td class=sml align=right>$timesheet->work_rate&nbsp;</td>\n";
 
-	  if ( "$timesheet->work_charged" == "" ) {
+    if ( "$timesheet->work_charged" == "" ) {
           if ( "$uncharged" == "" ) echo "<td class=sml>uncharged</td>";
         }
         else
           echo "<td class=sml>" . substr( nice_date($timesheet->work_charged), 7) . "</td>";
         echo "<td class=sml>" . html_format( $timesheet->work_description) . "</td>";
 
-        echo "<td class=sml <a href=\"$base_url/request.php?request_id=$timesheet->request_id\">$timesheet->brief</a></td>\n";
+        echo "<td class=sml <a href=\"$base_url/wr.php?request_id=$timesheet->request_id\">$timesheet->brief</a></td>\n";
         echo "</tr>\n";
       }
 
@@ -211,20 +213,20 @@ function nice_time( $in_time ) {
   //
   if ( isset($requests) && is_array($requests) )
   {
-	echo "<table border=0 cellpadding=0 cellspacing=\"1\" align=center class=\"row0\" width=\"65%\" style=\"border: 1px dashed #aaaaaa;\"><tr><td>\n";
-	echo '<tr><th class="cols">Request #</th><th class="cols">Request Name</th><th class="cols">Hours worked</th></tr>';
-	$hours_total = 0.0;
+  echo "<table border=0 cellpadding=0 cellspacing=\"1\" align=center class=\"row0\" width=\"65%\" style=\"border: 1px dashed #aaaaaa;\"><tr><td>\n";
+  echo '<tr><th class="cols">Request #</th><th class="cols">Request Name</th><th class="cols">Hours worked</th></tr>';
+  $hours_total = 0.0;
 
-	foreach ( $requests as $id => $request )
-	{
-		echo '<tr class="row' . $row++ % 2 . '"><td>' . $id . '</td><td>' . $request['name'] . '</td><td align="right">' . $request['hours'] . "</td></tr>\n";
-		$hours_total += $request['hours'];
-	}
-	// Summary row
-	echo '<tr><th class="cols">' . sizeof($requests) . ' requests</th><th class="cols" align="right" colspan="2">' . $hours_total . " hours</th></tr>\n";
-	echo '</table>';
-	//echo '<pre>' . print_r($requests, true) . '</pre>';
-	}
+  foreach ( $requests as $id => $request )
+  {
+    echo '<tr class="row' . $row++ % 2 . '"><td>' . $id . '</td><td>' . $request['name'] . '</td><td align="right">' . $request['hours'] . "</td></tr>\n";
+    $hours_total += $request['hours'];
+  }
+  // Summary row
+  echo '<tr><th class="cols">' . sizeof($requests) . ' requests</th><th class="cols" align="right" colspan="2">' . $hours_total . " hours</th></tr>\n";
+  echo '</table>';
+  //echo '<pre>' . print_r($requests, true) . '</pre>';
+  }
 
     if ( is_member_of('Admin','Support') && ( "$style" != "stripped" )) {
       $this_page = "$PHP_SELF?f=$form&style=%s&format=%s";
@@ -233,7 +235,7 @@ function nice_time( $in_time ) {
       if ( isset($to_date) ) $this_page .= "&to_date=$to_date";
       if ( "$style" != "" ) $this_page .= "&style=$style";
       if ( "$format" != "" ) $this_page .= "&format=$format";
-	if ( isset($date_restriction) ) $this_page .= "&amp;date_restriction=$date_restriction";
+  if ( isset($date_restriction) ) $this_page .= "&amp;date_restriction=$date_restriction";
 
       echo "<br clear=all><hr>\n<table cellpadding=5 cellspacing=5 align=right><tr><td>Rerun as report: </td>\n<td>\n";
       printf( "<a href=\"$this_page\" target=_new>Standard</a>\n", "stripped", "brief");

@@ -7,58 +7,86 @@ class User {
   var $user_no;
   var $new_record;
 
-  function User( $id, $new_record = false ) {
+  function User( $id ) {
     global $session;
+
     $this->user_no = 0;
-    if ( !$session->logged_in ) return false;
-    $loaded = false;
+    $this->new_record = true;
+
     $id = intval("$id");
-    if ( $new_record != true ) {
+    if ( $id > 0 ) {
       // Try and load it from file
-      $sql = "SELECT usr.*, organisation.org_name ";
-      $sql .= " FROM usr  NATURAL JOIN organisation ";
-      $sql .= " WHERE usr.user_no = '$id'";
-      if ( !($session->AllowedTo('Admin') || $session->AllowedTo('Support') || $session->AllowedTo('Manage')) )
-        $sql .= " AND usr.user_no = '$session->user_no' ";
-      else if ( $session->AllowedTo('Manage') && !($session->AllowedTo('Admin') || $session->AllowedTo('Support')) )
-        $sql .= " AND usr.org_code = '$session->org_code' ";
-
-      if ( $qry = new PgQuery($sql) ) {
-        if ( $qry->Exec("newUser")
-                && $qry->rows == 1 && $row = $qry->Fetch() ) {
-          $this->new_record = false;
-          while( list($k,$v) = each($row) ) {
-            if ( isset($debuggroups['User']) && $debuggroups['User'] ) {
-              $session->Log("DBG: \$this->{'%-25.25s = %s", "$k'}", $v);
-            }
-            $this->{$k} = $v;
-          }
-          $this->settings = new Setting( $this->config_data );
-          if ( is_object( $this->settings ) ) {
-            $this->base_font_size = $this->settings->get('fontsize');
-            $this->box_rows  = $this->settings->get('bigboxrows');
-            $this->box_cols  = $this->settings->get('bigboxcols');
-          }
-          if ( "$this->base_font_size" == "" ) $this->base_font_size = "11";
-          if ( "$this->box_rows"  == "" ) $this->box_rows  = "10";
-          if ( "$this->box_cols"  == "" ) $this->box_cols  = "60";
-
-        }
-      }
+      $this->ReadUser($id);
     }
-    else {
+    if ( $this->user_no == 0 ) {
+      $session->Log("DBG: Initialising new user values");
+      $GLOBALS['edit'] = 1;
       $this->new_record = true;
-      $this->user_no = $id;
-      // Assign some defaults because it looks like we're starting a new one
-      if ( isset($_GET['user_template']) ) {
-        // Oh goody, we can get some defaults from a saved template :-)
-        $loaded = false;  // templates aren't done yet :-(
+
+      // Initialise to standard default values
+      $this->base_rate = $session->work_rate;
+      $this->box_rows  = "10";
+      $this->box_cols  = "60";
+
+      if ( isset($GLOBALS['org_code']) && !($session->AllowedTo('Admin') || $session->AllowedTo('Support'))) {
+        $this->org_code = intval($GLOBALS['org_code']);
       }
-      if ( ! $loaded ) {
-        // Initialise to standard default values
+
+      // Assign some template-based defaults
+      if ( isset($_GET['user_template']) ) {
+        // templates aren't done yet :-(
       }
     }
   }
+
+
+  /////////////////////////////////////////////////////////////
+  // ReadUser - Can the user do that?
+  /////////////////////////////////////////////////////////////
+  function ReadUser ( $id ) {
+    global $session, $debuggroups;
+
+    // Try and load it from file
+    $sql = "SELECT usr.*, organisation.org_name ";
+    $sql .= " FROM usr  NATURAL JOIN organisation ";
+    $sql .= " WHERE usr.user_no = '$id'";
+    if ( !($session->AllowedTo('Admin') || $session->AllowedTo('Support')
+            || $session->AllowedTo('Manage') || $session->AllowedTo('OrgMgr')) )
+      $sql .= " AND usr.user_no = '$session->user_no' ";
+    else if ( ($session->AllowedTo('Manage') || $session->AllowedTo('OrgMgr'))
+              && !($session->AllowedTo('Admin') || $session->AllowedTo('Support')) )
+      $sql .= " AND usr.org_code = '$session->org_code' ";
+
+    if ( $qry = new PgQuery($sql) ) {
+      if ( $qry->Exec("newUser")
+              && $qry->rows == 1 && $row = $qry->Fetch() ) {
+        $this->new_record = false;
+        while( list($k,$v) = each($row) ) {
+          if ( isset($debuggroups['User']) && $debuggroups['User'] ) {
+            $session->Log("DBG: \$this->{'%-25.25s = %s", "$k'}", $v);
+          }
+          $this->{$k} = $v;
+        }
+
+        // Load the settings data
+        $this->settings = new Setting( $this->config_data );
+        if ( is_object( $this->settings ) ) {
+          $this->base_font_size = $this->settings->get('fontsize');
+          $this->box_rows  = $this->settings->get('bigboxrows');
+          $this->box_cols  = $this->settings->get('bigboxcols');
+        }
+        if ( "$this->base_font_size" == "" ) $this->base_font_size = "11";
+        if ( "$this->box_rows"  == "" ) $this->box_rows  = "10";
+        if ( "$this->box_cols"  == "" ) $this->box_cols  = "60";
+
+      }
+      else {
+        $this->user_no = 0;
+        unset( $GLOBALS['user_no'] );
+      }
+    }
+  }
+
 
   /////////////////////////////////////////////////////////////
   // AllowedTo - Can the user do that?
@@ -71,18 +99,19 @@ class User {
   }
 
 
-  function GetRoles ()
-  {
+  /////////////////////////////////////////////////////////////
+  // GetRoles - Get the group memberships
+  /////////////////////////////////////////////////////////////
+  function GetRoles () {
     $this->roles = array();
     $qry = new PgQuery( 'SELECT group_name AS role_name FROM group_member m join ugroup g ON g.group_no = m.group_no WHERE user_no = ? ', $this->user_no );
-    if ( $qry->Exec('Login') && $qry->rows > 0 )
-    {
-      while( $role = $qry->Fetch() )
-      {
+    if ( $qry->Exec('Login') && $qry->rows > 0 ) {
+      while( $role = $qry->Fetch() ) {
         $this->roles[$role->role_name] = true;
       }
     }
   }
+
 
   /////////////////////////////////////////////////////////////
   // Render - Return HTML to show the W/R
@@ -90,27 +119,27 @@ class User {
   //   on the W/R.
   /////////////////////////////////////////////////////////////
   function Render( ) {
-    global $session, $edit;
+    global $session;
     $html = "";
 
-    $ef = new EntryForm( $REQUEST_URI, $this, $edit );
+    $ef = new EntryForm( $REQUEST_URI, $this, $GLOBALS['edit'] );
     $ef->NoHelp();  // Prefer this style, for the moment
 
-    if ( $edit ) $html .= $ef->StartForm( array("autocomplete" => "off", "onsubmit" => "return CheckUserForm();" ) );
+    if ( $ef->editmode ) $html .= $ef->StartForm( array("autocomplete" => "off", "onsubmit" => "return CheckUserForm();" ) );
 
     $html .= "<table width=\"100%\" class=\"data\" cellspacing=\"0\" cellpadding=\"0\">\n";
 
     $html .= $this->RenderDetails($ef);
 
-    if ( $session->AllowedTo("Admin") || $session->AllowedTo("Support") || $session->AllowedTo("Manage") ) {
+    if ( $session->AllowedTo("Admin") || $session->AllowedTo("Support")
+            || $session->AllowedTo("OrgMgr") || $session->AllowedTo("Manage") ) {
       $html .= $this->RenderAccessRoles($ef);
     }
     $html .= $this->RenderFontChoices($ef);
     $html .= $this->RenderSystemRoles($ef);
-    $html .= $this->RenderOrganisationRoles($ef);
 
     $html .= "</table>\n";
-    if ( $edit ) {
+    if ( $ef->editmode ) {
       $html .= '<div id="footer">';
       $html .= $ef->SubmitButton( "submit", ($this->new_record ? "Create" : "Update") );
       $html .= '</div>';
@@ -122,13 +151,15 @@ class User {
 
 
   function RenderDetails( $ef ) {
-    global $edit, $session, $bigboxcols, $bigboxrows;
+    global $session;
     $html = "";
     $html .= $ef->BreakLine("System Details");
 
     $html .= $ef->DataEntryLine( "User Name", "%s", "text", "username",
               array( "size" => 20, "title" => "The name this user can log into the system with.") );
-    if ( $ef->editmode ) {
+    if ( $ef->editmode
+       && ($session->AllowedTo("Admin") || $session->AllowedTo("Support")
+             || $session->AllowedTo("OrgMgr") ) ) {
       $this->new_password = '******';
       unset($_POST['new_password']);
       $html .= $ef->DataEntryLine( "New Password", "%s", "password", "new_password",
@@ -230,28 +261,28 @@ class User {
     $sql = "SELECT * FROM ugroup LEFT JOIN group_member ";
     $sql .= "ON (ugroup.group_no = group_member.group_no AND group_member.user_no = $this->user_no) ";
     if ( ! $session->AllowedTo('Admin') ) {
-      $sql .= "WHERE EXISTS(SELECT 1 from group_member gm WHERE gm.user_no=$session->user_no AND gm.group_no=group_member.group_no) ";
+      $sql .= "WHERE EXISTS(SELECT 1 from group_member gm WHERE gm.user_no=$session->user_no AND gm.group_no=ugroup.group_no) ";
     }
-    $sql .= "ORDER BY ugroup.group_no";
+    $sql .= "ORDER BY ugroup.seq, ugroup.group_no";
 
 
     # Select the records
     $q = new PgQuery($sql, $user_no, $user_no);
-    if ( $q && $q->Exec() && $q->rows ) {
+    if ( $q && $q->Exec("User::RndrAccessRoles") && $q->rows ) {
       $html .= '<tr><th class="prompt">User Roles</th><td class="entry">';
 
       $i=0;
       while( $row = $q->Fetch() ) {
         if ( $ef->editmode ) {
-          $this->group_member[$row->group_no] = 't';
-          $html .= $ef->DataEntryField( "", "checkbox", "group_member[$row->group_no]",
-                array("title" => "Is this user a member of this group?" ) );
-          $html .= " " . ucfirst($row->module_name) . " $row->group_name ";
+          if ( $row->user_no != "" ) $this->group_member[$row->group_name] = 't';
+          $html .= $ef->DataEntryField( "", "checkbox", "group_member[$row->group_name]",
+                array("title" => "Is this user a member of this group?",
+                      "_label" => "$row->group_name" ) );
         }
         else {
           if ( $row->user_no != "" ) {
             if ( $i++ > 0 ) $html .= ", ";
-            $html .= ucfirst($row->module_name) . " " . $row->group_name;
+            $html .= $row->group_name;
           }
         }
       }
@@ -268,7 +299,7 @@ class User {
 
     $sql = "SELECT lookup_code, lookup_desc FROM lookup_code ";
     $sql .= "WHERE source_table = 'system_usr' AND source_field = 'role' ORDER BY lookup_seq;";
-    $q = new PgQuery($sql, $user_no, $user_no);
+    $q = new PgQuery($sql);
     if ( $q && $q->Exec("User::RenderSystemRoles1") && $q->rows ) {
       $roles = array('_' => '-- No Access --');
       while( $row = $q->Fetch() ) {
@@ -278,6 +309,7 @@ class User {
       }
     }
 
+    if ( intval("$this->user_no") == 0 ) return;
     $sql = "SELECT work_system.*, system_usr.role ";
     $sql .= "FROM work_system LEFT JOIN system_usr ";
     $sql .= "ON (work_system.system_code = system_usr.system_code AND system_usr.user_no = $this->user_no) ";
@@ -309,7 +341,7 @@ class User {
         $html .= "<a href=\"/system.php?system_code=$row->system_code\">$row->system_desc</a>";
         $html .= "</td>";
         $html .= '<td class="entry">';
-        if ( $ef->editmode  && ($session->AllowedTo('Admin') || $session->AllowedTo('Support')) ) {
+        if ( $ef->editmode  && ($session->AllowedTo('Admin') || $session->AllowedTo('Support') || $session->AllowedTo('OrgMgr')) ) {
           $options = array_merge($roles, array("title" => "Select the role this person has in relation to this system"));
           $html .= sprintf("<span style=\"color: %s; white-space: normal;\">", ( "$row->role" == "" ? "black" : "red") );
           $this->role[$row->system_code] = $row->role;
@@ -328,10 +360,6 @@ class User {
   }
 
 
-  function RenderOrganisationRoles( $ef ) {
-    global $session;
-  }
-
   function Validate( $ef ) {
     global $session, $client_messages;
     $session->Log("DBG: User::Validate: Validating user");
@@ -345,6 +373,17 @@ class User {
         $valid = false;
       }
 
+      if ( !($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) ) {
+        if ( $this->user_no == 0 )
+          $_POST['org_code'] = $session->org_code;
+        else
+          unset($_POST['org_code']);
+      }
+      if ( isset($_POST['org_code']) && intval($_POST['org_code']) == 0 ) {
+        $client_messages[] = "ERROR: The organisation must be selected.";
+        $valid = false;
+      }
+
       return $valid;
     }
 
@@ -352,12 +391,14 @@ class User {
     return false;
   }
 
+
   function Write( $ef ) {
     global $session, $client_messages;
 
     $session->Log("DBG: User::Write: Writing usr form details to database");
     $client_messages[] = "Writing user details to database.";
 
+    $db_errors = false;
     $qry = new PgQuery("BEGIN");   $qry->Exec("User::Write");
 
     if ( !is_object($this->settings)) $this->settings = new Setting;
@@ -378,26 +419,70 @@ class User {
       unset($_POST['password']);
     }
 
-    $sql = sql_from_post( $_POST['submit'], "usr", "WHERE user_no='$this->user_no'");
-    $qry = new PgQuery($sql);
-    if ( !$qry->Exec("User::Write") ) $client_messages[] = "ERROR: $qry->errorstring";
+    $this->chtype = strtolower($_POST['submit']);
 
-    $systems = "";
-    $role_update = "";
-    while( list($k,$v) = each($_POST['role']) ) {
-      if ( $v ) {
-        $systems .= ( "$systems" == "" ? "" : ", " );
-        $systems .= "'" . str_replace("'","''",str_replace('\\','', $k)) . "'";
-        $role_update .= "SELECT set_system_role($this->user_no,'" . str_replace("'","''",str_replace('\\','', $k))
-                        . "','" . str_replace("'","''",str_replace('\\','', $v)) . "');";
+    $sql = sql_from_post( $this->chtype, "usr", "WHERE user_no='$this->user_no'");
+    $qry = new PgQuery($sql);
+    if ( !$qry->Exec("User::Write") ) {
+      $client_messages[] = "ERROR: $qry->errorstring";
+      $db_errors = true;
+    }
+    else {
+      // If we are creating a new record, we need to grab the ID that it got
+      if ( "create" == $this->chtype ) {
+        // Fetch the user_no for this record.
+        $sql = "SELECT currval('usr_user_no_seq');";
+        $qry = new PgQuery($sql);
+        $qry->Exec("User::Write");
+        $row = $qry->Fetch(true);    // Fetch results as array
+        $GLOBALS['user_no'] = $row[0];
+        $GLOBALS['edit'] = 1;    // Assume we want further editing
+
+        // Fetch the other details for the request and assign them into this object.
+        $this->ReadUser($GLOBALS['user_no']);
       }
     }
-    if ( $systems == "" )
-      $sql = "DELETE FROM system_usr WHERE user_no = '$this->user_no';";
-    else
-      $sql = "DELETE FROM system_usr WHERE user_no = '$this->user_no' AND system_code NOT IN ( $systems ); $role_update";
-    $qry = new PgQuery($sql);
-    if ( !$qry->Exec("Sys::Write") ) $client_messages[] = "ERROR: $qry->errorstring";
+
+    if ( isset($_POST['group_member']) && is_array($_POST['group_member']) ) {
+      $groups = "";
+      foreach( $_POST['group_member'] AS $k => $v ) {
+        if ( $v ) {
+          $groups .= ( "$groups" == "" ? "" : ", " );
+          $groups .= qpg($k);
+        }
+      }
+      if ( $groups == "" )
+        $sql = "DELETE FROM group_member WHERE user_no = '$this->user_no';";
+      else {
+        $sql = "DELETE FROM group_member WHERE user_no = '$this->user_no' ";
+        $sql .= "AND group_no NOT IN ( SELECT group_no FROM ugroup WHERE group_name IN ($groups) );";
+        $sql .= "INSERT INTO group_member ( group_no, user_no) ";
+        $sql .=   "SELECT group_no, $this->user_no FROM ugroup WHERE group_name IN ( $groups ) ";
+        $sql .=     "EXCEPT SELECT group_no, user_no FROM group_member;";
+      }
+      // echo "<p>$sql</p>";
+      $qry = new PgQuery($sql);
+      if ( !$qry->Exec("Sys::Write") ) $client_messages[] = "ERROR: $qry->errorstring";
+    }
+
+    if ( isset($_POST['role']) && is_array($_POST['role']) ) {
+      $systems = "";
+      $role_update = "";
+      while( list($k,$v) = each($_POST['role']) ) {
+        if ( $v ) {
+          $systems .= ( "$systems" == "" ? "" : ", " );
+          $systems .= "'" . str_replace("'","''",str_replace('\\','', $k)) . "'";
+          $role_update .= "SELECT set_system_role($this->user_no,'" . str_replace("'","''",str_replace('\\','', $k))
+                          . "','" . str_replace("'","''",str_replace('\\','', $v)) . "');";
+        }
+      }
+      if ( $systems == "" )
+        $sql = "DELETE FROM system_usr WHERE user_no = '$this->user_no';";
+      else
+        $sql = "DELETE FROM system_usr WHERE user_no = '$this->user_no' AND system_code NOT IN ( $systems ); $role_update";
+      $qry = new PgQuery($sql);
+      if ( !$qry->Exec("Sys::Write") ) $client_messages[] = "ERROR: $qry->errorstring";
+    }
 
     $qry = new PgQuery("COMMIT;");  $qry->Exec("Sys::Write");
 

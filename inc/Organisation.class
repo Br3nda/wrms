@@ -4,453 +4,500 @@
 /////////////////////////////////////////////////////////////
 require_once("html-format.php");
 class Organisation {
-   var $org_code;
-   var $new_record;
+  var $org_code;
+  var $new_record;
 
-   function Organisation( $id = 0 ) {
-     global $session;
-     if ( !$session->logged_in ) return false;
-     $loaded = false;
-     $id = intval("$id");
-     if ( $id > 0 ) {
-       // Try and load it from file
-       $sql = "SELECT organisation.* ";
-       $sql .= " FROM organisation ";
-       $sql .= " WHERE organisation.org_code = '$id'";
-       if ( !($session->AllowedTo('Admin') || $session->AllowedTo('Support')) )
-         $sql .= " AND organisation.org_code = '$session->org_code' ";
+  function Organisation( $id = 0 ) {
+    global $session;
+    if ( !$session->logged_in ) return false;
+    $loaded = false;
+    $id = intval("$id");
+    if ( $id > 0 ) {
+      $this->ReadOrganisation($id);
+    }
+    else {
+      $this->new_record = true;
+      $this->org_code = 0;
+      // Assign some defaults because it looks like we're starting a new one
+      if ( isset($_GET['org_template']) ) {
+        // Oh goody, we could get some defaults from a saved template :-)
+      }
+    }
+    if ( ! $this->AllowedTo('update') ) {
+      unset($GLOBALS['edit']);
+    }
+  }
 
-       if ( $qry = new PgQuery($sql) ) {
-         if ( $qry->Exec("newOrganisation")
-                  && $qry->rows == 1 && $row = $qry->Fetch() ) {
-           $this->new_record = false;
-           while( list($k,$v) = each($row) ) {
-             if ( isset($debuggroups['Organisation']) && $debuggroups['Organisation'] ) {
-               error_log( sprintf("%s: DBG: \$this->{'%-25.25s = %s", $sysabbr, "$k'}", $v) );
-             }
-             $this->{$k} = $v;
-           }
-         }
-       }
-     }
-     else {
-       $this->new_record = true;
-       $this->org_code = 0;
-       // Assign some defaults because it looks like we're starting a new one
-       if ( isset($_GET['org_template']) ) {
-         // Oh goody, we can get some defaults from a saved template :-)
-         $loaded = false;  // templates aren't done yet :-(
-       }
-       if ( ! $loaded ) {
-         // Initialise to standard default values
-       }
-     }
-   }
-
-   /////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////
   // AllowedTo - Can the user do that to this rorganisation
-   /////////////////////////////////////////////////////////////
-   function AllowedTo( $action ) {
-     return true;  // Of course they can!
-   }
+  /////////////////////////////////////////////////////////////
+  function ReadOrganisation( $id ) {
+    global $session, $client_messages, $debuggroups;
 
-   /////////////////////////////////////////////////////////////
-   // Render - Return HTML to show the W/R
-   //   A separate function is called for each logical area
-   //   on the W/R.
-   /////////////////////////////////////////////////////////////
-   function Render( ) {
-     global $edit;
-     $html = "";
+    // Try and load it from file
+    $sql = "SELECT organisation.* ";
+    $sql .= " FROM organisation ";
+    $sql .= " WHERE organisation.org_code = '$id'";
+    if ( !($session->AllowedTo('Admin') || $session->AllowedTo('Support')) )
+      $sql .= " AND organisation.org_code = '$session->org_code' ";
 
-     $ef = new EntryForm( $REQUEST_URI, $this, $edit );
-     $ef->NoHelp();  // Prefer this style, for the moment
+    if ( $qry = new PgQuery($sql) ) {
+      if ( $qry->Exec("newOrganisation")
+              && $qry->rows == 1 && $row = $qry->Fetch() ) {
+        $this->org_code = $row->org_code;
+        if ( !$this->AllowedTo('view') ) {
+          unset($GLOBALS['edit']);
+          $this->new_record = true;
+          $this->org_code = 0;
+          $client_messages[] = "You may not view this system, or create new systems.";
+          return;
+        }
 
-     if ( $edit ) $html .= $ef->StartForm( array("autocomplete" => "off", "onsubmit" => "return CheckOrganisationForm();" ) );
-
-     $html .= "<table width=\"100%\" class=\"data\" cellspacing=\"0\" cellpadding=\"0\">\n";
-
-     $html .= $this->RenderDetails($ef);
-     $html .= $this->RenderSystems($ef);
-     $html .= $this->RenderTags($ef);
-     $html .= $this->RenderActions($ef);
-
-     $html .= "</table>\n";
-     if ( $edit ) {
-       $html .= '<div id="footer">';
-       $html .= $ef->SubmitButton( "submit", ($this->new_record ? "Create" : "Update") );
-       $html .= '</div>';
-       $html .= $ef->EndForm();
-     }
-
-     return $html;
-   }
+        $this->new_record = false;
+        while( list($k,$v) = each($row) ) {
+          if ( isset($debuggroups['Organisation']) && $debuggroups['Organisation'] ) {
+            error_log( sprintf("%s: DBG: \$this->{'%-25.25s = %s", $sysabbr, "$k'}", $v) );
+          }
+          $this->{$k} = $v;
+        }
+      }
+      else {
+        if ( !$this->AllowedTo('create') ) {
+          unset($GLOBALS['edit']);
+          $client_messages[] = "You may not view this organisation, or create new organisations.";
+        }
+        $this->new_record = true;
+      }
+    }
+  }
 
 
-   function RenderDetails( $ef ) {
-     global $edit, $session, $bigboxcols, $bigboxrows;
-     $html = "";
-     $html .= $ef->BreakLine("Organisation Details");
-     if ( !$this->new_record ) {
-       $html .= $ef->DataEntryLine( "Org. Code", "$this->org_code");
-     }
+  /////////////////////////////////////////////////////////////
+  // AllowedTo - Can the user do that to this rorganisation
+  /////////////////////////////////////////////////////////////
+  function AllowedTo( $action ) {
+    global $session, $debuggroups;
 
-     // Name
-     $html .= $ef->DataEntryLine( "Name", "%s", "text", "org_name",
-               array( "size" => 70, "title" => "The name of the organisation.") );
+    $answer = false;
+    if ( $session->AllowedTo('Admin') || $session->AllowedTo('Support') ) {
+      $answer = true;  // Of course they can!
+    }
+    elseif ( $action == 'view' && $session->org_code == $this->org_code ) {
+      $answer = true;
+    }
+    elseif ( $action == 'update' && $session->org_code == $this->org_code
+                && ($session->AllowedTo("Manage") || $session->AllowedTo("OrgMgr"))) {
+      $answer = true;
+    }
+    if ( isset($debuggroups['WorkSystem']) && $debuggroups['WorkSystem'] ) {
+      $roles = "";
+      foreach( $session->system_roles AS $k => $v ) { $roles .= ($roles == "" ? "":",") . "$k=$v"; }
+      $session->Log("WS::AllowedTo: action '%s' to %s, Org:%d, userOrg:%d - result is: %d",
+                        $action, $session->username, $this->org_code, $session->org_code, $answer );
+    }
+    return $answer;
+  }
 
-     // Abbreviation
-     $html .= $ef->DataEntryLine( "Abbrev", $this->abbreviation, "text", "abbreviation",
-               array("size" => "8", "title" => "A short abbreviation for the organisation.") );
+  /////////////////////////////////////////////////////////////
+  // Render - Return HTML to show the W/R
+  //   A separate function is called for each logical area
+  //   on the W/R.
+  /////////////////////////////////////////////////////////////
+  function Render( ) {
 
-     // Active?
-     $html .= $ef->DataEntryLine( "Active?", ($this->active == 't' ? "Active" : "Inactive"), "checkbox", "active",
-               array("title" => "Does this organisation have an SLA?") );
+    if ( ! $this->AllowedTo('view') ) {
+      return;
+    }
 
-     // SLA?
-     $html .= $ef->DataEntryLine( "SLA?", ($this->current_sla == 't' ? "Current SLA" : "No SLA"), "checkbox", "current_sla",
-               array("title" => "Does this organisation have an SLA?") );
+    $html = "";
 
-     // Debtor
-     $html .= $ef->DataEntryLine( "Debtor #", $this->debtor_no, "integer", "debtor_no",
-               array("size" => "5", "title" => "The code for this organisation in the accounting system.") );
+    $ef = new EntryForm( $REQUEST_URI, $this, $GLOBALS['edit'] );
+    $ef->NoHelp();  // Prefer this style, for the moment
 
-     // Hourly Rate
-     $html .= $ef->DataEntryLine( "Hourly Rate", $this->work_rate, "numeric", "work_rate",
-               array("size" => "8", "title" => "The default hourly rate for this organisation.") );
+    if ( $ef->editmode ) $html .= $ef->StartForm( array("autocomplete" => "off", "onsubmit" => "return CheckOrganisationForm();" ) );
 
-     return $html;
-   }
+    $html .= "<table width=\"100%\" class=\"data\" cellspacing=\"0\" cellpadding=\"0\">\n";
 
-   function RenderSystems( $ef ) {
-     global $session, $org_code;
-     $html = "";
-     $sql = "SELECT work_system.*, ";
-     $sql .= "exists( SELECT 1 from org_system WHERE org_system.system_code = work_system.system_code AND org_code = $org_code ) AS applies ";
-     if ( $ef->editmode && ($session->AllowedTo('Admin') || $session->AllowedTo('Support')) ) {
-       $sql .= "FROM work_system ";
-       $sql .= "WHERE active ";
-     }
-     elseif ( $session->AllowedTo('Admin') || $session->AllowedTo('Support') ) {
-       $sql .= "FROM work_system JOIN org_system ON ( work_system.system_code = org_system.system_code ) ";
-       $sql .= "WHERE active AND org_system.org_code = $org_code ";
-     }
-     else {
-       $sql .= "FROM work_system JOIN org_system ON ( work_system.system_code = org_system.system_code ) ";
-       $sql .= "WHERE active AND org_system.org_code = $session->org_code ";
-     }
-     $sql .= "ORDER BY system_desc";
+    $html .= $this->RenderDetails($ef);
+    $html .= $this->RenderSystems($ef);
+    $html .= $this->RenderTags($ef);
+    $html .= $this->RenderActions($ef);
 
-     # Select the records
-     $q = new PgQuery($sql);
-     $column = 0;
-     if ( $q && $q->Exec() && $q->rows ) {
-       $html .= $ef->BreakLine("Active Systems");
-       $html .= '<tr><td colspan="2"><table>'."\n";
+    $html .= "</table>\n";
+    if ( $ef->editmode ) {
+      $html .= '<div id="footer">';
+      $html .= $ef->SubmitButton( "submit", ($this->new_record ? "Create" : "Update") );
+      $html .= '</div>';
+      $html .= $ef->EndForm();
+    }
+
+    return $html;
+  }
+
+
+  function RenderDetails( $ef ) {
+    global $edit, $session, $bigboxcols, $bigboxrows;
+    $html = "";
+    $html .= $ef->BreakLine("Organisation Details");
+    if ( !$this->new_record ) {
+      $html .= $ef->DataEntryLine( "Org. Code", "$this->org_code");
+    }
+
+    // Name
+    $html .= $ef->DataEntryLine( "Name", "%s", "text", "org_name",
+              array( "size" => 70, "title" => "The name of the organisation.") );
+
+    // Abbreviation
+    $html .= $ef->DataEntryLine( "Abbrev", $this->abbreviation, "text", "abbreviation",
+              array("size" => "8", "title" => "A short abbreviation for the organisation.") );
+
+    // Active?
+    $html .= $ef->DataEntryLine( "Active?", ($this->active == 't' ? "Active" : "Inactive"), "checkbox", "active",
+              array("title" => "Does this organisation have an SLA?") );
+
+    if ( $this->AllowedTo('adminfields') ) {
+      $html .= $ef->DataEntryLine( "SLA?", ($this->current_sla == 't' ? "Current SLA" : "No SLA"), "checkbox", "current_sla",
+                array("title" => "Does this organisation have an SLA?") );
+
+      $html .= $ef->DataEntryLine( "Debtor #", $this->debtor_no, "integer", "debtor_no",
+                array("size" => "5", "title" => "The code for this organisation in the accounting system.") );
+
+      $html .= $ef->DataEntryLine( "Hourly Rate", $this->work_rate, "numeric", "work_rate",
+                array("size" => "8", "title" => "The default hourly rate for this organisation.") );
+    }
+
+    return $html;
+  }
+
+  function RenderSystems( $ef ) {
+    global $session, $org_code;
+    $html = "";
+    $sql = "SELECT work_system.*, ";
+    $sql .= "exists( SELECT 1 from org_system WHERE org_system.system_code = work_system.system_code AND org_code = $org_code ) AS applies ";
+    if ( $ef->editmode && ($session->AllowedTo('Admin') || $session->AllowedTo('Support')) ) {
+      $sql .= "FROM work_system ";
+      $sql .= "WHERE active ";
+    }
+    elseif ( $session->AllowedTo('Admin') || $session->AllowedTo('Support') ) {
+      $sql .= "FROM work_system JOIN org_system ON ( work_system.system_code = org_system.system_code ) ";
+      $sql .= "WHERE active AND org_system.org_code = $org_code ";
+    }
+    else {
+      $sql .= "FROM work_system JOIN org_system ON ( work_system.system_code = org_system.system_code ) ";
+      $sql .= "WHERE active AND org_system.org_code = $session->org_code ";
+    }
+    $sql .= "ORDER BY system_desc";
+
+    # Select the records
+    $q = new PgQuery($sql);
+    $column = 0;
+    if ( $q && $q->Exec() && $q->rows ) {
+      $html .= $ef->BreakLine("Active Systems");
+      $html .= '<tr><td colspan="2"><table>'."\n";
 //       $html .= '<tr><th class="pcol" colspan="3">System</th>';
-       while( $row = $q->Fetch() ) {
-         if ( $column % 3 == 0 ) $html .= "<tr>";
-         $html .= "<td width=\"33%\">";
-         if ( $ef->editmode  && ($session->AllowedTo('Admin') || $session->AllowedTo('Support')) ) {
-           $ef->record->applies[$row->system_code] = "$row->applies";
-           $html .= sprintf("<label style=\"color: %s\">", ( "$row->applies" == "t" ? "red" : "black") );
-           $html .= $ef->DataEntryField( "", "checkbox", "applies[$row->system_code]",
-                 array("title" => "Is this system active for this organisation?" ) );
-           $html .= " $row->system_desc</label>";
-         }
-         else {
-           $html .= "<a href=\"/system.php?system_code=$row->system_code\">$row->system_desc</a>";
-         }
-         $html .= "</td>";
-         if ( ++$column % 3 == 0 ) $html .= "</tr>";
-       }
-     }
-     while ( $column % 3 != 0 ) {
-       $html .= "<td></td>";
-       if ( ++$column % 3 == 0 ) $html .= "</tr>";
-     }
-     $html .= '</table></td></tr>'."\n";
+      while( $row = $q->Fetch() ) {
+        if ( $column % 3 == 0 ) $html .= "<tr>";
+        $html .= "<td width=\"33%\">";
+        if ( $ef->editmode  && ($session->AllowedTo('Admin') || $session->AllowedTo('Support')) ) {
+          $ef->record->applies[$row->system_code] = "$row->applies";
+          $html .= sprintf("<label style=\"color: %s\">", ( "$row->applies" == "t" ? "red" : "black") );
+          $html .= $ef->DataEntryField( "", "checkbox", "applies[$row->system_code]",
+                array("title" => "Is this system active for this organisation?" ) );
+          $html .= " $row->system_desc</label>";
+        }
+        else {
+          $html .= "<a href=\"/system.php?system_code=$row->system_code\">$row->system_desc</a>";
+        }
+        $html .= "</td>";
+        if ( ++$column % 3 == 0 ) $html .= "</tr>";
+      }
+    }
+    while ( $column % 3 != 0 ) {
+      $html .= "<td></td>";
+      if ( ++$column % 3 == 0 ) $html .= "</tr>";
+    }
+    $html .= '</table></td></tr>'."\n";
 
-     return $html;
-   }
+    return $html;
+  }
 
-   function RenderTags( $ef ) {
-     global $session, $org_code;
-     $html = "";
-     $sql = "SELECT * ";
-     $sql .= "FROM organisation_tag  ";
-     if ( $session->AllowedTo('Admin') || $session->AllowedTo('Support') ) {
-       $sql .= "WHERE organisation_tag.org_code = ".intval($org_code);
-     }
-     else {
-       $sql .= "WHERE organisation_tag.org_code = ".intval($session->org_code);
-     }
-     $sql .= "ORDER BY tag_sequence, lower(tag_description)";
+  function RenderTags( $ef ) {
+    global $session, $org_code;
+    $html = "";
+    $sql = "SELECT * ";
+    $sql .= "FROM organisation_tag  ";
+    if ( $session->AllowedTo('Admin') || $session->AllowedTo('Support') ) {
+      $sql .= "WHERE organisation_tag.org_code = ".intval($org_code);
+    }
+    else {
+      $sql .= "WHERE organisation_tag.org_code = ".intval($session->org_code);
+    }
+    $sql .= "ORDER BY tag_sequence, lower(tag_description)";
 
-     # Select the records
-     $q = new PgQuery($sql);
-     $column = 0;
-     $html .= $ef->BreakLine("Organisation Tags for Requests");
-     if ( $q && $q->Exec() && $q->rows ) {
-       $html .= '<tr><th class="prompt">&nbsp;</th><td><table>'."\n";
+    # Select the records
+    $q = new PgQuery($sql);
+    $column = 0;
+    $html .= $ef->BreakLine("Organisation Tags for Requests");
+    if ( $q && $q->Exec() && $q->rows ) {
+      $html .= '<tr><th class="prompt">&nbsp;</th><td><table>'."\n";
 
-       while( $row = $q->Fetch() ) {
-         if ( $column % 3 == 0 ) $html .= "<tr>";
-         $html .= "<td width=\"33%\">";
-         if ( $ef->editmode  && ($session->AllowedTo('Admin') || $session->AllowedTo('Support')) ) {
-           $ef->record->tag_active[$row->tag_id] = "$row->active";
-           error_log( "Tag active: $row->tag_id, $row->active" );
-           $_POST['tag_active'][$row->tag_id] = $row->active;
-           $html .= sprintf("<label style=\"color: %s\">", ( "$row->active" != "t" ? "darkgrey" : "black") );
-           $html .= $ef->DataEntryField( "", "checkbox", "tag_active[$row->tag_id]",
-                 array("title" => "Is this request tag active for this organisation?" ) );
-           $html .= " $row->tag_description</label>";
-         }
-         else {
-           $html .= "$row->tag_description";
-         }
-         $html .= "</td>";
-         if ( ++$column % 3 == 0 ) $html .= "</tr>";
-       }
+      while( $row = $q->Fetch() ) {
+        if ( $column % 3 == 0 ) $html .= "<tr>";
+        $html .= "<td width=\"33%\">";
+        if ( $ef->editmode  && ($session->AllowedTo('Admin') || $session->AllowedTo('Support')) ) {
+          $ef->record->tag_active[$row->tag_id] = "$row->active";
+          error_log( "Tag active: $row->tag_id, $row->active" );
+          $_POST['tag_active'][$row->tag_id] = $row->active;
+          $html .= sprintf("<label style=\"color: %s\">", ( "$row->active" != "t" ? "darkgrey" : "black") );
+          $html .= $ef->DataEntryField( "", "checkbox", "tag_active[$row->tag_id]",
+                array("title" => "Is this request tag active for this organisation?" ) );
+          $html .= " $row->tag_description</label>";
+        }
+        else {
+          $html .= "$row->tag_description";
+        }
+        $html .= "</td>";
+        if ( ++$column % 3 == 0 ) $html .= "</tr>";
+      }
 
-       while ( $column % 3 != 0 ) {
-       $html .= "<td></td>";
-         if ( ++$column % 3 == 0 ) $html .= "</tr>";
-       }
-       $html .= '</table></td></tr>'."\n";
-     }
+      while ( $column % 3 != 0 ) {
+      $html .= "<td></td>";
+        if ( ++$column % 3 == 0 ) $html .= "</tr>";
+      }
+      $html .= '</table></td></tr>'."\n";
+    }
 
-     if ( $ef->editmode && ($session->AllowedTo('Admin') || $session->AllowedTo('Support')) ) {
-       // New tag - always force field value to blank - if we're rendering we've written it already...
-       $_POST['new_tag'] = '';
-       $html .= $ef->DataEntryLine( "New W/R Tag", '', "text", "new_tag",
-                 array("size" => "20", "title" => "Enter a new tag to classify W/Rs for this organisation.") );
-     }
+    if ( $ef->editmode && $this->AllowedTo('update') ) {
+      // New tag - always force field value to blank - if we're rendering we've written it already...
+      $_POST['new_tag'] = '';
+      $html .= $ef->DataEntryLine( "New W/R Tag", '', "text", "new_tag",
+                array("size" => "20", "title" => "Enter a new tag to classify W/Rs for this organisation.") );
+    }
 
-     return $html;
-   }
-
-
-   function RenderActions( $ef ) {
-     global $session, $org_code;
-     $html = "";
-     $sql = "SELECT * ";
-     $sql .= "FROM organisation_action  ";
-     if ( $session->AllowedTo('Admin') || $session->AllowedTo('Support') ) {
-       $sql .= "WHERE organisation_action.org_code = ".intval($org_code);
-     }
-     else {
-       $sql .= "WHERE organisation_action.org_code = ".intval($session->org_code);
-     }
-     $sql .= "ORDER BY action_sequence, lower(action_description)";
-
-     # Select the records
-     $q = new PgQuery($sql);
-     $column = 0;
-     $max_sequence = 100;
-     $html .= $ef->BreakLine("Required Actions for Requests");
-     if ( $q && $q->Exec() && $q->rows ) {
-       $html .= '<tr><th class="prompt">&nbsp;</th><td><table>'."\n";
-
-       while( $row = $q->Fetch() ) {
-         if ( $row->action_sequence >= $max_sequence ) $max_sequence = $row->action_sequence + 100;
-         if ( $column % 3 == 0 ) $html .= "<tr>";
-         $html .= "<td width=\"33%\">";
-         if ( $ef->editmode  && ($session->AllowedTo('Admin') || $session->AllowedTo('Support')) ) {
-           $ef->record->action_active[$row->action_id] = "$row->active";
-           error_log( "Action active: $row->action_id, $row->active" );
-           $_POST['action_active'][$row->action_id] = $row->active;
-           $html .= sprintf("<label style=\"color: %s\">", ( "$row->active" != "t" ? "darkgrey" : "black") );
-           $html .= $ef->DataEntryField( "", "checkbox", "action_active[$row->action_id]",
-                 array("title" => "Is this request action active for this organisation?" ) );
-           $html .= " $row->action_description</label>";
-         }
-         else {
-           $html .= "$row->action_description";
-         }
-         $html .= "</td>";
-         if ( ++$column % 3 == 0 ) $html .= "</tr>";
-       }
-
-       while ( $column % 3 != 0 ) {
-       $html .= "<td></td>";
-         if ( ++$column % 3 == 0 ) $html .= "</tr>";
-       }
-       $html .= '</table></td></tr>'."\n";
-     }
-
-     if ( $ef->editmode && ($session->AllowedTo('Admin') || $session->AllowedTo('Support')) ) {
-       $ef->TempLineFormat();  // Set the line format to in-line temporarily
-       $html .= '<tr><th class="prompt">New Action</th><td>&nbsp;';
-
-       // New action - always force field value to blank - if we're rendering we've written it already...
-       $_POST['new_action_desc'] = '';
-       $html .= $ef->DataEntryLine( "Name", '', "text", "new_action_desc",
-                 array("size" => "20", "title" => "Enter a new required action for W/Rs for this organisation.") );
-       $_POST['new_action_seq'] = $max_sequence;
-       $html .= $ef->DataEntryLine( "Sequence", '', "int", "new_action_seq",
-                 array("size" => "5", "title" => "Enter a sequence number for this action to control display order on the request screen.") );
-
-       $ef->RevertLineFormat();  // Revert to the saved line format
-       $html .= "</td></tr>\n";
-     }
-
-     return $html;
-   }
+    return $html;
+  }
 
 
-   function Validate( $ef ) {
-     global $session, $client_messages;
-     error_log("$system_name: vpw: DBG: Validating organisation");
+  function RenderActions( $ef ) {
+    global $session, $org_code;
+    $html = "";
+    $sql = "SELECT * ";
+    $sql .= "FROM organisation_action  ";
+    if ( $session->AllowedTo('Admin') || $session->AllowedTo('Support') ) {
+      $sql .= "WHERE organisation_action.org_code = ".intval($org_code);
+    }
+    else {
+      $sql .= "WHERE organisation_action.org_code = ".intval($session->org_code);
+    }
+    $sql .= "ORDER BY action_sequence, lower(action_description)";
 
-     if ( isset($_POST) ) {
-       $valid = true;
-       $_POST['abbreviation'] = substr(strtoupper(trim("$_POST[abbreviation]")), 0, 12);
-       if ( $session->AllowedTo('Admin') || $session->AllowedTo('Support') ) {
-         $_POST['active'] = ( isset($_POST['active']) ? $_POST['active'] : 'f' );
-         $_POST['current_sla'] = ( isset($_POST['current_sla']) ? $_POST['current_sla'] : 'f' );
-         $_POST['debtor_no'] = intval($_POST['debtor_no']);
-         $_POST['work_rate'] = doubleval($_POST['work_rate']);
-       }
-       else {
-         // No rights to maintain these fields
-         unset($_POST['active']);
-         unset($_POST['current_sla']);
-         unset($_POST['debtor_no']);
-         unset($_POST['work_rate']);
-       }
-       if ( $_POST['abbreviation'] == "" ) {
-         $client_messages[] = "ERROR: The abbreviation may not be blank.";
-         $valid = false;
-       }
-       if ( trim($_POST['org_name']) == "" ) {
-         $client_messages[] = "ERROR: The organisation name may not be blank.";
-         $valid = false;
-       }
-       return $valid;
-     }
+    # Select the records
+    $q = new PgQuery($sql);
+    $column = 0;
+    $max_sequence = 100;
+    $html .= $ef->BreakLine("Required Actions for Requests");
+    if ( $q && $q->Exec() && $q->rows ) {
+      $html .= '<tr><th class="prompt">&nbsp;</th><td><table>'."\n";
 
-     $client_messages[] = "ERROR: No form data submitted!";
-     return false;
-   }
+      while( $row = $q->Fetch() ) {
+        if ( $row->action_sequence >= $max_sequence ) $max_sequence = $row->action_sequence + 100;
+        if ( $column % 3 == 0 ) $html .= "<tr>";
+        $html .= "<td width=\"33%\">";
+        if ( $ef->editmode  && ($session->AllowedTo('Admin') || $session->AllowedTo('Support')) ) {
+          $ef->record->action_active[$row->action_id] = "$row->active";
+          error_log( "Action active: $row->action_id, $row->active" );
+          $_POST['action_active'][$row->action_id] = $row->active;
+          $html .= sprintf("<label style=\"color: %s\">", ( "$row->active" != "t" ? "darkgrey" : "black") );
+          $html .= $ef->DataEntryField( "", "checkbox", "action_active[$row->action_id]",
+                array("title" => "Is this request action active for this organisation?" ) );
+          $html .= " $row->action_description</label>";
+        }
+        else {
+          $html .= "$row->action_description";
+        }
+        $html .= "</td>";
+        if ( ++$column % 3 == 0 ) $html .= "</tr>";
+      }
 
-   function Write( $ef ) {
-     global $client_messages;
-     error_log("$system_name: vpw: DBG: Writing organisation form details to database");
-     $client_messages[] = "Writing organisation details to database.";
+      while ( $column % 3 != 0 ) {
+      $html .= "<td></td>";
+        if ( ++$column % 3 == 0 ) $html .= "</tr>";
+      }
+      $html .= '</table></td></tr>'."\n";
+    }
 
-     $db_errors = false;
-     $qry = new PgQuery("BEGIN");              $qry->Exec("Org::Write");
+    if ( $ef->editmode && $this->AllowedTo('update') ) {
+      $ef->TempLineFormat();  // Set the line format to in-line temporarily
+      $html .= '<tr><th class="prompt">New Action</th><td>&nbsp;';
 
-     $sql = sql_from_post( $_POST['submit'], "organisation", "WHERE org_code=$this->org_code");
-     $qry = new PgQuery($sql);
-     if ( !$qry->Exec("Org::Write") ) {
-       $client_messages[] = "ERROR: $qry->errorstring";
-       $db_errors = true;
-     }
-     else {
+      // New action - always force field value to blank - if we're rendering we've written it already...
+      $_POST['new_action_desc'] = '';
+      $html .= $ef->DataEntryLine( "Name", '', "text", "new_action_desc",
+                array("size" => "20", "title" => "Enter a new required action for W/Rs for this organisation.") );
+      $_POST['new_action_seq'] = $max_sequence;
+      $html .= $ef->DataEntryLine( "Sequence", '', "int", "new_action_seq",
+                array("size" => "5", "title" => "Enter a sequence number for this action to control display order on the request screen.") );
 
-       // If we are creating a new record, we need to grab the ID that it got
-       if ( eregi("create",$_POST['submit']) ) {
-         $sql = "SELECT currval('organisation_org_code_seq';";
-         $qry = new PgQuery($sql);                 $qry->Exec("Org::Write");
-         $row = $qry->Fetch(true);    // Fetch results as array
-         $this->org_code = $row[0];
-       }
-       $systems = "";
-       while( isset($_POST['applies']) && is_array($_POST['applies']) && list($k,$v) = each($_POST['applies']) ) {
-         if ( $v ) {
-           $systems .= ( "$systems" == "" ? "" : ", " );
-           $systems .= "'" . str_replace("'","''",str_replace('\\','', $k)) . "'";
-         }
-       }
+      $ef->RevertLineFormat();  // Revert to the saved line format
+      $html .= "</td></tr>\n";
+    }
 
-       $sql = "DELETE FROM org_system WHERE org_code = $this->org_code " . ($systems == "" ? "" : "AND system_code NOT IN ( $systems ); ");
-       $qry = new PgQuery($sql);
-       if ( !$qry->Exec("Org::Write") ) {
-         $client_messages[] = "ERROR: $qry->errorstring";
-         $db_errors = true;
-       }
+    return $html;
+  }
 
-       $tags = "";
-       while( isset($_POST['tag_active']) && is_array($_POST['tag_active']) && list($k,$v) = each($_POST['tag_active']) ) {
-         if ( $v ) {
-           $tags .= ( "$tags" == "" ? "" : ", " );
-           $tags .= "'" . str_replace("'","''",str_replace('\\','', $k)) . "'";
-         }
-       }
 
-       // Actually delete any inactive org_tags if no W/R references them, otherwise really do make them inactive.
-       $sql = "DELETE FROM organisation_tag WHERE org_code = $this->org_code "
+  function Validate( $ef ) {
+    global $session, $client_messages;
+    error_log("$system_name: vpw: DBG: Validating organisation");
+
+    if ( isset($_POST) ) {
+      $valid = true;
+      $_POST['abbreviation'] = substr(strtoupper(trim("$_POST[abbreviation]")), 0, 12);
+      if ( $this->AllowedTo('adminfields') ) {
+        $_POST['active'] = ( isset($_POST['active']) ? $_POST['active'] : 'f' );
+        $_POST['current_sla'] = ( isset($_POST['current_sla']) ? $_POST['current_sla'] : 'f' );
+        $_POST['debtor_no'] = intval($_POST['debtor_no']);
+        $_POST['work_rate'] = doubleval($_POST['work_rate']);
+      }
+      else {
+        // No rights to maintain these fields
+        unset($_POST['active']);
+        unset($_POST['current_sla']);
+        unset($_POST['debtor_no']);
+        unset($_POST['work_rate']);
+      }
+      if ( $_POST['abbreviation'] == "" ) {
+        $client_messages[] = "ERROR: The abbreviation may not be blank.";
+        $valid = false;
+      }
+      if ( trim($_POST['org_name']) == "" ) {
+        $client_messages[] = "ERROR: The organisation name may not be blank.";
+        $valid = false;
+      }
+      return $valid;
+    }
+
+    $client_messages[] = "ERROR: No form data submitted!";
+    return false;
+  }
+
+  function Write( $ef ) {
+    global $client_messages;
+    error_log("$system_name: vpw: DBG: Writing organisation form details to database");
+    $client_messages[] = "Writing organisation details to database.";
+
+    $db_errors = false;
+    $qry = new PgQuery("BEGIN");              $qry->Exec("Org::Write");
+
+    $sql = sql_from_post( $_POST['submit'], "organisation", "WHERE org_code=$this->org_code");
+    $qry = new PgQuery($sql);
+    if ( !$qry->Exec("Org::Write") ) {
+      $client_messages[] = "ERROR: $qry->errorstring";
+      $db_errors = true;
+    }
+    else {
+
+      // If we are creating a new record, we need to grab the ID that it got
+      if ( eregi("create",$_POST['submit']) ) {
+        $sql = "SELECT currval('organisation_org_code_seq';";
+        $qry = new PgQuery($sql);                 $qry->Exec("Org::Write");
+        $row = $qry->Fetch(true);    // Fetch results as array
+        $this->org_code = $row[0];
+      }
+      $systems = "";
+      while( isset($_POST['applies']) && is_array($_POST['applies']) && list($k,$v) = each($_POST['applies']) ) {
+        if ( $v ) {
+          $systems .= ( "$systems" == "" ? "" : ", " );
+          $systems .= "'" . str_replace("'","''",str_replace('\\','', $k)) . "'";
+        }
+      }
+
+      $sql = "DELETE FROM org_system WHERE org_code = $this->org_code " . ($systems == "" ? "" : "AND system_code NOT IN ( $systems ); ");
+      $qry = new PgQuery($sql);
+      if ( !$qry->Exec("Org::Write") ) {
+        $client_messages[] = "ERROR: $qry->errorstring";
+        $db_errors = true;
+      }
+
+      $tags = "";
+      while( isset($_POST['tag_active']) && is_array($_POST['tag_active']) && list($k,$v) = each($_POST['tag_active']) ) {
+        if ( $v ) {
+          $tags .= ( "$tags" == "" ? "" : ", " );
+          $tags .= "'" . str_replace("'","''",str_replace('\\','', $k)) . "'";
+        }
+      }
+
+      // Actually delete any inactive org_tags if no W/R references them, otherwise really do make them inactive.
+      $sql = "DELETE FROM organisation_tag WHERE org_code = $this->org_code "
             . ($tags == "" ? "" : "AND tag_id NOT IN ( $tags ) ")
             . "AND NOT EXISTS( SELECT 1 FROM request_tag WHERE request_tag.tag_id = organisation_tag.tag_id LIMIT 1); ";
-       $sql .= "UPDATE organisation_tag SET active = FALSE WHERE org_code = $this->org_code "
-             . ($tags == "" ? "" : "AND tag_id NOT IN ( $tags ) ")
-             . "AND EXISTS( SELECT 1 FROM request_tag WHERE request_tag.tag_id = organisation_tag.tag_id LIMIT 1); ";
-       $qry = new PgQuery($sql);
-       if ( !$qry->Exec("Org::Write") ) {
-         $client_messages[] = "ERROR: $qry->errorstring";
-         $db_errors = true;
-       }
+      $sql .= "UPDATE organisation_tag SET active = FALSE WHERE org_code = $this->org_code "
+            . ($tags == "" ? "" : "AND tag_id NOT IN ( $tags ) ")
+            . "AND EXISTS( SELECT 1 FROM request_tag WHERE request_tag.tag_id = organisation_tag.tag_id LIMIT 1); ";
+      $qry = new PgQuery($sql);
+      if ( !$qry->Exec("Org::Write") ) {
+        $client_messages[] = "ERROR: $qry->errorstring";
+        $db_errors = true;
+      }
 
-       $actions = "";
-       while( isset($_POST['action_active']) && is_array($_POST['action_active']) && list($k,$v) = each($_POST['action_active']) ) {
-         if ( $v ) {
-           $actions .= ( "$actions" == "" ? "" : ", " );
-           $actions .= "'" . str_replace("'","''",str_replace('\\','', $k)) . "'";
-         }
-       }
+      $actions = "";
+      while( isset($_POST['action_active']) && is_array($_POST['action_active']) && list($k,$v) = each($_POST['action_active']) ) {
+        if ( $v ) {
+          $actions .= ( "$actions" == "" ? "" : ", " );
+          $actions .= "'" . str_replace("'","''",str_replace('\\','', $k)) . "'";
+        }
+      }
 
-       // Actually delete any inactive org_actions if no W/R references them, otherwise really do make them inactive.
-       $sql = "DELETE FROM organisation_action WHERE org_code = $this->org_code "
+      // Actually delete any inactive org_actions if no W/R references them, otherwise really do make them inactive.
+      $sql = "DELETE FROM organisation_action WHERE org_code = $this->org_code "
             . ($actions == "" ? "" : "AND action_id NOT IN ( $actions ) ")
             . "AND NOT EXISTS( SELECT 1 FROM request_action WHERE request_action.action_id = organisation_action.action_id LIMIT 1); ";
-       $sql .= "UPDATE organisation_action SET active = FALSE WHERE org_code = $this->org_code "
-             . ($actions == "" ? "" : "AND action_id NOT IN ( $actions ) ")
-             . "AND EXISTS( SELECT 1 FROM request_action WHERE request_action.action_id = organisation_action.action_id LIMIT 1); ";
-       $qry = new PgQuery($sql);
-       if ( !$qry->Exec("Org::Write") ) {
-         $client_messages[] = "ERROR: $qry->errorstring";
-         $db_errors = true;
-       }
-     }
+      $sql .= "UPDATE organisation_action SET active = FALSE WHERE org_code = $this->org_code "
+            . ($actions == "" ? "" : "AND action_id NOT IN ( $actions ) ")
+            . "AND EXISTS( SELECT 1 FROM request_action WHERE request_action.action_id = organisation_action.action_id LIMIT 1); ";
+      $qry = new PgQuery($sql);
+      if ( !$qry->Exec("Org::Write") ) {
+        $client_messages[] = "ERROR: $qry->errorstring";
+        $db_errors = true;
+      }
+    }
 
-     if ( !$db_errors && $systems != "" ) {
-       $sql = "INSERT INTO org_system (org_code, system_code) ";
-       $sql .= "SELECT $this->org_code AS org_code, system_code ";
-       $sql .= "FROM work_system WHERE system_code IN ( $systems ) ";
-       $sql .= "AND NOT EXISTS( SELECT 1 FROM org_system WHERE org_code = $this->org_code ";
-       $sql .= "AND org_system.system_code = work_system.system_code); ";
-       $qry = new PgQuery($sql);
-       if ( !$qry->Exec("Org::Write") ) {
-         $client_messages[] = "ERROR: $qry->errorstring";
-         $db_errors = true;
-       }
-     }
+    if ( !$db_errors && $systems != "" ) {
+      $sql = "INSERT INTO org_system (org_code, system_code) ";
+      $sql .= "SELECT $this->org_code AS org_code, system_code ";
+      $sql .= "FROM work_system WHERE system_code IN ( $systems ) ";
+      $sql .= "AND NOT EXISTS( SELECT 1 FROM org_system WHERE org_code = $this->org_code ";
+      $sql .= "AND org_system.system_code = work_system.system_code); ";
+      $qry = new PgQuery($sql);
+      if ( !$qry->Exec("Org::Write") ) {
+        $client_messages[] = "ERROR: $qry->errorstring";
+        $db_errors = true;
+      }
+    }
 
-     if ( !$db_errors && $_POST['new_tag'] != "" ) {
-       $sql = "INSERT INTO organisation_tag (org_code, tag_description ) ";
-       $sql .= "VALUES ( $this->org_code, ? ); ";
-       $qry = new PgQuery($sql, $_POST['new_tag']);
-       if ( !$qry->Exec("Org::Write") ) {
-         $client_messages[] = "ERROR: $qry->errorstring";
-         $db_errors = true;
-       }
-     }
+    if ( !$db_errors && $_POST['new_tag'] != "" ) {
+      $sql = "INSERT INTO organisation_tag (org_code, tag_description ) ";
+      $sql .= "VALUES ( $this->org_code, ? ); ";
+      $qry = new PgQuery($sql, $_POST['new_tag']);
+      if ( !$qry->Exec("Org::Write") ) {
+        $client_messages[] = "ERROR: $qry->errorstring";
+        $db_errors = true;
+      }
+    }
 
-     if ( !$db_errors && $_POST['new_action_desc'] != "" ) {
-       $sql = "INSERT INTO organisation_action (org_code, action_description, action_sequence ) ";
-       $sql .= "VALUES ( $this->org_code, ?, ? ); ";
-       $qry = new PgQuery($sql, $_POST['new_action_desc'], $_POST['new_action_seq']);
-       if ( !$qry->Exec("Org::Write") ) {
-         $client_messages[] = "ERROR: $qry->errorstring";
-         $db_errors = true;
-       }
-     }
+    if ( !$db_errors && $_POST['new_action_desc'] != "" ) {
+      $sql = "INSERT INTO organisation_action (org_code, action_description, action_sequence ) ";
+      $sql .= "VALUES ( $this->org_code, ?, ? ); ";
+      $qry = new PgQuery($sql, $_POST['new_action_desc'], $_POST['new_action_seq']);
+      if ( !$qry->Exec("Org::Write") ) {
+        $client_messages[] = "ERROR: $qry->errorstring";
+        $db_errors = true;
+      }
+    }
 
-     $qry = new PgQuery( ( $db_errors ? "ROLLBACK;" : "COMMIT;") );  $qry->Exec("Org::Write");
-     return true;
-   }
+    $qry = new PgQuery( ( $db_errors ? "ROLLBACK;" : "COMMIT;") );  $qry->Exec("Org::Write");
+    return true;
+  }
 
 }
 ?>

@@ -1,5 +1,6 @@
 <?php
-  include("always.php");
+  require_once("always.php");
+  require_once("authorisation-page.php");
   include("options.php");
   include("tidy.php");
 
@@ -11,6 +12,7 @@
 
   $title = "$system_name - Weekly Timesheet: $session->fullname";
   $right_panel = false;
+  require_once("top-menu-bar.php");
   include("headers.php");
 
 // Helper function to tidy the automatic remembrance of our numeric settings

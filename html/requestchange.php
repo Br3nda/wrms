@@ -1,13 +1,14 @@
 <?php
-include("always.php");
-include("options.php");
+require_once("always.php");
+require_once("authorisation-page.php");
 
 $systems = array();
 $qry = new PgQuery( "SELECT * FROM work_system WHERE active ORDER BY system_desc ASC;" );
 if ( !$qry->Exec("rqchange") || $qry->rows == 0 ) {
   $error_message = "Can't find any active systems";
 }
-include("headers.php");
+  require_once("top-menu-bar.php");
+  require_once("headers.php");
 
 // Fetch the systems into an array
 while( $row = $qry->Fetch() ) {
@@ -22,6 +23,8 @@ global $systems;
 
   while( $row = $qry->Fetch() ) {
     $systems[$row->key]->{$column} = $row->data ;
+    if ( isset($row->system_desc) )
+      $systems[$row->key]->{'system_desc'} = $row->system_desc ;
   }
 }
 
@@ -33,8 +36,9 @@ $sql = "SELECT system_code AS key, count(*) AS data FROM request_status INNER JO
 $sql .= "WHERE status_on > 'today'::timestamp - '1 week'::interval AND status_code = 'F' GROUP BY system_code;";
 add_system_data( $sql, 'done_in_week' );
 
-$sql = "SELECT system_code AS key, count(*) AS data FROM request ";
-$sql .= "WHERE last_status != 'F' GROUP BY system_code;";
+$sql = "SELECT work_system.system_code AS key, count(*) AS data, work_system.system_desc FROM work_system ";
+$sql .= "JOIN request USING (system_code) ";
+$sql .= "WHERE last_status != 'F' GROUP BY work_system.system_code, work_system.system_desc;";
 add_system_data( $sql, 'still_active' );
 
 // Now output the collected report.

@@ -5,9 +5,14 @@
   if ( $go_width && $go_height ) {
     $dim = " width=\"$go_width\" height=\"$go_height\" ";
   }
+  $action_target = $REQUEST_URI;
+  $action_target = ereg_replace( '\?logout=1?&', '?', $action_target );
+  $action_target = ereg_replace( '\?logout=1$', '', $action_target );
+  $action_target = ereg_replace( '\?M=LO&', '?', $action_target );
+  $action_target = ereg_replace( '\?M=LO', '', $action_target );
 
   echo "<tr>\n<td class=block>\n";
-  echo "<form action=\"$REQUEST_URI\" method=post>";
+  echo "<form action=\"$action_target\" method=post>";
   echo "<input type=hidden name=M value=LC>\n";
   echo " &nbsp;username:<br>\n";
   echo " &nbsp; <font size=1><input type=text name=E size=\"12\"></font>\n";

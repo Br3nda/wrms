@@ -28,979 +28,989 @@ function simplify_string( $str ) {
 
 
 class Request {
-   var $request_id;         // Which WR is this
-   var $new_record;
-   var $mail_message_data;
-   var $chtype;             // What sort of change is this?
-   var $send_an_email;      // Should we notify this change
+  var $request_id;         // Which WR is this
+  var $new_record;
+  var $mail_message_data;
+  var $chtype;             // What sort of change is this?
+  var $send_an_email;      // Should we notify this change
 
-   function Request( $id = 0 ) {
-     global $session, $tmnu, $edit;
-     if ( !$session->logged_in ) return false;
-     $loaded = false;
-     $this->request_id = 0;
-     $this->send_an_email = false;
-     $this->mail_message_data = array();
-     $this->chtype = "none";
+  function Request( $id = 0 ) {
+    global $session, $tmnu, $edit;
+    if ( !$session->logged_in ) return false;
+    $loaded = false;
+    $this->request_id = 0;
+    $this->send_an_email = false;
+    $this->mail_message_data = array();
+    $this->chtype = "none";
 
-     $id = intval("$id");
-     if ( $id > 0 ) {
-       // Try and load it from file
-       $this->ReadRequest($id);
-       if ( $this->request_id == 0 ) {
-         $edit = false;
-       }
-     }
-     else {
-       $this->new_record = true;
-       $this->request_id = 0;
-       // Assign some defaults because it looks like we're starting a new one
-       if ( isset($_GET['wr_template']) ) {
-         // Oh goody, we can get some defaults from a saved template :-)
-         $loaded = false;  // templates aren't done yet :-(
-       }
-       if ( ! $loaded ) {
-         // Initialise to standard default values
-       }
-     }
-   }
+    $id = intval("$id");
+    if ( $id > 0 ) {
+      // Try and load it from file
+      $this->ReadRequest($id);
+      if ( $this->request_id == 0 ) {
+        $edit = false;
+      }
+    }
+    else {
+      $this->new_record = true;
+      $this->request_id = 0;
+      // Assign some defaults because it looks like we're starting a new one
+      if ( isset($_GET['wr_template']) ) {
+        // Oh goody, we can get some defaults from a saved template :-)
+        $loaded = false;  // templates aren't done yet :-(
+      }
+      if ( ! $loaded ) {
+        // Initialise to standard default values
+      }
+    }
+  }
 
-   /////////////////////////////////////////////////////////////
-   // ReadRequest - Read the actual request record and assign the fields.
-   /////////////////////////////////////////////////////////////
-   function ReadRequest( $id ) {
-     global $session, $tmnu, $client_messages;
+  /////////////////////////////////////////////////////////////
+  // ReadRequest - Read the actual request record and assign the fields.
+  /////////////////////////////////////////////////////////////
+  function ReadRequest( $id ) {
+    global $session, $tmnu, $client_messages, $debuggroups;
 
-     // Note: careful adjustment of the field order - work_system and request both have 'active' e.g.
-     $sql = "SELECT organisation.*, usr.*, work_system.*, request.*, system_usr.role AS system_usr_role ";
-     $sql .= ", to_char( request.requested_by_date, 'dd/mm/yyyy' ) AS requested_by_date, to_char( request.agreed_due_date, 'dd/mm/yyyy' ) AS agreed_due_date ";
-     $sql .= ", status.lookup_desc AS status_desc";
-     $sql .= ", request_type.lookup_desc AS request_type_desc";
-     $sql .= ", urgency.lookup_desc AS urgency_desc";
-     $sql .= ", sla_response.lookup_desc AS sla_response_desc";
-     $sql .= ", importance.lookup_desc AS importance_desc";
-     $sql .= ", system_desc, request_sla_code(sla_response_time,sla_response_type) ";
-     $sql .= " FROM request LEFT OUTER JOIN usr ON (request.requester_id = usr.user_no)";
-     $sql .= " LEFT OUTER JOIN organisation USING( org_code )";
-     $sql .= " LEFT OUTER JOIN lookup_code AS status ON status.source_table='request' AND status.source_field='status_code' AND status.lookup_code = request.last_status";
-     $sql .= " LEFT OUTER JOIN lookup_code AS request_type ON request_type.source_table='request' AND request_type.source_field='request_type' AND request.request_type = request_type.lookup_code";
-     $sql .= " LEFT OUTER JOIN lookup_code AS urgency ON urgency.source_table='request' AND urgency.source_field='urgency' AND int4(urgency.lookup_code)=request.urgency";
-     $sql .= " LEFT OUTER JOIN lookup_code AS sla_response ON sla_response.source_table='request' AND sla_response.source_field='sla_response' AND sla_response.lookup_code=request_sla_code(sla_response_time,sla_response_type)";
-     $sql .= " LEFT OUTER JOIN lookup_code AS importance ON importance.source_table='request' AND importance.source_field='importance' AND int4(importance.lookup_code)=request.importance";
-     $sql .= " LEFT OUTER JOIN work_system USING( system_code )";
-     $sql .= " LEFT OUTER JOIN system_usr ON $session->user_no = system_usr.user_no AND request.system_code = system_usr.system_code ";
-     $sql .= " WHERE request.request_id = '$id' ";
-     // echo "<p>$sql<p>";
+    // Note: careful adjustment of the field order - work_system and request both have 'active' e.g.
+    $sql = "SELECT organisation.*, usr.*, work_system.*, request.*, system_usr.role AS system_usr_role ";
+    $sql .= ", to_char( request.requested_by_date, 'dd/mm/yyyy' ) AS requested_by_date, to_char( request.agreed_due_date, 'dd/mm/yyyy' ) AS agreed_due_date ";
+    $sql .= ", status.lookup_desc AS status_desc";
+    $sql .= ", request_type.lookup_desc AS request_type_desc";
+    $sql .= ", urgency.lookup_desc AS urgency_desc";
+    $sql .= ", sla_response.lookup_desc AS sla_response_desc";
+    $sql .= ", importance.lookup_desc AS importance_desc";
+    $sql .= ", system_desc, request_sla_code(sla_response_time,sla_response_type) ";
+    $sql .= " FROM request LEFT OUTER JOIN usr ON (request.requester_id = usr.user_no)";
+    $sql .= " LEFT OUTER JOIN organisation USING( org_code )";
+    $sql .= " LEFT OUTER JOIN lookup_code AS status ON status.source_table='request' AND status.source_field='status_code' AND status.lookup_code = request.last_status";
+    $sql .= " LEFT OUTER JOIN lookup_code AS request_type ON request_type.source_table='request' AND request_type.source_field='request_type' AND request.request_type = request_type.lookup_code";
+    $sql .= " LEFT OUTER JOIN lookup_code AS urgency ON urgency.source_table='request' AND urgency.source_field='urgency' AND int4(urgency.lookup_code)=request.urgency";
+    $sql .= " LEFT OUTER JOIN lookup_code AS sla_response ON sla_response.source_table='request' AND sla_response.source_field='sla_response' AND sla_response.lookup_code=request_sla_code(sla_response_time,sla_response_type)";
+    $sql .= " LEFT OUTER JOIN lookup_code AS importance ON importance.source_table='request' AND importance.source_field='importance' AND int4(importance.lookup_code)=request.importance";
+    $sql .= " LEFT OUTER JOIN work_system USING( system_code )";
+    $sql .= " LEFT OUTER JOIN system_usr ON $session->user_no = system_usr.user_no AND request.system_code = system_usr.system_code ";
+    $sql .= " WHERE request.request_id = '$id' ";
+//    echo "<p>$sql<p>";
 
-     if ( $qry = new PgQuery($sql) ) {
-       if ( $qry->Exec("ReadRequest")
+    if ( $qry = new PgQuery($sql) ) {
+      if ( $qry->Exec("ReadRequest")
                   && $qry->rows == 1 && $row = $qry->Fetch() ) {
-         if ( $session->AllowedTo('Admin') || $session->AllowedTo('Support')
-                  || $row->org_code == $session->org_code ) {
-           $this->new_record = false;
-           while( list($k,$v) = each($row) ) {
-             if ( isset($debuggroups['Request']) && $debuggroups['Request'] ) {
-               error_log( sprintf("%s: DBG: \$this->{'%-25.25s = %s", $sysabbr, "$k'}", $v) );
-             }
-             $this->{$k} = $v;
-           }
-           if ( strpos( "ASEC", strtoupper($this->system_usr_role))
-                || $this->requester_id == $session->user_no
-                || $session->AllowedTo('Admin')
-                || $session->AllowedTo('Support')
-                 ) {
-             $tmnu->AddOption("Edit","/wr.php?edit=1&request_id=$this->request_id","Edit the details for this work request");
-           }
 
-           $tmnu->AddOption("Organisation","/org.php?org_code=$this->org_code&request_id=$id","View the details for this organisation");
-           $tmnu->AddOption("System","/system.php?system_code=$this->system_code&request_id=$id","View the details for this system");
-           $tmnu->AddOption("User","/usr.php?user_no=$this->user_no&request_id=$id","View the details for the requesting user");
-         }
-         else {
-           error_log( sprintf("%s: DBG: User %d cannot access request %d.", $sysabbr, $session->user_no, $id) );
-           $client_messages[] = "Request $id is unavailable - do you have the number right?";
-           $this->new_record = false;
-         }
-       }
-       else {
-         // Request not found that the user can read.
-         error_log( sprintf("%s: DBG: User %d cannot access request %d.", $sysabbr, $session->user_no, $id) );
-         $client_messages[] = "Request $id is unavailable - do you have the number right?";
-         $this->new_record = false;
-       }
-     }
-     else {
-       // SQL is broken or something very wierd!
-       error_log( sprintf("%s: DBG: Can't create SQL PgQuery for '%s'", $sysabbr, $sql) );
-     }
-   }
+        // We need these assigned first as they are used for permissions
+        $this->org_code = $row->org_code;
+        $this->system_code = $row->system_code;
 
-
-   /////////////////////////////////////////////////////////////
-   // AllowedTo - Can the user do that to this request?
-   /////////////////////////////////////////////////////////////
-   function AllowedTo( $action ) {
-     global $session;
-     if ( $session->AllowedTo("Admin") ) return true;   // Admin can do anything
-     switch( $action ) {
-       'create':
-         if ( $session->AllowedTo("Support") )    return true;   // Support can always create
-         if ( $session->AllowedTo("Contractor") ) return true;
-         if ( $session->AllowedTo("Manage") )     return true;
-         if ( $session->AllowedTo("Request") )    return true;
-         $session->Log("WR::AllowedTo: WARNING: Denying action '$action' to $session->username, User-Org:$session->org_code, WR-Org:$this->org_code, System:$this->system_code");
-         return false;
-       'view':
-         if ( $session->AllowedTo("Support") ) return true;   // Support can always update
-         if ( $this->org_code == $session->org_code ) {
-           if ( isset($this->system_roles[$this->system_code]) ) {
-             return true;
-           }
-         }
-         else if ( $session->AllowedTo("Contractor") ) {
-           // Need specific Support access to this System
-           if ( isset($this->system_roles[$this->system_code]) ) {
-             return true;
-           }
-         }
-         $session->Log("WR::AllowedTo: WARNING: Denying action '$action' to $session->username, User-Org:$session->org_code, WR-Org:$this->org_code, System:$this->system_code");
-         return false;
-
-       'update':
-         if ( $session->AllowedTo("Support") ) return true;   // Support can always update
-         if ( $this->org_code == $session->org_code ) {
-           if ( stripos("SACE",$this->system_roles[$this->system_code] ) ) {
-             return true;
-           }
-         }
-         else if ( $session->AllowedTo("Contractor") ) {
-           // Need specific Support access to this System
-           if ( stripos("SACEO",$this->system_roles[$this->system_code] ) ) {
-             return true;
-           }
-         }
-         $session->Log("WR::AllowedTo: WARNING: Denying action '$action' to $session->username, User-Org:$session->org_code, WR-Org:$this->org_code, System:$this->system_code");
-         return false;
-       default:
-         $session->Log("WR::AllowedTo: WARNING: Unrecognised action: '$action'");
-     }
-     // Default to allowing unrecognised actions.
-     return true;  // Of course they can!
-   }
-
-   /////////////////////////////////////////////////////////////
-   // Actions - Process the more unusual actions against the W/R
-   //   A separate function is called for each action and this
-   //   function is really only checking that permissions and
-   //   data are appropriate.
-   /////////////////////////////////////////////////////////////
-   function Actions( ) {
-     global $session, $action, $sysabbr, $client_messages;
-     switch( $action ) {
-       case 'removeatt':
-         $this->RemoveAttachment(intval($GLOBALS['attachment_id']));
-         break;
-       case 'removets':
-         $this->RemoveTimesheet(intval($GLOBALS['timesheet_id']));
-         break;
-       case 'unsubscribe':
-         $this->Unsubscribe(intval($GLOBALS['user_no']));
-         break;
-       case 'deallocate':
-         $this->Deallocate(intval($GLOBALS['user_no']));
-         break;
-       case 'untag':
-         $this->Untag(intval($GLOBALS['tag_id']));
-         break;
-       case 'disassociate':
-         $this->Disassociate(intval($GLOBALS['other_id']));
-         break;
-       default:
-         error_log("$sysabbr WR::Actions: ERROR: Unrecognised action: '$action'");
-         $client_messages[] = "ERROR: Unrecognised action: '$action'";
-     }
-   }
-
-   /////////////////////////////////////////////////////////////
-   // RemoveAttachment - Detach the specified attachment from the W/R
-   /////////////////////////////////////////////////////////////
-   function RemoveAttachment( $attachment_id ) {
-     global $client_messages;
-     $sql = "SELECT * FROM request_attachment ";
-     $sql .= "WHERE request_id = $this->request_id ";
-     $sql .= "AND attachment_id = $attachment_id ";
-     # Select the records
-     $q = new PgQuery($sql);
-     $q->Exec('WR::RemoveAttachment') ;
-     if ( $q->rows > 0 ) {
-       $row = $q->Fetch();
-       $client_messages[] = "Attachment $attachment_id dissassociated from request $this->request_id.";
-
-       $sql = "UPDATE request_attachment SET request_id = -1 ";
-       $sql .= "WHERE request_id = $this->request_id ";
-       $sql .= "AND attachment_id = $attachment_id ";
-       # Select the records
-       $q = new PgQuery($sql);
-       $q->Exec('WR::RemoveAttachment') ;
-     }
-   }
+        if ( $this->AllowedTo('view') ) {
+          if ( isset($GLOBALS['edit']) && !$this->AllowedTo('update') ) {
+            unset($GLOBALS['edit']);
+            $client_messages[] = "You may not edit request $id.";
+          }
+          $this->new_record = false;
+          while( list($k,$v) = each($row) ) {
+            if ( isset($debuggroups['Request']) && $debuggroups['Request'] ) {
+              $session->Log( "DBG: \$this->{'%-25.25s = %s", "$k'}", $v);
+            }
+            $this->{$k} = $v;
+          }
+        }
+        else {
+          unset($this->org_code);
+          unset($this->system_code);
+          $session->Log( "DBG: User %d cannot access request %d.", $session->user_no, $id);
+          $client_messages[] = "Request $id is unavailable - do you have the number right?";
+          $this->new_record = false;
+        }
+      }
+      else {
+        // Request not found that the user can read.
+        $session->Log( "DBG: User %d cannot access request %d.", $session->user_no, $id);
+        $client_messages[] = "Request $id is unavailable - do you have the number right?";
+        $this->new_record = false;
+      }
+    }
+    else {
+      // SQL is broken or something very wierd!
+      error_log( sprintf("%s: DBG: Can't create SQL PgQuery for '%s'", $sysabbr, $sql) );
+    }
+  }
 
 
-   /////////////////////////////////////////////////////////////
-   // RemoveTimesheet - Remove the specified timesheet from the W/R
-   /////////////////////////////////////////////////////////////
-   function RemoveTimesheet( $timesheet_id ) {
-     global $client_messages;
-     $sql = "SELECT *, to_char(work_on, 'DD-MM-YYYY') AS work_on ";
-     $sql .= "FROM request_timesheet JOIN usr ON (request_timesheet.work_by_id = usr.user_no ) ";
-     $sql .= "WHERE request_id = $this->request_id ";
-     $sql .= "AND timesheet_id = $timesheet_id ";
-     # Select the records
-     $q = new PgQuery($sql);
-     $q->Exec('WR::RemoveTimesheet') ;
-     if ( $q->rows > 0 ) {
-       $row = $q->Fetch();
-       $client_messages[] = "Timesheet for $row->fullname on $row->work_on: $row->work_quantity $row->work_units for '$row->work_description' removed from request.";
+  /////////////////////////////////////////////////////////////
+  // AllowedTo - Can the user do that to this request?
+  /////////////////////////////////////////////////////////////
+  function AllowedTo( $action ) {
+    global $session, $debuggroups;
 
-       $sql = "DELETE FROM request_timesheet ";
-       $sql .= "WHERE request_id = $this->request_id ";
-       $sql .= "AND timesheet_id = $timesheet_id ";
-       # Select the records
-       $q = new PgQuery($sql);
-       $q->Exec('WR::RemoveTimesheet') ;
-     }
-   }
+    $answer = false;
+    if ( $session->AllowedTo("Admin") ) return true;   // Admin can do anything
 
-   /////////////////////////////////////////////////////////////
-   // Unsubscribe - Unsubscribe the specified user from the W/R
-   /////////////////////////////////////////////////////////////
-   function Unsubscribe( $user_no ) {
-     global $client_messages;
+    switch( strtolower($action) ) {
 
-     $sql = "SELECT * FROM request_interested JOIN usr ON (request_interested.user_no = usr.user_no ) ";
-     $sql .= "WHERE request_id = $this->request_id ";
-     $sql .= "AND request_interested.user_no = $user_no ";
-     # Select the records
-     $q = new PgQuery($sql);
-     $q->Exec('WR::Unsubscribe') ;
+      case 'create':
+        if ( $session->AllowedTo("Support") )         $answer = true;   // Support can always create
+        else if ( $session->AllowedTo("Contractor") ) $answer = true;
+        else if ( $session->AllowedTo("Manage") )     $answer = true;
+        else if ( $session->AllowedTo("Request") )    $answer = true;
+        break;
 
-     if ( $q->rows > 0 ) {
-       $row = $q->Fetch();
-       $client_messages[] = "User '$row->fullname' unsubscribed from request.";
+      case 'view':
+        $answer = false;
+        if ( $session->AllowedTo("Support") ) {
+          $answer = true;   // Support can always update
+        }
+        else if ( $this->org_code == $session->org_code ) {
+          $answer = isset($session->system_roles[$this->system_code]);
+        }
+        else if ( $session->AllowedTo("Contractor") ) {
+          // A contractor will need specific access to this System
+          $answer = isset($session->system_roles[$this->system_code]);
+        }
+        break;
 
-       $sql = "DELETE FROM request_interested ";
-       $sql .= "WHERE request_id = $this->request_id ";
-       $sql .= "AND user_no = $user_no ";
-       # Select the records
-       $q = new PgQuery($sql);
-       $q->Exec('WR::Unsubscribe') ;
-     }
-   }
+      case 'update':
+        $answer = false;
+        if ( $session->AllowedTo("Support") ) {
+          $answer = true;   // Support can always update
+        }
+        if ( $this->org_code == $session->org_code ) {
+          $answer = ( strpos("SACEO",$session->system_roles[$this->system_code] ) != false );
+        }
+        else if ( $session->AllowedTo("Contractor") ) {
+          // A contractor will need specific access to this System
+          $answer = ( strpos("SACEO",$session->system_roles[$this->system_code] ) != false );
+        }
+        break;
 
-   /////////////////////////////////////////////////////////////
-   // Deallocate - De-allocate the specified user from the W/R
-   /////////////////////////////////////////////////////////////
-   function Deallocate( $user_no ) {
-     global $client_messages;
+      default:
+        $session->Log("WR::AllowedTo: WARNING: Unrecognised action: '$action'");
+        // Default to allowing unrecognised actions, after the warning
+        return true;
+    }
 
-     $sql = "SELECT * FROM request_allocated JOIN usr ON (request_allocated.allocated_to_id = usr.user_no ) ";
-     $sql .= "WHERE request_id = $this->request_id ";
-     $sql .= "AND allocated_to_id = $user_no ";
-     # Select the records
-     $q = new PgQuery($sql);
-     $q->Exec('WR::Unsubscribe') ;
+    if ( isset($debuggroups['Request']) && $debuggroups['Request'] ) {
+      $roles = "";
+      foreach( $session->system_roles AS $k => $v ) { $roles .= "$k=$v~~"; }
+      $session->Log("WR::AllowedTo: action '%s' to %s, User-Org:%s, WR-Org:%s, System:%s, SysRole:%s, Roles:%s - result is: %d",
+                        $action, $session->username, $session->org_code, $this->org_code,
+                        $this->system_code, $session->system_roles[$this->system_code],
+                        $roles, $answer );
+    }
+    return $answer;
+  }
 
-     if ( $q->rows > 0 ) {
-       $row = $q->Fetch();
-       $client_messages[] = "User '$row->fullname' de-allocated from request.";
+  /////////////////////////////////////////////////////////////
+  // Actions - Process the more unusual actions against the W/R
+  //   A separate function is called for each action and this
+  //   function is really only checking that permissions and
+  //   data are appropriate.
+  /////////////////////////////////////////////////////////////
+  function Actions( ) {
+    global $session, $action, $sysabbr, $client_messages;
+    switch( $action ) {
+      case 'removeatt':
+        $this->RemoveAttachment(intval($GLOBALS['attachment_id']));
+        break;
+      case 'removets':
+        $this->RemoveTimesheet(intval($GLOBALS['timesheet_id']));
+        break;
+      case 'unsubscribe':
+        $this->Unsubscribe(intval($GLOBALS['user_no']));
+        break;
+      case 'deallocate':
+        $this->Deallocate(intval($GLOBALS['user_no']));
+        break;
+      case 'untag':
+        $this->Untag(intval($GLOBALS['tag_id']));
+        break;
+      case 'disassociate':
+        $this->Disassociate(intval($GLOBALS['other_id']));
+        break;
+      default:
+        error_log("$sysabbr WR::Actions: ERROR: Unrecognised action: '$action'");
+        $client_messages[] = "ERROR: Unrecognised action: '$action'";
+    }
+  }
 
-       $sql = "DELETE FROM request_allocated ";
-       $sql .= "WHERE request_id = $this->request_id ";
-       $sql .= "AND allocated_to_id = $user_no ";
-       # Select the records
-       $q = new PgQuery($sql);
-       $q->Exec('WR::Unsubscribe') ;
-     }
-   }
+  /////////////////////////////////////////////////////////////
+  // RemoveAttachment - Detach the specified attachment from the W/R
+  /////////////////////////////////////////////////////////////
+  function RemoveAttachment( $attachment_id ) {
+    global $client_messages;
+    $sql = "SELECT * FROM request_attachment ";
+    $sql .= "WHERE request_id = $this->request_id ";
+    $sql .= "AND attachment_id = $attachment_id ";
+    # Select the records
+    $q = new PgQuery($sql);
+    $q->Exec('WR::RemoveAttachment') ;
+    if ( $q->rows > 0 ) {
+      $row = $q->Fetch();
+      $client_messages[] = "Attachment $attachment_id dissassociated from request $this->request_id.";
 
-   /////////////////////////////////////////////////////////////
-   // Untag - Remove a tag from the W/R
-   /////////////////////////////////////////////////////////////
-   function Untag( $tag_id ) {
-     global $client_messages;
-
-     $sql = "SELECT * FROM request_tag JOIN organisation_tag USING (tag_id) ";
-     $sql .= "WHERE request_id = $this->request_id ";
-     $sql .= "AND request_tag.tag_id = $tag_id ";
-     # Select the records
-     $q = new PgQuery($sql);
-     $q->Exec('WR::Untag') ;
-
-     if ( $q->rows > 0 ) {
-       $row = $q->Fetch();
-       $client_messages[] = "Tag '$row->tag_description' removed from request.";
-
-       $sql = "DELETE FROM request_tag ";
-       $sql .= "WHERE request_id = $this->request_id ";
-       $sql .= "AND tag_id = $tag_id ";
-       # Select the records
-       $q = new PgQuery($sql);
-       $q->Exec('WR::Untag') ;
-     }
-   }
-
-   /////////////////////////////////////////////////////////////
-   // Disassociate - Unlink from a related W/R
-   /////////////////////////////////////////////////////////////
-   function Disassociate( $other_id ) {
-     global $client_messages;
-
-     $client_messages[] = "Disassociated from request $other_id.";
-
-     $sql = "DELETE FROM request_request ";
-     $sql .= "WHERE (request_id = $this->request_id AND to_request_id = $other_id) ";
-     $sql .= "   OR (to_request_id = $this->request_id AND request_id = $other_id) ";
-     # Select the records
-     $q = new PgQuery($sql);
-     $q->Exec('WR::Disassociate') ;
-   }
-
-   /////////////////////////////////////////////////////////////
-   // Render - Return HTML to show the W/R
-   //   A separate function is called for each logical area
-   //   on the W/R.
-   /////////////////////////////////////////////////////////////
-   function Render( ) {
-     global $edit, $tmnu;
-     $html = "";
-
-     $ef = new EntryForm( $REQUEST_URI, $this, $edit );
-     $ef->NoHelp();  // Prefer this style, for the moment
-
-     if ( $edit ) $html .= $ef->StartForm( array("autocomplete" => "off", "onsubmit" => "return CheckRequestForm();" ) );
-
-     $html .= "<table width=\"100%\" class=\"data\" cellspacing=\"0\" cellpadding=\"0\">\n";
-
-     $html .= $this->RenderDetails($ef);
-     $html .= $this->RenderActions($ef);
-     $html .= $this->RenderAttachments($ef);
-     $html .= $this->RenderQuotations($ef);
-     $html .= $this->RenderRelations($ef);
-     $html .= $this->RenderAllocations($ef);
-     $html .= $this->RenderTimesheets($ef);
-     $html .= $this->RenderInterests($ef);
-     $html .= $this->RenderTags($ef);
-     $html .= $this->RenderNotes($ef);
-     $html .= $this->RenderStatuses($ef);
-
-     if ( $edit ) {
-       $html .= $ef->DataEntryLine( "Quiet update", "%s", "checkbox", "send_no_email",
-               array( "size" => 70, "title" => "Check the box if this update should not send e-mail notifications") );
-       $html .= '<tr><th class="prompt">&nbsp;</th><td class="entry">';
-       $html .= "</td></tr>";
-     }
-     $html .= "</table>\n";
-     if ( $edit ) {
-       $html .= '<div id="footer">';
-       $html .= $ef->SubmitButton( "submit", ($this->new_record ? "Create" : "Update") );
-       $html .= '</div>';
-       $html .= $ef->EndForm();
-     }
-
-     return $html;
-   }
+      $sql = "UPDATE request_attachment SET request_id = -1 ";
+      $sql .= "WHERE request_id = $this->request_id ";
+      $sql .= "AND attachment_id = $attachment_id ";
+      # Select the records
+      $q = new PgQuery($sql);
+      $q->Exec('WR::RemoveAttachment') ;
+    }
+  }
 
 
-   /////////////////////////////////////////////////////////////
-   // Display the core W/R details
-   /////////////////////////////////////////////////////////////
-   function RenderDetails( $ef ) {
-     global $edit, $session, $bigboxcols, $bigboxrows;
-     $html = "";
-     $html .= $ef->BreakLine("Request Details");
-     if ( !$this->new_record ) {
-       $html .= $ef->DataEntryLine( "W/R #", "$this->request_id &nbsp; &nbsp; <b>Requested:</b> " . nice_date($this->request_on));
-     }
+  /////////////////////////////////////////////////////////////
+  // RemoveTimesheet - Remove the specified timesheet from the W/R
+  /////////////////////////////////////////////////////////////
+  function RemoveTimesheet( $timesheet_id ) {
+    global $client_messages;
+    $sql = "SELECT *, to_char(work_on, 'DD-MM-YYYY') AS work_on ";
+    $sql .= "FROM request_timesheet JOIN usr ON (request_timesheet.work_by_id = usr.user_no ) ";
+    $sql .= "WHERE request_id = $this->request_id ";
+    $sql .= "AND timesheet_id = $timesheet_id ";
+    # Select the records
+    $q = new PgQuery($sql);
+    $q->Exec('WR::RemoveTimesheet') ;
+    if ( $q->rows > 0 ) {
+      $row = $q->Fetch();
+      $client_messages[] = "Timesheet for $row->fullname on $row->work_on: $row->work_quantity $row->work_units for '$row->work_description' removed from request.";
 
-     $html .= $ef->DataEntryLine( "Brief", "%s", "text", "brief",
-               array( "size" => 70, "title" => "A brief description of the request.") );
+      $sql = "DELETE FROM request_timesheet ";
+      $sql .= "WHERE request_id = $this->request_id ";
+      $sql .= "AND timesheet_id = $timesheet_id ";
+      # Select the records
+      $q = new PgQuery($sql);
+      $q->Exec('WR::RemoveTimesheet') ;
+    }
+  }
 
-     // Organisation drop-down
-     if ( $session->AllowedTo("Admin") || $session->AllowedTo("Support") ) {
-       $sql = "SELECT org_code, org_name || ' (' || abbreviation || ')' AS org_name ";
-       $sql .= "FROM organisation WHERE active AND abbreviation !~ '^ *$' ";
-       $sql .= "AND EXISTS(SELECT user_no FROM usr WHERE usr.org_code = organisation.org_code AND usr.status != 'I') ";
-       $sql .= "AND EXISTS(SELECT work_system.system_code FROM org_system JOIN work_system ON (org_system.system_code = work_system.system_code) WHERE org_system.org_code = organisation.org_code AND work_system.active) ";
-       $sql .= "ORDER BY lower(org_name)";
-       $html .= $ef->DataEntryLine( "Organisation", "$this->org_name", "lookup", "org_code",
-                 array("_sql" => $sql, "_null" => "--- select an organisation ---", "onchange" => "OrganisationChanged();",
-                       "title" => "The organisation that this work will be done for." ) );
-     }
-     else {
-       if ( $this->new_record ) $this->org_name = $session->org_name;
-       $html .= $ef->DataEntryLine( "Organisation", "$this->org_name", "", "" );
-     }
+  /////////////////////////////////////////////////////////////
+  // Unsubscribe - Unsubscribe the specified user from the W/R
+  /////////////////////////////////////////////////////////////
+  function Unsubscribe( $user_no ) {
+    global $client_messages;
 
-     // Person within Organisation drop-down
-     $sql = "SELECT user_no, fullname ";
-     if ( $this->new_record ) $sql .= " ||' ('||abbreviation||')' ";
-     $sql .= "FROM usr JOIN organisation ON organisation.org_code = usr.org_code ";
-     if ( $this->new_record ) {
-       $sql .= "WHERE status != 'I' AND organisation.active ";
-       if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) )
-         $sql .= "AND organisation.org_code = $session->org_code AND usr.org_code = $session->org_code ";
-       $sql .= "AND EXISTS(SELECT work_system.system_code FROM org_system JOIN work_system ON (org_system.system_code = work_system.system_code) WHERE org_system.org_code = organisation.org_code AND work_system.active) ";
-     }
-     else {
-       $sql .= "WHERE organisation.org_code = $this->org_code AND usr.org_code = $this->org_code ";
-     }
-     $sql .= "ORDER BY lower(fullname)";
-     $html .= $ef->DataEntryLine( "Person", "$this->fullname", "lookup", "requester_id",
-               array("_sql" => $sql, "_null" => "--- select a person ---", "onchange" => "PersonChanged();",
-                     "title" => "The client who is requesting this, or who is in charge of ensuring it happens." ) );
+    $sql = "SELECT * FROM request_interested JOIN usr ON (request_interested.user_no = usr.user_no ) ";
+    $sql .= "WHERE request_id = $this->request_id ";
+    $sql .= "AND request_interested.user_no = $user_no ";
+    # Select the records
+    $q = new PgQuery($sql);
+    $q->Exec('WR::Unsubscribe') ;
 
-     // System (within Organisation) drop-down
-     $sql = "SELECT work_system.system_code, system_desc FROM work_system ";
-     if ( $this->new_record ) {
-       if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) ) {
-         $sql .= "JOIN org_system ON org_system.system_code = work_system.system_code ";
-         $sql .= "JOIN system_usr ON $session->user_no = system_usr.user_no AND org_system.system_code = system_usr.system_code ";
-       }
-       $sql .= "WHERE active ";
-       if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) ) {
-         $sql .= "AND org_system.org_code = $session->org_code ";
-         $sql .= "AND system_usr.role IN ( 'A', 'S', 'C', 'E' ) ";
-       }
-     }
-     else {
-       $sql .= "JOIN org_system ON org_system.system_code = work_system.system_code ";
-       if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) )
-         $sql .= "JOIN system_usr ON $session->user_no = system_usr.user_no AND org_system.system_code = system_usr.system_code ";
-       $sql .= "WHERE org_system.org_code = $this->org_code ";
-       if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) )
-         $sql .= "AND system_usr.role IN ( 'A', 'S', 'C', 'E' ) ";
-     }
-     $sql .= "ORDER BY lower(system_desc)";
-     $html .= $ef->DataEntryLine( "System", "$this->system_desc", "lookup", "system_code",
-               array("_sql" => $sql, "_null" => "--- select a system ---", "onchange" => "SystemChanged();",
-                     "title" => "The business system that this request applies to.") );
+    if ( $q->rows > 0 ) {
+      $row = $q->Fetch();
+      $client_messages[] = "User '$row->fullname' unsubscribed from request.";
 
-     // Type of Request
-     $html .= $ef->DataEntryLine( "Type", $this->request_type_desc, "lookup", "request_type",
-               array("_type" => "request|request_type", "title" => "The type of request") );
+      $sql = "DELETE FROM request_interested ";
+      $sql .= "WHERE request_id = $this->request_id ";
+      $sql .= "AND user_no = $user_no ";
+      # Select the records
+      $q = new PgQuery($sql);
+      $q->Exec('WR::Unsubscribe') ;
+    }
+  }
 
-     // Urgency of Request
-     $html .= $ef->DataEntryLine( "Urgency", $this->urgency_desc, "lookup", "urgency",
-               array("_type" => "request|urgency", "title" => "The urgency of the request, separate from the long-term importance") );
+  /////////////////////////////////////////////////////////////
+  // Deallocate - De-allocate the specified user from the W/R
+  /////////////////////////////////////////////////////////////
+  function Deallocate( $user_no ) {
+    global $client_messages;
 
-     // Importance of Request
-     $html .= $ef->DataEntryLine( "Importance", $this->importance_desc, "lookup", "importance",
-               array("_type" => "request|importance", "title" => "The relative long-term importance of the request, separate from the urgency") );
+    $sql = "SELECT * FROM request_allocated JOIN usr ON (request_allocated.allocated_to_id = usr.user_no ) ";
+    $sql .= "WHERE request_id = $this->request_id ";
+    $sql .= "AND allocated_to_id = $user_no ";
+    # Select the records
+    $q = new PgQuery($sql);
+    $q->Exec('WR::Unsubscribe') ;
 
-     // Detailed description
-     $html .= $ef->DataEntryLine( "Details", html_format($this->detailed), "textarea", "detailed",
-               array("title" => "Full details of the request", "rows" => $bigboxrows, "cols" => $bigboxcols  ) );
+    if ( $q->rows > 0 ) {
+      $row = $q->Fetch();
+      $client_messages[] = "User '$row->fullname' de-allocated from request.";
 
-     return $html;
-   }
+      $sql = "DELETE FROM request_allocated ";
+      $sql .= "WHERE request_id = $this->request_id ";
+      $sql .= "AND allocated_to_id = $user_no ";
+      # Select the records
+      $q = new PgQuery($sql);
+      $q->Exec('WR::Unsubscribe') ;
+    }
+  }
 
-   /////////////////////////////////////////////////////////////
-   // Display the organisationally defined actions and dates
-   /////////////////////////////////////////////////////////////
-   function RenderActions( $ef ) {
-     global $edit, $session;
+  /////////////////////////////////////////////////////////////
+  // Untag - Remove a tag from the W/R
+  /////////////////////////////////////////////////////////////
+  function Untag( $tag_id ) {
+    global $client_messages;
 
-     if ( (!isset($this->request_id) || $this->request_id == 0) && (!isset($this->org_code) || $this->org_code == 0) ) return "";
+    $sql = "SELECT * FROM request_tag JOIN organisation_tag USING (tag_id) ";
+    $sql .= "WHERE request_id = $this->request_id ";
+    $sql .= "AND request_tag.tag_id = $tag_id ";
+    # Select the records
+    $q = new PgQuery($sql);
+    $q->Exec('WR::Untag') ;
 
-     // What actions are defined for this organisation
-     $sql = "SELECT organisation_action.*, completed_on::date, fullname ";
-     $sql .= "FROM organisation_action ";
-     $sql .= "LEFT JOIN request_action ON request_id = $this->request_id AND organisation_action.action_id = request_action.action_id ";
-     $sql .= "LEFT JOIN usr ON updated_by_id = user_no ";
-     $sql .= "WHERE organisation_action.org_code = $this->org_code ";
-     $sql .= "ORDER BY organisation_action.org_code, action_sequence";
-     $q = new PgQuery($sql);
-     $q->Exec('WR::RenderActions') ;
+    if ( $q->rows > 0 ) {
+      $row = $q->Fetch();
+      $client_messages[] = "Tag '$row->tag_description' removed from request.";
 
-     if ( $q->rows == 0 ) return "";
+      $sql = "DELETE FROM request_tag ";
+      $sql .= "WHERE request_id = $this->request_id ";
+      $sql .= "AND tag_id = $tag_id ";
+      # Select the records
+      $q = new PgQuery($sql);
+      $q->Exec('WR::Untag') ;
+    }
+  }
 
-     $html = $ef->BreakLine("Completed Actions");
-     $html .= '<tr><th class="prompt">Actioned Dates</th><td><table width="100%">';
-     $ef->TempLineFormat('<tr><th class="prompt" style="white-space: nowrap;">%s</th><td class="entry">%s');
+  /////////////////////////////////////////////////////////////
+  // Disassociate - Unlink from a related W/R
+  /////////////////////////////////////////////////////////////
+  function Disassociate( $other_id ) {
+    global $client_messages;
 
-     while( $row = $q->Fetch() ) {
+    $client_messages[] = "Disassociated from request $other_id.";
 
-       $_POST['request_action'][$row->action_id] = $row->completed_on;
-       $html .= $ef->DataEntryLine( $row->action_description, $row->completed_on, "text", "request_action[$row->action_id]",
-               array("size" => 12, "title" => "The date on which the '$row->action_description' action was completed.") );
+    $sql = "DELETE FROM request_request ";
+    $sql .= "WHERE (request_id = $this->request_id AND to_request_id = $other_id) ";
+    $sql .= "   OR (to_request_id = $this->request_id AND request_id = $other_id) ";
+    # Select the records
+    $q = new PgQuery($sql);
+    $q->Exec('WR::Disassociate') ;
+  }
 
-       if ( $row->fullname != "" ) {
-         $html .= " &nbsp; updated by $row->fullname.";
-       }
-       $html .= "</td></tr>";
+  /////////////////////////////////////////////////////////////
+  // Render - Return HTML to show the W/R
+  //   A separate function is called for each logical area
+  //   on the W/R.
+  /////////////////////////////////////////////////////////////
+  function Render( ) {
+    global $edit, $tmnu;
+    $html = "";
 
-     }
-     $ef->RevertLineFormat();
+    $ef = new EntryForm( $REQUEST_URI, $this, $edit );
+    $ef->NoHelp();  // Prefer this style, for the moment
 
-     $html .= "</table></td></tr>\n";
-     return $html;
-   }
+    if ( $edit ) $html .= $ef->StartForm( array("autocomplete" => "off", "onsubmit" => "return CheckRequestForm();" ) );
+
+    $html .= "<table width=\"100%\" class=\"data\" cellspacing=\"0\" cellpadding=\"0\">\n";
+
+    $html .= $this->RenderDetails($ef);
+    $html .= $this->RenderActions($ef);
+    $html .= $this->RenderAttachments($ef);
+    $html .= $this->RenderQuotations($ef);
+    $html .= $this->RenderRelations($ef);
+    $html .= $this->RenderAllocations($ef);
+    $html .= $this->RenderTimesheets($ef);
+    $html .= $this->RenderInterests($ef);
+    $html .= $this->RenderTags($ef);
+    $html .= $this->RenderNotes($ef);
+    $html .= $this->RenderStatuses($ef);
+
+    if ( $edit ) {
+      $html .= $ef->DataEntryLine( "Quiet update", "%s", "checkbox", "send_no_email",
+              array( "size" => 70, "title" => "Check the box if this update should not send e-mail notifications") );
+      $html .= '<tr><th class="prompt">&nbsp;</th><td class="entry">';
+      $html .= "</td></tr>";
+    }
+    $html .= "</table>\n";
+    if ( $edit ) {
+      $html .= '<div id="footer">';
+      $html .= $ef->SubmitButton( "submit", ($this->new_record ? "Create" : "Update") );
+      $html .= '</div>';
+      $html .= $ef->EndForm();
+    }
+
+    return $html;
+  }
 
 
-   /////////////////////////////////////////////////////////////
-   // Display the files attached to the W/R
-   /////////////////////////////////////////////////////////////
-   function RenderAttachments( $ef ) {
-     global $session;
-     $html = "";
-     $sql = "SELECT att_filename, attachment_id, att_brief, att_description, ";
-     $sql .= "to_char(attached_on, 'HH24:MI DD-MM-YYYY') AS att_on, fullname, type_desc ";
-     $sql .= "FROM request_attachment JOIN usr ON ( attached_by = user_no ) ";
-     $sql .= "LEFT OUTER JOIN attachment_type ON ( request_attachment.att_type = attachment_type.type_code ) ";
-     $sql .= "WHERE request_id = $this->request_id ";
-     $sql .= "ORDER BY request_id, attachment_id";
-     # Select the records
-     $q = new PgQuery($sql);
-     $q->Exec('WR::Attachments') ;
-     if ( $ef->editmode || $q->rows )
-       $html .= $ef->BreakLine("Attached Files");
-     if ( $q->rows ) {
-       $html .= '<tr>';
-       $html .= '<td colspan="2"><table width="100%">'."\n";
-       $html .= '<tr><th class="pcol">File</th>';
-       $html .= '<th class="pcol">Description</th>';
-       $html .= '<th class="pcol">By</th>';
-       $html .= '<th class="pcol">On</th>';
-       $html .= '<th class="pcol">Type</th>';
-       if ( $ef->editmode ) $html .= '<th class="pcol">&nbsp;</th>';
-       $html .= '</tr>'."\n";
-       $attachment_format = '<tr class="row%d"><td class="entry"><a href="/attachment.php/%s?id=%d">%s</a></td>';
-       $attachment_format .= '<td class="entry">%s</td><td class="entry" style="white-space: nowrap;">%s</td><td class="entry">%s</td><td class="entry">%s</td>';
-       $attachment_format .= ( $ef->editmode ? '<td class="entry" width="2%%">%s</td>' : '%s');
-       $attachment_format .= '</tr>'."\n";
-       $delete_link_format = '<a href="/wr.php?request_id=%d&action=removeatt&attachment_id=%d&edit=1" title="Remove attachment from this request"><img src="'.$GLOBALS['images'].'/delete.png" border="none"></a>';
-       while( $row = $q->Fetch() ) {
-         $delete_link = ( $ef->editmode ? sprintf( $delete_link_format, $this->request_id, $row->attachment_id ) : '');
-         $html .= sprintf( $attachment_format, ($q->rownum % 2),
+  /////////////////////////////////////////////////////////////
+  // Display the core W/R details
+  /////////////////////////////////////////////////////////////
+  function RenderDetails( $ef ) {
+    global $edit, $session, $bigboxcols, $bigboxrows;
+    $html = "";
+    $html .= $ef->BreakLine("Request Details");
+    if ( !$this->new_record ) {
+      $html .= $ef->DataEntryLine( "W/R #", "$this->request_id &nbsp; &nbsp; <b>Requested:</b> " . nice_date($this->request_on));
+    }
+
+    $html .= $ef->DataEntryLine( "Brief", "%s", "text", "brief",
+              array( "size" => 70, "title" => "A brief description of the request.") );
+
+    // Organisation drop-down
+    if ( $session->AllowedTo("Admin") || $session->AllowedTo("Support") ) {
+      $sql = "SELECT org_code, org_name || ' (' || abbreviation || ')' AS org_name ";
+      $sql .= "FROM organisation WHERE active AND abbreviation !~ '^ *$' ";
+      $sql .= "AND EXISTS(SELECT user_no FROM usr WHERE usr.org_code = organisation.org_code AND usr.status != 'I') ";
+      $sql .= "AND EXISTS(SELECT work_system.system_code FROM org_system JOIN work_system ON (org_system.system_code = work_system.system_code) WHERE org_system.org_code = organisation.org_code AND work_system.active) ";
+      $sql .= "ORDER BY lower(org_name)";
+      $html .= $ef->DataEntryLine( "Organisation", "$this->org_name", "lookup", "org_code",
+                array("_sql" => $sql, "_null" => "--- select an organisation ---", "onchange" => "OrganisationChanged();",
+                      "title" => "The organisation that this work will be done for." ) );
+    }
+    else {
+      if ( $this->new_record ) $this->org_name = $session->org_name;
+      $html .= $ef->DataEntryLine( "Organisation", "$this->org_name", "", "" );
+    }
+
+    // Person within Organisation drop-down
+    $sql = "SELECT user_no, fullname ";
+    if ( $this->new_record ) $sql .= " ||' ('||abbreviation||')' ";
+    $sql .= "FROM usr JOIN organisation ON organisation.org_code = usr.org_code ";
+    if ( $this->new_record ) {
+      $sql .= "WHERE status != 'I' AND organisation.active ";
+      if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) )
+        $sql .= "AND organisation.org_code = $session->org_code AND usr.org_code = $session->org_code ";
+      $sql .= "AND EXISTS(SELECT work_system.system_code FROM org_system JOIN work_system ON (org_system.system_code = work_system.system_code) WHERE org_system.org_code = organisation.org_code AND work_system.active) ";
+    }
+    else {
+      $sql .= "WHERE organisation.org_code = $this->org_code AND usr.org_code = $this->org_code ";
+    }
+    $sql .= "ORDER BY lower(fullname)";
+    $html .= $ef->DataEntryLine( "Person", "$this->fullname", "lookup", "requester_id",
+              array("_sql" => $sql, "_null" => "--- select a person ---", "onchange" => "PersonChanged();",
+                    "title" => "The client who is requesting this, or who is in charge of ensuring it happens." ) );
+
+    // System (within Organisation) drop-down
+    $sql = "SELECT work_system.system_code, system_desc FROM work_system ";
+    if ( $this->new_record ) {
+      if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) ) {
+        $sql .= "JOIN org_system ON org_system.system_code = work_system.system_code ";
+        $sql .= "JOIN system_usr ON $session->user_no = system_usr.user_no AND org_system.system_code = system_usr.system_code ";
+      }
+      $sql .= "WHERE active ";
+      if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) ) {
+        $sql .= "AND org_system.org_code = $session->org_code ";
+        $sql .= "AND system_usr.role IN ( 'A', 'S', 'C', 'E' ) ";
+      }
+    }
+    else {
+      $sql .= "JOIN org_system ON org_system.system_code = work_system.system_code ";
+      if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) )
+        $sql .= "JOIN system_usr ON $session->user_no = system_usr.user_no AND org_system.system_code = system_usr.system_code ";
+      $sql .= "WHERE org_system.org_code = $this->org_code ";
+      if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) )
+        $sql .= "AND system_usr.role IN ( 'A', 'S', 'C', 'E' ) ";
+    }
+    $sql .= "ORDER BY lower(system_desc)";
+    $html .= $ef->DataEntryLine( "System", "$this->system_desc", "lookup", "system_code",
+              array("_sql" => $sql, "_null" => "--- select a system ---", "onchange" => "SystemChanged();",
+                    "title" => "The business system that this request applies to.") );
+
+    // Type of Request
+    $html .= $ef->DataEntryLine( "Type", $this->request_type_desc, "lookup", "request_type",
+              array("_type" => "request|request_type", "title" => "The type of request") );
+
+    // Urgency of Request
+    $html .= $ef->DataEntryLine( "Urgency", $this->urgency_desc, "lookup", "urgency",
+              array("_type" => "request|urgency", "title" => "The urgency of the request, separate from the long-term importance") );
+
+    // Importance of Request
+    $html .= $ef->DataEntryLine( "Importance", $this->importance_desc, "lookup", "importance",
+              array("_type" => "request|importance", "title" => "The relative long-term importance of the request, separate from the urgency") );
+
+    // Detailed description
+    $html .= $ef->DataEntryLine( "Details", html_format($this->detailed), "textarea", "detailed",
+              array("title" => "Full details of the request", "rows" => $bigboxrows, "cols" => $bigboxcols  ) );
+
+    return $html;
+  }
+
+  /////////////////////////////////////////////////////////////
+  // Display the organisationally defined actions and dates
+  /////////////////////////////////////////////////////////////
+  function RenderActions( $ef ) {
+    global $edit, $session;
+
+    if ( (!isset($this->request_id) || $this->request_id == 0) && (!isset($this->org_code) || $this->org_code == 0) ) return "";
+
+    // What actions are defined for this organisation
+    $sql = "SELECT organisation_action.*, completed_on::date, fullname ";
+    $sql .= "FROM organisation_action ";
+    $sql .= "LEFT JOIN request_action ON request_id = $this->request_id AND organisation_action.action_id = request_action.action_id ";
+    $sql .= "LEFT JOIN usr ON updated_by_id = user_no ";
+    $sql .= "WHERE organisation_action.org_code = $this->org_code ";
+    $sql .= "ORDER BY organisation_action.org_code, action_sequence";
+    $q = new PgQuery($sql);
+    $q->Exec('WR::RenderActions') ;
+
+    if ( $q->rows == 0 ) return "";
+
+    $html = $ef->BreakLine("Completed Actions");
+    $html .= '<tr><th class="prompt">Actioned Dates</th><td><table width="100%">';
+    $ef->TempLineFormat('<tr><th class="prompt" style="white-space: nowrap;">%s</th><td class="entry">%s');
+
+    while( $row = $q->Fetch() ) {
+
+      $_POST['request_action'][$row->action_id] = $row->completed_on;
+      $html .= $ef->DataEntryLine( $row->action_description, $row->completed_on, "text", "request_action[$row->action_id]",
+              array("size" => 12, "title" => "The date on which the '$row->action_description' action was completed.") );
+
+      if ( $row->fullname != "" ) {
+        $html .= " &nbsp; updated by $row->fullname.";
+      }
+      $html .= "</td></tr>";
+
+    }
+    $ef->RevertLineFormat();
+
+    $html .= "</table></td></tr>\n";
+    return $html;
+  }
+
+
+  /////////////////////////////////////////////////////////////
+  // Display the files attached to the W/R
+  /////////////////////////////////////////////////////////////
+  function RenderAttachments( $ef ) {
+    global $session;
+    $html = "";
+    $sql = "SELECT att_filename, attachment_id, att_brief, att_description, ";
+    $sql .= "to_char(attached_on, 'HH24:MI DD-MM-YYYY') AS att_on, fullname, type_desc ";
+    $sql .= "FROM request_attachment JOIN usr ON ( attached_by = user_no ) ";
+    $sql .= "LEFT OUTER JOIN attachment_type ON ( request_attachment.att_type = attachment_type.type_code ) ";
+    $sql .= "WHERE request_id = $this->request_id ";
+    $sql .= "ORDER BY request_id, attachment_id";
+    # Select the records
+    $q = new PgQuery($sql);
+    $q->Exec('WR::Attachments') ;
+    if ( $ef->editmode || $q->rows )
+      $html .= $ef->BreakLine("Attached Files");
+    if ( $q->rows ) {
+      $html .= '<tr>';
+      $html .= '<td colspan="2"><table width="100%">'."\n";
+      $html .= '<tr><th class="pcol">File</th>';
+      $html .= '<th class="pcol">Description</th>';
+      $html .= '<th class="pcol">By</th>';
+      $html .= '<th class="pcol">On</th>';
+      $html .= '<th class="pcol">Type</th>';
+      if ( $ef->editmode ) $html .= '<th class="pcol">&nbsp;</th>';
+      $html .= '</tr>'."\n";
+      $attachment_format = '<tr class="row%d"><td class="entry"><a href="/attachment.php/%s?id=%d">%s</a></td>';
+      $attachment_format .= '<td class="entry">%s</td><td class="entry" style="white-space: nowrap;">%s</td><td class="entry">%s</td><td class="entry">%s</td>';
+      $attachment_format .= ( $ef->editmode ? '<td class="entry" width="2%%">%s</td>' : '%s');
+      $attachment_format .= '</tr>'."\n";
+      $delete_link_format = '<a href="/wr.php?request_id=%d&action=removeatt&attachment_id=%d&edit=1" title="Remove attachment from this request"><img src="'.$GLOBALS['images'].'/delete.png" border="none"></a>';
+      while( $row = $q->Fetch() ) {
+        $delete_link = ( $ef->editmode ? sprintf( $delete_link_format, $this->request_id, $row->attachment_id ) : '');
+        $html .= sprintf( $attachment_format, ($q->rownum % 2),
                     $row->att_filename, $row->attachment_id, $row->att_filename, $row->att_brief,
                     $row->fullname, $row->att_on, $row->type_desc, $delete_link
                   );
-       }
-       $html .= '</table></td></tr>'."\n";
-     }
+      }
+      $html .= '</table></td></tr>'."\n";
+    }
 
-     if ( $ef->editmode ) {
-       $html .= '<tr><th class="prompt">Add File</th><td><table><tr>'."\n";
-       // Select the file
-       $html .= '<td class="entry">';
-       $html .= $ef->DataEntryField( "", "file", "att_filename",
-                 array("title" => "Enter the name of the file to be attached" ) );
-       $html .= '</td>';
+    if ( $ef->editmode ) {
+      $html .= '<tr><th class="prompt">Add File</th><td><table><tr>'."\n";
+      // Select the file
+      $html .= '<td class="entry">';
+      $html .= $ef->DataEntryField( "", "file", "att_filename",
+                array("title" => "Enter the name of the file to be attached" ) );
+      $html .= '</td>';
 
-       // Enter the description
-       $html .= '<th class="prompt">Description</th><td class="entry">';
-       $html .= $ef->DataEntryField( "", "text", "att_brief",
-                 array("title" => "Enter a description for the file", "size" => 50 ) );
-       $html .= '</td>';
+      // Enter the description
+      $html .= '<th class="prompt">Description</th><td class="entry">';
+      $html .= $ef->DataEntryField( "", "text", "att_brief",
+                array("title" => "Enter a description for the file", "size" => 50 ) );
+      $html .= '</td>';
 
-       $html .= '</tr></table></td></tr>'."\n";
-     }
-     return $html;
-   }
+      $html .= '</tr></table></td></tr>'."\n";
+    }
+    return $html;
+  }
 
 
-   /////////////////////////////////////////////////////////////
-   // Render the Quotations section of the W/R
-   /////////////////////////////////////////////////////////////
-   function RenderQuotations( $ef ) {
-     global $session;
-     $html = "";
-     $sql = "SELECT request_quote.*, ru.fullname AS quote_by, au.fullname AS approved_by, ";
-     $sql .= "to_char(quoted_on, 'HH24:MI DD-MM-YYYY') AS quoted_on, lookup_desc AS quote_type_desc ";
-     $sql .= "FROM request_quote ";
-     $sql .= "LEFT OUTER JOIN usr ru ON ( request_quote.quote_by_id = ru.user_no ) ";
-     $sql .= "LEFT OUTER JOIN usr au ON ( request_quote.approved_by_id = au.user_no ) ";
-     $sql .= "LEFT OUTER JOIN lookup_code ON ( source_table = 'request_quote' AND source_field = 'quote_type' AND lookup_code = request_quote.quote_type) ";
-     $sql .= "WHERE request_id = $this->request_id ";
-     $sql .= "ORDER BY request_id, quote_id";
-     # Select the records
-     $q = new PgQuery($sql);
-     $q->Exec('WR::Quotations');
-     if ( $ef->editmode || $q->rows )
-       $html .= $ef->BreakLine("Quotations");
-     if ( $q->rows ) {
-       $html .= '<tr><td colspan="2"><table width="100%">'."\n";
-       $html .= '<tr><th class="pcol">Type</th>';
-       $html .= '<th class="pcol">Quote On</th>';
-       $html .= '<th class="pcol">By</th>';
-       $html .= '<th class="pcol">Brief</th>';
-       $html .= '<th class="pcol">Quote</th></tr>'."\n";
-       $line_format = '<tr class="row%d"><td class="entry" width="5%%">%s</td>';
-       $line_format .= '<td class="entry">%s</td>';
-       $line_format .= '<td class="entry" style="white-space: nowrap;">%s</td>';
-       $line_format .= '<td class="entry">%s</td>';
-       $line_format .= '<td class="entry" style="white-space: nowrap;">%s %s</td></tr>'."\n";
-       $detail_format = '<tr class="row%d"><td class="entry">&nbsp;</td><td class="entry" colspan="4">%s</td></tr>'."\n";
-       while( $row = $q->Fetch() ) {
-         $html .= sprintf( $line_format,
+  /////////////////////////////////////////////////////////////
+  // Render the Quotations section of the W/R
+  /////////////////////////////////////////////////////////////
+  function RenderQuotations( $ef ) {
+    global $session;
+    $html = "";
+    $sql = "SELECT request_quote.*, ru.fullname AS quote_by, au.fullname AS approved_by, ";
+    $sql .= "to_char(quoted_on, 'HH24:MI DD-MM-YYYY') AS quoted_on, lookup_desc AS quote_type_desc ";
+    $sql .= "FROM request_quote ";
+    $sql .= "LEFT OUTER JOIN usr ru ON ( request_quote.quote_by_id = ru.user_no ) ";
+    $sql .= "LEFT OUTER JOIN usr au ON ( request_quote.approved_by_id = au.user_no ) ";
+    $sql .= "LEFT OUTER JOIN lookup_code ON ( source_table = 'request_quote' AND source_field = 'quote_type' AND lookup_code = request_quote.quote_type) ";
+    $sql .= "WHERE request_id = $this->request_id ";
+    $sql .= "ORDER BY request_id, quote_id";
+    # Select the records
+    $q = new PgQuery($sql);
+    $q->Exec('WR::Quotations');
+    if ( $ef->editmode || $q->rows )
+      $html .= $ef->BreakLine("Quotations");
+    if ( $q->rows ) {
+      $html .= '<tr><td colspan="2"><table width="100%">'."\n";
+      $html .= '<tr><th class="pcol">Type</th>';
+      $html .= '<th class="pcol">Quote On</th>';
+      $html .= '<th class="pcol">By</th>';
+      $html .= '<th class="pcol">Brief</th>';
+      $html .= '<th class="pcol">Quote</th></tr>'."\n";
+      $line_format = '<tr class="row%d"><td class="entry" width="5%%">%s</td>';
+      $line_format .= '<td class="entry">%s</td>';
+      $line_format .= '<td class="entry" style="white-space: nowrap;">%s</td>';
+      $line_format .= '<td class="entry">%s</td>';
+      $line_format .= '<td class="entry" style="white-space: nowrap;">%s %s</td></tr>'."\n";
+      $detail_format = '<tr class="row%d"><td class="entry">&nbsp;</td><td class="entry" colspan="4">%s</td></tr>'."\n";
+      while( $row = $q->Fetch() ) {
+        $html .= sprintf( $line_format,
                     ($q->rownum % 2), $row->quote_type_desc, $row->quote_by, $row->quoted_on, $row->quote_brief,
                     $row->quote_amount, $row->quote_units
                   );
-         if ( trim("$row->quote_details") != "" ) {
-           $html .= sprintf( $detail_format,
+        if ( trim("$row->quote_details") != "" ) {
+          $html .= sprintf( $detail_format,
                     ($q->rownum % 2), $row->quote_details
                   );
-         }
-       }
-       $html .= '</table></td></tr>'."\n";
-     }
+        }
+      }
+      $html .= '</table></td></tr>'."\n";
+    }
 
-     if ( $ef->editmode ) {
-       $html .= '<tr><th class="prompt">Add Quote</th><td><table><tr>'."\n";
+    if ( $ef->editmode ) {
+      $html .= '<tr><th class="prompt">Add Quote</th><td><table><tr>'."\n";
 
-       $html .= '<td class="entry">';
-       $html .= $ef->DataEntryField( "", "text", "quote_brief",
-                 array("title" => "Enter brief description of the quote", "size" => 40 ) );
-       $html .= '</td>';
+      $html .= '<td class="entry">';
+      $html .= $ef->DataEntryField( "", "text", "quote_brief",
+                array("title" => "Enter brief description of the quote", "size" => 40 ) );
+      $html .= '</td>';
 
-       $html .= '<th class="prompt">Type</th><td class="entry">';
-       if ( !isset($_POST['quote_type']) ) $_POST['quote_type'] = 'E';  // Default to Estimate
-       $html .= $ef->DataEntryField( "", "lookup", "quote_type",
-                 array("_type" => "request_quote|quote_type", "style" => "width: 6em;",
-                       "title" => "The type of quote you are entering" ) );
-       $html .= '</td>';
+      $html .= '<th class="prompt">Type</th><td class="entry">';
+      if ( !isset($_POST['quote_type']) ) $_POST['quote_type'] = 'E';  // Default to Estimate
+      $html .= $ef->DataEntryField( "", "lookup", "quote_type",
+                array("_type" => "request_quote|quote_type", "style" => "width: 6em;",
+                      "title" => "The type of quote you are entering" ) );
+      $html .= '</td>';
 
-       $html .= '<th class="prompt">Amount</th><td class="entry">';
-       $html .= $ef->DataEntryField( "", "number", "quote_amount",
-                 array("title" => "Enter the amount of the quote",
-                       "size" => 10, "onblur" => "this.value=CheckNumber(this,0,999999999)" ) );
-       $html .= '</td>';
+      $html .= '<th class="prompt">Amount</th><td class="entry">';
+      $html .= $ef->DataEntryField( "", "number", "quote_amount",
+                array("title" => "Enter the amount of the quote",
+                      "size" => 10, "onblur" => "this.value=CheckNumber(this,0,999999999)" ) );
+      $html .= '</td>';
 
-       $html .= '<td class="entry">';
-       if ( !isset($_POST['quote_units']) ) $_POST['quote_units'] = 'hours';  // Default to Hours
-       $html .= $ef->DataEntryField( "", "lookup", "quote_units",
-                 array("_type" => "request_quote|quote_units", "style" => "width: 6em;",
-                       "title" => "The units for the amount of the quote you are adding" ) );
-       $html .= '</td>';
+      $html .= '<td class="entry">';
+      if ( !isset($_POST['quote_units']) ) $_POST['quote_units'] = 'hours';  // Default to Hours
+      $html .= $ef->DataEntryField( "", "lookup", "quote_units",
+                array("_type" => "request_quote|quote_units", "style" => "width: 6em;",
+                      "title" => "The units for the amount of the quote you are adding" ) );
+      $html .= '</td>';
 
-       $html .= '</tr></table></td></tr>'."\n";
+      $html .= '</tr></table></td></tr>'."\n";
 
-       // Enter the description
-       $html .= '<tr><th class="prompt">Description</th><td class="entry">';
-       $html .= $ef->DataEntryField( "", "textarea", "quote_details",
-                 array("title" => "Enter a detailed description for the quote.", "cols" => 70, "rows" => 4 ) );
-       $html .= '</td>';
+      // Enter the description
+      $html .= '<tr><th class="prompt">Description</th><td class="entry">';
+      $html .= $ef->DataEntryField( "", "textarea", "quote_details",
+                array("title" => "Enter a detailed description for the quote.", "cols" => 70, "rows" => 4 ) );
+      $html .= '</td>';
 
-     }
-     return $html;
-   }
+    }
+    return $html;
+  }
 
 
-   /////////////////////////////////////////////////////////////
-   // Render the details of any requests related to/from this one
-   /////////////////////////////////////////////////////////////
-   function RenderRelations( $ef ) {
-     global $session;
-     $html = "";
-     $header_done = false;
-     $delete_link_format .= '<td class="entry" width="2%%"><a href="/wr.php?edit=1&request_id=%d&action=disassociate&other_id=%d" title="Break the association with this request"><img src="'.$GLOBALS['images'].'/delete.png" border="none"></a></td>';
+  /////////////////////////////////////////////////////////////
+  // Render the details of any requests related to/from this one
+  /////////////////////////////////////////////////////////////
+  function RenderRelations( $ef ) {
+    global $session;
+    $html = "";
+    $header_done = false;
+    $delete_link_format .= '<td class="entry" width="2%%"><a href="/wr.php?edit=1&request_id=%d&action=disassociate&other_id=%d" title="Break the association with this request"><img src="'.$GLOBALS['images'].'/delete.png" border="none"></a></td>';
 
-     $sql = "SELECT parent.*, request_request.*, parent.request_id AS parent_id, ";
-     $sql .= "lsd.lookup_desc AS last_status_desc, llt.lookup_desc AS link_type_desc ";
-     $sql .= "FROM request_request ";
-     $sql .= "JOIN request parent ON (request_request.request_id = parent.request_id) ";
-     $sql .= "JOIN request child ON (request_request.to_request_id = child.request_id) ";
-     $sql .= "JOIN lookup_code lsd ON (lsd.source_table = 'request' AND lsd.source_field = 'status_code' AND lsd.lookup_code = parent.last_status) ";
-     $sql .= "JOIN lookup_code llt ON (llt.source_table = 'request_request' AND llt.source_field = 'link_type' AND llt.lookup_code = request_request.link_type) ";
-     $sql .= "WHERE request_request.to_request_id = ? ";
-     $sql .= "ORDER BY request_request.request_id, request_request.to_request_id ";
-     # Select the records
-     $q = new PgQuery($sql, $this->request_id);
-     $q->Exec('WR::Relations');
-     if ( $ef->editmode || $q->rows ) {
-       $html .= $ef->BreakLine("Related Requests");
-       $header_done = true;
-     }
-     if ( $q->rows ) {
-       $html .= '<tr><td colspan="2"><table width="100%">'."\n";
-       $html .= '<tr><th class="pcol">Parent</th>';
-       $html .= '<th class="pcol">Brief</th>';
-       $html .= '<th class="pcol">Status</th>';
-       $html .= '<th class="pcol">Link</th>';
-       $html .= '<th class="pcol">This W/R</th>';
-       if ( $ef->editmode ) $html .= '<th class="pcol">&nbsp;</th>';
-       $html .= '</tr>'."\n";
-       $line_format = '<tr class="row%d"><td class="entry" width="5%%"><a href="/wr.php?request_id=%d">%s</a></td>';
-       $line_format .= '<td class="entry"><a href="/wr.php?request_id=%d">%s</a></td>';
-       $line_format .= '<td class="entry">%s</td>';
-       $line_format .= '<td class="entry">%s</td>';
-       $line_format .= '<td class="entry">%s</td>%s';
-       $line_format .= '</tr>'."\n";
-       while( $row = $q->Fetch() ) {
-         if ( trim($row->brief) == '' ) $row->brief = substr($row->detailed,0,50) . "...";
-         $delete_link = ( $ef->editmode ? sprintf( $delete_link_format, $this->request_id, $row->parent_id) : '');
-         $html .= sprintf( $line_format,
+    $sql = "SELECT parent.*, request_request.*, parent.request_id AS parent_id, ";
+    $sql .= "lsd.lookup_desc AS last_status_desc, llt.lookup_desc AS link_type_desc ";
+    $sql .= "FROM request_request ";
+    $sql .= "JOIN request parent ON (request_request.request_id = parent.request_id) ";
+    $sql .= "JOIN request child ON (request_request.to_request_id = child.request_id) ";
+    $sql .= "JOIN lookup_code lsd ON (lsd.source_table = 'request' AND lsd.source_field = 'status_code' AND lsd.lookup_code = parent.last_status) ";
+    $sql .= "JOIN lookup_code llt ON (llt.source_table = 'request_request' AND llt.source_field = 'link_type' AND llt.lookup_code = request_request.link_type) ";
+    $sql .= "WHERE request_request.to_request_id = ? ";
+    $sql .= "ORDER BY request_request.request_id, request_request.to_request_id ";
+    # Select the records
+    $q = new PgQuery($sql, $this->request_id);
+    $q->Exec('WR::Relations');
+    if ( $ef->editmode || $q->rows ) {
+      $html .= $ef->BreakLine("Related Requests");
+      $header_done = true;
+    }
+    if ( $q->rows ) {
+      $html .= '<tr><td colspan="2"><table width="100%">'."\n";
+      $html .= '<tr><th class="pcol">Parent</th>';
+      $html .= '<th class="pcol">Brief</th>';
+      $html .= '<th class="pcol">Status</th>';
+      $html .= '<th class="pcol">Link</th>';
+      $html .= '<th class="pcol">This W/R</th>';
+      if ( $ef->editmode ) $html .= '<th class="pcol">&nbsp;</th>';
+      $html .= '</tr>'."\n";
+      $line_format = '<tr class="row%d"><td class="entry" width="5%%"><a href="/wr.php?request_id=%d">%s</a></td>';
+      $line_format .= '<td class="entry"><a href="/wr.php?request_id=%d">%s</a></td>';
+      $line_format .= '<td class="entry">%s</td>';
+      $line_format .= '<td class="entry">%s</td>';
+      $line_format .= '<td class="entry">%s</td>%s';
+      $line_format .= '</tr>'."\n";
+      while( $row = $q->Fetch() ) {
+        if ( trim($row->brief) == '' ) $row->brief = substr($row->detailed,0,50) . "...";
+        $delete_link = ( $ef->editmode ? sprintf( $delete_link_format, $this->request_id, $row->parent_id) : '');
+        $html .= sprintf( $line_format,
                     ($q->rownum % 2), $row->parent_id, $row->parent_id, $row->parent_id, $row->brief, $row->last_status_desc, $row->link_type_desc,
                     $this->request_id, $delete_link
                   );
-       }
-       $html .= '</table></td></tr>'."\n";
-     }
+      }
+      $html .= '</table></td></tr>'."\n";
+    }
 
-     $sql = "SELECT child.*, request_request.*, child.request_id AS child_id, ";
-     $sql .= "lsd.lookup_desc AS last_status_desc, llt.lookup_desc AS link_type_desc ";
-     $sql .= "FROM request_request ";
-     $sql .= "JOIN request parent ON (request_request.request_id = parent.request_id) ";
-     $sql .= "JOIN request child ON (request_request.to_request_id = child.request_id) ";
-     $sql .= "JOIN lookup_code lsd ON (lsd.source_table = 'request' AND lsd.source_field = 'status_code' AND lsd.lookup_code = parent.last_status) ";
-     $sql .= "JOIN lookup_code llt ON (llt.source_table = 'request_request' AND llt.source_field = 'link_type' AND llt.lookup_code = request_request.link_type) ";
-     $sql .= "WHERE request_request.request_id = ? ";
-     $sql .= "ORDER BY request_request.request_id, request_request.to_request_id ";
-     # Select the records
-     $q = new PgQuery($sql, $this->request_id);
-     $q->Exec('WR::Relations');
-     if ( ! $header_done && ($ef->editmode || $q->rows) ) {
-       $html .= $ef->BreakLine("Related Requests");
-       $header_done = true;
-     }
-     if ( $q->rows ) {
-       $html .= '<tr><td colspan="2"><table width="100%">'."\n";
-       $html .= '<tr><th class="pcol" style="white-space: nowrap;">This W/R</th>';
-       $html .= '<th class="pcol">Link</th>';
-       $html .= '<th class="pcol">Child</th>';
-       $html .= '<th class="pcol">Brief</th>';
-       $html .= '<th class="pcol">Status</th>';
-       $html .= '<th class="pcol">&nbsp;</th></tr>'."\n";
-       $line_format = '<tr class="row%d"><td class="entry" width="5%%">%s</td>';
-       $line_format .= '<td class="entry">%s</td>';
-       $line_format .= '<td class="entry"><a href="/wr.php?request_id=%d">%s</a></td>';
-       $line_format .= '<td class="entry"><a href="/wr.php?request_id=%d">%s</a></td>';
-       $line_format .= '<td class="entry">%s</td>%s';
-       $line_format .= '</tr>'."\n";
-       while( $row = $q->Fetch() ) {
-         if ( trim($row->brief) == '' ) $row->brief = substr($row->detailed,0,50) . "...";
-         $delete_link = ( $ef->editmode ? sprintf( $delete_link_format, $this->request_id, $row->child_id) : '');
-         $html .= sprintf( $line_format,
+    $sql = "SELECT child.*, request_request.*, child.request_id AS child_id, ";
+    $sql .= "lsd.lookup_desc AS last_status_desc, llt.lookup_desc AS link_type_desc ";
+    $sql .= "FROM request_request ";
+    $sql .= "JOIN request parent ON (request_request.request_id = parent.request_id) ";
+    $sql .= "JOIN request child ON (request_request.to_request_id = child.request_id) ";
+    $sql .= "JOIN lookup_code lsd ON (lsd.source_table = 'request' AND lsd.source_field = 'status_code' AND lsd.lookup_code = parent.last_status) ";
+    $sql .= "JOIN lookup_code llt ON (llt.source_table = 'request_request' AND llt.source_field = 'link_type' AND llt.lookup_code = request_request.link_type) ";
+    $sql .= "WHERE request_request.request_id = ? ";
+    $sql .= "ORDER BY request_request.request_id, request_request.to_request_id ";
+    # Select the records
+    $q = new PgQuery($sql, $this->request_id);
+    $q->Exec('WR::Relations');
+    if ( ! $header_done && ($ef->editmode || $q->rows) ) {
+      $html .= $ef->BreakLine("Related Requests");
+      $header_done = true;
+    }
+    if ( $q->rows ) {
+      $html .= '<tr><td colspan="2"><table width="100%">'."\n";
+      $html .= '<tr><th class="pcol" style="white-space: nowrap;">This W/R</th>';
+      $html .= '<th class="pcol">Link</th>';
+      $html .= '<th class="pcol">Child</th>';
+      $html .= '<th class="pcol">Brief</th>';
+      $html .= '<th class="pcol">Status</th>';
+      $html .= '<th class="pcol">&nbsp;</th></tr>'."\n";
+      $line_format = '<tr class="row%d"><td class="entry" width="5%%">%s</td>';
+      $line_format .= '<td class="entry">%s</td>';
+      $line_format .= '<td class="entry"><a href="/wr.php?request_id=%d">%s</a></td>';
+      $line_format .= '<td class="entry"><a href="/wr.php?request_id=%d">%s</a></td>';
+      $line_format .= '<td class="entry">%s</td>%s';
+      $line_format .= '</tr>'."\n";
+      while( $row = $q->Fetch() ) {
+        if ( trim($row->brief) == '' ) $row->brief = substr($row->detailed,0,50) . "...";
+        $delete_link = ( $ef->editmode ? sprintf( $delete_link_format, $this->request_id, $row->child_id) : '');
+        $html .= sprintf( $line_format,
                     ($q->rownum % 2), $this->request_id, $row->link_type_desc, $row->child_id,
                     $row->child_id, $row->child_id, $row->brief, $row->last_status_desc, $delete_link
                   );
-       }
-       $html .= '</table></td></tr>'."\n";
-     }
+      }
+      $html .= '</table></td></tr>'."\n";
+    }
 
-     if ( $ef->editmode ) {
-       $html .= '<tr><th class="prompt">From W/R</th><td><table><tr>'."\n";
+    if ( $ef->editmode ) {
+      $html .= '<tr><th class="prompt">From W/R</th><td><table><tr>'."\n";
 
-       $html .= '<td class="entry">';
-       $html .= $ef->DataEntryField( "", "integer", "parent_request_id",
-                 array("title" => "Enter the W/R# of the parent request", "size" => 8,
-                       "onblur" => "this.value=CheckNumber(this,0,99999999)" ) );
-       $html .= '</td>';
+      $html .= '<td class="entry">';
+      $html .= $ef->DataEntryField( "", "integer", "parent_request_id",
+                array("title" => "Enter the W/R# of the parent request", "size" => 8,
+                      "onblur" => "this.value=CheckNumber(this,0,99999999)" ) );
+      $html .= '</td>';
 
-       $html .= '<th class="prompt">Link Type</th><td class="entry">';
-       $html .= $ef->DataEntryField( "", "lookup", "link_type",
-                 array("_type" => "request_request|link_type", "style" => "width: 12em;",
-                       "title" => "The way the parent request links to this one" ) );
-       $html .= '</td>';
+      $html .= '<th class="prompt">Link Type</th><td class="entry">';
+      $html .= $ef->DataEntryField( "", "lookup", "link_type",
+                array("_type" => "request_request|link_type", "style" => "width: 12em;",
+                      "title" => "The way the parent request links to this one" ) );
+      $html .= '</td>';
 
-       $html .= '</tr></table></td></tr>'."\n";
-     }
-     return $html;
-   }
+      $html .= '</tr></table></td></tr>'."\n";
+    }
+    return $html;
+  }
 
-   /////////////////////////////////////////////////////////////
-   // Display the people who are allocated to work on this
-   /////////////////////////////////////////////////////////////
-   function RenderAllocations( $ef ) {
-     global $session;
-     $html = "";
-     $sql = "SELECT request_allocated.*, usr.fullname, usr.email, ";
-     $sql .= "to_char(allocated_on, 'HH24:MI DD-MM-YYYY') AS alloc_on ";
-     $sql .= "FROM request_allocated JOIN usr ON ( allocated_to_id = user_no ) ";
-     $sql .= "WHERE request_id = $this->request_id ";
-     $sql .= "ORDER BY request_id, allocated_on";
-     # Select the records
-     $q = new PgQuery($sql);
-     $q->Exec('WR::Attachments') ;
-     if ( $ef->editmode || $q->rows )
-       $html .= $ef->BreakLine("Work Allocated To");
-     if ( $q->rows ) {
-       $html .= '<tr><th class="prompt">&nbsp;</th><td class="entry" style="vertical-align: middle;">'."\n";
-       $line_format = '<a href="/usr.php?user_no=%d">%s</a>';
-       if ( $ef->editmode ) {
-         $line_format .= '<a href="/wr.php?request_id=%d&action=deallocate&user_no=%d&edit=1" title="Deallocate %s from this request"><img src="'.$GLOBALS['images'].'/delete.png" border="none"></a>';
-       }
-       $line_format .= "&nbsp; &nbsp;\n";
-       while( $row = $q->Fetch() ) {
-         $html .= sprintf( $line_format,
+  /////////////////////////////////////////////////////////////
+  // Display the people who are allocated to work on this
+  /////////////////////////////////////////////////////////////
+  function RenderAllocations( $ef ) {
+    global $session;
+    $html = "";
+    $sql = "SELECT request_allocated.*, usr.fullname, usr.email, ";
+    $sql .= "to_char(allocated_on, 'HH24:MI DD-MM-YYYY') AS alloc_on ";
+    $sql .= "FROM request_allocated JOIN usr ON ( allocated_to_id = user_no ) ";
+    $sql .= "WHERE request_id = $this->request_id ";
+    $sql .= "ORDER BY request_id, allocated_on";
+    # Select the records
+    $q = new PgQuery($sql);
+    $q->Exec('WR::Attachments') ;
+    if ( $ef->editmode || $q->rows )
+      $html .= $ef->BreakLine("Work Allocated To");
+    if ( $q->rows ) {
+      $html .= '<tr><th class="prompt">&nbsp;</th><td class="entry" style="vertical-align: middle;">'."\n";
+      $line_format = '<a href="/usr.php?user_no=%d">%s</a>';
+      if ( $ef->editmode ) {
+        $line_format .= '<a href="/wr.php?request_id=%d&action=deallocate&user_no=%d&edit=1" title="Deallocate %s from this request"><img src="'.$GLOBALS['images'].'/delete.png" border="none"></a>';
+      }
+      $line_format .= "&nbsp; &nbsp;\n";
+      while( $row = $q->Fetch() ) {
+        $html .= sprintf( $line_format,
                     $row->allocated_to_id, $row->fullname,
                     $this->request_id, $row->allocated_to_id, $row->fullname
                   );
-       }
-       $html .= '</td></tr>'."\n";
-     }
+      }
+      $html .= '</td></tr>'."\n";
+    }
 
-     if ( $ef->editmode ) {
-       $html .= '<tr><th class="prompt">Allocate</th>'."\n";
-       // Select the file
-       $usr_sql = "SELECT user_no, abbreviation || ': ' || fullname ";
-       $usr_sql .= "FROM usr JOIN organisation ON ( usr.org_code = organisation.org_code) ";
-       if ( isset($this->org_code) ) {
-         $usr_sql .= "WHERE status != 'I' AND organisation.org_code IN ( $this->org_code, $session->org_code )";
-       }
-       else {
+    if ( $ef->editmode ) {
+      $html .= '<tr><th class="prompt">Allocate</th>'."\n";
+      // Select the file
+      $usr_sql = "SELECT user_no, abbreviation || ': ' || fullname ";
+      $usr_sql .= "FROM usr JOIN organisation ON ( usr.org_code = organisation.org_code) ";
+      if ( isset($this->org_code) ) {
+        $usr_sql .= "WHERE status != 'I' AND organisation.org_code IN ( $this->org_code, $session->org_code )";
+      }
+      else {
           $usr_sql .= "WHERE status != 'I' AND organisation.org_code = $session->org_code ";
-       }
-       $usr_sql .= " ORDER BY organisation.org_code, fullname;";
-       $html .= '<td class="entry">';
-       $html .= $ef->DataEntryField( "", "lookup", "allocatable",
-                 array("title" => "Select the person to allocate this W/R to",
-                       "style" => "vertical-align: top; width: 20em;",
-                       "_null" => "--- select a person ---",
-                       "_sql"  => $usr_sql ) );
+      }
+      $usr_sql .= " ORDER BY organisation.org_code, fullname;";
+      $html .= '<td class="entry">';
+      $html .= $ef->DataEntryField( "", "lookup", "allocatable",
+                array("title" => "Select the person to allocate this W/R to",
+                      "style" => "vertical-align: top; width: 20em;",
+                      "_null" => "--- select a person ---",
+                      "_sql"  => $usr_sql ) );
 
-       // Enter the description
-       $html .= $ef->DataEntryField( "", "button", "add_allocation",
-                 array("title" => "Add this person to the allocations for this work request",
-                       "value" => "Add Person", "style" => "vertical-align: top;",
-                       "onClick" => "return AssignSelected(document.forms.form.allocatable,'new_allocations[]');" ) );
+      // Enter the description
+      $html .= $ef->DataEntryField( "", "button", "add_allocation",
+                array("title" => "Add this person to the allocations for this work request",
+                      "value" => "Add Person", "style" => "vertical-align: top;",
+                      "onClick" => "return AssignSelected(document.forms.form.allocatable,'new_allocations[]');" ) );
 
-       $html .= $ef->DataEntryField( "", "select", "new_allocations[]",
-                 array("title" => "Unselect the person not allocate this W/R to them",
-                       "style" => "width: 20em;", "multiple"  => "true", "size" => 1 ) );
-       $html .= '</td></tr>'."\n";
-     }
-     return $html;
-   }
+      $html .= $ef->DataEntryField( "", "select", "new_allocations[]",
+                array("title" => "Unselect the person not allocate this W/R to them",
+                      "style" => "width: 20em;", "multiple"  => "true", "size" => 1 ) );
+      $html .= '</td></tr>'."\n";
+    }
+    return $html;
+  }
 
-   /////////////////////////////////////////////////////////////
-   /////////////////////////////////////////////////////////////
-   function RenderTimesheets( $ef ) {
-     global $session, $sysabbr;
-     $html = "";
-     $sql = "SELECT request_timesheet.*, usr.fullname, usr.email, cb.fullname AS charged_by, ";
-     $sql .= "usr.base_rate AS worker_rate, supplier.work_rate AS supplier_rate, organisation.work_rate AS org_rate, ";
-     $sql .= "to_char(work_on, 'DD-MM-YYYY') AS work_on, ";
-     $sql .= "to_char(work_charged, 'DD-MM-YYYY') AS charged_on ";
-     $sql .= "FROM request_timesheet JOIN usr ON ( request_timesheet.work_by_id = usr.user_no ) ";
-     $sql .= "JOIN request ON (request_timesheet.request_id = request.request_id ) ";
-     $sql .= "LEFT JOIN usr requester ON (request.requester_id = requester.user_no ) ";
-     $sql .= "LEFT JOIN organisation ON (requester.org_code = organisation.org_code ) ";
-     $sql .= "LEFT JOIN usr cb ON (request_timesheet.charged_by_id = cb.user_no ) ";
-     $sql .= "LEFT JOIN organisation supplier ON (usr.org_code = supplier.org_code ) ";
-     $sql .= "WHERE request_timesheet.request_id = $this->request_id ";
-     $sql .= "ORDER BY request_id, request_timesheet.work_on, usr.fullname";
-     # Select the records
-     $q = new PgQuery($sql);
-     $q->Exec('WR::Timesheet') ;
-     if ( $ef->editmode || $q->rows ) {
-       $html .= $ef->BreakLine("Work Done");
-       $line_format = '<tr class="row%d"><td class="entry">%s</td>';
-       $line_format .= '<td class="entry">%s</td>';
-       $line_format .= '<td class="entry" style="white-space: nowrap; text-align: right; ">%s %s</td>';
-       $line_format .= '<td class="entry" style="white-space: nowrap; text-align: right; ">%s</td>';
-       $entry_line_format = $line_format;
-       $line_format .= '<td class="entry" width="50%%">%s</td>';
-       $line_format .= '<td class="entry">%s</td>';
-       $line_format .= '<td class="entry">%s</td>';
-       $line_format .= '<td class="entry" style="white-space: nowrap; text-align: right; ">%s</td>';
-       $line_format .= '<td class="entry" style="white-space: nowrap; text-align: right; ">%s</td>';
-       $line_format .= '%s%s</tr>'."\n";
-       $bill_ok_format = '<td class="entry" style="text-align: center; ">%s</td>';
-       $delete_link_format = '<td class="entry" width="2%%"><a href="/wr.php?request_id=%d&action=removets&timesheet_id=%d&edit=1" title="Remove timesheet from this request"><img src="'.$GLOBALS['images'].'/delete.png" border="none"></a></td>';
+  /////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////
+  function RenderTimesheets( $ef ) {
+    global $session, $sysabbr;
+    $html = "";
+    $sql = "SELECT request_timesheet.*, usr.fullname, usr.email, cb.fullname AS charged_by, ";
+    $sql .= "usr.base_rate AS worker_rate, supplier.work_rate AS supplier_rate, organisation.work_rate AS org_rate, ";
+    $sql .= "to_char(work_on, 'DD-MM-YYYY') AS work_on, ";
+    $sql .= "to_char(work_charged, 'DD-MM-YYYY') AS charged_on ";
+    $sql .= "FROM request_timesheet JOIN usr ON ( request_timesheet.work_by_id = usr.user_no ) ";
+    $sql .= "JOIN request ON (request_timesheet.request_id = request.request_id ) ";
+    $sql .= "LEFT JOIN usr requester ON (request.requester_id = requester.user_no ) ";
+    $sql .= "LEFT JOIN organisation ON (requester.org_code = organisation.org_code ) ";
+    $sql .= "LEFT JOIN usr cb ON (request_timesheet.charged_by_id = cb.user_no ) ";
+    $sql .= "LEFT JOIN organisation supplier ON (usr.org_code = supplier.org_code ) ";
+    $sql .= "WHERE request_timesheet.request_id = $this->request_id ";
+    $sql .= "ORDER BY request_id, request_timesheet.work_on, usr.fullname";
+    # Select the records
+    $q = new PgQuery($sql);
+    $q->Exec('WR::Timesheet') ;
+    if ( $ef->editmode || $q->rows ) {
+      $html .= $ef->BreakLine("Work Done");
+      $line_format = '<tr class="row%d"><td class="entry">%s</td>';
+      $line_format .= '<td class="entry">%s</td>';
+      $line_format .= '<td class="entry" style="white-space: nowrap; text-align: right; ">%s %s</td>';
+      $line_format .= '<td class="entry" style="white-space: nowrap; text-align: right; ">%s</td>';
+      $entry_line_format = $line_format;
+      $line_format .= '<td class="entry" width="50%%">%s</td>';
+      $line_format .= '<td class="entry">%s</td>';
+      $line_format .= '<td class="entry">%s</td>';
+      $line_format .= '<td class="entry" style="white-space: nowrap; text-align: right; ">%s</td>';
+      $line_format .= '<td class="entry" style="white-space: nowrap; text-align: right; ">%s</td>';
+      $line_format .= '%s%s</tr>'."\n";
+      $bill_ok_format = '<td class="entry" style="text-align: center; ">%s</td>';
+      $delete_link_format = '<td class="entry" width="2%%"><a href="/wr.php?request_id=%d&action=removets&timesheet_id=%d&edit=1" title="Remove timesheet from this request"><img src="'.$GLOBALS['images'].'/delete.png" border="none"></a></td>';
 
-       $html .= '<tr><td colspan="2"><table width="100%">'."\n";
-       $html .= '<tr><th class="pcol">Done&nbsp;By</th>';
-       $html .= '<th class="pcol">Done On</th>';
-       $html .= '<th class="pcol">Quantity</th>';
-       $html .= '<th class="pcol" style="text-align: right; ">Rate</th>';
-       $html .= '<th class="pcol">Description</th>';
-       $html .= '<th class="pcol">Inv.&nbsp;By</th>';
-       $html .= '<th class="pcol">Charged</th>';
-       $html .= '<th class="pcol">Inv.&nbsp;No</th>';
-       $html .= '<th class="pcol" style="text-align: center;">Charge Amount</th>';
-       if ( $ef->editmode ) {
-         $html .= '<th class="pcol" style="text-align: center;">OK to Charge</th>';
-         $html .= '<th class="pcol">&nbsp;</th>';
-       }
-       $html .= '</tr>'."\n";
-     }
-     if ( $q->rows ) {
-       $total = 0;
-       $this->ts_ok_to_charge   = array();
-       $this->ts_charged_amount = array();
-       while( $row = $q->Fetch() ) {
+      $html .= '<tr><td colspan="2"><table width="100%">'."\n";
+      $html .= '<tr><th class="pcol">Done&nbsp;By</th>';
+      $html .= '<th class="pcol">Done On</th>';
+      $html .= '<th class="pcol">Quantity</th>';
+      $html .= '<th class="pcol" style="text-align: right; ">Rate</th>';
+      $html .= '<th class="pcol">Description</th>';
+      $html .= '<th class="pcol">Inv.&nbsp;By</th>';
+      $html .= '<th class="pcol">Charged</th>';
+      $html .= '<th class="pcol">Inv.&nbsp;No</th>';
+      $html .= '<th class="pcol" style="text-align: center;">Charge Amount</th>';
+      if ( $ef->editmode ) {
+        $html .= '<th class="pcol" style="text-align: center;">OK to Charge</th>';
+        $html .= '<th class="pcol">&nbsp;</th>';
+      }
+      $html .= '</tr>'."\n";
+    }
+    if ( $q->rows ) {
+      $total = 0;
+      $this->ts_ok_to_charge   = array();
+      $this->ts_charged_amount = array();
+      while( $row = $q->Fetch() ) {
 //         error_log( "$sysabbr: DBG: work_rate:$row->work_rate, org_rate:$row->org_rate, worker_rate:$row->worker_rate, supplier_rate:$row->supplier_rate");
-         $rate = ($row->work_rate > 0 ? $row->work_rate
+        $rate = ($row->work_rate > 0 ? $row->work_rate
                             : ($row->org_rate > 0 ? $row->org_rate
                                         : ($row->worker_rate > 0 ? $row->worker_rate : $row->supplier_rate ) ));
-         $invoice_details = $row->charged_details;
-         $amount_charged = sprintf("$%.2lf", $row->work_quantity * $rate );
-         if ( $ef->editmode ) {
-           // error_log( "$sysabbr: DBG: Ok to charge = $row->ok_to_charge" );
-           $bill_ok_options = array("title" => "Check this if it is OK to bill this work now." );
-           if ( $row->ok_to_charge == 't' ) $this->ts_ok_to_charge["$row->timesheet_id"] = 't';
-           if ( $row->work_charged != "" ) {
-             $bill_ok_options["_disabled"] = "yes";
-             $amount_charged = sprintf('$%.2lf', $row->charged_amount);
-           }
-           else {
-             $invoice_details = $ef->DataEntryField( "", "text", "ts_invoice_no[$row->timesheet_id]",
+        $invoice_details = $row->charged_details;
+        $amount_charged = sprintf("$%.2lf", $row->work_quantity * $rate );
+        if ( $ef->editmode ) {
+          // error_log( "$sysabbr: DBG: Ok to charge = $row->ok_to_charge" );
+          $bill_ok_options = array("title" => "Check this if it is OK to bill this work now." );
+          if ( $row->ok_to_charge == 't' ) $this->ts_ok_to_charge["$row->timesheet_id"] = 't';
+          if ( $row->work_charged != "" ) {
+            $bill_ok_options["_disabled"] = "yes";
+            $amount_charged = sprintf('$%.2lf', $row->charged_amount);
+          }
+          else {
+            $invoice_details = $ef->DataEntryField( "", "text", "ts_invoice_no[$row->timesheet_id]",
                                         array( "title" => "The invoice number that included this work",
-                                               "size" => "7" ) );
-             $this->ts_charged_amount["$row->timesheet_id"] = sprintf('%.1lf', $row->work_quantity * $rate) . "0";
-             $amount_charged = $ef->DataEntryField( "", "text", "ts_charged_amount[$row->timesheet_id]",
+                                              "size" => "7" ) );
+            $this->ts_charged_amount["$row->timesheet_id"] = sprintf('%.1lf', $row->work_quantity * $rate) . "0";
+            $amount_charged = $ef->DataEntryField( "", "text", "ts_charged_amount[$row->timesheet_id]",
                                         array( "title" => "The amount to be invoiced for this work.",
-                                               "style" => "text-align:right;",
-                                               "size" => "8" ) );
-           }
-           $bill_ok = sprintf( $bill_ok_format, $ef->DataEntryField( "", "checkbox", "ts_ok_to_charge[$row->timesheet_id]", $bill_ok_options ) );
-         }
-         else {
-           $bill_ok = "";
-         }
-         $delete_link = ( $ef->editmode ? sprintf( $delete_link_format, $this->request_id, $row->timesheet_id ) : '');
-         $html .= sprintf( $line_format,
+                                              "style" => "text-align:right;",
+                                              "size" => "8" ) );
+          }
+          $bill_ok = sprintf( $bill_ok_format, $ef->DataEntryField( "", "checkbox", "ts_ok_to_charge[$row->timesheet_id]", $bill_ok_options ) );
+        }
+        else {
+          $bill_ok = "";
+        }
+        $delete_link = ( $ef->editmode ? sprintf( $delete_link_format, $this->request_id, $row->timesheet_id ) : '');
+        $html .= sprintf( $line_format,
                     ($q->rownum % 2), $row->fullname, $row->work_on, $row->work_quantity, $row->work_units,
                     $rate, $row->work_description,
                     $row->charged_by, $row->charged_on, $invoice_details, $amount_charged, $bill_ok, $delete_link
                   );
-         $total += ($row->work_charged != "" ? $row->charged_amount : $row->work_quantity * $rate);
-       }
-       $html .= sprintf( $line_format,
+        $total += ($row->work_charged != "" ? $row->charged_amount : $row->work_quantity * $rate);
+      }
+      $html .= sprintf( $line_format,
                     (($q->rownum + 1) % 2), "<b>Total</b>", "", "", "", "", "", "", "", "", sprintf('<b>$%.2lf</b>',$total), "", "", "" );
-     }
+    }
 
-     if ( $ef->editmode ) {
+    if ( $ef->editmode ) {
 
-       if ( !isset($_POST['work_on']) ) $_POST['work_on'] = 'today';  // Default to Today
-       if ( !isset($_POST['work_units']) ) $_POST['work_units'] = 'hours';  // Default to Hours
+      if ( !isset($_POST['work_on']) ) $_POST['work_on'] = 'today';  // Default to Today
+      if ( !isset($_POST['work_units']) ) $_POST['work_units'] = 'hours';  // Default to Hours
 
-       $work_on = $ef->DataEntryField( "", "number", "work_on",
-                   array("title" => "Enter the date of this work", "size" => 8,
-                         "onblur" => "this.value=CheckDate(this)" ) );
+      $work_on = $ef->DataEntryField( "", "number", "work_on",
+                  array("title" => "Enter the date of this work", "size" => 8,
+                        "onblur" => "this.value=CheckDate(this)" ) );
 
-       $work_quantity = $ef->DataEntryField( "", "number", "work_quantity",
-                   array("title" => "Enter the number of units of work",
-                         "size" => 6, "onblur" => "this.value=CheckNumber(this,0,999999999)" ) );
+      $work_quantity = $ef->DataEntryField( "", "number", "work_quantity",
+                  array("title" => "Enter the number of units of work",
+                        "size" => 6, "onblur" => "this.value=CheckNumber(this,0,999999999)" ) );
 
-       $work_units = $ef->DataEntryField( "", "lookup", "work_units",
-                   array("_type" => "request_quote|quote_units", "style" => "width: 5em;",
-                         "title" => "The type of units for this work" ) );
+      $work_units = $ef->DataEntryField( "", "lookup", "work_units",
+                  array("_type" => "request_quote|quote_units", "style" => "width: 5em;",
+                        "title" => "The type of units for this work" ) );
 
-       $session->Log( "DBG: org_rate:%s, worker_rate:%s, supplier_rate:%s", $this->work_rate, $session->base_rate, $session->work_rate);
-       $rate = ($this->work_rate > 0 ? $this->work_rate
+      $session->Log( "DBG: org_rate:%s, worker_rate:%s, supplier_rate:%s", $this->work_rate, $session->base_rate, $session->work_rate);
+      $rate = ($this->work_rate > 0 ? $this->work_rate
                           : ($session->base_rate > 0 ? $session->base_rate : $session->work_rate ));
-       $this->work_rate = $rate;
-       $work_rate = $ef->DataEntryField( "", "number", "work_rate",
-                   array("title" => "Enter the rate / unit for this work",
-                         "size" => 4, "onblur" => "this.value=CheckNumber(this,0,999999999)" ) );
+      $this->work_rate = $rate;
+      $work_rate = $ef->DataEntryField( "", "number", "work_rate",
+                  array("title" => "Enter the rate / unit for this work",
+                        "size" => 4, "onblur" => "this.value=CheckNumber(this,0,999999999)" ) );
 
-       $work_desc = $ef->DataEntryField( "", "text", "work_description",
-                   array("title" => "Enter brief description of the work done", "size" => 70 ) );
+      $work_desc = $ef->DataEntryField( "", "text", "work_description",
+                  array("title" => "Enter brief description of the work done", "size" => 55 ) );
 
-       $entry_line_format .= '<td class="entry" width="50%%" colspan="7">%s</td></tr>';
-       $html .= sprintf( $entry_line_format, ($q->rownum % 2),
+      $entry_line_format .= '<td class="entry" width="35%%" colspan="7">%s</td></tr>';
+      $html .= sprintf( $entry_line_format, ($q->rownum % 2),
                 $session->fullname,
                 $work_on,
                 $work_quantity,
@@ -1009,304 +1019,314 @@ class Request {
                 $work_desc
                 );
 
-     }
+    }
 
-     if ( $ef->editmode || $q->rows )
-       $html .= '</table></td></tr>'."\n";
+    if ( $ef->editmode || $q->rows )
+      $html .= '</table></td></tr>'."\n";
 
-     return $html;
-   }
+    return $html;
+  }
 
-   /////////////////////////////////////////////////////////////
-   // Display the people who are being notified about changes
-   /////////////////////////////////////////////////////////////
-   function RenderInterests( $ef ) {
-     global $session;
-     $html = "";
+  /////////////////////////////////////////////////////////////
+  // Display the people who are being notified about changes
+  /////////////////////////////////////////////////////////////
+  function RenderInterests( $ef ) {
+    global $session;
+    $html = "";
 
-     $sql = "SELECT request_interested.*, usr.fullname, usr.email ";
-     $sql .= "FROM request_interested JOIN usr ON ( request_interested.user_no = usr.user_no ) ";
-     $sql .= "WHERE request_id = $this->request_id ";
-     $sql .= "ORDER BY request_id, usr.fullname";
-     # Select the records
-     $q = new PgQuery($sql);
-     $q->Exec('WR::Interests') ;
-     if ( $ef->editmode || $q->rows )
-       $html .= $ef->BreakLine("Interested Users");
-     if ( $q->rows ) {
-       $html .= '<tr><th class="prompt">&nbsp;</th><td class="entry" style="vertical-align: middle;">'."\n";
-       $line_format = '<a href="/usr.php?user_no=%d">%s</a>';
-       if ( $ef->editmode ) {
-         $line_format .= '<a href="/wr.php?request_id=%d&action=unsubscribe&user_no=%d&edit=1" title="Unsubscribe %s from this request"><img src="'.$GLOBALS['images'].'/delete.png" border="none"></a>';
-       }
-       $line_format .= "&nbsp; &nbsp;\n";
-       while( $row = $q->Fetch() ) {
-         $html .= sprintf( $line_format,
+    $sql = "SELECT request_interested.*, usr.fullname, usr.email ";
+    $sql .= "FROM request_interested JOIN usr ON ( request_interested.user_no = usr.user_no ) ";
+    $sql .= "WHERE request_id = $this->request_id ";
+    $sql .= "ORDER BY request_id, usr.fullname";
+    # Select the records
+    $q = new PgQuery($sql);
+    $q->Exec('WR::Interests') ;
+    if ( $ef->editmode || $q->rows )
+      $html .= $ef->BreakLine("Interested Users");
+    if ( $q->rows ) {
+      $html .= '<tr><th class="prompt">&nbsp;</th><td class="entry" style="vertical-align: middle;">'."\n";
+      $line_format = '<a href="/usr.php?user_no=%d">%s</a>';
+      if ( $ef->editmode ) {
+        $line_format .= '<a href="/wr.php?request_id=%d&action=unsubscribe&user_no=%d&edit=1" title="Unsubscribe %s from this request"><img src="'.$GLOBALS['images'].'/delete.png" border="none"></a>';
+      }
+      $line_format .= "&nbsp; &nbsp;\n";
+      while( $row = $q->Fetch() ) {
+        $html .= sprintf( $line_format,
                     $row->user_no, $row->fullname,
                     $this->request_id, $row->user_no, $row->fullname
                   );
-       }
-       $html .= '</td></tr>'."\n";
-     }
+      }
+      $html .= '</td></tr>'."\n";
+    }
 
-     if ( $ef->editmode ) {
-       $html .= '<tr><th class="prompt">Subscribe</th>'."\n";
-       // Select the file
-       $usr_sql = "SELECT user_no, abbreviation || ': ' || fullname ";
-       $usr_sql .= "FROM usr JOIN organisation ON ( usr.org_code = organisation.org_code) ";
-       if ( isset($this->org_code) ) {
-         $usr_sql .= "WHERE status != 'I' AND organisation.org_code IN ( $this->org_code, $session->org_code )";
-       }
-       else {
+    if ( $ef->editmode ) {
+      $html .= '<tr><th class="prompt">Subscribe</th>'."\n";
+      // Select the file
+      $usr_sql = "SELECT user_no, abbreviation || ': ' || fullname ";
+      $usr_sql .= "FROM usr JOIN organisation ON ( usr.org_code = organisation.org_code) ";
+      if ( isset($this->org_code) ) {
+        $usr_sql .= "WHERE status != 'I' AND organisation.org_code IN ( $this->org_code, $session->org_code )";
+      }
+      else {
           $usr_sql .= "WHERE status != 'I' AND organisation.org_code = $session->org_code ";
-       }
-       $usr_sql .= " ORDER BY organisation.org_code, fullname;";
-       $html .= '<td class="entry">';
-       $html .= $ef->DataEntryField( "", "lookup", "subscribable",
-                 array("title" => "Select the person to subscribe to this W/R",
-                       "style" => "vertical-align: top; width: 20em;",
-                       "_null" => "--- select a person ---",
-                       "_sql"  => $usr_sql ) );
+      }
+      $usr_sql .= " ORDER BY organisation.org_code, fullname;";
+      $html .= '<td class="entry">';
+      $html .= $ef->DataEntryField( "", "lookup", "subscribable",
+                array("title" => "Select the person to subscribe to this W/R",
+                      "style" => "vertical-align: top; width: 20em;",
+                      "_null" => "--- select a person ---",
+                      "_sql"  => $usr_sql ) );
 
-       // Enter the description
-       $html .= $ef->DataEntryField( "", "button", "add_subscription",
-                 array("title" => "Add this person to the subscriber list for this work request",
-                       "value" => "Add Person", "style" => "vertical-align: top;",
-                       "onClick" => "return AssignSelected(document.forms.form.subscribable,'new_subscriptions[]');" ) );
+      // Enter the description
+      $html .= $ef->DataEntryField( "", "button", "add_subscription",
+                array("title" => "Add this person to the subscriber list for this work request",
+                      "value" => "Add Person", "style" => "vertical-align: top;",
+                      "onClick" => "return AssignSelected(document.forms.form.subscribable,'new_subscriptions[]');" ) );
 
-       $html .= $ef->DataEntryField( "", "select", "new_subscriptions[]",
-                 array("title" => "Unselect the person to not subscribe them to this W/R",
-                       "style" => "width: 20em;", "multiple"  => "true", "size" => 1 ) );
-       $html .= '</td></tr>'."\n";
-     }
-     return $html;
-   }
+      $html .= $ef->DataEntryField( "", "select", "new_subscriptions[]",
+                array("title" => "Unselect the person to not subscribe them to this W/R",
+                      "style" => "width: 20em;", "multiple"  => "true", "size" => 1 ) );
+      $html .= '</td></tr>'."\n";
+    }
+    return $html;
+  }
 
-   /////////////////////////////////////////////////////////////
-   // Display the tags that have been assigned to this W/R
-   /////////////////////////////////////////////////////////////
-   function RenderTags( $ef ) {
-     global $session;
-     $html = "";
+  /////////////////////////////////////////////////////////////
+  // Display the tags that have been assigned to this W/R
+  /////////////////////////////////////////////////////////////
+  function RenderTags( $ef ) {
+    global $session;
+    $html = "";
 
-     $sql = "SELECT organisation_tag.* ";
-     $sql .= "FROM request_tag JOIN organisation_tag USING ( tag_id ) ";
-     $sql .= "WHERE request_id = $this->request_id ";
-     $sql .= "ORDER BY request_id, organisation_tag.tag_sequence";
-     # Select the records
-     $q = new PgQuery($sql);
-     $q->Exec('WR::Tags') ;
-     if ( $ef->editmode || $q->rows )
-       $html .= $ef->BreakLine("Assigned Tags");
-     if ( $q->rows ) {
-       $html .= '<tr><th class="prompt">&nbsp;</th><td class="entry" style="vertical-align: middle;">'."\n";
-       $line_format = '%s';
-       if ( $ef->editmode ) {
-         $line_format .= '<a href="/wr.php?request_id=%d&action=untag&tag_id=%d&edit=1" title="Remove the %s tag from this request"><img src="'.$GLOBALS['images'].'/delete.png" border="none"></a>';
-       }
-       $line_format .= "&nbsp; &nbsp;\n";
-       while( $row = $q->Fetch() ) {
-         $html .= sprintf( $line_format,
+    $sql = "SELECT organisation_tag.* ";
+    $sql .= "FROM request_tag JOIN organisation_tag USING ( tag_id ) ";
+    $sql .= "WHERE request_id = $this->request_id ";
+    $sql .= "ORDER BY request_id, organisation_tag.tag_sequence";
+    # Select the records
+    $q = new PgQuery($sql);
+    $q->Exec('WR::Tags') ;
+
+    if ( $q->rows )
+      $html .= $ef->BreakLine("Assigned Tags");
+    if ( $q->rows ) {
+      $html .= '<tr><th class="prompt">&nbsp;</th><td class="entry" style="vertical-align: middle;">'."\n";
+      $line_format = '%s';
+      if ( $ef->editmode ) {
+        $line_format .= '<a href="/wr.php?request_id=%d&action=untag&tag_id=%d&edit=1" title="Remove the %s tag from this request"><img src="'.$GLOBALS['images'].'/delete.png" border="none"></a>';
+      }
+      $line_format .= "&nbsp; &nbsp;\n";
+      while( $row = $q->Fetch() ) {
+        $html .= sprintf( $line_format,
                     $row->tag_description,
                     $this->request_id, $row->tag_id, $row->tag_description
                   );
-       }
-       $html .= '</td></tr>'."\n";
-     }
+      }
+      $html .= '</td></tr>'."\n";
+    }
 
-     if ( $ef->editmode ) {
-       $html .= '<tr><th class="prompt">Assign Tag</th>'."\n";
-       // Select the file
-       $usr_sql = "SELECT tag_id, tag_description ";
-       $usr_sql .= "FROM organisation_tag JOIN organisation ON ( organisation_tag.org_code = organisation.org_code) ";
-       $usr_sql .= "WHERE organisation_tag.active AND organisation.active AND organisation.org_code ";
-       if ( isset($this->org_code) ) {
-         $usr_sql .= "IN ( $this->org_code, $session->org_code )";
-       }
-       else {
+    if ( $ef->editmode ) {
+      // Select the file
+      $usr_sql = "SELECT tag_id, tag_description ";
+      $usr_sql .= "FROM organisation_tag JOIN organisation ON ( organisation_tag.org_code = organisation.org_code) ";
+      $usr_sql .= "WHERE organisation_tag.active AND organisation.active AND organisation.org_code ";
+      if ( isset($this->org_code) ) {
+        $usr_sql .= "IN ( $this->org_code, $session->org_code )";
+      }
+      else {
           $usr_sql .= "= $session->org_code ";
-       }
-       $usr_sql .= " ORDER BY organisation_tag.tag_sequence, lower(organisation_tag.tag_description);";
-       $html .= '<td class="entry">';
-       $html .= $ef->DataEntryField( "", "lookup", "orgtaglist",
-                 array("title" => "Select the tag to assign to this W/R",
-                       "style" => "vertical-align: top; width: 20em;",
-                       "_null" => "--- select a tag ---",
-                       "_sql"  => $usr_sql ) );
+      }
+      $usr_sql .= " ORDER BY organisation_tag.tag_sequence, lower(organisation_tag.tag_description);";
 
-       // Enter the description
-       $html .= $ef->DataEntryField( "", "button", "add_orgtag",
-                 array("title" => "Add this tag to the assigned list for this work request",
-                       "value" => "Assign Tag", "style" => "vertical-align: top;",
-                       "onClick" => "return AssignSelected(document.forms.form.orgtaglist,'new_tags[]');" ) );
+      $field .= $ef->DataEntryField( "", "lookup", "orgtaglist",
+                array("title" => "Select the tag to assign to this W/R",
+                      "style" => "vertical-align: top; width: 20em;",
+                      "_null" => "--- select a tag ---",
+                      "_sql"  => $usr_sql ) );
 
-       $html .= $ef->DataEntryField( "", "select", "new_tags[]",
-                 array("title" => "Deselect the tag to not assign it to this W/R",
-                       "style" => "width: 20em;", "multiple"  => "true", "size" => 1 ) );
-       $html .= '</td></tr>'."\n";
-     }
-     return $html;
-   }
+      // Only display this stuff if there is a tag choice
+      if ( preg_match( '/<option .+<option /', $field ) ) {
 
-   /////////////////////////////////////////////////////////////
-   // Display the notes + notes entry panel
-   /////////////////////////////////////////////////////////////
-   function RenderNotes( $ef ) {
-     global $session;
-     $html = "";
-     $sql = "SELECT request_note.*, ru.fullname AS note_by, ";
-     $sql .= "to_char(note_on, 'HH24:MI DD-MM-YYYY') AS noted_on ";
-     $sql .= "FROM request_note ";
-     $sql .= "LEFT OUTER JOIN usr ru ON ( request_note.note_by_id = ru.user_no ) ";
-     $sql .= "WHERE request_id = $this->request_id ";
-     $sql .= "ORDER BY request_id, note_on";
-     # Select the records
-     $q = new PgQuery($sql);
-     $q->Exec('WR::Notes');
-     if ( $ef->editmode || $q->rows )
-       $html .= $ef->BreakLine("Notes");
-     if ( $q->rows ) {
-       $html .= '<tr><th class="pcol">&nbsp;</th><td><table width="100%">'."\n";
-       $html .= '<tr><th class="pcol">Noted By/On</th>';
+        if ( ! $q->rows )
+          $html .= $ef->BreakLine("Assigned Tags");
+
+        $html .= '<tr><th class="prompt">Assign Tag</th>'."\n";
+        $html .= '<td class="entry">' . $field;
+
+        // Enter the description
+        $html .= $ef->DataEntryField( "", "button", "add_orgtag",
+                  array("title" => "Add this tag to the assigned list for this work request",
+                        "value" => "Assign Tag", "style" => "vertical-align: top;",
+                        "onClick" => "return AssignSelected(document.forms.form.orgtaglist,'new_tags[]');" ) );
+
+        $html .= $ef->DataEntryField( "", "select", "new_tags[]",
+                  array("title" => "Deselect the tag to not assign it to this W/R",
+                        "style" => "width: 20em;", "multiple"  => "true", "size" => 1 ) );
+        $html .= '</td></tr>'."\n";
+      }
+    }
+    return $html;
+  }
+
+  /////////////////////////////////////////////////////////////
+  // Display the notes + notes entry panel
+  /////////////////////////////////////////////////////////////
+  function RenderNotes( $ef ) {
+    global $session;
+    $html = "";
+    $sql = "SELECT request_note.*, ru.fullname AS note_by, ";
+    $sql .= "to_char(note_on, 'HH24:MI DD-MM-YYYY') AS noted_on ";
+    $sql .= "FROM request_note ";
+    $sql .= "LEFT OUTER JOIN usr ru ON ( request_note.note_by_id = ru.user_no ) ";
+    $sql .= "WHERE request_id = $this->request_id ";
+    $sql .= "ORDER BY request_id, note_on";
+    # Select the records
+    $q = new PgQuery($sql);
+    $q->Exec('WR::Notes');
+    if ( $ef->editmode || $q->rows )
+      $html .= $ef->BreakLine("Notes");
+    if ( $q->rows ) {
+      $html .= '<tr><th class="pcol">&nbsp;</th><td><table width="100%">'."\n";
+      $html .= '<tr><th class="pcol">Noted By/On</th>';
 //       $html .= '<th class="pcol">Noted On</th>';
-       $html .= '<th class="pcol">Details</th></tr>'."\n";
-       $line_format = '<tr class="row%d"><td class="entry" width="8%%" style="white-space: nowrap;">%s<br />%s</td>';
+      $html .= '<th class="pcol">Details</th></tr>'."\n";
+      $line_format = '<tr class="row%d"><td class="entry" width="8%%" style="white-space: nowrap;">%s<br />%s</td>';
 //       $line_format .= '<td class="entry" width="8%%" style="white-space: nowrap;">%s</td>';
-       $line_format .= '<td class="entry">%s</td></tr>'."\n";
-       while( $row = $q->Fetch() ) {
-         $html .= sprintf( $line_format,
+      $line_format .= '<td class="entry">%s</td></tr>'."\n";
+      while( $row = $q->Fetch() ) {
+        $html .= sprintf( $line_format,
                     ($q->rownum % 2), $row->note_by, $row->noted_on, html_format($row->note_detail)
                   );
-       }
-       $html .= '</table></td></tr>'."\n";
-     }
+      }
+      $html .= '</table></td></tr>'."\n";
+    }
 
-     if ( $ef->editmode ) {
-       $html .= '<tr><th class="prompt">&nbsp;<br />Add Note</th><td><table><tr>'."\n";
+    if ( $ef->editmode ) {
+      $html .= '<tr><th class="prompt">&nbsp;<br />Add Note</th><td><table><tr>'."\n";
 
-       // Enter the description
-       $html .= '<tr><td class="entry">';
-       $html .= $ef->DataEntryField( "", "textarea", "note_detail",
-                 array("title" => "Enter a note for this request", "cols" => 70, "rows" => 10 ) );
-       $html .= '</td>';
+      // Enter the description
+      $html .= '<tr><td class="entry">';
+      $html .= $ef->DataEntryField( "", "textarea", "note_detail",
+                array("title" => "Enter a note for this request", "cols" => 70, "rows" => 10 ) );
+      $html .= '</td>';
 
-       $html .= '<td class="entry">';
-       $html .= $ef->DataEntryField( "", "checkbox", "preserve_html",
-                 array("title" => "Preserve the raw HTML so that it is inlined, and the HTML codes will not be visible" ) );
-       $html .= 'Preserve HTML</td></table>';
+      $html .= '<td class="entry">';
+      $html .= $ef->DataEntryField( "", "checkbox", "preserve_html",
+                array("title" => "Preserve the raw HTML so that it is inlined, and the HTML codes will not be visible" ) );
+      $html .= 'Preserve HTML</td></table>';
 
-     }
-     return $html;
-   }
+    }
+    return $html;
+  }
 
-   /////////////////////////////////////////////////////////////
-   /////////////////////////////////////////////////////////////
-   function RenderStatuses( $ef ) {
-     global $session;
-     $html = "";
-     $sql = "SELECT request_status.*, ru.fullname AS status_by, ";
-     $sql .= "to_char(status_on, 'HH24:MI DD-MM-YYYY') AS status_on, lookup_desc AS status_type_desc ";
-     $sql .= "FROM request_status ";
-     $sql .= "LEFT OUTER JOIN usr ru ON ( request_status.status_by_id = ru.user_no ) ";
-     $sql .= "LEFT OUTER JOIN lookup_code ON ( source_table = 'request' AND source_field = 'status_code' AND lookup_code = request_status.status_code) ";
-     $sql .= "WHERE request_id = $this->request_id ";
-     $sql .= "ORDER BY request_id, request_status.status_on";
-     # Select the records
-     $q = new PgQuery($sql);
-     $q->Exec('WR::Statuses');
-     if ( $ef->editmode || $q->rows )
-       $html .= $ef->BreakLine("Changes in Status");
-     if ( $q->rows ) {
-       $html .= '<tr><th class="pcol">&nbsp;</th><td><table width="100%">'."\n";
-       $html .= '<tr><th class="pcol">Changed By</th>';
-       $html .= '<th class="pcol">Changed On</th>';
-       $html .= '<th class="pcol">Changed To</th></tr>'."\n";
-       $line_format = '<tr class="row%d"><td class="entry" style="white-space: nowrap;">%s</td>';
-       $line_format .= '<td class="entry" style="white-space: nowrap;">%s</td>';
-       $line_format .= '<td class="entry" style="white-space: nowrap;">%s - %s</td></tr>'."\n";
-       while( $row = $q->Fetch() ) {
-         $html .= sprintf( $line_format,
+  /////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////
+  function RenderStatuses( $ef ) {
+    global $session;
+    $html = "";
+    $sql = "SELECT request_status.*, ru.fullname AS status_by, ";
+    $sql .= "to_char(status_on, 'HH24:MI DD-MM-YYYY') AS status_on, lookup_desc AS status_type_desc ";
+    $sql .= "FROM request_status ";
+    $sql .= "LEFT OUTER JOIN usr ru ON ( request_status.status_by_id = ru.user_no ) ";
+    $sql .= "LEFT OUTER JOIN lookup_code ON ( source_table = 'request' AND source_field = 'status_code' AND lookup_code = request_status.status_code) ";
+    $sql .= "WHERE request_id = $this->request_id ";
+    $sql .= "ORDER BY request_id, request_status.status_on";
+    # Select the records
+    $q = new PgQuery($sql);
+    $q->Exec('WR::Statuses');
+    if ( $ef->editmode || $q->rows )
+      $html .= $ef->BreakLine("Changes in Status");
+    if ( $q->rows ) {
+      $html .= '<tr><th class="pcol">&nbsp;</th><td><table width="100%">'."\n";
+      $html .= '<tr><th class="pcol">Changed By</th>';
+      $html .= '<th class="pcol">Changed On</th>';
+      $html .= '<th class="pcol">Changed To</th></tr>'."\n";
+      $line_format = '<tr class="row%d"><td class="entry" style="white-space: nowrap;">%s</td>';
+      $line_format .= '<td class="entry" style="white-space: nowrap;">%s</td>';
+      $line_format .= '<td class="entry" style="white-space: nowrap;">%s - %s</td></tr>'."\n";
+      while( $row = $q->Fetch() ) {
+        $html .= sprintf( $line_format,
                     ($q->rownum % 2), $row->status_by, $row->status_on,
                     $row->status_code, $row->status_type_desc
                   );
-       }
-       $html .= '</table></td></tr>'."\n";
-     }
+      }
+      $html .= '</table></td></tr>'."\n";
+    }
 
-     if ( $ef->editmode ) {
-       $html .= '<tr><th class="prompt">Change Status</th><td><table><tr>'."\n";
+    if ( $ef->editmode ) {
+      $html .= '<tr><th class="prompt">Change Status</th><td><table><tr>'."\n";
 
-       $html .= '<td class="entry">';
-       if ( !isset($_POST['status_code']) ) $_POST['status_code'] = $this->last_status;  // Default to current status
-       $html .= $ef->DataEntryField( "", "lookup", "status_code",
-                 array("_type" => "request|status_code", "style" => "width: 15em;",
-                       "title" => "The new status of the request" ) );
-       $html .= '</td>';
+      $html .= '<td class="entry">';
+      if ( !isset($_POST['status_code']) ) $_POST['status_code'] = $this->last_status;  // Default to current status
+      $html .= $ef->DataEntryField( "", "lookup", "status_code",
+                array("_type" => "request|status_code", "style" => "width: 15em;",
+                      "title" => "The new status of the request" ) );
+      $html .= '</td>';
 
-       $html .= '</tr></table></td></tr>'."\n";
+      $html .= '</tr></table></td></tr>'."\n";
 
-     }
-     return $html;
-   }
+    }
+    return $html;
+  }
 
-   /////////////////////////////////////////////////////////////
-   // This is called prior to writing the record to perform any
-   // cross-field (or other) validations.  If it returns false
-   // then the record will not be written
-   /////////////////////////////////////////////////////////////
-   function Validate( $ef ) {
-     global $client_messages;
-     error_log("$system_name: vpw: WARNING: Not validating request");
-     $client_messages[] = "WARNING: Not validating request details yet.";
+  /////////////////////////////////////////////////////////////
+  // This is called prior to writing the record to perform any
+  // cross-field (or other) validations.  If it returns false
+  // then the record will not be written
+  /////////////////////////////////////////////////////////////
+  function Validate( $ef ) {
+    global $client_messages;
+    error_log("$system_name: vpw: WARNING: Not validating request");
+    $client_messages[] = "WARNING: Not validating request details yet.";
 
-     // If we validated OK, make sure the request.last_status is synced with any submitted status.
-     $_POST['last_status'] = $_POST['status_code'];
-     return true;
-   }
+    // If we validated OK, make sure the request.last_status is synced with any submitted status.
+    $_POST['last_status'] = $_POST['status_code'];
+    return true;
+  }
 
 
-   /////////////////////////////////////////////////////////////
-   // This is the main routine to actually write the record.  In
-   // the work request case we actually call a lot of other
-   // functions (roughly corresponding to the different Render
-   // ones used for displaying the form.
-   /////////////////////////////////////////////////////////////
-   function Write( $ef ) {
-     global $client_messages, $request_id, $session;
-     error_log("$system_name: vpw: Writing request details to database");
-     $qry = new PgQuery("BEGIN");  $qry->Exec("WR::Write");
+  /////////////////////////////////////////////////////////////
+  // This is the main routine to actually write the record.  In
+  // the work request case we actually call a lot of other
+  // functions (roughly corresponding to the different Render
+  // ones used for displaying the form.
+  /////////////////////////////////////////////////////////////
+  function Write( $ef ) {
+    global $client_messages, $request_id, $session;
+    error_log("$system_name: vpw: Writing request details to database");
+    $qry = new PgQuery("BEGIN");  $qry->Exec("WR::Write");
 
-     $this->chtype = strtolower($_POST['submit']);
+    $this->chtype = strtolower($_POST['submit']);
 
-     $db_errors = false;
-     $save_detailed_description = $_POST['detailed'];
-     $_POST['detailed'] = htmlspecialchars($save_detailed_description);
-     $_POST['entered_by'] = intval($session->user_no);
-     $sql = sql_from_post( $this->chtype, "request", "WHERE request_id='$this->request_id'");
-     $_POST['detailed'] = $save_detailed_description;
-     $qry = new PgQuery($sql);
-     if ( !$qry->Exec("WR::Write") ) {
-       $client_messages[] = "$qry->errorstring";
-       $db_errors = true;
-     }
-     else {
-       // If we are creating a new record, we need to grab the ID that it got
-       if ( "create" == $this->chtype ) {
-         // Fetch the request_id for this record.
-         $sql = "SELECT currval('request_request_id_seq');";
-         $qry = new PgQuery($sql);
-         $qry->Exec("WR::Write");
-         $row = $qry->Fetch(true);    // Fetch results as array
-         $request_id = $row[0];
+    $db_errors = false;
+    $save_detailed_description = $_POST['detailed'];
+    $_POST['detailed'] = htmlspecialchars($save_detailed_description);
+    $_POST['entered_by'] = intval($session->user_no);
+    $sql = sql_from_post( $this->chtype, "request", "WHERE request_id='$this->request_id'");
+    $_POST['detailed'] = $save_detailed_description;
+    $qry = new PgQuery($sql);
+    if ( !$qry->Exec("WR::Write") ) {
+      $client_messages[] = "$qry->errorstring";
+      $db_errors = true;
+    }
+    else {
+      // If we are creating a new record, we need to grab the ID that it got
+      if ( "create" == $this->chtype ) {
+        // Fetch the request_id for this record.
+        $sql = "SELECT currval('request_request_id_seq');";
+        $qry = new PgQuery($sql);
+        $qry->Exec("WR::Write");
+        $row = $qry->Fetch(true);    // Fetch results as array
+        $request_id = $row[0];
 
-         // Fetch the other details for the request and assign them into this object.
-         $this->ReadRequest($request_id);
-         $this->send_an_email = true;
-       }
-       $this->DetectEmailChanges();
-     }
+        // Fetch the other details for the request and assign them into this object.
+        $this->ReadRequest($request_id);
+        $this->send_an_email = true;
+      }
+      $this->DetectEmailChanges();
+    }
 
-     if ( $request_id > 0 ) {
+    if ( $request_id > 0 ) {
 
         if ( !$db_errors && isset($_POST['note_detail']) && trim($_POST['note_detail']) != "" ) {
           $db_errors = ! $this->AddNote();
@@ -1355,72 +1375,72 @@ class Request {
             $db_errors = ! $this->UpdateInvoiceDetails($k);
           }
         }
-     }
+    }
 
-     $qry = new PgQuery( ( $db_errors ? "ROLLBACK;" : "COMMIT;") );  $qry->Exec("WR::Write");
-     if ( $db_errors ) {
-       $client_messages[] = "ERROR: Database problem  - Request not written.";
-     }
-     else {
-       $client_messages[] = "Request details written.";
+    $qry = new PgQuery( ( $db_errors ? "ROLLBACK;" : "COMMIT;") );  $qry->Exec("WR::Write");
+    if ( $db_errors ) {
+      $client_messages[] = "ERROR: Database problem  - Request not written.";
+    }
+    else {
+      $client_messages[] = "Request details written.";
 
-       $this->NotifyEmail();
+      $this->NotifyEmail();
 
-       // Since we wrote it all successfully, clear the $_POST array
-       // so that the posted data isn't all re-used in the form fields,
-       // and we use the on-disk data instead.
-       $_POST = array();
-     }
-     return true;
-   }
-
-
-   /////////////////////////////////////////////////////////////
-   // Send an e-mail notifying changes to the W/R
-   /////////////////////////////////////////////////////////////
-   function NotifyEmail ()
-   {
-     global $base_dns, $session, $system_name, $admin_email, $debug_email;
-
-     if ( $_POST['send_no_email'] == 'on' ) {
-       // The user has asked for it to be quiet.
-       return;
-     }
-
-     $mail = &new phpmailer ();
-     // $mail->IsSendmail();  // Use sendmail to send
-     // We use neither, and it will default to the PHP mail() function - good.
-
-     $mail->From = $admin_email;
-     $mail->FromName = $system_name;
-     $mail->AddReplyTo( $session->email, $session->fullname );
-
-     $send_to = $this->GetRecipients();
-     foreach ( $send_to as $email => $name ) {
-       if ( isset($debug_email) ) {
-         if ( $debug_to != "" ) $debug_to .= ", ";
-         $debug_to .= "$name <$email>";
-       }
-       else {
-         $mail->AddAddress($email, $name);
-       }
-     }
-     if ( isset($debug_email) ) {
-       $mail->IsSMTP();      // Use internal SMTP to send for debugging
-       $mail->AddAddress( $debug_email, "WRMS EMail Testing" );
-     }
+      // Since we wrote it all successfully, clear the $_POST array
+      // so that the posted data isn't all re-used in the form fields,
+      // and we use the on-disk data instead.
+      $_POST = array();
+    }
+    return true;
+  }
 
 
-     $mail->Subject = 'WR #' . $this->request_id . ' ['.$this->system_code.'/'.$session->username.'] '.$this->chtype.'d: '
+  /////////////////////////////////////////////////////////////
+  // Send an e-mail notifying changes to the W/R
+  /////////////////////////////////////////////////////////////
+  function NotifyEmail ()
+  {
+    global $base_dns, $session, $system_name, $admin_email, $debug_email;
+
+    if ( $_POST['send_no_email'] == 'on' ) {
+      // The user has asked for it to be quiet.
+      return;
+    }
+
+    $mail = &new phpmailer ();
+    // $mail->IsSendmail();  // Use sendmail to send
+    // We use neither, and it will default to the PHP mail() function - good.
+
+    $mail->From = $admin_email;
+    $mail->FromName = $system_name;
+    $mail->AddReplyTo( $session->email, $session->fullname );
+
+    $send_to = $this->GetRecipients();
+    foreach ( $send_to as $email => $name ) {
+      if ( isset($debug_email) ) {
+        if ( $debug_to != "" ) $debug_to .= ", ";
+        $debug_to .= "$name <$email>";
+      }
+      else {
+        $mail->AddAddress($email, $name);
+      }
+    }
+    if ( isset($debug_email) ) {
+      $mail->IsSMTP();      // Use internal SMTP to send for debugging
+      $mail->AddAddress( $debug_email, "WRMS EMail Testing" );
+    }
+
+
+    $mail->Subject = 'WR #' . $this->request_id . ' ['.$this->system_code.'/'.$session->username.'] '.$this->chtype.'d: '
                       . $this->brief;
 
-     $tbody  = "Request No:  $this->request_id\n"
-             . "Overview:    $this->brief\n"
-             . "Type:        $this->request_type_desc\n"
-             . "Importance:  $this->importance_desc\n"
-             . "Urgency:     $this->urgency_desc\n";
+    $tbody  = "Request No:  $this->request_id\n"
+            . "Overview:    $this->brief\n"
+            . "Type:        $this->request_type_desc\n"
+            . "Importance:  $this->importance_desc\n"
+            . "Urgency:     $this->urgency_desc\n";
 
-     $hbody  = <<<EOX
+    $hbody  = <<<EOX
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html><head>
 <title>$mail->Subject</title>
@@ -1450,57 +1470,57 @@ hr.footerline {line-height: 1em; margin: 1em; padding: 2px; height: 2px; width: 
 EOX
 ;
 
-     if ( $this->chtype == "update" ) {
-       $tbody .= "Request On:  $this->request_on\n";
-       $hbody .= "<tr><th width='10%' align='left' class='eth'>Request On</th><td class='etd'>$this->request_on</td></tr>\n";
-     }
+    if ( $this->chtype == "update" ) {
+      $tbody .= "Request On:  $this->request_on\n";
+      $hbody .= "<tr><th width='10%' align='left' class='eth'>Request On</th><td class='etd'>$this->request_on</td></tr>\n";
+    }
 
-     $tbody .= ucfirst($this->chtype) . "d by:  $session->fullname\n";
-     $hbody .= "<tr><th width='10%' align='left' class='eth'>".ucfirst($this->chtype)."d by</th><td class='etd'>$session->fullname</td></tr>\n";
+    $tbody .= ucfirst($this->chtype) . "d by:  $session->fullname\n";
+    $hbody .= "<tr><th width='10%' align='left' class='eth'>".ucfirst($this->chtype)."d by</th><td class='etd'>$session->fullname</td></tr>\n";
 
-     if ( $requsr->user_no <> $session->user_no && $this->chtype != "update" ) {
-       $tbody .= ucfirst($this->chtype) . "d for: $this->fullname\n";
-       $hbody .= "<tr><th width='10%' align='left' class='eth'>".ucfirst($this->chtype)."d for</th><td class='etd'>$this->fullname</td></tr>\n";
-     }
+    if ( $requsr->user_no <> $session->user_no && $this->chtype != "update" ) {
+      $tbody .= ucfirst($this->chtype) . "d for: $this->fullname\n";
+      $hbody .= "<tr><th width='10%' align='left' class='eth'>".ucfirst($this->chtype)."d for</th><td class='etd'>$this->fullname</td></tr>\n";
+    }
 
-     $tbody .= ucfirst($this->chtype) . "d on:  " . date( "D d M H:i:s Y" ) . "\n";
-     $hbody .= "<tr><th width='10%' align='left' class='eth'>".ucfirst($this->chtype)."d on</th><td class='etd'>". date( "D d M H:i:s Y" ) ."</td></tr>\n";
+    $tbody .= ucfirst($this->chtype) . "d on:  " . date( "D d M H:i:s Y" ) . "\n";
+    $hbody .= "<tr><th width='10%' align='left' class='eth'>".ucfirst($this->chtype)."d on</th><td class='etd'>". date( "D d M H:i:s Y" ) ."</td></tr>\n";
 
-     if ( isset($debug_email) ) {
-       $tbody .= "Debug To:    $debug_to\n";
-       $hbody .= "<tr><th width='10%' align='left' class='eth'>Debug To</th><td class='etd'>$debug_to</td></tr>\n";
-     }
-     $tbody .= "\n\n";
-     $hbody .= "</table>\n";
+    if ( isset($debug_email) ) {
+      $tbody .= "Debug To:    $debug_to\n";
+      $hbody .= "<tr><th width='10%' align='left' class='eth'>Debug To</th><td class='etd'>$debug_to</td></tr>\n";
+    }
+    $tbody .= "\n\n";
+    $hbody .= "</table>\n";
 
-     // Now add the information that was produced as a part of writing the record
-     foreach ( $this->mail_message_data as $thing ) {
-       $hbody .= $thing['html'];
-       $tbody .= $thing['text'];
-     }
+    // Now add the information that was produced as a part of writing the record
+    foreach ( $this->mail_message_data as $thing ) {
+      $hbody .= $thing['html'];
+      $tbody .= $thing['text'];
+    }
 
-     $hbody .= "<hr class='footerline'>\n<p class='footer'>Full details of the request, with all changes and notes, can be reviewed and changed at:<br />"
+    $hbody .= "<hr class='footerline'>\n<p class='footer'>Full details of the request, with all changes and notes, can be reviewed and changed at:<br />"
             . ' &nbsp; &nbsp; <a href="'.$GLOBALS['base_dns'].'/wr.php?request_id='.$this->request_id.'">'
             . $GLOBALS['base_dns'].'/wr.php?request_id='.$this->request_id.'</a><br /> <br /></p>';
-     $tbody .= "\nFull details of the request, with all changes and notes, can be reviewed and changed at:\n"
-             . "    <".$GLOBALS['base_dns']."/wr.php?request_id=".$this->request_id.">\n\n";
+    $tbody .= "\nFull details of the request, with all changes and notes, can be reviewed and changed at:\n"
+            . "    <".$GLOBALS['base_dns']."/wr.php?request_id=".$this->request_id.">\n\n";
 
-     $hbody .= "</body>\n</html>\n";
-     // Actually assign the message parts from what we have built
-     $mail->Body = $hbody;
-     $mail->AltBody = $tbody;
+    $hbody .= "</body>\n</html>\n";
+    // Actually assign the message parts from what we have built
+    $mail->Body = $hbody;
+    $mail->AltBody = $tbody;
 
-     if ( !$mail->Send() ) {
-       error_log( "$sysabbr: ERR: Unable to send e-mail for WR #$this->request_id" );
-       error_log( "$sysabbr: ERR: $mail->ErrorInfo" );
-     }
-   }
+    if ( !$mail->Send() ) {
+      error_log( "$sysabbr: ERR: Unable to send e-mail for WR #$this->request_id" );
+      error_log( "$sysabbr: ERR: $mail->ErrorInfo" );
+    }
+  }
 
-   /////////////////////////////////////////////////////////////
-   // Return an array of recipients for the e-mail
-   /////////////////////////////////////////////////////////////
-   function GetRecipients ()
-   {
+  /////////////////////////////////////////////////////////////
+  // Return an array of recipients for the e-mail
+  /////////////////////////////////////////////////////////////
+  function GetRecipients ()
+  {
       $query = "SELECT email, fullname FROM usr, request_interested ";
       $query .= "WHERE request_interested.user_no = usr.user_no ";
       $query .=  " AND request_interested.request_id = {$this->request_id}";
@@ -1520,135 +1540,135 @@ EOX
         $to[$row->email] = $row->fullname;
       }
       return $to;
-   }
+  }
 
-   /////////////////////////////////////////////////////////////
-   // Detect if stuff on the request record needs notification
-   /////////////////////////////////////////////////////////////
-   function DetectEmailChanges( ) {
-     global $session, $client_messages, $sysabbr;
+  /////////////////////////////////////////////////////////////
+  // Detect if stuff on the request record needs notification
+  /////////////////////////////////////////////////////////////
+  function DetectEmailChanges( ) {
+    global $session, $client_messages, $sysabbr;
 
-     $tfmt = " * %s\n";
-     $hfmt = "<p>%s</p>\n";
-     error_log( "$sysabbr: DBG: Detecting e-mail changes for '$this->chtype' change" );
-     if ( $this->brief != "" && "$this->brief" != $_POST['brief'] ) {
-       $this->mail_message_data[]['html'] = sprintf($hfmt, "New description: $_POST[brief]<br />(was: $this->brief)");
-       $this->mail_message_data[]['text'] = sprintf($tfmt, "New description: $_POST[brief]\n   (was: $this->brief)");
-       $this->send_an_email = true;
-     }
+    $tfmt = " * %s\n";
+    $hfmt = "<p>%s</p>\n";
+    error_log( "$sysabbr: DBG: Detecting e-mail changes for '$this->chtype' change" );
+    if ( $this->brief != "" && "$this->brief" != $_POST['brief'] ) {
+      $this->mail_message_data[]['html'] = sprintf($hfmt, "New description: $_POST[brief]<br />(was: $this->brief)");
+      $this->mail_message_data[]['text'] = sprintf($tfmt, "New description: $_POST[brief]\n   (was: $this->brief)");
+      $this->send_an_email = true;
+    }
 
-     if ( isset($_POST['eta']) && "$this->eta" <> $_POST['eta'] )  {
-       $msg = "New ETA:      $new_eta";
-       if ( "$this->eta" != "" ) $msg .= "  (previous ETA was " . substr( nice_date($previous->eta), 7) . ")";
-       $this->mail_message_data[]['html'] = sprintf($hfmt, $msg );
-       $this->mail_message_data[]['text'] = sprintf($tfmt, $msg );
-       $this->send_an_email = true;
-     }
+    if ( isset($_POST['eta']) && "$this->eta" <> $_POST['eta'] )  {
+      $msg = "New ETA:      $new_eta";
+      if ( "$this->eta" != "" ) $msg .= "  (previous ETA was " . substr( nice_date($previous->eta), 7) . ")";
+      $this->mail_message_data[]['html'] = sprintf($hfmt, $msg );
+      $this->mail_message_data[]['text'] = sprintf($tfmt, $msg );
+      $this->send_an_email = true;
+    }
 
-     $previous = simplify_string($_POST['detailed']);
-     $current  = simplify_string($this->detailed);
-     $detail_changed = ( $previous != $current );
-     if ( $this->chtype == "update" && $detail_changed ) {
-       $this->mail_message_data[]['text']
+    $previous = simplify_string($_POST['detailed']);
+    $current  = simplify_string($this->detailed);
+    $detail_changed = ( $previous != $current );
+    if ( $this->chtype == "update" && $detail_changed ) {
+      $this->mail_message_data[]['text']
             = "Previous Description:\n"
             . "=====================\n"
             . stripslashes($this->detailed) . "\n\n";
-       $this->mail_message_data[]['html']
+      $this->mail_message_data[]['html']
             = "<h3>Previous Description</h3>\n<p>"
             . html_format(stripslashes($this->detailed)) . "</p>";
-       $this->send_an_email = true;
-     }
+      $this->send_an_email = true;
+    }
 
-     if ( $this->chtype == "create" || ( $this->chtype == "change" && $detail_changed ) ) {
-       $this->mail_message_data[]['text']
+    if ( $this->chtype == "create" || ( $this->chtype == "change" && $detail_changed ) ) {
+      $this->mail_message_data[]['text']
             = "Detailed Description:\n"
             . "=====================\n"
             . stripslashes($_POST['detailed']) . "\n\n";
-       $this->mail_message_data[]['html']
+      $this->mail_message_data[]['html']
             = "<h3>Detailed Description</h3>\n<p>"
             . html_format(htmlspecialchars(stripslashes($_POST['detailed']))) . "</p>\n";
-       $this->send_an_email = true;
-     }
-     return $this->send_an_email;
-   }
+      $this->send_an_email = true;
+    }
+    return $this->send_an_email;
+  }
 
 
-   /////////////////////////////////////////////////////////////
-   // Attach a file to the W/R
-   /////////////////////////////////////////////////////////////
-   function AttachFile( $fname, $description ) {
-     global $session, $client_messages, $attachment_dir;
-     error_log( "$sysabbr Request::AttachFile: DBG: Adding attachment: " . $_FILES[$fname]['name'], 0);
-     $sql = "SELECT nextval('request_attachment_attachment_id_seq') AS id ;";
-     $qry = new PgQuery( $sql );
-     if ( ! $qry->Exec('WR::AttachFile') ) {
-       $client_messages[] = "$qry->errorstring";
-       return false;
-     }
+  /////////////////////////////////////////////////////////////
+  // Attach a file to the W/R
+  /////////////////////////////////////////////////////////////
+  function AttachFile( $fname, $description ) {
+    global $session, $client_messages, $attachment_dir;
+    error_log( "$sysabbr Request::AttachFile: DBG: Adding attachment: " . $_FILES[$fname]['name'], 0);
+    $sql = "SELECT nextval('request_attachment_attachment_id_seq') AS id ;";
+    $qry = new PgQuery( $sql );
+    if ( ! $qry->Exec('WR::AttachFile') ) {
+      $client_messages[] = "$qry->errorstring";
+      return false;
+    }
 
-     $row = $qry->Fetch();
-     $attachment_id = $row->id;
-     if ( !isset($attachment_dir) ) $attachment_dir = "attachments";
-     move_uploaded_file($_FILES[$fname]['tmp_name'], "$attachment_dir/$attachment_id");
-     $att_name = tidy($_FILES[$fname]['name']);
+    $row = $qry->Fetch();
+    $attachment_id = $row->id;
+    if ( !isset($attachment_dir) ) $attachment_dir = "attachments";
+    move_uploaded_file($_FILES[$fname]['tmp_name'], "$attachment_dir/$attachment_id");
+    $att_name = tidy($_FILES[$fname]['name']);
 
-     $file_type = guess_file_type( $att_name, "$attachment_dir/$attachment_id" );
+    $file_type = guess_file_type( $att_name, "$attachment_dir/$attachment_id" );
 
-     $sql = "INSERT INTO request_attachment ( attachment_id, request_id, attached_by, ";
-     $sql .= "att_brief, att_description, att_filename, att_type ) ";
-     $sql .= "VALUES( ?, ?, ?, ?, ?, ?, ? );";
-     $qry = new PgQuery( $sql, $attachment_id, $this->request_id, $session->user_no,
-                       $description, $description, $att_name, $file_type);
-     if ( ! $qry->Exec('WR::AttachFile') ) {
-       $client_messages[] = "$qry->errorstring";
-       return false;
-     }
+    $sql = "INSERT INTO request_attachment ( attachment_id, request_id, attached_by, ";
+    $sql .= "att_brief, att_description, att_filename, att_type ) ";
+    $sql .= "VALUES( ?, ?, ?, ?, ?, ?, ? );";
+    $qry = new PgQuery( $sql, $attachment_id, $this->request_id, $session->user_no,
+                      $description, $description, $att_name, $file_type);
+    if ( ! $qry->Exec('WR::AttachFile') ) {
+      $client_messages[] = "$qry->errorstring";
+      return false;
+    }
 
-     chmod( "$attachment_dir/$attachment_id", 0644 );
-     $client_messages[] = "File attachment \"$att_name\" added to this request</h3>";
-     $this->mail_message_data[]['html'] = "<h4>File attachment &quot;<a href=\"".$GLOBALS['base_dns']."/attachment.php/".htmlspecialchars($att_name)."?id=".$attachment_id."\">".htmlspecialchars($att_name)."</a>&quot; was added.</h4>\n";
-     $this->mail_message_data[]['text'] = " * File attachment \"$att_name\" was added.\n";
+    chmod( "$attachment_dir/$attachment_id", 0644 );
+    $client_messages[] = "File attachment \"$att_name\" added to this request</h3>";
+    $this->mail_message_data[]['html'] = "<h4>File attachment &quot;<a href=\"".$GLOBALS['base_dns']."/attachment.php/".htmlspecialchars($att_name)."?id=".$attachment_id."\">".htmlspecialchars($att_name)."</a>&quot; was added.</h4>\n";
+    $this->mail_message_data[]['text'] = " * File attachment \"$att_name\" was added.\n";
 
-     $this->send_an_email = true;
+    $this->send_an_email = true;
 
-     return true;
-   }
+    return true;
+  }
 
-   /////////////////////////////////////////////////////////////
-   /////////////////////////////////////////////////////////////
-   function AddQuote( ) {
-     global $session, $client_messages;
-     error_log( "$sysabbr Request::AddQuote: DBG: Adding quote: " . $_POST['quote_brief'], 0);
-     $sql = "SELECT nextval('request_quote_quote_id_seq') AS id ;";
-     $qry = new PgQuery( $sql );
-     if ( ! $qry->Exec('WR::AddQuote') ) {
-       $client_messages[] = "$qry->errorstring";
-       return false;
-     }
-     $row = $qry->Fetch();
-     $id = $row->id;
+  /////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////
+  function AddQuote( ) {
+    global $session, $client_messages;
+    error_log( "$sysabbr Request::AddQuote: DBG: Adding quote: " . $_POST['quote_brief'], 0);
+    $sql = "SELECT nextval('request_quote_quote_id_seq') AS id ;";
+    $qry = new PgQuery( $sql );
+    if ( ! $qry->Exec('WR::AddQuote') ) {
+      $client_messages[] = "$qry->errorstring";
+      return false;
+    }
+    $row = $qry->Fetch();
+    $id = $row->id;
 
-     $sql = "INSERT INTO request_quote ( quote_id, request_id, quote_by_id, ";
-     $sql .= "quote_brief, quote_details, quote_type, quote_amount, quote_units ) ";
-     $sql .= "VALUES( ?, ?, ?, ?, ?, ?, ?, ? );";
-     $qry = new PgQuery( $sql, $id, $this->request_id, $session->user_no,
-                         $_POST['quote_brief'], $_POST['quote_details'], $_POST['quote_type'], $_POST['quote_amount'], $_POST['quote_units'] ) ;
-     if ( ! $qry->Exec('WR::AddQuote') ) {
-       $client_messages[] = "$qry->errorstring";
-       return false;
-     }
-     $client_messages[] = "Quote added to this request";
-     $this->mail_message_data[]['html'] = "<h4>A quote was added.</h4>\n";
-     $this->mail_message_data[]['text'] = " * A quote was added.\n";
+    $sql = "INSERT INTO request_quote ( quote_id, request_id, quote_by_id, ";
+    $sql .= "quote_brief, quote_details, quote_type, quote_amount, quote_units ) ";
+    $sql .= "VALUES( ?, ?, ?, ?, ?, ?, ?, ? );";
+    $qry = new PgQuery( $sql, $id, $this->request_id, $session->user_no,
+                        $_POST['quote_brief'], $_POST['quote_details'], $_POST['quote_type'], $_POST['quote_amount'], $_POST['quote_units'] ) ;
+    if ( ! $qry->Exec('WR::AddQuote') ) {
+      $client_messages[] = "$qry->errorstring";
+      return false;
+    }
+    $client_messages[] = "Quote added to this request";
+    $this->mail_message_data[]['html'] = "<h4>A quote was added.</h4>\n";
+    $this->mail_message_data[]['text'] = " * A quote was added.\n";
 
-     $this->send_an_email = true;
+    $this->send_an_email = true;
 
-     return true;
-   }
+    return true;
+  }
 
-   /////////////////////////////////////////////////////////////
-   // Update the details of existing timesheets with invoicing
-   /////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////
+  // Update the details of existing timesheets with invoicing
+  /////////////////////////////////////////////////////////////
   function UpdateInvoiceDetails( $ts_id ) {
     global $session, $client_messages;
 
@@ -1701,304 +1721,304 @@ EOX
     return true;
   }
 
-   /////////////////////////////////////////////////////////////
-   /////////////////////////////////////////////////////////////
-   function AddWork( ) {
-     global $session, $client_messages;
-     error_log( "$sysabbr Request::AddWork: DBG: Adding work: " . $_POST['work_description'], 0);
-     $sql = "SELECT nextval('request_timesheet_timesheet_id_seq') AS id ;";
-     $qry = new PgQuery( $sql );
-     if ( ! $qry->Exec('WR::AddWork') ) {
-       $client_messages[] = "$qry->errorstring";
-       return false;
-     }
-     $row = $qry->Fetch();
-     $id = $row->id;
-     $work_description = htmlspecialchars($_POST['work_description']);
+  /////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////
+  function AddWork( ) {
+    global $session, $client_messages;
+    error_log( "$sysabbr Request::AddWork: DBG: Adding work: " . $_POST['work_description'], 0);
+    $sql = "SELECT nextval('request_timesheet_timesheet_id_seq') AS id ;";
+    $qry = new PgQuery( $sql );
+    if ( ! $qry->Exec('WR::AddWork') ) {
+      $client_messages[] = "$qry->errorstring";
+      return false;
+    }
+    $row = $qry->Fetch();
+    $id = $row->id;
+    $work_description = htmlspecialchars($_POST['work_description']);
 
-     $sql = "INSERT INTO request_timesheet ( timesheet_id, request_id, work_by_id, ";
-     $sql .= "work_on, work_quantity, work_units, work_rate, work_description ) ";
-     $sql .= "VALUES( ?, ?, ?, ?, ?, ?, ?, ? );";
-     $qry = new PgQuery( $sql, $id, $this->request_id, $session->user_no,
-                         $_POST['work_on'], $_POST['work_quantity'], $_POST['work_units'], $_POST['work_rate'], $work_description ) ;
-     if ( ! $qry->Exec('WR::AddWork') ) {
-       $client_messages[] = "$qry->errorstring";
-       return false;
-     }
-     $client_messages[] = "Timesheet added to this request";
+    $sql = "INSERT INTO request_timesheet ( timesheet_id, request_id, work_by_id, ";
+    $sql .= "work_on, work_quantity, work_units, work_rate, work_description ) ";
+    $sql .= "VALUES( ?, ?, ?, ?, ?, ?, ?, ? );";
+    $qry = new PgQuery( $sql, $id, $this->request_id, $session->user_no,
+                        $_POST['work_on'], $_POST['work_quantity'], $_POST['work_units'], $_POST['work_rate'], $work_description ) ;
+    if ( ! $qry->Exec('WR::AddWork') ) {
+      $client_messages[] = "$qry->errorstring";
+      return false;
+    }
+    $client_messages[] = "Timesheet added to this request";
 
-     return true;
-   }
+    return true;
+  }
 
-   /////////////////////////////////////////////////////////////
-   // Write the actions to the file which have changed
-   /////////////////////////////////////////////////////////////
-   function UpdateActions( ) {
-     global $session, $client_messages;
+  /////////////////////////////////////////////////////////////
+  // Write the actions to the file which have changed
+  /////////////////////////////////////////////////////////////
+  function UpdateActions( ) {
+    global $session, $client_messages;
 
-     $actions = $_POST['request_action'];
-     $messages = "";
+    $actions = $_POST['request_action'];
+    $messages = "";
 
-     error_log("DBG: Checking for changes to request actions..." );
+    error_log("DBG: Checking for changes to request actions..." );
 
-     if ( !is_array($actions) ) return true;  // Silently succeed
+    if ( !is_array($actions) ) return true;  // Silently succeed
 
-     // What actions are defined for this organisation
-     $sql = "SELECT organisation_action.*, completed_on::date, fullname ";
-     $sql .= "FROM organisation_action ";
-     $sql .= "LEFT JOIN request_action ON request_id = $this->request_id AND organisation_action.action_id = request_action.action_id ";
-     $sql .= "LEFT JOIN usr ON updated_by_id = user_no ";
-     $sql .= "WHERE organisation_action.org_code = $this->org_code ";
-     $sql .= "ORDER BY organisation_action.org_code, action_sequence";
-     $q = new PgQuery($sql);
-     $q->Exec('WR::RenderActions') ;
+    // What actions are defined for this organisation
+    $sql = "SELECT organisation_action.*, completed_on::date, fullname ";
+    $sql .= "FROM organisation_action ";
+    $sql .= "LEFT JOIN request_action ON request_id = $this->request_id AND organisation_action.action_id = request_action.action_id ";
+    $sql .= "LEFT JOIN usr ON updated_by_id = user_no ";
+    $sql .= "WHERE organisation_action.org_code = $this->org_code ";
+    $sql .= "ORDER BY organisation_action.org_code, action_sequence";
+    $q = new PgQuery($sql);
+    $q->Exec('WR::RenderActions') ;
 
-     $sql = "";
+    $sql = "";
 
-     while( $row = $q->Fetch() ) {
-       if ( $actions[$row->action_id] != $row->completed_on ) {
-         error_log("DBG: Examining action for $row->action_id" );
-         $completed = str_replace( "'","''",str_replace('\\','\\\\', $actions[$row->action_id]));
-         if ( $row->completed_on == "" ) {
-           $sql .= "INSERT INTO request_action (request_id, action_id, completed_on, updated_by_id) ";
-           $sql .= "VALUES( $this->request_id, $row->action_id, '$completed'::date, $session->user_no ); ";
-           $message = "Action '$row->action_description' completed on ".$actions[$row->action_id].".";
-         }
-         elseif ( $completed == "" ) {
-           $sql .= "DELETE FROM request_action WHERE request_id = $this->request_id AND action_id = $row->action_id; ";
-           $message = "Action '$row->action_description' completion date cleared by $session->fullname.";
-         }
-         else {
-           $sql .= "UPDATE request_action ";
-           $sql .= "SET completed_on = '$completed'::date, updated_by_id = $session->user_no ";
-           $sql .= "WHERE request_id = $this->request_id AND action_id = $row->action_id; ";
-           $message = "Action '$row->action_description' updated on ".$actions[$row->action_id]." by $sesion->fullname.";
-         }
-         $client_messages[] = $message;
-         $this->mail_message_data[]['html'] = "<h4>$message</h4>\n";
-         $this->mail_message_data[]['text'] = " * $message\n";
+    while( $row = $q->Fetch() ) {
+      if ( $actions[$row->action_id] != $row->completed_on ) {
+        error_log("DBG: Examining action for $row->action_id" );
+        $completed = str_replace( "'","''",str_replace('\\','\\\\', $actions[$row->action_id]));
+        if ( $row->completed_on == "" ) {
+          $sql .= "INSERT INTO request_action (request_id, action_id, completed_on, updated_by_id) ";
+          $sql .= "VALUES( $this->request_id, $row->action_id, '$completed'::date, $session->user_no ); ";
+          $message = "Action '$row->action_description' completed on ".$actions[$row->action_id].".";
+        }
+        elseif ( $completed == "" ) {
+          $sql .= "DELETE FROM request_action WHERE request_id = $this->request_id AND action_id = $row->action_id; ";
+          $message = "Action '$row->action_description' completion date cleared by $session->fullname.";
+        }
+        else {
+          $sql .= "UPDATE request_action ";
+          $sql .= "SET completed_on = '$completed'::date, updated_by_id = $session->user_no ";
+          $sql .= "WHERE request_id = $this->request_id AND action_id = $row->action_id; ";
+          $message = "Action '$row->action_description' updated on ".$actions[$row->action_id]." by $sesion->fullname.";
+        }
+        $client_messages[] = $message;
+        $this->mail_message_data[]['html'] = "<h4>$message</h4>\n";
+        $this->mail_message_data[]['text'] = " * $message\n";
 
-         $this->send_an_email = true;
-       }
-     }
+        $this->send_an_email = true;
+      }
+    }
 
-     if ( $sql != "" ) {
-       $q = new PgQuery($sql);
-       return $q->Exec('WR::RenderActions') ;
-     }
+    if ( $sql != "" ) {
+      $q = new PgQuery($sql);
+      return $q->Exec('WR::RenderActions') ;
+    }
 
-     return true;
-   }
+    return true;
+  }
 
-   /////////////////////////////////////////////////////////////
-   /////////////////////////////////////////////////////////////
-   function AddParent( ) {
-     global $session, $client_messages;
+  /////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////
+  function AddParent( ) {
+    global $session, $client_messages;
 
-     if ( $_POST['link_type'] == '' ) return true;  // Silently carry on...
-     error_log( "$sysabbr Request::AddParent: DBG: Adding parent: " . $_POST['parent_request_id'], 0);
+    if ( $_POST['link_type'] == '' ) return true;  // Silently carry on...
+    error_log( "$sysabbr Request::AddParent: DBG: Adding parent: " . $_POST['parent_request_id'], 0);
 
-     $sql = "INSERT INTO request_request ( request_id, to_request_id, link_type, link_data ) ";
-     $sql .= "VALUES( ?, ?, ?, ? );";
-     $qry = new PgQuery( $sql, $_POST['parent_request_id'], $this->request_id, $_POST['link_type'], $_POST['link_data'] ) ;
-     if ( ! $qry->Exec('WR::AddParent') ) {
-       $client_messages[] = "$qry->errorstring";
-       return false;
-     }
-     $client_messages[] = "W/R linked to this request";
-     $this->mail_message_data[]['html'] = "<h4><a href='".$GLOBALS['base_dns']."/wr.php?request_id=".$_POST['parent_request_id']."'>W/R " . $_POST['parent_request_id'] . "</a> was linked to this request</h4>\n";
-     $this->mail_message_data[]['text'] = " * W/R " . $_POST['parent_request_id'] . " was linked to this request.\n";
+    $sql = "INSERT INTO request_request ( request_id, to_request_id, link_type, link_data ) ";
+    $sql .= "VALUES( ?, ?, ?, ? );";
+    $qry = new PgQuery( $sql, $_POST['parent_request_id'], $this->request_id, $_POST['link_type'], $_POST['link_data'] ) ;
+    if ( ! $qry->Exec('WR::AddParent') ) {
+      $client_messages[] = "$qry->errorstring";
+      return false;
+    }
+    $client_messages[] = "W/R linked to this request";
+    $this->mail_message_data[]['html'] = "<h4><a href='".$GLOBALS['base_dns']."/wr.php?request_id=".$_POST['parent_request_id']."'>W/R " . $_POST['parent_request_id'] . "</a> was linked to this request</h4>\n";
+    $this->mail_message_data[]['text'] = " * W/R " . $_POST['parent_request_id'] . " was linked to this request.\n";
 
-     $this->send_an_email = true;
+    $this->send_an_email = true;
 
-     return true;
-   }
+    return true;
+  }
 
-   /////////////////////////////////////////////////////////////
-   // Write the new allocations for the W/R
-   /////////////////////////////////////////////////////////////
-   function NewAllocations( ) {
-     global $session, $client_messages, $sysabbr;
-     error_log( "$sysabbr Request::NewAllocations: DBG: Adding allocations: " . join(",", $_POST['new_allocations']), 0);
+  /////////////////////////////////////////////////////////////
+  // Write the new allocations for the W/R
+  /////////////////////////////////////////////////////////////
+  function NewAllocations( ) {
+    global $session, $client_messages, $sysabbr;
+    error_log( "$sysabbr Request::NewAllocations: DBG: Adding allocations: " . join(",", $_POST['new_allocations']), 0);
 
-     $new_allocations = preg_replace( "/[^0-9,]/", "", join(",", $_POST['new_allocations']));
+    $new_allocations = preg_replace( "/[^0-9,]/", "", join(",", $_POST['new_allocations']));
 
-     $sql = "SELECT fullname FROM usr WHERE user_no IN ( $new_allocations ) ";
-     $sql .= "AND NOT EXISTS( SELECT 1 FROM request_allocated WHERE request_id = $this->request_id ";
-     $sql .=                  "AND request_allocated.allocated_to_id = usr.user_no) ";
-     $sql .= "AND usr.org_code IN ( $this->org_code, $session->org_code ); ";
-     $qry = new PgQuery($sql);
-     if ( ! $qry->Exec('WR::NewAllocations') ) {
-       $client_messages[] = "$qry->errorstring";
-       return false;
-     }
-     $people = "";
-     while( $row = $qry->Fetch() ) {
-       $people .= ( $people == "" ? "" : ", ") . $row->fullname;
-     }
-     if ( $people == "" ) {
-       error_log( "$sysabbr Request::NewAllocations: WARN: NewAllocations called for currently allocated people $new_allocations" );
-       return true;  // So we don't cancel the transaction...
-     }
+    $sql = "SELECT fullname FROM usr WHERE user_no IN ( $new_allocations ) ";
+    $sql .= "AND NOT EXISTS( SELECT 1 FROM request_allocated WHERE request_id = $this->request_id ";
+    $sql .=                  "AND request_allocated.allocated_to_id = usr.user_no) ";
+    $sql .= "AND usr.org_code IN ( $this->org_code, $session->org_code ); ";
+    $qry = new PgQuery($sql);
+    if ( ! $qry->Exec('WR::NewAllocations') ) {
+      $client_messages[] = "$qry->errorstring";
+      return false;
+    }
+    $people = "";
+    while( $row = $qry->Fetch() ) {
+      $people .= ( $people == "" ? "" : ", ") . $row->fullname;
+    }
+    if ( $people == "" ) {
+      error_log( "$sysabbr Request::NewAllocations: WARN: NewAllocations called for currently allocated people $new_allocations" );
+      return true;  // So we don't cancel the transaction...
+    }
 
-     $sql = "INSERT INTO request_allocated ( request_id, allocated_on, allocated_to_id ) ";
-     $sql .= "SELECT $this->request_id, current_timestamp, user_no ";
-     $sql .= "FROM usr WHERE user_no IN ( $new_allocations ) ";
-     $sql .= "AND NOT EXISTS( SELECT 1 FROM request_allocated WHERE request_id = $this->request_id ";
-     $sql .=                  "AND request_allocated.allocated_to_id = usr.user_no) ";
-     $sql .= "AND usr.org_code IN ( $this->org_code, $session->org_code ); ";
-     $qry = new PgQuery($sql);
-     if ( ! $qry->Exec('WR::NewAllocations') ) {
-       $client_messages[] = "$qry->errorstring";
-       return false;
-     }
-     $client_messages[] = "Allocated to $people.";
-     $this->mail_message_data[]['html'] = "<h4>The request was allocated to $people.</h4>\n";
-     $this->mail_message_data[]['text'] = " * The request was allocated to $people.\n";
+    $sql = "INSERT INTO request_allocated ( request_id, allocated_on, allocated_to_id ) ";
+    $sql .= "SELECT $this->request_id, current_timestamp, user_no ";
+    $sql .= "FROM usr WHERE user_no IN ( $new_allocations ) ";
+    $sql .= "AND NOT EXISTS( SELECT 1 FROM request_allocated WHERE request_id = $this->request_id ";
+    $sql .=                  "AND request_allocated.allocated_to_id = usr.user_no) ";
+    $sql .= "AND usr.org_code IN ( $this->org_code, $session->org_code ); ";
+    $qry = new PgQuery($sql);
+    if ( ! $qry->Exec('WR::NewAllocations') ) {
+      $client_messages[] = "$qry->errorstring";
+      return false;
+    }
+    $client_messages[] = "Allocated to $people.";
+    $this->mail_message_data[]['html'] = "<h4>The request was allocated to $people.</h4>\n";
+    $this->mail_message_data[]['text'] = " * The request was allocated to $people.\n";
 
 
-     $this->send_an_email = true;
+    $this->send_an_email = true;
 
-     return true;
-   }
+    return true;
+  }
 
-   /////////////////////////////////////////////////////////////
-   //
-   /////////////////////////////////////////////////////////////
-   function NewSubscriptions( ) {
-     global $sysabbr, $session, $client_messages;
+  /////////////////////////////////////////////////////////////
+  //
+  /////////////////////////////////////////////////////////////
+  function NewSubscriptions( ) {
+    global $sysabbr, $session, $client_messages;
 
-     if ( $this->chtype = 'create' ) {
-       $subscribers = array_merge( array( $_POST['requester_id'], $session->user_no  ),
-                                   $_POST['new_allocations'], $_POST['new_subscriptions'] );
-     }
-     else {
-       $subscribers = array_merge( $_POST['new_allocations'], $_POST['new_subscriptions'] );
-     }
+    if ( $this->chtype = 'create' ) {
+      $subscribers = array_merge( array( $_POST['requester_id'], $session->user_no  ),
+                                  $_POST['new_allocations'], $_POST['new_subscriptions'] );
+    }
+    else {
+      $subscribers = array_merge( $_POST['new_allocations'], $_POST['new_subscriptions'] );
+    }
 
-     $new_subscriptions = preg_replace( "/[^0-9,]/", "", join(",", $subscribers));
-     $sql = "SELECT fullname FROM usr WHERE user_no IN ( $new_subscriptions ) ";
-     $sql .= "AND NOT EXISTS( SELECT 1 FROM request_interested WHERE request_id = $this->request_id ";
-     $sql .=                  "AND request_interested.user_no = usr.user_no) ";
-     $sql .= "AND usr.org_code IN ( $this->org_code, $session->org_code ); ";
-     $qry = new PgQuery($sql);
-     if ( ! $qry->Exec('WR::NewSubscriptions') ) {
-       $client_messages[] = "$qry->errorstring";
-       return false;
-     }
-     $people = "";
-     while( $row = $qry->Fetch() ) {
-       $people .= ( $people == "" ? "" : ", ") . $row->fullname;
-     }
-     if ( $people == "" ) {
-       error_log( "$sysabbr Request::NewSubscriptions: WARN: NewSubscriptions called for currently subscribed people $new_subscriptions" );
-       return true;  // So we don't cancel the transaction...
-     }
+    $new_subscriptions = preg_replace( "/[^0-9,]/", "", join(",", $subscribers));
+    $sql = "SELECT fullname FROM usr WHERE user_no IN ( $new_subscriptions ) ";
+    $sql .= "AND NOT EXISTS( SELECT 1 FROM request_interested WHERE request_id = $this->request_id ";
+    $sql .=                  "AND request_interested.user_no = usr.user_no) ";
+    $sql .= "AND usr.org_code IN ( $this->org_code, $session->org_code ); ";
+    $qry = new PgQuery($sql);
+    if ( ! $qry->Exec('WR::NewSubscriptions') ) {
+      $client_messages[] = "$qry->errorstring";
+      return false;
+    }
+    $people = "";
+    while( $row = $qry->Fetch() ) {
+      $people .= ( $people == "" ? "" : ", ") . $row->fullname;
+    }
+    if ( $people == "" ) {
+      error_log( "$sysabbr Request::NewSubscriptions: WARN: NewSubscriptions called for currently subscribed people $new_subscriptions" );
+      return true;  // So we don't cancel the transaction...
+    }
 
-     error_log( "$sysabbr Request::NewSubscriptions: DBG: Adding subscriptions: $new_subscriptions", 0);
+    error_log( "$sysabbr Request::NewSubscriptions: DBG: Adding subscriptions: $new_subscriptions", 0);
 
-     $sql = "INSERT INTO request_interested ( request_id, user_no, username ) ";
-     $sql .= "SELECT $this->request_id, user_no, username ";
-     $sql .= "FROM usr WHERE user_no IN ( $new_subscriptions ) ";
-     $sql .= "AND NOT EXISTS( SELECT 1 FROM request_interested WHERE request_id = $this->request_id ";
-     $sql .=                  "AND request_interested.user_no = usr.user_no) ";
-     $sql .= "AND usr.org_code IN ( $this->org_code, $session->org_code ); ";
-     if ( $this->chtype = 'create' ) {
-       $sql .= "INSERT INTO request_interested ( request_id, user_no, username ) ";
-       $sql .= "SELECT $this->request_id, u.user_no, username ";
-       $sql .= "FROM system_usr s ";
-       $sql .= "JOIN usr u ON s.user_no = u.user_no ";
-       $sql .= "WHERE s.system_code = '$this->system_code' AND s.role IN ( 'S', 'C' ) ";
-       $sql .= "AND NOT EXISTS( SELECT 1 FROM request_interested WHERE request_id = $this->request_id ";
-       $sql .=                  "AND request_interested.user_no = u.user_no) ";
-       $sql .= "AND u.org_code IN ( $this->org_code, $session->org_code ); ";
-     }
-     $qry = new PgQuery($sql);
-     if ( ! $qry->Exec('WR::NewSubscriptions') ) {
-       $client_messages[] = "$qry->errorstring";
-       return false;
-     }
-     $client_messages[] = sprintf("Interest added for $people");
+    $sql = "INSERT INTO request_interested ( request_id, user_no, username ) ";
+    $sql .= "SELECT $this->request_id, user_no, username ";
+    $sql .= "FROM usr WHERE user_no IN ( $new_subscriptions ) ";
+    $sql .= "AND NOT EXISTS( SELECT 1 FROM request_interested WHERE request_id = $this->request_id ";
+    $sql .=                  "AND request_interested.user_no = usr.user_no) ";
+    $sql .= "AND usr.org_code IN ( $this->org_code, $session->org_code ); ";
+    if ( $this->chtype = 'create' ) {
+      $sql .= "INSERT INTO request_interested ( request_id, user_no, username ) ";
+      $sql .= "SELECT $this->request_id, u.user_no, username ";
+      $sql .= "FROM system_usr s ";
+      $sql .= "JOIN usr u ON s.user_no = u.user_no ";
+      $sql .= "WHERE s.system_code = '$this->system_code' AND s.role IN ( 'S', 'C' ) ";
+      $sql .= "AND NOT EXISTS( SELECT 1 FROM request_interested WHERE request_id = $this->request_id ";
+      $sql .=                  "AND request_interested.user_no = u.user_no) ";
+      $sql .= "AND u.org_code IN ( $this->org_code, $session->org_code ); ";
+    }
+    $qry = new PgQuery($sql);
+    if ( ! $qry->Exec('WR::NewSubscriptions') ) {
+      $client_messages[] = "$qry->errorstring";
+      return false;
+    }
+    $client_messages[] = sprintf("Interest added for $people");
 
-     return true;
-   }
+    return true;
+  }
 
-   /////////////////////////////////////////////////////////////
-   // Write the new tags to the W/R
-   /////////////////////////////////////////////////////////////
-   function NewTags( ) {
-     global $session, $client_messages;
-     error_log( "$sysabbr Request::NewTags: DBG: Adding tags: " . join(",", $_POST['new_tags']), 0);
+  /////////////////////////////////////////////////////////////
+  // Write the new tags to the W/R
+  /////////////////////////////////////////////////////////////
+  function NewTags( ) {
+    global $session, $client_messages;
+    error_log( "$sysabbr Request::NewTags: DBG: Adding tags: " . join(",", $_POST['new_tags']), 0);
 
-     $new_tags = preg_replace( "/[^0-9,]/", "", join(",", $_POST['new_tags']));
-     $sql = "INSERT INTO request_tag ( tag_id, request_id, tagged_on ) ";
-     $sql .= "SELECT tag_id, $this->request_id, current_timestamp ";
-     $sql .= "FROM organisation_tag WHERE tag_id IN ( $new_tags ) ";
-     $sql .= "AND NOT EXISTS( SELECT 1 FROM request_tag WHERE request_id = $this->request_id ";
-     $sql .=                  "AND request_tag.tag_id = organisation_tag.tag_id) ";
-     $sql .= "AND organisation_tag.org_code IN ( $this->org_code, $session->org_code ); ";
-     $qry = new PgQuery($sql);
-     if ( ! $qry->Exec('WR::NewTags') ) {
-       $client_messages[] = "$qry->errorstring";
-       return false;
-     }
-     $client_messages[] = sprintf("Request tagged.", count($_POST['new_tags']));
+    $new_tags = preg_replace( "/[^0-9,]/", "", join(",", $_POST['new_tags']));
+    $sql = "INSERT INTO request_tag ( tag_id, request_id, tagged_on ) ";
+    $sql .= "SELECT tag_id, $this->request_id, current_timestamp ";
+    $sql .= "FROM organisation_tag WHERE tag_id IN ( $new_tags ) ";
+    $sql .= "AND NOT EXISTS( SELECT 1 FROM request_tag WHERE request_id = $this->request_id ";
+    $sql .=                  "AND request_tag.tag_id = organisation_tag.tag_id) ";
+    $sql .= "AND organisation_tag.org_code IN ( $this->org_code, $session->org_code ); ";
+    $qry = new PgQuery($sql);
+    if ( ! $qry->Exec('WR::NewTags') ) {
+      $client_messages[] = "$qry->errorstring";
+      return false;
+    }
+    $client_messages[] = sprintf("Request tagged.", count($_POST['new_tags']));
 
-     return true;
-   }
+    return true;
+  }
 
-   /////////////////////////////////////////////////////////////
-   /////////////////////////////////////////////////////////////
-   function NewStatusCode( ) {
-     global $session, $client_messages;
-     error_log( "$sysabbr Request::NewStatusCode: DBG: Status changed from '$this->last_status' to '" . $_POST['status_code']."'", 0);
+  /////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////
+  function NewStatusCode( ) {
+    global $session, $client_messages;
+    error_log( "$sysabbr Request::NewStatusCode: DBG: Status changed from '$this->last_status' to '" . $_POST['status_code']."'", 0);
 
-     $sql = "INSERT INTO request_status ( request_id, status_on, status_by_id, status_code ) ";
-     $sql .= "VALUES( ?, current_timestamp, ?, ? );";
-     $qry = new PgQuery( $sql, $this->request_id, $session->user_no, $_POST['status_code'] ) ;
-     if ( ! $qry->Exec('WR::NewStatusCode') ) {
-       $client_messages[] = "$qry->errorstring";
-       return false;
-     }
-     if ( $this->last_status != $_POST['status_code'] ) {
-       $client_messages[] = "Status changed from '$this->last_status' to '".$_POST['status_code']."'";
-       $this->mail_message_data[]['html'] = "<h4>The status was changed from &quot;{$this->last_status}&quot; to &quot;" . $_POST['status_code'] . "&quot;</h4>\n";
-       $this->mail_message_data[]['text'] = " * The status was changed from \"{$this->last_status}\" to \"" . $_POST['status_code'] . "\"\n";
-     }
+    $sql = "INSERT INTO request_status ( request_id, status_on, status_by_id, status_code ) ";
+    $sql .= "VALUES( ?, current_timestamp, ?, ? );";
+    $qry = new PgQuery( $sql, $this->request_id, $session->user_no, $_POST['status_code'] ) ;
+    if ( ! $qry->Exec('WR::NewStatusCode') ) {
+      $client_messages[] = "$qry->errorstring";
+      return false;
+    }
+    if ( $this->last_status != $_POST['status_code'] ) {
+      $client_messages[] = "Status changed from '$this->last_status' to '".$_POST['status_code']."'";
+      $this->mail_message_data[]['html'] = "<h4>The status was changed from &quot;{$this->last_status}&quot; to &quot;" . $_POST['status_code'] . "&quot;</h4>\n";
+      $this->mail_message_data[]['text'] = " * The status was changed from \"{$this->last_status}\" to \"" . $_POST['status_code'] . "\"\n";
+    }
 
-     $_POST['last_status'] = $_POST['status_code'];
+    $_POST['last_status'] = $_POST['status_code'];
 
-     $this->send_an_email = true;
+    $this->send_an_email = true;
 
-     return true;
-   }
+    return true;
+  }
 
-   /////////////////////////////////////////////////////////////
-   /////////////////////////////////////////////////////////////
-   function AddNote( ) {
-     global $session, $client_messages;
-     error_log( "$sysabbr Request::AddNote: DBG: Note added to request", 0);
+  /////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////
+  function AddNote( ) {
+    global $session, $client_messages;
+    error_log( "$sysabbr Request::AddNote: DBG: Note added to request", 0);
 
-     $note_detail = $_POST['note_detail'];
-     if ( ! isset($_POST['preserve_html']) || $_POST['preserve_html'] == '' ) {
-       $note_detail = htmlspecialchars($note_detail);
-     }
+    $note_detail = $_POST['note_detail'];
+    if ( ! isset($_POST['preserve_html']) || $_POST['preserve_html'] == '' ) {
+      $note_detail = htmlspecialchars($note_detail);
+    }
 
-     $sql = "INSERT INTO request_note ( request_id, note_on, note_by_id, note_detail ) ";
-     $sql .= "VALUES( ?, current_timestamp, ?, ? );";
-     $qry = new PgQuery( $sql, $this->request_id, $session->user_no, $note_detail ) ;
-     if ( ! $qry->Exec('WR::NewStatusCode') ) {
-       $client_messages[] = "$qry->errorstring";
-       return false;
-     }
-     $client_messages[] = "Note added to request";
-     $this->mail_message_data[]['html'] = "<h3>$session->fullname noted:</h3><p>".html_format($note_detail)."</p>\n";
-     $this->mail_message_data[]['text'] = "$session->fullname noted that:\n$note_detail\n";
+    $sql = "INSERT INTO request_note ( request_id, note_on, note_by_id, note_detail ) ";
+    $sql .= "VALUES( ?, current_timestamp, ?, ? );";
+    $qry = new PgQuery( $sql, $this->request_id, $session->user_no, $note_detail ) ;
+    if ( ! $qry->Exec('WR::NewStatusCode') ) {
+      $client_messages[] = "$qry->errorstring";
+      return false;
+    }
+    $client_messages[] = "Note added to request";
+    $this->mail_message_data[]['html'] = "<h3>$session->fullname noted:</h3><p>".html_format($note_detail)."</p>\n";
+    $this->mail_message_data[]['text'] = "$session->fullname noted that:\n$note_detail\n";
 
-     $this->send_an_email = true;
+    $this->send_an_email = true;
 
-     return true;
-   }
+    return true;
+  }
 
 }
 

@@ -40,6 +40,9 @@ if ( isset($org_code) ) {
   // complete access to all W/Rs.
   $sql = "SELECT work_system.system_code, system_desc ";
   $sql .= "FROM work_system ";
+  if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) ) {
+    $sql .= "JOIN system_usr ON (work_system.system_code=system_usr.system_code AND system_usr.user_no=$session->user_no) ";
+  }
   $sql .= "WHERE active ";
   $sql .= "AND EXISTS (SELECT 1 FROM org_system WHERE org_system.system_code = work_system.system_code ";
   if ( $org_code != 0 && ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) )
@@ -80,15 +83,28 @@ if ( isset($org_code) ) {
 
   $org2_code = intval($org2_code);
   $sql = "SELECT user_no, fullname || ' (' || abbreviation || ')' AS name ";
-  $sql .= "FROM usr JOIN organisation ON (usr.org_code = organisation.org_code) ";
+  $sql .= "FROM usr JOIN organisation USING (org_code) ";
   $sql .= "WHERE status != 'I' ";
-  if ( $org_code != 0 && ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) )
+  if ( $org_code != 0 && ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) ) {
     $sql .= "AND organisation.org_code IN ( $org_code, $session->org_code ) ";
-  else if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) )
-    $sql .= "AND organisation.org_code IN ( $session->org_code ) ";
-//  if ( $org2_code > 0 && $session->org_code != $org2_code ) {
-//    $sql .= ", $org2_code";
-//  }
+    $sql .= "OR EXISTS (SELECT 1 FROM organisation oo ";
+    $sql .= "JOIN org_system USING (org_code) ";
+    $sql .= "JOIN work_system USING (system_code) ";
+    $sql .= "JOIN system_usr ON (work_system.system_code=system_usr.system_code AND system_usr.user_no=$session->user_no) ";
+    $sql .= "JOIN system_usr worker ON (work_system.system_code=worker.system_code AND worker.user_no=usr.user_no) ";
+    $sql .= "AND oo.org_code = $org_code ";
+    $sql .= "AND worker.role = 'S') ";
+  }
+  else if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) ) {
+    $sql .= "AND organisation.org_code = usr.org_code AND usr.org_code IN ( $session->org_code ) ";
+    $sql .= "OR EXISTS (SELECT 1 FROM organisation oo ";
+    $sql .= "JOIN org_system USING (org_code) ";
+    $sql .= "JOIN work_system USING (system_code) ";
+    $sql .= "JOIN system_usr ON (work_system.system_code=system_usr.system_code AND system_usr.user_no=$session->user_no) ";
+    $sql .= "JOIN system_usr worker ON (work_system.system_code=worker.system_code AND worker.user_no=usr.user_no) ";
+    $sql .= "AND oo.org_code = $session->org_code ";
+    $sql .= "AND worker.role = 'S') ";
+  }
   $sql .= "ORDER BY lower(fullname)";
   $qry = new PgQuery( $sql );
   if ( $qry->Exec('js') ) {

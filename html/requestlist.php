@@ -1,9 +1,8 @@
 <?php
   include("always.php");
   include("authorisation-page.php");
-  include("options.php");
   include("code-list.php");
-  include( "user-list.php" );
+  include("user-list.php" );
   include("maintenance-page.php");
 
   // Force some variables to have values.
@@ -366,7 +365,8 @@ function column_header( $ftext, $fname ) {
     unset($saved_query);
   }
 
-  include("headers.php");
+  require_once("top-menu-bar.php");
+  require_once("headers.php");
 
 if ( ! is_member_of('Request') || ((isset($error_msg) || isset($error_qry)) && "$error_msg$error_qry" != "") ) {
   include( "error.php" );
@@ -389,7 +389,7 @@ else {
       $system_list = get_system_list( "", "$system_code", 35);
     }
     else {
-      $system_list = get_system_list( "CES", "$system_code", 35);
+      $system_list = get_system_list( "CESOAV", "$system_code", 35);
     }
 
     echo "<table border=0 cellspacing=2 cellpadding=0 align=center class=row0 width=100% style=\"border: 1px dashed #aaaaaa;\">\n<tr>\n";
@@ -537,13 +537,15 @@ else {
       // If the maxresults they saved was non-default, use that, otherwise we
       // increase the default anyway, because saved queries are more carefully
       // crafted, and less likely to list the whole database
-      $maxresults = ( $maxresults == 100 && $thisquery->maxresults != 100 ? $thisquery->maxresults : 500 );
+      $maxresults = ( $maxresults == 100 && $thisquery->maxresults != 100 ? $thisquery->maxresults : 1000 );
       if ( $thisquery->rlsort && ! isset($_GET['rlsort']) ) {
         $rlsort = $thisquery->rlsort;
         $rlseq = $thisquery->rlseq;
       }
     }
     else {
+
+      $maxresults = ( isset($maxresults) && intval($maxresults) > 0 ? intval($maxresults) : 100 );
 
       $query .= "SELECT request.request_id, brief, usr.fullname, usr.email, request_on, status.lookup_desc AS status_desc, last_activity, detailed ";
       $query .= ", request_type.lookup_desc AS request_type_desc, lower(usr.fullname) AS lfull, lower(brief) AS lbrief ";
@@ -555,7 +557,13 @@ else {
       $query .= "FROM ";
       if ( intval("$interested_in") > 0 ) $query .= "request_interested, ";
       if ( intval("$allocated_to") > 0 ) $query .= "request_allocated, ";
-      $query .= "request, usr, lookup_code AS status ";
+      $query .= "request";
+      if ( ! is_member_of('Admin', 'Support') ) {
+        $query .= "JOIN work_system USING (system_code) ";
+        $query .= "JOIN system_usr ON (work_system.system_code = system_usr.system_code AND system_usr.user_no = $session->user_no) ";
+      }
+      $query .= ", usr";
+      $query .= ", lookup_code AS status ";
       $query .= ", lookup_code AS request_type";
       $query .= ", usr AS creator";
 
@@ -629,6 +637,7 @@ $query";
       if ( $result && pg_NumRows($result) > 0 ) {
         echo "\n<small>";
         echo pg_NumRows($result) . " requests found";
+        if ( pg_NumRows($result) == $maxresults ) echo " (limit reached)";
         if ( isset($saved_query) && $saved_query != "" ) echo " for <b>$saved_query</b>";
         echo "</small>";
       }

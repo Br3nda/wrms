@@ -11,6 +11,7 @@
 
 $begin_processing = microtime();
 // Always connect to the database...
+// $wrms_db = pg_Connect("dbname=wrms user=general port=5444");
 $wrms_db = pg_Connect("dbname=wrms user=general");
 $dbconn = $wrms_db;
 

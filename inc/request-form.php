@@ -237,14 +237,17 @@
     }
     else
       $rows = 0;
-    echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=5>&nbsp;</TD></TR><TR>$hdcell";
-    echo "<td class=h3 colspan=4 align=right>File Attachments</td></tr>\n";
-    echo "<tr>\n";
-    echo "<th class=cols>Filename</th>\n";
-    echo "<th class=cols>Type</th>\n";
-    echo "<th class=cols>Display / X <i>x</i> Y</th>\n";
-    echo "<th class=cols>Description</th>\n";
-    echo "</tr>\n";
+
+    if ( ! $plain || $rows > 0 ) {
+      echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=5>&nbsp;</TD></TR><TR>$hdcell";
+      echo "<td class=h3 colspan=4 align=right>File Attachments</td></tr>\n";
+      echo "<tr>\n";
+      echo "<th class=cols>Filename</th>\n";
+      echo "<th class=cols>Type</th>\n";
+      echo "<th class=cols>Display / X <i>x</i> Y</th>\n";
+      echo "<th class=cols>Description</th>\n";
+      echo "</tr>\n";
+    }
     if ( $rows > 0 ) {
 
       for( $i=0; $i<$rows; $i++ ) {
@@ -266,18 +269,21 @@
         }
       }
     }
-    printf("<tr class=row%1d>", ($i % 2) );
-    echo "<td><input class=sml name=new_attachment_file size=20 type=file></td>\n";
-    echo "<td><select class=sml name=new_attachment_type>$attach_types</select></td>\n";
-    if ( $roles[wrms][Admin] || $roles[wrms][Support] ) {
-      echo "<td nowrap><label>Show inline<input name=new_attach_inline type=checkbox value=1></label><input name=new_attach_x size=3 type=text>x<input name=new_attach_y size=3 type=text></td>";
-      echo "<td>";
+    if ( ! $plain ) {
+      printf("<tr class=row%1d>", ($i % 2) );
+      echo "<td><input class=sml name=new_attachment_file size=20 type=file></td>\n";
+      echo "<td><select class=sml name=new_attachment_type>$attach_types</select></td>\n";
+      if ( $roles[wrms][Admin] || $roles[wrms][Support] ) {
+        echo "<td nowrap><label>Show inline<input name=new_attach_inline type=checkbox value=1></label><input name=new_attach_x size=3 type=text>x<input name=new_attach_y size=3 type=text></td>";
+        echo "<td>";
+      }
+      else {
+        echo "<td colspan=2>";
+      }
+      echo "<input class=sml size=30 name=new_attach_brief type=text></td></tr>\n";
     }
-    else {
-      echo "<td colspan=2>";
-    }
-    echo "<input class=sml size=30 name=new_attach_brief type=text></td></tr>\n";
-    echo "</table>";
+    if ( ! $plain || $rows > 0 )
+      echo "</table>";
 
 
   /***** Quote Details */
@@ -461,7 +467,7 @@
   $peopleq = awm_pgexec( $wrms_db, $query);
   $rows = pg_NumRows($peopleq);
     echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=3>&nbsp;</TD></TR>\n";
-    echo "<TR>$hdcell<TD CLASS=h3 COLSPAN=2 align=right>Interested Users</TD></TR>\n";
+    printf( "<TR>$hdcell<TD CLASS=h3 COLSPAN=%d align=right>Interested Users</TD></TR>\n", ( $plain ? 3 : 2) );
     echo "<TR VALIGN=TOP>\n<td>";
   if ( $rows > 0 ) {
     for( $i=0; $i<$rows; $i++ ) {
@@ -475,9 +481,7 @@
     }
     }
 
-    if ( $plain )
-      echo "</TD>\n<TD>&nbsp;";  // Or we could correct the cellspan above for this case...
-    else {
+    if ( !$plain ) {
       $notify_to = notify_emails( $wrms_db, $request_id );
       if ( strstr( $notify_to, $session->email ) ) {
         $tell = "Stop informing me on this request";

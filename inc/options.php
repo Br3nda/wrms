@@ -153,7 +153,8 @@
   }
 
   if ( "$session->user_no" == "" && $SCRIPT_NAME != "/index.php" && $SCRIPT_NAME != "/request.php" && $SCRIPT_NAME != "/help.php") {
-    header("Location: $base_url");  /* Redirect browser to login page */
+    include_once("inc/login-page.php");
+    # header("Location: $base_url");  /* Redirect browser to login page */
     exit; /* Make sure that code below does not get executed when we redirect. */
   }
 

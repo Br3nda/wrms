@@ -23,16 +23,6 @@
 
 
   // Style stuff
-  // Remember: The user-chosen font sizes won't work if  you use a style sheet, of course, in which case you should
-  // at least try and have a style sheet for NS4.x, Mozilla 5+, IE 4 and IE5+
-  $style_sheets = false;
-  if ( $style_sheets ) {
-    if ( $agent == "moz4" )
-      echo '<link rel="stylesheet" type="text/css" href="/wrmsmoz4.css">' . "\n";
-    else
-      echo '<link rel="stylesheet" type="text/css" href="/wrms.css">' . "\n" ;
-  }
-  else {
     echo "<style type=\"text/css\"><!--\n";
     $linkstyle = "{color: $colors[link1]; text-decoration:none; ";
     echo "A $linkstyle }\n";
@@ -103,8 +93,6 @@ th.cols, th.rows, a.cols  {font: small-caps bold $fontsizes[1] $fonts[0], sans-s
     }
 
     echo "--></style>\n";
-  } // if not style sheets
-
 
   // Now start the body
   echo "</head>\n";

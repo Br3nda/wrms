@@ -44,7 +44,7 @@
       else {
         $query = "UPDATE usr SET email=LOWER('$UserEmail'), fullname='$UserFullName', ";
         if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
-          if ( "$UserOrganisation" <> "" ) $query .= " organisation='$UserOrganisation', ";
+          if ( "$UserOrganisation" <> "" ) $query .= " org_code='$UserOrganisation', ";
         }
         else
           $query .= " organisation='$session->org_code', ";

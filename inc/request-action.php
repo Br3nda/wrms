@@ -2,12 +2,35 @@
   include("$base_dir/inc/tidy.php");
 
   if ( "$submit" == "register" ) {
-    $because .= "";
+    $query = "INSERT INTO request_interested (request_id, username, user_no ) VALUES( $request_id, '$session->username', $session->user_no); ";
+    $rid = pg_Exec( $wrms_db, $query );
+    if ( ! $rid ) {
+      $because .= "<H3>&nbsp;Submit Interest Failed!</H3>\n";
+      $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
+      $because .= "<P>The failed query was:</P><TT>$query</TT>";
+    }
+    else {
+      $because .= "<h3>You have been added to this request</h3>";
+    }
+    return;
+  }
+  else if ( "$submit" == "deregister" ) {
+    $query = "DELETE FROM request_interested WHERE request_id=$request_id AND user_no=$session->user_no; ";
+    $rid = pg_Exec( $wrms_db, $query );
+    if ( ! $rid ) {
+      $because .= "<H3>&nbsp;Submit Interest Failed!</H3>\n";
+      $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
+      $because .= "<P>The failed query was:</P><TT>$query</TT>";
+    }
+    else {
+      $because .= "<h3>You have been removed from this request</h3>";
+    }
+    return;
   }
 
   /* scope a transaction to the whole change */
   pg_exec( $wrms_db, "BEGIN;" );
-//  $debuglevel = 1;
+  $debuglevel = 1;
   if ( isset( $request ) ) {
     /////////////////////////////////////
     // Update an existing request
@@ -95,25 +118,25 @@
     }
 
     $query = "UPDATE request SET";
-    if ( $request->brief != $new_brief )
+    if ( isset($new_brief) && $request->brief != $new_brief )
       $query .= " brief = '" . tidy($new_brief) . "',";
-    if ( $request->detailed != $new_detail )
+    if ( isset($new_detail) && $request->detailed != $new_detail )
       $query .= " detailed = '" . tidy( $new_detail ) . "',";
-    if ( ($sysmgr || $allocated_to) && $eta_changed ) $query .= " eta = '$new_eta',";
-    if ( $request->active != $new_active )
+    if ( isset($new_eta) && ($sysmgr || $allocated_to) && $eta_changed ) $query .= " eta = '$new_eta',";
+    if ( isset($new_active) && $request->active != $new_active )
       $query .= " active = $new_active,";
-    if ( $request->last_status != $new_status )
+    if ( isset($new_status) && $request->last_status != $new_status )
       $query .= " last_status = '$new_status',";
-    if ( $request->request_type != $new_request_type )
+    if ( isset($new_request_type) && $request->request_type != $new_request_type )
       $query .= " request_type = $new_type,";
-    if ( $request->urgency != $new_urgency )
+    if ( isset($new_urgency) && $request->urgency != $new_urgency )
       $query .= " urgency = $new_urgency,";
-    if ( $request->importance != $new_importance )
+    if ( isset($new_importance) && $request->importance != $new_importance )
       $query .= " importance = $new_importance,";
-    if ( $request->system_code != $new_system_code )
+    if ( isset($new_system_code) && $request->system_code != $new_system_code )
       $query .= " system_code = '$new_system_code',";
     $query .= " last_activity = 'now' ";
-    $query .= "WHERE request.request_id = '$request_id'";
+    $query .= "WHERE request.request_id = '$request_id'; ";
     $rid = pg_exec( $wrms_db, $query );
     if ( ! $rid ) {
       $because .= "<H3>&nbsp;Update Request Failed!</H3>\n";

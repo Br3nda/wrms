@@ -348,12 +348,16 @@
       echo "</TD>\n<TD>&nbsp;";  // Or we could correct the cellspan above for this case...
     else {
       $notify_to = notify_emails( $wrms_db, $request_id );
-      if ( strstr( $notify_to, $session->email ) )
+      if ( strstr( $notify_to, $session->email ) ) {
         $tell = "Stop informing me on this request";
-      else
+        $action = "deregister";
+      }
+      else {
         $tell = "Inform me about updates to this request!";
+        $action = "register";
+      }
 
-      echo "</TD>\n<TD ALIGN=RIGHT nowrap><font size=-2><A HREF=\"request.php?submit=register&request_id=$request_id\">";
+      echo "</TD>\n<TD ALIGN=RIGHT nowrap><font size=-2><A HREF=\"request.php?submit=$action&request_id=$request_id\">";
       echo "<span style=\"background: $colors[6];\">$tell</span></a></font>";
     }
     echo "</TD>\n</TR></TABLE>\n";

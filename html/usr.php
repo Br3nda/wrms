@@ -1,6 +1,7 @@
 <?php
   include("inc/always.php");
   include("inc/options.php");
+  include("inc/organisation-list.php");
 
   if ( ! ($roles['wrms']['Admin'] || $roles['wrms']['Support'] || $roles['wrms']['Manage']) )
     $user_no = $session->user_no;
@@ -130,6 +131,15 @@ if (isset($user_no) && $user_no > 0 ) echo "      ";
 </tr>
 <?php
   }  // end of   'if Admin... ' about 5 lines up
+
+  if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
+    $org_code_list = get_organisation_list( "$usr->org_code" );
+    echo "<tr bgcolor=$colors[6]>\n";
+    echo "<th align=right>Organisation</th>\n";
+    echo "<td><font Size=\"2\"><select name=UserOrganisation>$org_code_list</select>\n";
+    echo "</tr>\n";
+  }
+
   if ( "$user_no" > 0 ) {
     echo "<tr bgcolor=$colors[6]>\n<th align=right>Date Joined&nbsp;</th>";
     echo "<td VALIGN=TOP><font Size=2>";

@@ -3,7 +3,7 @@
   $query = "SELECT lookup_code, lookup_desc FROM lookup_code ";
   $query .= " WHERE source_table='codes' AND source_field='menus' ";
   $query .= " ORDER BY lookup_seq;";
-  $result = awm_pgexec( $wrms_db, $query, "lookhead");
+  $result = awm_pgexec( $dbconn, $query, "lookhead");
   if ( $result && pg_NumRows($result) > 0 ) {
     echo "<tr><td>\n";
     for ( $i=0; $i < pg_NumRows($result); $i++) {

@@ -1,6 +1,6 @@
 <?php
-  include("$base_dir/inc/html-format.php");
-  include( "$base_dir/inc/user-list.php" );
+  include("html-format.php");
+  include( "user-list.php" );
 function nice_time( $in_time ) {
   /* does nothing yet... */
   return substr("$in_time", 2);
@@ -43,7 +43,7 @@ function nice_time( $in_time ) {
     printf("<td align=right><input type=checkbox value=1 name=uncharged%s></td><td align=left class=smb><label for=uncharged>Uncharged</label></td>\n", ("$uncharged"<>"" ? " checked" : ""));
     printf("<td align=right><input type=checkbox value=1 name=charge%s></td><td align=left class=smb><label for=charge>Charge</label></td>\n", ("$charge"<>"" ? " checked" : ""));
     echo "</tr></table></td>\n<tr><td><table border=0 cellpadding=0 cellspacing=0 width=100%>\n";
-    include("inc/system-list.php");
+    include("system-list.php");
     if ( is_member_of('Admin','Support') )
       $system_list = get_system_list( "", "$system_code", 35);
     else
@@ -51,7 +51,7 @@ function nice_time( $in_time ) {
     echo "<td class=smb>System:</td><td class=sml><font size=1><select class=sml name=system_code><option value=\"\">--- All Systems ---</option>$system_list</select></font></td>\n";
 
     if ( is_member_of('Admin','Support') ) {
-      include( "inc/organisation-list.php" );
+      include( "organisation-list.php" );
       $orglist = "<option value=\"\">--- All Organisations ---</option>\n" . get_organisation_list( "$org_code", 35 );
       echo "<td class=smb>&nbsp; &nbsp;Organisation:</td><td class=sml><select class=sml name=\"org_code\">\n$orglist</select></td>\n";
     }
@@ -116,7 +116,7 @@ function nice_time( $in_time ) {
     }
     $query .= " ORDER BY $tlsort $tlseq ";
     // $query .= " LIMIT 100 ";
-    $result = awm_pgexec( $wrms_db, $query, 'timelist', FALSE, 7 );
+    $result = awm_pgexec( $dbconn, $query, 'timelist', FALSE, 7 );
     if ( $result ) {
 
       // Build up the column header cell, with %s gaps for the sort, sequence and sequence image

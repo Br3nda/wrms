@@ -132,7 +132,7 @@ th.cols, th.rows, a.cols  {font: small-caps bold $fontsizes[1] $fonts[0], sans-s
       echo "<table border=\"0\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\"><tr bgcolor=$colors[bg1]>\n";
       echo "<td width=\"10%\" valign=\"top\" class=sidebarleft>";
       if ( !isset($error_qry) || "$error_qry" == "" ) {
-        include("inc/sidebarleft.php");
+        include("sidebarleft.php");
       }
       echo "\n</td>\n";
 
@@ -148,7 +148,7 @@ th.cols, th.rows, a.cols  {font: small-caps bold $fontsizes[1] $fonts[0], sans-s
     echo "<table border=\"0\" width=\"450\" cellspacing=\"0\" cellpadding=\"0\" bgcolor=\"$colors[bgerr]\" fgcolor=\"$colors[fgerr]\" align=center><tr>\n";
     echo "<th class=error>$error_message$warn_message<th>\n</tr></table>\n<br clear=all>";
     if ( isset($error_message) && $error_message <> "" ) {
-      include("$base_dir/inc/footers.php");
+      include("footers.php");
       exit;
     }
   }

@@ -1,6 +1,6 @@
 <?php
 function get_organisation_list( $current="", $maxwidth=50 ) {
-  global $wrms_db;
+  global $dbconn;
   global $session;
   $org_code_list = "";
 
@@ -8,7 +8,7 @@ function get_organisation_list( $current="", $maxwidth=50 ) {
   $query .= "FROM organisation ";
   $query .= "WHERE active ";
   $query .= " ORDER BY LOWER(org_name)";
-  $rid = awm_pgexec( $wrms_db, $query, "organisation-list");
+  $rid = awm_pgexec( $dbconn, $query, "organisation-list");
 
   // Note that we use > 1 here since we can automatically assign the organisation
   // if only one possibility could apply....

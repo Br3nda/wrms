@@ -29,7 +29,7 @@ one of the recently modified requests from the list below.<br></p>";
     $query .= "AND request.active AND request.last_status~*'[AILNRQAT]' ";
     $query .= "ORDER BY last_activity DESC LIMIT 20 ";
   }
-  $result = awm_pgexec( $wrms_db, $query, 'indexpage', false, 7 );
+  $result = awm_pgexec( $dbconn, $query, 'indexpage', false, 7 );
   if ( $result ) {
     echo "<table border=0 align=center cellspacing=1 cellpadding=1><tr class=cols>\n";
     echo "<th class=cols>WR&nbsp;#</th>";

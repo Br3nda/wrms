@@ -7,15 +7,15 @@
   else {
     // Actually write the usr...
     $query = "BEGIN TRANSACTION;";
-    $result = awm_pgexec( $wrms_db, $query, "writeusr" );
+    $result = awm_pgexec( $dbconn, $query, "writeusr" );
 
     // Get the user number ...
     if ( "$M" == "add" ) {
       $query = "SELECT NEXTVAL( 'usr_user_no_seq' );";
-      $result = awm_pgexec( $wrms_db, $query, "writeusr" );
+      $result = awm_pgexec( $dbconn, $query, "writeusr" );
       if ( !$result || !pg_NumRows($result)  ) {
         $query = "ABORT TRANSACTION;";
-        $result = awm_pgexec( $wrms_db, $query );
+        $result = awm_pgexec( $dbconn, $query );
       }
       else {
         $user_no = pg_Result( $result, 0, 'nextval');
@@ -68,17 +68,17 @@
         $query .= " WHERE user_no='$user_no' ";
         if ( $session->user_no == $usr->user_no ) $settings = $usr->settings;
       }
-      $result = awm_pgexec( $wrms_db, $query, "writeusr", 4 );
+      $result = awm_pgexec( $dbconn, $query, "writeusr", 4 );
       if ( ! $result ) $because .= "<p>$query</p>";
 
       $query = "COMMIT TRANSACTION;";
-      $result = awm_pgexec( $wrms_db, $query, "writeusr", 4 );
+      $result = awm_pgexec( $dbconn, $query, "writeusr", 4 );
       $because .= "<H3>User Record Written for $UserFullName</H3>\n";
 
       // Roles
       if ( isset($NewUserRole) && is_array($NewUserRole) ) {
         $query = "DELETE FROM group_member WHERE user_no=$user_no;";
-        $result = awm_pgexec( $wrms_db, $query, "writeusr" );
+        $result = awm_pgexec( $dbconn, $query, "writeusr" );
 
         while ( is_array($NewUserRole) && list($k1, $val) = each($NewUserRole)) {
 
@@ -88,7 +88,7 @@
               $query = "INSERT INTO group_member (user_no, group_no) SELECT $user_no AS user_no, group_no FROM ugroup";
               $query .= " WHERE module_name='$k1' ";
               $query .= " AND group_name='$k2'; ";
-              $result = awm_pgexec( $wrms_db, $query );
+              $result = awm_pgexec( $dbconn, $query );
             }
           }
           else {
@@ -97,7 +97,7 @@
             $query = "INSERT INTO group_member (user_no, group_no) SELECT $user_no AS user_no, group_no FROM ugroup";
             $query .= " WHERE module_name='$k2' ";
             $query .= " AND group_name='$val2'; ";
-            $result = awm_pgexec( $wrms_db, $query );
+            $result = awm_pgexec( $dbconn, $query );
           }
         }
         reset($NewUserRole);
@@ -106,12 +106,12 @@
        // Write allowed systems
       if ( isset($NewUserCat) && is_array($NewUserCat) ) {
         $query = "DELETE FROM system_usr WHERE user_no=$user_no";
-        $result = awm_pgexec( $wrms_db, $query );
+        $result = awm_pgexec( $dbconn, $query );
         while ( list($k1, $val) = each($NewUserCat)) {
           if ( "$val" == "" ) continue;
           $query = "INSERT INTO system_usr (user_no, system_code, role) ";
           $query .= " VALUES( $user_no, '$k1', '$val') ";
-          $result = awm_pgexec( $wrms_db, $query );
+          $result = awm_pgexec( $dbconn, $query );
         }
         reset($NewUserCat);
       }

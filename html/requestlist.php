@@ -1,8 +1,8 @@
 <?php
-  include("inc/always.php");
-  include("inc/options.php");
-  include("inc/code-list.php");
-  include( "$base_dir/inc/user-list.php" );
+  include("always.php");
+  include("options.php");
+  include("code-list.php");
+  include( "user-list.php" );
 
   // Force some variables to have values.
   if ( !isset($format) ) $format = "";
@@ -37,10 +37,10 @@
   function RequestEditPermissions($request_id)
   {
      //  This code was written by Simon and gets marked 3/10 - could do better.
-     global $session, $wrms_db, $base_dir;
+     global $session, $dbconn;
      $plain = FALSE;
 
-     include("inc/getrequest.php");
+     include("getrequest.php");
 
      return array($statusable, $editable);
   }
@@ -55,7 +55,7 @@
 //------------------------------------------------------------
   function Process_Brief_editable_Requests()
   {
-     global $wrms_db, $EditableRequests, $session, $ChangedRequests_count, $because;
+     global $dbconn, $EditableRequests, $session, $ChangedRequests_count, $because;
 
      if ( !isset($EditableRequests) )
         return;
@@ -77,7 +77,7 @@
 
         //Retrieve current request status and active field values from the database
         $query = "SELECT last_status, active FROM request WHERE request_id = $ReturnedRequestId;";
-        $rid = awm_pgexec( $wrms_db, $query, "requestlist", TRUE, 7 );
+        $rid = awm_pgexec( $dbconn, $query, "requestlist", TRUE, 7 );
         if ( !$rid || pg_numrows($rid) > 1 || pg_numrows($rid) == 0 )
         {
            $because .= "<P>Request $ReturnedRequestId: Error updating request! - query 1</P>\n";
@@ -126,13 +126,13 @@
         }
 
         //Begin SQL Transaction for the updating of each request
-        awm_pgexec( $wrms_db, "BEGIN;", "requestlist" );
+        awm_pgexec( $dbconn, "BEGIN;", "requestlist" );
 
         /* take a snapshot of the current request record and store in request_history*/
 
         $query = "INSERT INTO request_history (SELECT * FROM request WHERE request.request_id = $ReturnedRequestId);";
 
-        $rid = awm_pgexec( $wrms_db, $query, "requestlist", TRUE, 7 );
+        $rid = awm_pgexec( $dbconn, $query, "requestlist", TRUE, 7 );
         if ( ! $rid ) {
            $because .= "<P>Request $ReturnedRequestId: Error updating request! - query 2</P>\n";
            continue;
@@ -148,7 +148,7 @@
         $query .= " last_activity = 'now' ";
         $query .= "WHERE request.request_id = $ReturnedRequestId; ";
 
-        $rid = awm_pgexec( $wrms_db, $query, "requestlist", TRUE, 7 );
+        $rid = awm_pgexec( $dbconn, $query, "requestlist", TRUE, 7 );
         if ( ! $rid ) {
            $because .= "<P>Request $ReturnedRequestId: Error updating request! - query 3</P>\n";
            continue;
@@ -161,7 +161,7 @@
            $query = "INSERT INTO request_status (request_id, status_by, status_on, status_code, status_by_id)";
            $query .= "VALUES( $ReturnedRequestId, '$session->username', 'now', '$ReturnedRequestStatus', $session->user_no);";
 
-           $rid = awm_pgexec( $wrms_db, $query, "requestlist", TRUE, 7 );
+           $rid = awm_pgexec( $dbconn, $query, "requestlist", TRUE, 7 );
            if ( ! $rid ) {
               $because .= "<P>Request $ReturnedRequestId: Error updating request! - query 4</P>\n";
               continue;
@@ -169,7 +169,7 @@
 
         }
 
-        awm_pgexec( $wrms_db, "COMMIT;", "requestlist" );
+        awm_pgexec( $dbconn, "COMMIT;", "requestlist" );
 
         $ChangedRequests_count++;
      }
@@ -258,10 +258,10 @@ function column_header( $ftext, $fname ) {
     unset($qry);
   }
 
-  include("inc/headers.php");
+  include("headers.php");
 
 if ( ! is_member_of('Request') || ((isset($error_msg) || isset($error_qry)) && "$error_msg$error_qry" != "") ) {
-  include( "inc/error.php" );
+  include( "error.php" );
 }
 else {
   if ( !isset( $style ) || ($style != "plain" && $style != "stripped") ) {
@@ -274,7 +274,7 @@ else {
     echo "\" Method=\"POST\">";
     echo "</h3>\n";
 
-    include("inc/system-list.php");
+    include("system-list.php");
     if ( is_member_of('Admin', 'Support' ) ) {
       $system_list = get_system_list( "", "$system_code", 35);
     }
@@ -290,7 +290,7 @@ else {
     echo "<td class=smb>&nbsp;System:</td><td class=sml><select class=sml name=system_code><option value=\".\">--- All Systems ---</option>$system_list</select></td>\n";
 
   if ( is_member_of('Admin', 'Support') ) {
-    include( "inc/organisation-list.php" );
+    include( "organisation-list.php" );
     $orglist = "<option value=\"\">--- All Organisations ---</option>\n" . get_organisation_list( "$org_code", 30 );
     echo "<td class=smb>&nbsp;Organisation:</td><td class=sml><select class=sml name=\"org_code\">\n$orglist</select></td>\n";
   }
@@ -344,7 +344,7 @@ else {
     $query = "SELECT * FROM lookup_code WHERE source_table='request' ";
     $query .= " AND source_field='status_code' ";
     $query .= " ORDER BY source_table, source_field, lookup_seq, lookup_code ";
-    $rid = pg_Exec( $wrms_db, $query);
+    $rid = pg_Exec( $dbconn, $query);
     if ( $rid && pg_NumRows($rid) > 1 ) {
       $nrows = pg_NumRows($rid);
       for ( $i=0; $i<$nrows; $i++ ) {
@@ -395,7 +395,7 @@ else {
 
   // if ( "$qry$search_for$org_code$system_code" != "" ) {
     // Recommended way of limiting queries to not include sub-tables for 7.1
-    $result = awm_pgexec( $wrms_db, "SET SQL_Inheritance TO OFF;" );
+    $result = awm_pgexec( $dbconn, "SET SQL_Inheritance TO OFF;" );
     $query = "";
     if ( isset($qry) && "$qry" != "" ) {
       $qry = tidy($qry);
@@ -418,7 +418,7 @@ else {
       $query .= "request, usr, lookup_code AS status ";
       $query .= ", lookup_code AS request_type";
 
-      $query .= " WHERE request.request_by=usr.username ";
+      $query .= " WHERE request.requester_id=usr.user_no ";
       $query .= " AND request_type.source_table='request' AND request_type.source_field='request_type' AND request.request_type = request_type.lookup_code";
       if ( "$inactive" == "" )        $query .= " AND active ";
       if ( ! is_member_of('Admin', 'Support' ) ) {
@@ -472,7 +472,7 @@ $query";
     $query .= " ORDER BY $rlsort $rlseq ";
     $query .= " LIMIT $maxresults ";
 
-    $result = awm_pgexec( $wrms_db, $query, "requestlist", false, 7 );
+    $result = awm_pgexec( $dbconn, $query, "requestlist", false, 7 );
 
     if ( "$style" != "stripped" ) {
       if ( $result && pg_NumRows($result) > 0 )
@@ -517,7 +517,7 @@ $query";
     $show_quotes = ( $format == "ultimate" || "$format" == "activity" || "$format" == "quotes" );
     $show_work = ( ($format == "ultimate" || "$format" == "activity" ) &&  is_member_of('Admin', 'Support' ) );
     if ( $show_details ) {
-      include("inc/html-format.php");
+      include("html-format.php");
     }
     else
       header_row();
@@ -706,6 +706,6 @@ $query";
 
 } /* The end of the else ... clause waaay up there! */
 
-include("inc/footers.php");
+include("footers.php");
 
 ?>

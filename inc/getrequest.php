@@ -31,15 +31,16 @@
     $query .= " AND work_system.system_code=request.system_code";
 
     /* now actually query the database... */
-    $rid = awm_pgexec( $wrms_db, $query, "getrequest", false, 7);
+    $rid = awm_pgexec( $dbconn, $query, "getrequest", false, 7);
     if ( ! $rid ) {
       $error_loc = "request-form.php";
       $error_qry = "$query";
-      include("inc/error.php");
+      include("error.php");
     }
     $rows = pg_NumRows($rid);
     if ( ! $rows ) {
       echo "<p>No records for request: $request_id</p>";
+      echo "<p>$query</p>";
       exit; /* Make sure that code below does not get executed when we redirect. */
     }
     $request = pg_Fetch_Object( $rid, 0 );
@@ -51,7 +52,7 @@
   }
 
   /* get the user's roles relative to the current request */
-  include( "$base_dir/inc/get-request-roles.php");
+  include( "get-request-roles.php");
 
   if ( isset( $request->active ) && strtolower("$request->active") == "t" ) $request->active = "TRUE";
 

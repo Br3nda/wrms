@@ -1,6 +1,6 @@
 <?php
 $debuglevel = 7;
-  $rid = awm_pgexec( $wrms_db, "BEGIN;", "help-action", false );
+  $rid = awm_pgexec( $dbconn, "BEGIN;", "help-action", false );
 
   if ( eregi("update", $submit) ) {
     $query = "";
@@ -24,10 +24,10 @@ $debuglevel = 7;
     $values = substr( $values, 2);
     $query = "INSERT INTO help ($fields) VALUES($values); ";
   }
-  $rid = awm_pgexec( $wrms_db, $query, "help-action", false );
+  $rid = awm_pgexec( $dbconn, $query, "help-action", false );
 
 
-  $rid = awm_pgexec( $wrms_db, "COMMIT", "help-action", true );
+  $rid = awm_pgexec( $dbconn, "COMMIT", "help-action", true );
 
   $because .= "<H2>Help Details Changed</H2>";
   $seq = intval($new['seq']);

@@ -19,7 +19,7 @@
       // Read the record first and set the screen values so the user can edit it and re-add it.
       $query = "SELECT * FROM lookup_code WHERE source_table='$table' AND source_field='$field'";
       $query .= " AND lookup_code='$lookup_code'";
-      $result = awm_pgexec( $wrms_db, $query );
+      $result = awm_pgexec( $dbconn, $query );
       if ( ! $result ) {
         echo "<p>Error in query<BR>$query</p>";
         exit;
@@ -33,7 +33,7 @@
       if ( "$action" == "delete" ) {
         $query = "DELETE FROM lookup_code WHERE source_table='$table' AND source_field='$field'";
         $query .= " AND lookup_code='$lookup_code'";
-        $result = awm_pgexec( $wrms_db, $query );
+        $result = awm_pgexec( $dbconn, $query );
         if ( ! $result ) {
           echo "<p>Error in query<BR>$query</p>";
           exit;
@@ -46,7 +46,7 @@
       $query .= " lookup_seq, lookup_desc, lookup_misc) ";
       $query .= " VALUES('$table', '$field', '$lookup_code', ";
       $query .= " '$lookup_seq', '$lookup_desc', '$lookup_misc') ";
-      $result = awm_pgexec( $wrms_db, $query );
+      $result = awm_pgexec( $dbconn, $query );
       if ( ! $result ) {
         echo "<p>Error in query<BR>$query</p>";
         exit;
@@ -60,7 +60,7 @@
       $query .= " lookup_misc='$lookup_misc' ";
       $query .= " WHERE source_table='$table' AND source_field='$field'";
       $query .= " AND lookup_code='$old_lookup_code'";
-      $result = awm_pgexec( $wrms_db, $query );
+      $result = awm_pgexec( $dbconn, $query );
       if ( ! $result ) {
         echo "<p>Error in query<BR>$query</p>";
         exit;

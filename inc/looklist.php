@@ -6,12 +6,12 @@
     $query .= " AND (lookup_desc~*'$stext' OR lookup_code~*'$stext') ";
   $query .= " ORDER BY source_table, source_field, lookup_seq, lookup_code";
 
-  $result = awm_pgexec( $wrms_db, $query );
+  $result = awm_pgexec( $dbconn, $query );
   if ( ! $result ) {
-    $error_loc = "inc/looklist.php";
+    $error_loc = "looklist.php";
     $error_qry = "$query";
     echo "</table>";  // so netscape actually shows the error!
-    include( "inc/error.php" );
+    include( "error.php" );
     exit;
   }
 

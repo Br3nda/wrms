@@ -1,5 +1,5 @@
 <?php
-  include("inc/always.php");
+  include("always.php");
 
   if ( isset($id) ) $id = intval($id);
   if ( $id == 0 ) {

@@ -1,20 +1,20 @@
 <?php
-  include("inc/always.php");
-  include("inc/options.php");
-  include("inc/tidy.php");
+  include("always.php");
+  include("options.php");
+  include("tidy.php");
 
   $debuglevel = 5;
   if ( "$submit" <> "") {
-    include("inc/timesheet-valid.php");
-    if ( "$because" == "" ) include("inc/timesheet-action.php");
+    include("timesheet-valid.php");
+    if ( "$because" == "" ) include("timesheet-action.php");
   }
 
   $title = "$system_name - Weekly Timesheet: $session->fullname";
   $right_panel = false;
-  include("inc/headers.php");
+  include("headers.php");
 
 // Helper function to tidy the automatic remembrance of our numeric settings
-// $settings are saved to the user record within "inc/footers.php"
+// $settings are saved to the user record within "footers.php"
 function get_numeric_setting( $name, $current, $default ) {
   global $settings;
 
@@ -205,6 +205,6 @@ function build_time_list( $name, $from, $current, $delta ) {
   }
 
   // Close off page and write the $settings out
-  include("inc/footers.php");
+  include("footers.php");
 
 ?>

@@ -10,11 +10,11 @@
   $query = "SELECT * FROM request_allocated WHERE request_allocated.allocated_to_id= $session->user_no ";
   if ( $is_request )
     $query .= "AND request_id = $request->request_id ";
-  $rid = awm_pgexec( $wrms_db, $query);
+  $rid = awm_pgexec( $dbconn, $query);
   if ( ! $rid ) {
     $error_loc = "get-request-roles.php";
     $error_qry = "$query";
-    include("inc/error.php");
+    include("error.php");
   }
   if ( $rid && pg_NumRows($rid) > 0 ) $allocated_to = TRUE;
 
@@ -23,11 +23,11 @@
   $query .= " AND system_usr.role ~ '[CS]' ";
   if ( $is_request )
     $query .= " AND system_usr.system_code = '$request->system_code' ";
-  $rid = awm_pgexec( $wrms_db, $query);
+  $rid = awm_pgexec( $dbconn, $query);
   if ( ! $rid ) {
     $error_loc = "get-request-roles.php";
     $error_qry = "$query";
-    include("inc/error.php");
+    include("error.php");
   }
 
   if ( $rid && pg_NumRows($rid) > 0 )

@@ -5,11 +5,11 @@
     if ( ! is_member_of('Admin','Support') ) $org_code = $session->org_code;
 
     $query = "SELECT * FROM organisation WHERE org_code='$org_code' ";
-    $rid = awm_pgexec( $wrms_db, $query);
+    $rid = awm_pgexec( $dbconn, $query);
     if ( ! $rid ) {
-      $error_loc = "inc/organisation-form.php";
+      $error_loc = "organisation-form.php";
       $error_qry = "$query";
-      include("inc/error.php");
+      include("error.php");
       exit;
     }
     $org = pg_Fetch_Object( $rid, 0 );
@@ -19,12 +19,12 @@
     // Pre-build the list of systems
     if ( "$error_qry" == "" ) {
       $query = "SELECT * FROM work_system";
-      $sys_res = awm_pgexec( $wrms_db, $query );
+      $sys_res = awm_pgexec( $dbconn, $query );
     }
   }
 
   $query = "SELECT system_code FROM org_system WHERE org_code='$org_code' ";
-  $result = awm_pgexec( $wrms_db, $query );
+  $result = awm_pgexec( $dbconn, $query );
   if ( $result && pg_NumRows($result) > 0 ) {
     $OrgSystem = array();
     for( $i=0; $i<pg_NumRows($result); $i++) {

@@ -10,7 +10,7 @@ function dates_equal( $date1, $date2 ) {
   }
   if ( "$submit" == "register" ) {
     $query = "INSERT INTO request_interested (request_id, username, user_no ) VALUES( $request_id, '$session->username', $session->user_no); ";
-    $rid = awm_pgexec( $wrms_db, $query );
+    $rid = awm_pgexec( $dbconn, $query );
     if ( $rid ) {
       $because .= "<h3>You have been added to this request</h3>";
     }
@@ -25,7 +25,7 @@ function dates_equal( $date1, $date2 ) {
     else
       $user_no = $session->user_no;
     $query = "DELETE FROM request_interested WHERE request_id=$request_id AND user_no=$user_no; ";
-    $rid = awm_pgexec( $wrms_db, $query, "req-action" );
+    $rid = awm_pgexec( $dbconn, $query, "req-action" );
     if ( $rid ) {
       if ( $user_no == $session->user_no )
         $because .= "<h3>You have ";
@@ -44,7 +44,7 @@ function dates_equal( $date1, $date2 ) {
     else
       $user_no = $session->user_no;
     $query = "DELETE FROM request_allocated WHERE request_id=$request_id AND allocated_to_id=$user_no; ";
-    $rid = awm_pgexec( $wrms_db, $query, "req-action" );
+    $rid = awm_pgexec( $dbconn, $query, "req-action" );
     if ( $rid ) {
       if ( $user_no == $session->user_no )
         $because .= "<h3>You are ";
@@ -56,7 +56,7 @@ function dates_equal( $date1, $date2 ) {
   }
   else if ( "$submit" == "deltime" ) {
     $query = "SELECT * FROM request_timesheet WHERE timesheet_id=$timesheet_id ; ";
-    $rid = awm_pgexec( $wrms_db, $query, "req-action" );
+    $rid = awm_pgexec( $dbconn, $query, "req-action" );
     if ( $rid ) {
       $work = pg_Fetch_Object( $rid, 0);
       $old_work_on = $work->work_on;
@@ -66,7 +66,7 @@ function dates_equal( $date1, $date2 ) {
       $old_work_details = $work->work_description;
     }
     $query = "DELETE FROM request_timesheet WHERE timesheet_id=$timesheet_id ; ";
-    $rid = awm_pgexec( $wrms_db, $query, "req-action" );
+    $rid = awm_pgexec( $dbconn, $query, "req-action" );
     if ( $rid ) {
       $because .= "<h3>Timesheet deleted.</h3>";
     }
@@ -84,23 +84,23 @@ function dates_equal( $date1, $date2 ) {
   $attachment_added = isset($HTTP_POST_FILES['new_attachment_file']['name']) && ($HTTP_POST_FILES['new_attachment_file']['name'] != "" );
 
   /* scope a transaction to the whole change */
-  awm_pgexec( $wrms_db, "BEGIN;", "req-action" );
+  awm_pgexec( $dbconn, "BEGIN;", "req-action" );
   if ( !isset( $request ) || $request == 0 ) {
     /////////////////////////////////////
     // Create a new request
     /////////////////////////////////////
     $chtype = "create";
     $query = "select nextval('request_request_id_seq');";
-    $rid = awm_pgexec( $wrms_db, $query, "req-action", true );
+    $rid = awm_pgexec( $dbconn, $query, "req-action", true );
     if ( ! $rid ) return;
     $request_id = pg_Result( $rid, 0, 0);
 
     if ( $new_user_no > 0 && $new_user_no <> $session->user_no ) {
       $query = "SELECT * FROM usr WHERE usr.user_no=$new_user_no ";
-      $rid = awm_pgexec( $wrms_db, $query );
+      $rid = awm_pgexec( $dbconn, $query );
       if ( ! $rid || pg_NumRows($rid) == 0 ) {
         $because .= "<P>The failed query was:</P><TT>$query</TT>";
-        awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
+        awm_pgexec( $dbconn, "ROLLBACK;", "req-action" );
         return;
       }
       $requsr = pg_Fetch_Object( $rid, 0);
@@ -124,12 +124,12 @@ function dates_equal( $date1, $date2 ) {
     if ( "$new_requested_by_date" <> "" ) $query .= ", '$new_requested_by_date'";
     if ( "$new_agreed_due_date" <> "" ) $query .= ", '$new_agreed_due_date'";
     $query .= ")";
-    $rid = awm_pgexec( $wrms_db, $query, "req-action", true, 7 );
+    $rid = awm_pgexec( $dbconn, $query, "req-action", true, 7 );
     if ( ! $rid ) return;
 
     $query = "INSERT INTO request_status (request_id, status_by, status_on, status_code, status_by_id) ";
     $query .= "VALUES( $request_id, '$session->username', 'now', '$new_status', $session->user_no)";
-    $rid = awm_pgexec( $wrms_db, $query, "req-action", true, 7 );
+    $rid = awm_pgexec( $dbconn, $query, "req-action", true, 7 );
     if ( ! $rid ) {
         $because .= "<H3>&nbsp;Status Change Failed!</H3>\n";
       return;
@@ -139,7 +139,7 @@ function dates_equal( $date1, $date2 ) {
     if ( $in_notify ) {
       $query = "INSERT INTO request_interested (request_id, username, user_no ) ";
       $query .= " VALUES( $request_id, '$requsr->username', $requsr->user_no); ";
-      $rid = awm_pgexec( $wrms_db, $query, "req-action", true, 7 );
+      $rid = awm_pgexec( $dbconn, $query, "req-action", true, 7 );
       if ( ! $rid ) {
         $because .= "<H3>&nbsp;Submit Interest Failed!</H3>\n";
         return;
@@ -151,7 +151,7 @@ function dates_equal( $date1, $date2 ) {
     $query .= "AND system_usr.role = 'S' " ;
     $query .= "AND system_usr.user_no = usr.user_no " ;
     $query .= "AND usr.status = 'A' " ;
-    $rid = awm_pgexec( $wrms_db, $query, "req-action", true, 7);
+    $rid = awm_pgexec( $dbconn, $query, "req-action", true, 7);
     if ( ! $rid  ) {
       return;
     }
@@ -163,7 +163,7 @@ function dates_equal( $date1, $date2 ) {
 
         if ( !$in_notify || strcmp( $sys_notify->user_no, $requsr->user_no) ) {
           $query = "SELECT set_interested( $sys_notify->user_no, $request_id ); ";
-          $rrid = awm_pgexec( $wrms_db, $query, "req-action", true, 7 );
+          $rrid = awm_pgexec( $dbconn, $query, "req-action", true, 7 );
           if ( ! $rrid ) {
             $because .= "<H3>System Manager Interest Failed!</H3>\n";
             return;
@@ -178,7 +178,7 @@ function dates_equal( $date1, $date2 ) {
     $query .= "AND system_usr.user_no = usr.user_no " ;
     $query .= "AND usr.org_code=$requsr->org_code " ;
     $query .= "AND usr.status = 'A' " ;
-    $rid = awm_pgexec( $wrms_db, $query, "req-action", true, 7);
+    $rid = awm_pgexec( $dbconn, $query, "req-action", true, 7);
     if ( ! $rid  ) {
       return;
     }
@@ -190,10 +190,10 @@ function dates_equal( $date1, $date2 ) {
 
         if ( !$in_notify || strcmp( $sys_notify->user_no, $requsr->user_no) ) {
           $query = "SELECT set_interested( $sys_notify->user_no, $request_id ); ";
-          $rrid = awm_pgexec( $wrms_db, $query, "req-action", true );
+          $rrid = awm_pgexec( $dbconn, $query, "req-action", true );
           if ( ! $rrid ) {
             $because .= "<H3>Organisational Cooordinator Interest Failed!</H3>\n";
-            awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
+            awm_pgexec( $dbconn, "ROLLBACK;", "req-action" );
             return;
           }
         }
@@ -274,12 +274,12 @@ function dates_equal( $date1, $date2 ) {
 
     /* take a snapshot of the current record */
     $query = "INSERT INTO request_history SELECT * FROM request WHERE request.request_id = '$request_id'";
-    $rid = awm_pgexec( $wrms_db, $query, "req-action" );
+    $rid = awm_pgexec( $dbconn, $query, "req-action" );
     if ( ! $rid ) {
       $because .= "<H3>Snapshot Failed!</H3>\n";
-      $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
+      $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $dbconn ) . "</TT>";
       $because .= "<P>The failed query was:</P><TT>$query</TT>";
-      awm_pgexec( $wrms_db, "ROLLBACK;" );
+      awm_pgexec( $dbconn, "ROLLBACK;" );
       return;
     }
 
@@ -287,13 +287,13 @@ function dates_equal( $date1, $date2 ) {
       // Changed Status Stuff
       $query = "INSERT INTO request_status (request_id, status_by, status_on, status_code, status_by_id) ";
       $query .= "VALUES( $request_id, '$session->username', 'now', '$new_status', $session->user_no)";
-      $rid = awm_pgexec( $wrms_db, $query, "req-action" );
+      $rid = awm_pgexec( $dbconn, $query, "req-action" );
       if ( ! $rid ) {
-        $errmsg = pg_ErrorMessage( $wrms_db );
+        $errmsg = pg_ErrorMessage( $dbconn );
         $because .= "<H3>&nbsp;Status Change Failed!</H3>\n";
-        $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
+        $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $dbconn ) . "</TT>";
         $because .= "<P>The failed query was:</P><TT>$query</TT>";
-        awm_pgexec( $wrms_db, "ROLLBACK;" );
+        awm_pgexec( $dbconn, "ROLLBACK;" );
         return;
       }
     }
@@ -330,7 +330,7 @@ function dates_equal( $date1, $date2 ) {
       $query .= " system_code = '$new_system_code',";
     $query .= " last_activity = 'now' ";
     $query .= "WHERE request.request_id = '$request_id'; ";
-    $rid = awm_pgexec( $wrms_db, $query, "req-action", true, 7 );
+    $rid = awm_pgexec( $dbconn, $query, "req-action", true, 7 );
     if ( ! $rid ) {
       return;
     }
@@ -338,7 +338,7 @@ function dates_equal( $date1, $date2 ) {
 
     if ( $quote_added ) {
       $query = "SELECT NEXTVAL('request_quote_quote_id_seq');";
-      $rid = awm_pgexec( $wrms_db, $query, "req-action", true, 7 );
+      $rid = awm_pgexec( $dbconn, $query, "req-action", true, 7 );
       if ( ! $rid ) {
         $because .= "<H3 class=error>New Quote Failed!</H3>\n";
         $because .= "<p class=error>Database error</p>\n";
@@ -351,11 +351,11 @@ function dates_equal( $date1, $date2 ) {
 
       $query = "INSERT INTO request_quote (quote_id, quoted_by, quote_brief, quote_details, quote_type, quote_amount, quote_units, request_id, quote_by_id) ";
       $query .= "VALUES( $new_quote_id, '$session->username', '$new_quote_brief', '$new_quote_details', '$new_quote_type', '$new_quote_amount', '$new_quote_unit', $request_id, $session->user_no )";
-      $rid = awm_pgexec( $wrms_db, $query, "req-action" );
+      $rid = awm_pgexec( $dbconn, $query, "req-action" );
       if ( ! $rid ) {
         $because .= "<H3 class=error>New Quote Failed!</H3>\n";
         $because .= "<p class=error>There was a database error.</p>";
-        awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
+        awm_pgexec( $dbconn, "ROLLBACK;", "req-action" );
         return;
       }
 
@@ -364,9 +364,9 @@ function dates_equal( $date1, $date2 ) {
     if ( $attachment_added ) {
       error_log( "$sysabbr request-action: DBG: Adding attachment: " . $HTTP_POST_FILES['new_attachment_file']['name'], 0);
       $query = "SELECT nextval('request_attac_attachment_id_seq');";
-      $rid = awm_pgexec( $wrms_db, $query, "req-action" );
+      $rid = awm_pgexec( $dbconn, $query, "req-action" );
       if ( ! $rid ) {
-        awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
+        awm_pgexec( $dbconn, "ROLLBACK;", "req-action" );
         return;
       }
       $attachment_id =pg_Result( $rid, 0, 0);
@@ -383,12 +383,12 @@ function dates_equal( $date1, $date2 ) {
       if ( isset($new_attach_inline) )
         $query .= ", " . (intval("$new_attach_inline") > 0 ? "TRUE" : "FALSE");
       $query .= ", $new_attach_x, $new_attach_y )";
-      $rid = awm_pgexec( $wrms_db, $query, "req-action" );
+      $rid = awm_pgexec( $dbconn, $query, "req-action" );
       if ( ! $rid ) {
         $because .= "<H3>New Attachment Failed!</H3>\n";
-        $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
+        $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $dbconn ) . "</TT>";
         $because .= "<P>The failed query was:</P><TT>$query</TT>";
-        awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
+        awm_pgexec( $dbconn, "ROLLBACK;", "req-action" );
         return;
       }
       move_uploaded_file($HTTP_POST_FILES['new_attachment_file']['tmp_name'], "attachments/$attachment_id");
@@ -401,13 +401,13 @@ function dates_equal( $date1, $date2 ) {
       $new_work_details = tidy( $new_work_details );
       $query = "INSERT INTO request_timesheet (request_id,  work_on, work_quantity, work_units, work_rate, work_by_id, work_by, work_description, entry_details ) ";
       $query .= "VALUES( $request_id, '$new_work_on', '$new_work_quantity', '$new_work_units', '$new_work_rate', $session->user_no, '$session->username', '$new_work_details', '$request_id' )";
-      $rid = awm_pgexec( $wrms_db, $query, "req-action" );
+      $rid = awm_pgexec( $dbconn, $query, "req-action" );
       if ( ! $rid ) {
-        $errmsg = pg_ErrorMessage( $wrms_db );
+        $errmsg = pg_ErrorMessage( $dbconn );
         $because .= "<H3>New Timesheet Failed!</H3>\n";
-        $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
+        $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $dbconn ) . "</TT>";
         $because .= "<P>The failed query was:</P><TT>$query</TT>";
-        awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
+        awm_pgexec( $dbconn, "ROLLBACK;", "req-action" );
         return;
       }
     }
@@ -415,16 +415,16 @@ function dates_equal( $date1, $date2 ) {
     if ( $interest_added ) {
       /* new user was added as interested */
       $query = "SELECT set_interested( $new_interest, $request_id ); ";
-      $rid = awm_pgexec( $wrms_db, $query, "req-action" );
+      $rid = awm_pgexec( $dbconn, $query, "req-action" );
       if ( $rid ) $because .= "<h3>User $new_interest has been added to this request</h3>";
     }
 
     if ( $allocation_added ) {
       /* new user was added as allocated */
       $query = "SELECT set_interested( $new_allocation, $request_id ); ";
-      $rid = awm_pgexec( $wrms_db, $query, "req-action" );
+      $rid = awm_pgexec( $dbconn, $query, "req-action" );
       $query = "SELECT set_allocated( $new_allocation, $request_id ) AS alloc_to, * FROM usr WHERE usr.user_no=$new_allocation; ";
-      $rid = awm_pgexec( $wrms_db, $query, "req-action" );
+      $rid = awm_pgexec( $dbconn, $query, "req-action" );
       if ( $rid ) {
         $alloc = pg_Fetch_Object( $rid, 0);
         $because .= "<h3>$alloc->fullname (user #$new_allocation) has been allocated to work on this request</h3>";
@@ -438,7 +438,7 @@ function dates_equal( $date1, $date2 ) {
       $insert_note = tidy($insert_note);
       $query = "INSERT INTO request_note (request_id, note_by, note_by_id, note_on, note_detail) ";
       $query .= "VALUES( $request_id, '$session->username', $session->user_no, 'now', '$insert_note')";
-      $rid = awm_pgexec( $wrms_db, $query, "req-action", true );
+      $rid = awm_pgexec( $dbconn, $query, "req-action", true );
       if ( ! $rid ) return;
     }
 
@@ -461,7 +461,7 @@ function dates_equal( $date1, $date2 ) {
 
 
   // Looks like we made it through that transaction then...
-  awm_pgexec( $wrms_db, "COMMIT;", "req-action" );
+  awm_pgexec( $dbconn, "COMMIT;", "req-action" );
 
   ////////////////////////////////////////////////////////
   // Assignment of work request happens to new or old jobs
@@ -469,25 +469,25 @@ function dates_equal( $date1, $date2 ) {
   if ( isset( $new_assigned ) && $new_assigned != "" ) {
     $query = "SELECT set_interested( $new_assigned, $request_id ); ";
     $query .= "SELECT set_allocated( $new_assigned, $request_id )";
-    $rid = awm_pgexec( $wrms_db, $query, "req-action" );
+    $rid = awm_pgexec( $dbconn, $query, "req-action" );
     if ( ! $rid ) {
       $because .= "<H3>Work Assignment Failed!</H3>\n";
-      $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
+      $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $dbconn ) . "</TT>";
       $because .= "<P>The failed query was:</P><TT>$query</TT>";
-      awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
+      awm_pgexec( $dbconn, "ROLLBACK;", "req-action" );
       return;
     }
     $because .= "<H2>Assignment of User # $new_assigned to WR #$request_id</H2>";
   }
 
-  include("$base_dir/inc/getrequest.php");
+  include("getrequest.php");
 
   if ( $send_some_mail && "$send_no_mail" == "" ) {
 
     //////////////////////////////////////////////
     // Work out what to tell and who to tell it to
     //////////////////////////////////////////////
-    $send_to = notify_emails( $wrms_db, $request_id );
+    $send_to = notify_emails( $dbconn, $request_id );
     $because .="<p>Details of the changes, along with future notes and status updates will be e-mailed to the following addresses:<br>";
     $because .= htmlentities($send_to) . "</p>";
 
@@ -513,7 +513,7 @@ function dates_equal( $date1, $date2 ) {
     $msg .= ucfirst($chtype) . "d on:   " . date( "D d M H:i:s Y" ) . "\n\n";
 
     if ( $status_changed ) {
-      $rid = awm_pgexec( $wrms_db, "SELECT get_status_desc('$new_status')", "req-action" );
+      $rid = awm_pgexec( $dbconn, "SELECT get_status_desc('$new_status')", "req-action" );
       $msg .= "New Status:   $new_status - " . pg_Result( $rid, 0, 0) . " (previous status was $previous->last_status - $previous->status_desc)\n";
     }
 

@@ -1,5 +1,5 @@
 <?php
-  include("$base_dir/inc/html-format.php");
+  include("html-format.php");
 function nice_time( $in_time ) {
   /* does nothing yet... */
   return substr("$in_time", 2);
@@ -53,11 +53,11 @@ function nice_time( $in_time ) {
     $query .= " $order_by ";
     $query .= " LIMIT 100 ";
 
-    $result = awm_pgexec( $wrms_db, $query );
+    $result = awm_pgexec( $dbconn, $query );
     if ( ! $result ) {
       $error_loc = "timelist-form.php";
       $error_qry = "$query";
-      include("inc/error.php");
+      include("error.php");
     }
     else {
       echo "<FORM METHOD=POST ACTION=\"$REQUEST_URI\">\n";
@@ -135,7 +135,7 @@ function nice_time( $in_time ) {
       echo         '<select class=sml name="filter[request.requester_id]">' . "\n";
       echo           "<option class=sml value=''>All</option>\n";
       $select_query = "SELECT user_no, fullname FROM usr ORDER BY fullname";
-      $select_result = awm_pgexec( $wrms_db, $select_query );
+      $select_result = awm_pgexec( $dbconn, $select_query );
       for ( $i=0; $i < pg_NumRows($select_result); $i++ ) {
         $select_option = pg_Fetch_Object( $select_result, $i );
         echo "<option class=sml value='$select_option->user_no'";
@@ -151,7 +151,7 @@ function nice_time( $in_time ) {
       echo         '<select class=sml name="filter[organisation.org_code]">' . "\n";
       echo           "<option class=sml value=''>All</option>\n";
       $select_query = "SELECT org_code, abbreviation FROM organisation ORDER BY abbreviation";
-      $select_result = awm_pgexec( $wrms_db, $select_query );
+      $select_result = awm_pgexec( $dbconn, $select_query );
       for ( $i=0; $i < pg_NumRows($select_result); $i++ ) {
         $select_option = pg_Fetch_Object( $select_result, $i );
         echo "<option class=sml value='$select_option->org_code'";
@@ -176,7 +176,7 @@ function nice_time( $in_time ) {
       $select_query .= " WHERE lookup_code.source_table = 'request' ";
       $select_query .= " AND lookup_code.source_field = 'status_code' ";
       $select_query .= " ORDER BY lookup_code.lookup_desc";
-      $select_result = awm_pgexec( $wrms_db, $select_query );
+      $select_result = awm_pgexec( $dbconn, $select_query );
       for ( $i=0; $i < pg_NumRows($select_result); $i++ ) {
         $select_option = pg_Fetch_Object( $select_result, $i );
         echo "<option class=sml value=\"'$select_option->lookup_code'\"";

@@ -5,7 +5,7 @@
 
   $user_no = "";
   $query = "SELECT user_no FROM usr WHERE username=LOWER('$l') and password=LOWER('$p')";
-  $result = pg_Exec( $wrms_db, $query );
+  $result = pg_Exec( $dbconn, $query );
   if(pg_NumRows($result) > 0) {
     $user_no = pg_Result($result, 0, "user_no");
   }
@@ -26,7 +26,7 @@
     $query .= "AND request.last_status~*'[AILNRQA]' ";
     $query .= "ORDER BY request.severity_code DESC LIMIT 20; ";
 
-    $result = pg_Exec( $wrms_db, $query );
+    $result = pg_Exec( $dbconn, $query );
     if ( !$result ) {
       error_log( "wrms wap/inc/getRequests.php query error: $query", 0);
     }

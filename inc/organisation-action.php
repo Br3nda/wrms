@@ -5,7 +5,7 @@
   if ( "$active" == "" ) $active = "FALSE";
   if ( "$M" == "add" ) {
     $query .= "select nextval('organisation_org_code_seq');";
-    $rid = awm_pgexec( $wrms_db, $query );
+    $rid = awm_pgexec( $dbconn, $query );
     if ( !$rid ) {
       echo "<P>Error with query</P><P>$query</P>";
       return;
@@ -26,25 +26,25 @@
     $query .= " abbreviation='$t_abbreviation' ";
     $query .= " WHERE org_code='$org_code' ";
   }
-  $rid = awm_pgexec( $wrms_db, $query );
+  $rid = awm_pgexec( $dbconn, $query );
   if ( !$rid ) return;
 
   if ( isset($newSystem) ) {
     $query = "DELETE FROM org_system WHERE org_code='$org_code'";
-    $rid = awm_pgexec( $wrms_db, $query );
+    $rid = awm_pgexec( $dbconn, $query );
     if ( !$rid ) return;
     while ( list( $k, $v ) = each( $newSystem ) ) {
       $query = "INSERT INTO org_system (org_code, system_code) VALUES( '$org_code', '$k' )";
-      $rid = awm_pgexec( $wrms_db, $query );
+      $rid = awm_pgexec( $dbconn, $query );
       if ( !$rid ) {
         echo "<P>Error with query</P><P>$query</P>";
-        $rid = awm_pgexec( $wrms_db, "ROLLBACK" );
+        $rid = awm_pgexec( $dbconn, "ROLLBACK" );
         return;
       }
     }
   }
 
-  $rid = awm_pgexec( $wrms_db, "COMMIT" );
+  $rid = awm_pgexec( $dbconn, "COMMIT" );
 
   $because .= "<H2>Organisation Details Changed</H2>";
 ?>

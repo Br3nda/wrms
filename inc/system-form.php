@@ -2,11 +2,11 @@
   if ( isset($system_code) && $system_code <> "" ) {
 
     $query = "SELECT * FROM work_system WHERE system_code='$system_code' ";
-    $rid = awm_pgexec( $wrms_db, $query);
+    $rid = awm_pgexec( $dbconn, $query);
     if ( ! $rid ) {
-      $error_loc = "inc/system-form.php";
+      $error_loc = "system-form.php";
       $error_qry = "$query";
-      include("inc/error.php");
+      include("error.php");
       exit;
     }
     $sys = pg_Fetch_Object( $rid, 0 );
@@ -16,22 +16,22 @@
     // Pre-build the list of organisations
     if ( "$error_qry" == "" ) {
       $query = "SELECT * FROM organisation";
-      $org_res = awm_pgexec( $wrms_db, $query );
+      $org_res = awm_pgexec( $dbconn, $query );
       if ( ! $org_res ) {
-        $error_loc = "inc/system-form.php";
+        $error_loc = "system-form.php";
         $error_qry = "$query";
-        include( "inc/error.php" );
+        include( "error.php" );
         exit;
       }
     }
   }
 
   $query = "SELECT org_code FROM org_system WHERE system_code='$system_code' ";
-  $result = awm_pgexec( $wrms_db, $query );
+  $result = awm_pgexec( $dbconn, $query );
   if ( ! $result ) {
-    $error_loc = "inc/system-form.php";
+    $error_loc = "system-form.php";
     $error_qry = "$query";
-    include( "inc/error.php" );
+    include( "error.php" );
     exit;
   }
   else if ( pg_NumRows($result) > 0 ) {

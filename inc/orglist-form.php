@@ -1,10 +1,10 @@
 <?php
-  include("$base_dir/inc/code-list.php");
+  include("code-list.php");
   $system_codes = get_code_list( "request", "system_code" );
   $courses = get_code_list( "request", "course_code" );
   $training = get_code_list( "request", "training_code" );
 
-  include("$base_dir/inc/system-list.php");
+  include("system-list.php");
   $system_codes = get_system_list("ECRS", "$request->system_code");
 ?>
 <FORM METHOD=POST ACTION="<?php echo "$SCRIPT_NAME?form=$form"; ?>">
@@ -36,11 +36,11 @@
     }
     $query .= " ORDER BY LOWER(organisation.org_name) ";
     $query .= " LIMIT 100 ";
-    $result = awm_pgexec( $wrms_db, $query, "orglist-form", false, 7 );
+    $result = awm_pgexec( $dbconn, $query, "orglist-form", false, 7 );
     if ( ! $result ) {
       $error_loc = "orglist-form.php";
       $error_qry = "$query";
-      include("inc/error.php");
+      include("error.php");
     }
     else {
       echo "<p><small>" . pg_NumRows($result) . " organisations found</small></p>";

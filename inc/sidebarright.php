@@ -1,8 +1,8 @@
 <table border=0 cellspacing=0 cellpadding=2>
 <tr><td><?php
-  include("inc/block-newnodes.php");
+  include("block-newnodes.php");
   echo "<br>\n";
-  include("inc/block-wusearch.php");
+  include("block-wusearch.php");
   echo "<br>\n";
   if ( $logged_on ) {
     echo "<br>\n";

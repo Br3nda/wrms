@@ -1,9 +1,9 @@
 <?php
-  include("inc/always.php");
-  include("inc/options.php");
+  include("always.php");
+  include("options.php");
 
   $title = "$system_name User Search";
-  include("inc/headers.php");
+  include("headers.php");
 
   if ( ! is_member_of('Admin','Support','Manage') ) {
     echo "<p class=error>Unauthorised</p>\n";
@@ -15,12 +15,12 @@
     echo "<td class=smb><b>Name:</b></td><td><input class=sml type=text size=\"8\" name=search_for value=\"$search_for\"></td>\n";
 
     if ( is_member_of('Admin','Support') ) {
-      include( "inc/organisation-list.php" );
+      include( "organisation-list.php" );
       $orglist = "<option value=\"\">--- All Organisations ---</option>\n" . get_organisation_list( "$org_code", 20 );
       echo "<td class=smb>Org:</td><td><select class=sml name=\"org_code\">\n$orglist</select></td>\n";
     }
     if ( is_member_of('Admin','Support','Manage') ) {
-      include( "inc/system-list.php" );
+      include( "system-list.php" );
       $syslist = "<option value=\"\">--- All Systems ---</option>\n" . get_system_list( "VOECS", "$system_code", 20 );
       echo "<td class=smb><b>Type:</b></td><td><select class=sml name=\"system_code\">\n$syslist</select></td>\n";
       echo "<td class=smb>&nbsp;<b><label id=status>Inactive:</label></b></td><td><input id=status class=sml type=\"checkbox\" name=status value=I" . ("$status" == "I" ? " checked" : "") . "></td>\n";
@@ -61,7 +61,7 @@
 
       $query .= " ORDER BY LOWER(fullname);";
 
-      $result = awm_pgexec( $wrms_db, $query, 'usrsearch' );
+      $result = awm_pgexec( $dbconn, $query, 'usrsearch' );
       if ( $result ) {
       // Build table of usrs found
         echo "<p>&nbsp;" . pg_NumRows($result) . " users found</p>";
@@ -107,5 +107,5 @@
 
 } /* The end of the else ... clause waaay up there! */
 
-  include("inc/footers.php");
+  include("footers.php");
 ?>

@@ -1,6 +1,6 @@
 <?php
 function get_user_list( $role="", $org="", $current ) {
-  global $wrms_db;
+  global $dbconn;
   global $session;
   $user_list = "";
 
@@ -17,7 +17,7 @@ function get_user_list( $role="", $org="", $current ) {
   if ( "$org" <> "" )         $query .= " AND usr.org_code='$org' ";
   $query .= " ORDER BY usr.fullname; ";
 
-  $rid = awm_pgexec( $wrms_db, $query, "userlist", false, 7);
+  $rid = awm_pgexec( $dbconn, $query, "userlist", false, 7);
   if ( ! $rid ) {
     echo "<p>$query";
   }

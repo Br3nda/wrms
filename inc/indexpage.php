@@ -1,10 +1,10 @@
 <?php
 if ( $logged_on ) {
   if ( is_member_of('Admin','Support') ) {
-    include("inc/indexsupport.php");
+    include("indexsupport.php");
   }
   else {
-    include("inc/indexclients.php");
+    include("indexclients.php");
   }
 }
 else { ?>

@@ -11,7 +11,7 @@
     $query = "SELECT request_id, brief, detailed, severity_code, request_by, urgency, wap_status ";
     $query .= "FROM request WHERE request.request_id=$id; ";
 
-    $result = pg_Exec( $wrms_db, $query );
+    $result = pg_Exec( $dbconn, $query );
     if ( $result && pg_NumRows($result) > 0 ) {
       $thisrequest = pg_Fetch_Object( $result, $i );
 
@@ -22,10 +22,10 @@
           // Looks like we need to update things then...
           $query = "SELECT request_id, brief, detailed, severity_code, request_by, urgency, wap_status ";
           $query .= "FROM request WHERE request.request_id=$id; ";
-          $result = pg_Exec( $wrms_db, $query );
+          $result = pg_Exec( $dbconn, $query );
 
           $query = "UPDATE request SET wap_status=" . $active[$id] . " WHERE request_id=$id; ";
-          $result = pg_Exec( $wrms_db, $query );
+          $result = pg_Exec( $dbconn, $query );
         }
       }
 

@@ -16,11 +16,11 @@
       $query .= " AND session.user_no = '$user_no' ";
     $query .= " ORDER BY session.session_start DESC";
     $query .= " LIMIT 30 ";
-    $result = awm_pgexec( $wrms_db, $query );
+    $result = awm_pgexec( $dbconn, $query );
     if ( ! $result ) {
       $error_loc = "sessionlist-form.php";
       $error_qry = "$query";
-      include("inc/error.php");
+      include("error.php");
     }
     else {
       echo "<p>" . pg_NumRows($result) . " sessions found</p>";

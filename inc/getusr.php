@@ -3,7 +3,7 @@
     $query = "SELECT * ";
     $query .= " FROM usr ";
     $query .= " WHERE user_no='$user_no' ";
-    $usr_res = awm_pgexec( $wrms_db, $query, "getusr" );
+    $usr_res = awm_pgexec( $dbconn, $query, "getusr" );
     if ( $usr_res && pg_NumRows($usr_res ) > 0 ) {
       $usr = pg_Fetch_Object( $usr_res, 0 );
 
@@ -12,7 +12,7 @@
       $query .= " FROM group_member, ugroup";
       $query .= " WHERE group_member.user_no=$user_no ";
       $query .= " AND group_member.group_no=ugroup.group_no";
-      $result = awm_pgexec( $wrms_db, $query, "getusr" );
+      $result = awm_pgexec( $dbconn, $query, "getusr" );
       if ( $result ) {
         // Build array of group requestships
         for ( $i=0; $i < pg_NumRows($result); $i++ ) {
@@ -25,7 +25,7 @@
       $query = "SELECT system_code, role FROM system_usr";
       $query .= " WHERE user_no=$user_no ";
       $query .= " ORDER BY role, system_code ";
-      $result = awm_pgexec( $wrms_db, $query, "getusr" );
+      $result = awm_pgexec( $dbconn, $query, "getusr" );
       if ( $result ) {
         // Build array of user system data
         for ( $i=0; $i < pg_NumRows($result); $i++ ) {

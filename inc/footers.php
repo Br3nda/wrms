@@ -6,13 +6,12 @@
 
       if ( $right_panel ) {
         echo "<td width=\"10%\" bgcolor=\"$colors[bg1]\" valign=top>\n";
-        include("inc/sidebarright.php");
+        include("sidebarright.php");
         echo "\n</td>\n";
       }
 
       echo "</tr></table>\n";
     }
-//  phpinfo();
 ?>
 <table width="100%" border="0" cellspacing="0" cellpadding="0" height="16" background="images/WRMSbottomTile.gif">
   <tr>

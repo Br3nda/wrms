@@ -1,7 +1,7 @@
 <?php
-  include( "$base_dir/inc/code-list.php");
-  include( "$base_dir/inc/user-list.php" );
-  include( "$base_dir/inc/html-format.php");
+  include( "code-list.php");
+  include( "user-list.php" );
+  include( "html-format.php");
 
   $status_list   = get_code_list( "request", "status_code", "$request->last_status" );
   $use_sla = ( $is_request && $request->current_sla == 't' && $request->sla_response_time > 0 ) || (!$is_request && $session->current_sla == 't') ;
@@ -31,7 +31,7 @@
       $quote_units = get_code_list( "request_quote", "quote_units", "hours" );
     }
 
-    include("$base_dir/inc/system-list.php");
+    include("system-list.php");
     if ( $session->status == 'S' )  // Support Staff
       $system_codes = get_system_list("ASCE", "$request->system_code");
     else
@@ -253,7 +253,7 @@
   if ( $is_request ) {
     $query = "SELECT * FROM request_attachment WHERE request_attachment.request_id = $request->request_id ";
     $query .= "ORDER BY request_attachment.attachment_id;";
-    $updateq = awm_pgexec( $wrms_db, $query, 'request_form');
+    $updateq = awm_pgexec( $dbconn, $query, 'request_form');
     $rows = pg_NumRows($updateq);
   }
   else
@@ -316,7 +316,7 @@
       $query .= "WHERE request_quote.request_id = $request->request_id ";
       $query .= "AND request_quote.quote_by_id = usr.user_no ";
       $query .= " ORDER BY request_quote.quote_id";
-      $quoteq = awm_pgexec( $wrms_db, $query);
+      $quoteq = awm_pgexec( $dbconn, $query);
       $rows = pg_NumRows($quoteq);
     }
     else
@@ -383,7 +383,7 @@
   $query .= "AND usr.user_no=request_allocated.allocated_to_id ";
   $query .= "AND organisation.org_code = usr.org_code ";
   $query .= "ORDER BY request_allocated.allocated_on ";
-  $allocq = awm_pgexec( $wrms_db, $query);
+  $allocq = awm_pgexec( $dbconn, $query);
   $rows = pg_NumRows($allocq);
   if ( $is_request && ( $rows > 0 || (! $plain && is_member_of('Admin', 'Support', 'Manage') ) ) ) {
     echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=3>&nbsp;</TD></TR>\n";
@@ -417,7 +417,7 @@
     $query .= "WHERE request_timesheet.request_id = $request->request_id ";
     $query .= "AND request_timesheet.work_by_id = usr.user_no ";
     $query .= "ORDER BY request_timesheet.work_on ";
-    $workq = awm_pgexec( $wrms_db, $query);
+    $workq = awm_pgexec( $dbconn, $query);
     $rows = pg_NumRows($workq);
   }
   else
@@ -493,7 +493,7 @@
     $query .= "WHERE request_id = '$request->request_id' ";
     $query .= "AND request_interested.user_no = usr.user_no ";
     $query .= "AND organisation.org_code = usr.org_code ";
-    $peopleq = awm_pgexec( $wrms_db, $query);
+    $peopleq = awm_pgexec( $dbconn, $query);
     $rows = pg_NumRows($peopleq);
     echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=3>&nbsp;</TD></TR>\n";
     printf( "<TR>$hdcell<TD CLASS=h3 COLSPAN=%d align=right>Interested Users</TD></TR>\n", ( $plain ? 3 : 2) );
@@ -512,7 +512,7 @@
     }
   
     if ( !$plain ) {
-      $notify_to = notify_emails( $wrms_db, $request_id );
+      $notify_to = notify_emails( $dbconn, $request_id );
       if ( strstr( $notify_to, $session->email ) ) {
         $tell = "Stop informing me on this request";
         $action = "deregister";
@@ -538,7 +538,7 @@
   /***** Notes */
   $noteq = "SELECT * FROM request_note WHERE request_note.request_id = '$request->request_id' ";
   $noteq .= "ORDER BY note_on ";
-  $note_res = awm_pgexec( $wrms_db, $noteq );
+  $note_res = awm_pgexec( $dbconn, $noteq );
   $rows = pg_NumRows($note_res);
   if ( $rows > 0 ) {
     echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=4>&nbsp;</TD></TR><TR>$hdcell";
@@ -569,7 +569,7 @@
   $statq .= " AND status.source_table='request' AND status.source_field='status_code' ";
   $statq .= " AND usr.user_no=request_status.status_by_id ";
   $statq .= " ORDER BY status_on ";
-  $stat_res = awm_pgexec( $wrms_db, $statq);
+  $stat_res = awm_pgexec( $dbconn, $statq);
   $rows = pg_NumRows($stat_res);
   if ( $rows > 0 ) {
     echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=4>&nbsp;</TD></TR><TR>$hdcell";

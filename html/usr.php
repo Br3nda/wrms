@@ -1,8 +1,8 @@
 <?php
-  include("inc/always.php");
-  include("inc/options.php");
-  include("inc/organisation-list.php");
-  include("inc/tidy.php");
+  include("always.php");
+  include("options.php");
+  include("organisation-list.php");
+  include("tidy.php");
 
   if ( ! isset($user_no) ) $user_no = 0;
   $user_no = intval($user_no);
@@ -11,27 +11,27 @@
   }
 
   if ( isset($submit) && "$submit" != "" ) {
-    include("inc/getusr.php");
-    include("inc/validateusr.php");
+    include("getusr.php");
+    include("validateusr.php");
     if ( $because == "" ) {
       if ( "$submit" == "Delete This User" ) {
         if ( $user_no != $session->user_no ) {
-          include("inc/deleteusr.php");
+          include("deleteusr.php");
         }
       }
       else
-        include("inc/writeusr.php");
+        include("writeusr.php");
     }
   }
 
-  include("inc/getusr.php");
+  include("getusr.php");
 
   if ( ! is_member_of('Admin','Support') && $session->org_code <> $usr->org_code && $user_no <> 0 ) {
     $because = "<p class=error>You may only view users from your organisation.</p>";
   }
 
   $title = "$system_name User Manager";
-  include("inc/headers.php");
+  include("headers.php");
 
   // Pre-build the list of systems
   if ( !isset($error_qry) || "$error_qry" == "" ) {
@@ -41,13 +41,13 @@
       $query .= " AND org_system.org_code='$session->org_code' ";
     }
     $query .= " ORDER BY work_system.system_code ";
-    $sys_res = awm_pgexec( $wrms_db, $query, "usr", false, 7 );
+    $sys_res = awm_pgexec( $dbconn, $query, "usr", false, 7 );
   }
 
   // Pre-build the list of user groups
   if ( $sys_res ) {
     $query = "SELECT * FROM ugroup";
-    $grp_res = awm_pgexec( $wrms_db, $query, "usr" );
+    $grp_res = awm_pgexec( $dbconn, $query, "usr" );
   }
 
   $hdcell = "";
@@ -285,5 +285,5 @@ echo "</td>\n</tr>\n";
 
   echo "</table>\n$submitline\n</form>\n";
 
-include("inc/footers.php");
+include("footers.php");
 ?>

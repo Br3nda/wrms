@@ -1,26 +1,26 @@
 <?php
-  include("inc/always.php");
-  include("$base_dir/inc/options.php");
-  include("$base_dir/inc/notify-emails.php");
+  include("always.php");
+  include("options.php");
+  include("notify-emails.php");
 
   if ( $logged_on ) {
-    include("$base_dir/inc/getrequest.php");
+    include("getrequest.php");
     if ( isset($submit) && "$submit" != "" ) {
-      include("$base_dir/inc/request-valid.php");
+      include("request-valid.php");
       if ( "$because" == "" )
-        include("$base_dir/inc/request-action.php");
+        include("request-action.php");
     }
 
     $title = "$system_name - Maintain Request";
     $left_panel = ("$style" != "plain");
-    include("$base_dir/inc/headers.php");
+    include("headers.php");
 
-    include("$base_dir/inc/request-form.php");
+    include("request-form.php");
   }
   else {
-    include("$base_dir/inc/headers.php");
+    include("headers.php");
     echo "<h3>Please log on for access to work requests</h3>\n";
   }
 
-include("$base_dir/inc/footers.php");
+include("footers.php");
 ?>

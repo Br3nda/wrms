@@ -1,5 +1,5 @@
 <?php 
-	if(!isset($wrms_db)) {
-		$wrms_db = pg_Connect("dbname=wrms user=general"); 
+	if(!isset($dbconn)) {
+		$dbconn = pg_Connect("dbname=wrms user=general"); 
 	}
 ?>

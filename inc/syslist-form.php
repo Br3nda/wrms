@@ -1,5 +1,5 @@
 <?php
-  include("$base_dir/inc/code-list.php");
+  include("code-list.php");
 
 ?>
 <FORM METHOD=POST ACTION="<?php echo "$SCRIPT_NAME?form=$form"; ?>">
@@ -33,11 +33,11 @@
     }
     $query .= " ORDER BY work_system.system_code ";
     $query .= " LIMIT 100 ";
-    $result = awm_pgexec( $wrms_db, $query, "syslist", false, 7 );
+    $result = awm_pgexec( $dbconn, $query, "syslist", false, 7 );
     if ( ! $result ) {
       $error_loc = "syslist-form.php";
       $error_qry = "$query";
-      include("inc/error.php");
+      include("error.php");
     }
     else {
       echo "<small>" . pg_NumRows($result) . " systems found";

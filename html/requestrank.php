@@ -1,18 +1,18 @@
 <?php
-	include("inc/always.php");
-	include("inc/options.php");
-	include("inc/code-list.php");
-	include( "$base_dir/inc/user-list.php" );
+	include("always.php");
+	include("options.php");
+	include("code-list.php");
+	include( "user-list.php" );
 
 	$title = "$system_name Request Ranking List";
 
     // Recommended way of limiting queries to not include sub-tables for 7.1
-    $result = awm_pgexec( $wrms_db, "SET SQL_Inheritance TO OFF;" );
+    $result = awm_pgexec( $dbconn, "SET SQL_Inheritance TO OFF;" );
 
-	include("inc/headers.php");
+	include("headers.php");
 
 	// Initialise variables.
-	include("inc/system-list.php");
+	include("system-list.php");
 
 	if ( is_member_of('Admin', 'Support' ) ) {
 		$system_list = get_system_list( "", "$system_code");
@@ -21,7 +21,7 @@
 		$system_list = get_system_list( "CES", "$system_code");
 		}
 
-	include( "inc/organisation-list.php" );
+	include( "organisation-list.php" );
 	$org_list = get_organisation_list( "$org_code");
 ?>
 
@@ -52,7 +52,7 @@
 <?php
 	// Build list of statuses with checkboxes. 6 per table row.
 	$query = "SELECT lookup_code, lookup_desc FROM lookup_code lc WHERE lc.source_table = 'request' AND lc.source_field = 'status_code'";
-	$result = awm_pgexec( $wrms_db, $query, "requestrank", false, 7 );
+	$result = awm_pgexec( $dbconn, $query, "requestrank", false, 7 );
 
  	for ( $i=0; $i < pg_NumRows($result); $i++ ) {
 		if (gettype($i/6) == "integer") echo "</tr><tr>";
@@ -99,7 +99,7 @@
 
 	error_log( "wrms requestrank: DBG: 1-> $query", 0);
 
-	$result = awm_pgexec( $wrms_db, $query, "requestrank", false, 7 );
+	$result = awm_pgexec( $dbconn, $query, "requestrank", false, 7 );
 
  	// Build table of requests found
 	echo "<table>";
@@ -181,5 +181,5 @@ $query";
 
 
 
-	include("inc/footers.php");
+	include("footers.php");
 ?>

@@ -1,21 +1,21 @@
 <?php
-  include("inc/always.php");
-  include("inc/options.php");
-  include("inc/tidy.php");
+  include("always.php");
+  include("options.php");
+  include("tidy.php");
   if ( isset($f) ) $form = $f;
   $form = eregi_replace( "[^a-z0-9_]", "", $form);
 
   if ( isset($submit) && "$submit" <> "") {
-    include("inc/$form-valid.php");
-    if ( "$because" == "" ) include("inc/$form-action.php");
+    include("$form-valid.php");
+    if ( "$because" == "" ) include("$form-action.php");
   }
 
   $title = "$system_name - " . ucfirst($form);
   $right_panel = false;
-  include("inc/headers.php");
+  include("headers.php");
 
-  include("inc/$form-form.php");
+  include("$form-form.php");
 
-  include("inc/footers.php");
+  include("footers.php");
 
 ?>

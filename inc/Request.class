@@ -854,9 +854,9 @@ class Request {
 
    foreach ( $send_to as $email => $name )
    {
-    //$mail->AddAddress($email, $name);
+    $mail->AddAddress($email, $name);
    }
-   $mail->AddAddress('nigel@catalyst.net.nz', 'Nigel McNie');
+   //$mail->AddAddress('nigel@catalyst.net.nz', 'Nigel McNie');
 
    if ( !$mail->Send() )
    {

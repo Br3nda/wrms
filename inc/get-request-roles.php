@@ -4,7 +4,7 @@
   $cltmgr = FALSE;
   $sysmgr = FALSE;
 
-  if ( isset($request) && $request->requested_by_id = $session->user_no ) $author = TRUE;
+  if ( isset($request) && $request->requester_id == $session->user_no ) $author = TRUE;
 
   /* Has the person been allocated this request? */
   $query = "SELECT * FROM request_allocated WHERE request_allocated.allocated_to_id= $session->user_no";

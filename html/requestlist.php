@@ -4,6 +4,168 @@
   include("inc/code-list.php");
   include( "$base_dir/inc/user-list.php" );
 
+//Uses a URL variable format = edit in order to indicate that the report should be in the Brief (editable) format
+
+//------------------------------------------------------
+// function RequestEditPermissions()
+// This function is used to determine the editing permissions for the status and active
+// fields of a request based on the particular request in question and the user that is logged in
+// This function returns an array of two boolean values
+// the first boolean value in the array is a flag for the edit permission
+// of the status field of a request
+// the second boolean value in the array is a flag for the edit permission
+// of the active field of a request
+//------------------------------------------------------
+  function RequestEditPermissions($request_id)
+  {
+     global $session, $roles, $wrms_db, $base_dir;
+     $plain = FALSE;
+
+     include("inc/getrequest.php");
+
+     return array($statusable, $editable);
+  }
+
+//-----------------------------------------------------------
+// function Process_Brief_editable_Requests()
+// This function is used to process the returned changes (if any)
+// from the Brief (editable) report. All editable request lines in the
+// list are returned with their editable fields values whether or
+// not they have been changed. All changed editable field values are written
+// back into the database
+//------------------------------------------------------------
+  function Process_Brief_editable_Requests()
+  {
+     global $wrms_db, $EditableRequests, $session, $ChangedRequests_count, $because;
+
+     if ( !isset($EditableRequests) )
+        return;
+
+     $count = count($EditableRequests);
+
+     for ( $i = 0 ; $i < $count ; $i++ ) //Loop through and process each requested in the returned array $EditableRequests
+     {
+        //$ReturnedRequestId - contains the request id of the current request to update
+        //$ReturnedRequestStatus - if set stores the status value of the current request to be updated to, if unset then indicates that the current request status is not allowed to be edited by the logged in user or its value hasn't been changed
+        //$ReturnedRequestActivePermit - if TRUE then indicates that the current request active field is allowed to be edited by the logged in user, if FALSE it indicates that the current request active field is not allowed to be edited by the logged in user or that the active field value hasn't been changed
+        //$ReturnedRequestActive - if 1 then means the current request active field should be updated to 't', if 0 then means the current request active field should be updated to 'f'
+        //Note that the value for $ReturnedRequestActive is not valid unless $ReturnedRequestActivePermit is TRUE.
+        //Note that for status and active values returned in the $EditableRequests array that are no change from the original values
+        //the $ReturnedRequestStatus is made unset and the $ReturnedRequestActivePermit is made FALSE in order to prevent duplicate records written into the
+        //request_history and request_status tables
+
+        $ReturnedRequestId = $EditableRequests[$i][0];
+
+        //Retrieve current request status and active field values from the database
+        $result = awm_pgexec( $wrms_db, "SET SQL_Inheritance TO OFF;" );
+        $query = "SELECT last_status, active FROM request WHERE request_id = $ReturnedRequestId;";
+        $rid = awm_pgexec( $wrms_db, $query, "requestlist", TRUE, 7 );
+        if ( !$rid || pg_num_rows($rid) > 1 || pg_num_rows($rid) == 0 )
+        {
+           $because .= "<P>Request $ReturnedRequestId: Error updating request! - query 1</P>\n";
+           continue;
+        }
+
+        $CurrentRequest = pg_fetch_object($rid, 0);
+
+        if ( isset($EditableRequests[$i][1]) )
+        {
+           //Check that returned status value is different to the status value stored in the request record
+
+           //Unset $ReturnedRequestStatus if there has been no change made to the status
+           if ( $CurrentRequest->last_status == $EditableRequests[$i][1] )
+              unset($ReturnedRequestStatus);
+           else
+              $ReturnedRequestStatus = $EditableRequests[$i][1];
+        }
+        else if ( isset($ReturnedRequestStatus) )
+           unset($ReturnedRequestStatus);
+
+        if ( isset($EditableRequests[$i][2]) && $EditableRequests[$i][2] == "active_edit" )
+        {
+           //Permission on active checkbox
+
+           if ( isset($EditableRequests[$i][3]) )
+              $ReturnedRequestActive = $EditableRequests[$i][3];
+           else
+              $ReturnedRequestActive = 0;
+
+           //Set $ReturnedRequestActviePermit to TRUE if a change has been made otherwise set to false
+           if ( ($CurrentRequest->active == 't' && $ReturnedRequestActive == 0) || ( $CurrentRequest->active == 'f' && $ReturnedRequestActive == 1 ) )
+              $ReturnedRequestActivePermit = TRUE;
+           else
+              $ReturnedRequestActivePermit = FALSE;
+        }
+        else
+        {
+           //No permission on active checkbox
+           $ReturnedRequestActivePermit = FALSE;
+        }
+
+        if ( !isset($ReturnedRequestStatus) && !$ReturnedRequestActivePermit )
+        {
+           continue;
+        }
+
+        //Begin SQL Transaction for the updating of each request
+        awm_pgexec( $wrms_db, "BEGIN;", "requestlist" );
+
+        /* take a snapshot of the current request record and store in request_history*/
+
+        $query = "INSERT INTO request_history (SELECT * FROM request WHERE request.request_id = $ReturnedRequestId);";
+
+        //echo "$query<BR>";
+
+        $rid = awm_pgexec( $wrms_db, $query, "requestlist", TRUE, 7 );
+        if ( ! $rid ) {
+           $because .= "<P>Request $ReturnedRequestId: Error updating request! - query 2</P>\n";
+           continue;
+        }
+
+        //update request record in request - status field and/or active field
+
+        $query = "UPDATE request SET ";
+        if ( isset($ReturnedRequestStatus ) )
+           $query .= " last_status = '$ReturnedRequestStatus', ";
+        if ( $ReturnedRequestActivePermit )
+           $query .= " active = '$ReturnedRequestActive', ";
+        $query .= " last_activity = 'now' ";
+        $query .= "WHERE request.request_id = $ReturnedRequestId; ";
+
+        $rid = awm_pgexec( $wrms_db, $query, "requestlist", TRUE, 7 );
+        if ( ! $rid ) {
+           $because .= "<P>Request $ReturnedRequestId: Error updating request! - query 3</P>\n";
+           continue;
+        }
+
+
+        //update the request_status table with the new status for that request if permitted
+        if ( isset($ReturnedRequestStatus) )
+        {
+           $query = "INSERT INTO request_status (request_id, status_by, status_on, status_code, status_by_id)";
+           $query .= "VALUES( $ReturnedRequestId, '$session->username', 'now', '$ReturnedRequestStatus', $session->user_no);";
+
+           $rid = awm_pgexec( $wrms_db, $query, "requestlist", TRUE, 7 );
+           if ( ! $rid ) {
+              $because .= "<P>Request $ReturnedRequestId: Error updating request! - query 4</P>\n";
+              continue;
+           }
+
+        }
+
+        awm_pgexec( $wrms_db, "COMMIT;", "requestlist" );
+
+        $ChangedRequests_count++;
+     }
+  }
+
+  if ( "$format" == "edit" && isset($submitBriefEditable) ) // If changes have been returned from Brief (editable) then function is called update the database with the changes
+  {
+     $ChangedRequests_count = 0;
+     $because ="";
+     Process_Brief_editable_Requests();
+  }
+
   if ( isset($system_code) && $system_code == "." ) unset( $system_code );
 
   $title = "$system_name Request List";
@@ -23,6 +185,7 @@
 
   // Build up the column header cell, with %s gaps for the sort, sequence and sequence image
   $header_cell = "<th class=cols><a class=cols href=\"$PHP_SELF?rlsort=%s&rlseq=%s";
+  if ( isset($qs) ) $header_cell .= "&qs=$qs";
   if ( isset($org_code) ) $header_cell .= "&org_code=$org_code";
   if ( isset($system_code) ) $header_cell .= "&system_code=$system_code";
   if ( isset($search_for) ) $header_cell .= "&search_for=$search_for";
@@ -43,8 +206,9 @@
   if ( "$style" != "" ) $header_cell .= "&style=$style";
   if ( "$format" != "" ) $header_cell .= "&format=$format";
   $header_cell .= "\">%s";      // %s for the Cell heading
-  $header_cell .= "%s</th>";    // %s For the image
+  $header_cell .= "%s</a></th>";    // %s For the image
 
+//Builds up and outputs the HTML for a linked column header on the request list
 function column_header( $ftext, $fname ) {
   global $rlsort, $rlseq, $header_cell;
   if ( "$rlsort" == "$fname" ) {
@@ -62,12 +226,12 @@ function column_header( $ftext, $fname ) {
 
   include("inc/headers.php");
 
-if ( ! $roles['wrms']['Request'] || "$error_msg$error_qry" != "" ) {
+if ( ! $roles['wrms']['Request'] || "$error_msg$error_qry" != "" ) {   //note four
   include( "inc/error.php" );
 }
 else {
   if ( !isset( $style ) || ($style != "plain" && $style != "stripped") ) {
-    echo "<form Action=\"$base_url/requestlist.php";
+    echo "<form Action=\"$PHP_SELF";
     if ( "$org_code$qs" != "" ) {
       echo "?";
       if ( "$org_code" != "" ) echo "org_code=$org_code" . ( "$qs" == "" ? "" : "&");
@@ -205,7 +369,11 @@ else {
       $query .= "SELECT request.request_id, brief, fullname, email, request_on, status.lookup_desc AS status_desc, last_activity, detailed ";
       $query .= ", request_type.lookup_desc AS request_type_desc, lower(fullname) AS lfull, lower(brief) AS lbrief ";
       $query .= ", to_char( request.last_activity, 'FMdd Mon yyyy') AS last_change ";
-      $query .= ", to_char( request.request_on, 'FMdd Mon yyyy') AS date_requested ";
+      $query .= ", to_char( request.request_on, 'FMdd Mon yyyy') AS date_requested";
+      if("$format" == "edit") //provides extra fields that are needed to create a Brief (editable) report
+         $query .= ", active, last_status ";
+      else
+         $query .= " ";
       $query .= "FROM ";
       if ( intval("$interested_in") > 0 ) $query .= "request_interested, ";
       if ( intval("$allocated_to") > 0 ) $query .= "request_allocated, ";
@@ -269,12 +437,14 @@ $query";
         echo "\n<small>" . pg_NumRows($result) . " requests found</small>"; // <p>$query</p>";
       else {
         echo "\n<p><small>No requests found</small></p>";
-        if ( $roles['wrms']['Admin'] )
-          echo "<p>You are an admin, so I can show you this:<br>\n<small><small>$query</small></small></p>";
+        //if ( $roles['wrms']['Admin'] )
+          //echo "<p>You are an admin, so I can show you this:<br>\n<small><small>$query</small></small></p>";
       }
     }
 
 function header_row() {
+    global $format;
+
     echo "<tr>\n";
     column_header("WR&nbsp;#", "request_id");
     column_header("Request By", "lfull" );
@@ -283,8 +453,38 @@ function header_row() {
     column_header("Status", "status_desc" );
     column_header("Type", "request_type_desc" );
     column_header("Last Chng", "request.last_activity");
+    if ( "$format" == "edit" )  //adds in the Active field header for the Brief (editable) report
+        column_header("Active", "active");
     echo "</tr>";
 }
+    if ( "$style" != "stripped" || ("$style" == "stripped" && "$format" == "edit")) {
+      $this_page = "$PHP_SELF?style=%s&format=%s";
+      if ( isset($qry) ) $uqry = urlencode($qry);
+      if ( "$qry" != "" ) $this_page .= "&qry=$uqry";
+      if ( "$search_for" != "" ) $this_page .= "&search_for=" . urlencode($search_for);
+      if ( "$org_code" != "" ) $this_page .= "&org_code=$org_code";
+      if ( "$system_code" != "" ) $this_page .= "&system_code=$system_code";
+      if ( isset($inactive) ) $this_page .= "&inactive=$inactive";
+      if ( isset($requested_by) ) $this_page .= "&requested_by=$requested_by";
+      if ( isset($interested_in) ) $this_page .= "&interested_in=$interested_in";
+      if ( isset($allocated_to) ) $this_page .= "&allocated_to=$allocated_to";
+      if ( isset($from_date) ) $this_page .= "&from_date=$from_date";
+      if ( isset($to_date) ) $this_page .= "&to_date=$to_date";
+      if ( isset($type_code) ) $this_page .= "&type_code=$type_code";
+      if ( isset($incstat) && is_array( $incstat ) ) {
+        reset($incstat);
+        while( list($k,$v) = each( $incstat ) ) {
+          $this_page .= "&incstat[$k]=$v";
+        }
+      }
+    }
+
+    if ( "$format" == "edit" && "$because" != "")
+       echo $because;
+
+    if ( "$format" == "edit" ) //encloses any Brief (editable) reports in a form tag to enable submit form functionality
+       printf ("<form action=\"$this_page\" method=\"post\">\n", "stripped", "edit");
+
     echo "<table border=\"0\" align=left width=100%>\n";
 
     $show_notes = ($format == "ultimate" || $format == "detailed" );
@@ -305,20 +505,55 @@ function header_row() {
       for ( $i=0; $i < pg_NumRows($result); $i++ ) {
         $thisrequest = pg_Fetch_Object( $result, $i );
 
+        if ( "$format" == "edit" ) //tests to see if request needs to be checked for editing permissions for the logged in user
+        {
+           //$status_edit flags whether or not the logged in user has permissions to edit the status for the current request to be listed
+           //$active_edit flags whether or not the logged in user has permissions to edit the active field for the current request to be listed
+
+           list($status_edit, $active_edit) = RequestEditPermissions($thisrequest->request_id); //Calls function to find out and return the editing permissions for the current request
+
+           if ( $i == 0 )  //if statement to initialise counter to be used as the
+                $EditableRequests_count = 0; // position no in the EditableRequests array that is returned when
+            //a Brief (editable) report is submitted back
+            //with one or more editable requests in its list
+
+        }
+
         if ( $show_details ) header_row();
         printf( "<tr class=row%1d>\n", $i % 2);
-
-        echo "<td class=sml align=center><a href=\"request.php?request_id=$thisrequest->request_id\">$thisrequest->request_id</a></td>\n";
+        if ( "$format" == "edit" )  //used to control whether or not a request id hidden variable is also added which builds up the 'id' column in the EditableRequests array for the Brief (editable) report
+           echo "<td class=sml align=center>" . ( ($status_edit || $active_edit ) ? "<input type=hidden name=\"EditableRequests[$EditableRequests_count][0]\" value=\"$thisrequest->request_id\">" : "" ) . "<a href=\"request.php?request_id=$thisrequest->request_id\">$thisrequest->request_id</a></td>\n";
+        else
+           echo "<td class=sml align=center><a href=\"request.php?request_id=$thisrequest->request_id\">$thisrequest->request_id</a></td>\n";
         echo "<td class=sml nowrap><a href=\"mailto:$thisrequest->email\">$thisrequest->fullname</a></td>\n";
         echo "<td class=sml align=center>$thisrequest->date_requested</td>\n";
         echo "<td class=sml><a href=\"request.php?request_id=$thisrequest->request_id\">$thisrequest->brief";
 //        if ( "$thisrequest->brief" == "" ) echo "-- no description --";
         if ( "$thisrequest->brief" == "" ) echo substr( $thisrequest->detailed, 0, 50) . "...";
         echo "</a></td>\n";
-        echo "<td class=sml>&nbsp;$thisrequest->status_desc&nbsp;</td>\n";
+        if ( "$format" == "edit" )//tests to see if report should provide editable status fields where appropriate
+        {
+           if ( $status_edit ) //tests to see if the logged in user is able to edit the status field for this request record
+           {  //provide a drop down to allow editing of the status code for that request
+              $status_list   = get_code_list( "request", "status_code", "$thisrequest->last_status" );
+              echo "<td class=sml><select class=sml name=\"EditableRequests[$EditableRequests_count][1]\">$status_list</select></td>\n";
+           }
+           else //otherwise output plain text of the current request status
+              echo "<td class=sml>&nbsp;$thisrequest->status_desc&nbsp;</td>\n";
+        }
+        else
+           echo "<td class=sml>&nbsp;$thisrequest->status_desc&nbsp;</td>\n";
         echo "<td class=sml>&nbsp;" . str_replace( " ", "&nbsp;", $thisrequest->request_type_desc) . "&nbsp;</td>\n";
         echo "<td class=sml align=center>" . str_replace( " ", "&nbsp;", $thisrequest->last_change) . "</td>\n";
-
+        if ( "$format" == "edit" ) //adds in the Active field for the Brief (editable) reports
+        {
+           if ( $active_edit ) //tests to see if the logged in user is able to edit the active field for this request
+              echo "<td class=sml align=center><input type=\"hidden\" name=\"EditableRequests[$EditableRequests_count][2]\" value=\"active_edit\"><input type=checkbox name=\"EditableRequests[$EditableRequests_count][3]\" value=\"1\" " . ( $thisrequest->active == 't' ? "CHECKED" : "" ) . "></td>\n";
+           else if ( $status_edit )
+              echo "<td class=sml align=center><input type=\"hidden\" name=\"EditableRequests[$EditableRequests_count][2]\" value=\"active_read\">" . ( $thisrequest->active == 't' ? "Active" : "Inactive" ) . "</td>\n";
+           else
+              echo "<td class=sml align=center>" . ( $thisrequest->active == 't' ? "Active" : "Inactive" ) . "</td>\n";
+        }
         echo "</tr>\n";
 
         if ( $show_details ) {
@@ -394,33 +629,32 @@ function header_row() {
 
         if ( $show_details )
           echo "<tr class=row3>\n<td colspan=7>&nbsp;</td></tr>\n";
+
+        if ( $status_edit || $active_edit ) //Maintains the $EditableRequests_count counter
+         $EditableRequests_count++;
       }
     }
     if ( $show_work )
       printf( "<tr class=row%1d>\n<th align=left colspan=6>Grand Total</th>\n<th align=right>%9.2f &nbsp; </th>\n</tr>\n", $i % 2, $grand_total);
+
+    if ( "$format" == "edit" )
+       if ( $EditableRequests_count == 0 )
+          echo "<tr><td align=\"center\" colspan=\"8\"><br>You do not have permission to edit any of the requests in this report.<br>&nbsp;</td></tr>";
+       else
+       {
+          echo "<tr><td align=\"left\" colspan=\"4\"><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type=reset class=\"submit\" value=\"Reset Attributes\"><br>&nbsp;</td><td align=\"right\" colspan=\"4\"><br><input type=submit value=\"Apply Changes\" name=\"submitBriefEditable\" class=\"submit\">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>&nbsp;<td></tr>";
+          if ( isset($ChangedRequests_count) )
+             echo "<tr><td align=\"center\" colspan=\"8\"><br>" . ($ChangedRequests_count == 0 ? "No" : "$ChangedRequests_count" ) . " request". ( ($ChangedRequests_count > 1 || $ChangedRequests_count == 0) ? "s" : "" ) . " updated.<br>&nbsp;</td></tr>";
+       }
+
     echo "</table>\n";
 
-    if ( "$style" != "stripped" ) {
-      $this_page = "$PHP_SELF?style=%s&format=%s";
-      if ( isset($qry) ) $uqry = urlencode($qry);
-      if ( "$qry" != "" ) $this_page .= "&qry=$uqry";
-      if ( "$search_for" != "" ) $this_page .= "&search_for=" . urlencode($search_for);
-      if ( "$org_code" != "" ) $this_page .= "&org_code=$org_code";
-      if ( "$system_code" != "" ) $this_page .= "&system_code=$system_code";
-      if ( isset($inactive) ) $this_page .= "&inactive=$inactive";
-      if ( isset($requested_by) ) $this_page .= "&requested_by=$requested_by";
-      if ( isset($interested_in) ) $this_page .= "&interested_in=$interested_in";
-      if ( isset($allocated_to) ) $this_page .= "&allocated_to=$allocated_to";
-      if ( isset($from_date) ) $this_page .= "&from_date=$from_date";
-      if ( isset($to_date) ) $this_page .= "&to_date=$to_date";
-      if ( isset($type_code) ) $this_page .= "&type_code=$type_code";
-      if ( isset($incstat) && is_array( $incstat ) ) {
-        reset($incstat);
-        while( list($k,$v) = each( $incstat ) ) {
-          $this_page .= "&incstat[$k]=$v";
-        }
-      }
+    if ( "$format" == "edit" )  //end form enclosing Brief (editable) report
+       echo "</form>\n";
 
+    //$this_page string build code block was here
+    if ( "$style" != "stripped" )
+    {
       echo "<br clear=all><hr>\n<table cellpadding=5 cellspacing=5 align=right><tr><td>Rerun as report: </td>\n<td>\n";
       printf( "<a href=\"$this_page\" target=_new>Brief</a>\n", "stripped", "brief");
       if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] )
@@ -430,6 +664,8 @@ function header_row() {
         printf( " &nbsp;|&nbsp; <a href=\"$this_page\" target=_new>Quotes</a>\n", "stripped", "quotes");
       if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] )
         printf( " &nbsp;|&nbsp; <a href=\"$this_page\" target=_new>Ultimate</a>\n", "stripped", "ultimate");
+      if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] )
+        printf( " &nbsp;|&nbsp; <a href=\"$this_page\" target=_new>Brief (editable)</a>\n", "stripped", "edit");  //uses the format = edit setting in this link for the Brief (editable) report
       if ( "$qry" != "" ) {
         echo "</td><td>|&nbsp; &nbsp; or <a href=\"$PHP_SELF?qs=complex&qry=$uqry&action=delete\" class=sbutton>Delete</a> it\n";
       }

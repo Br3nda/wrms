@@ -149,7 +149,7 @@ function duration( $t1, $t2 ) {
 // - failed queries are logged and contain string "QF:"
 ///////////////////////////////////////////////////////////////////////////////////////////////
 $total_query_time = 0.0 ;
-function awm_pgexec( $myconn, $query, $location="", $abort_on_fail=false, $mydbg=0 ) {
+function awm_pgexec( $myconn, $query, $location="", $abort_on_fail=FALSE, $mydbg=0 ) {
   global $sysabbr, $debuglevel, $total_query_time, $REQUEST_URI;
 
   $a1 = microtime();
@@ -159,7 +159,7 @@ function awm_pgexec( $myconn, $query, $location="", $abort_on_fail=false, $mydbg
   $taken = sprintf( "%2.06lf", duration( $a1, $a2 ));
   $total_query_time += $taken;
   if ( !$result && $abort_on_fail ) {
-    $result = pg_Exec( $dbconnection, "ABORT;" );
+    $result = pg_Exec( $myconn, "ROLLBACK;" );  // $dbconnection doesn't actually exist, changed to $myconn
     error_log( "$sysabbr $locn QF-ABRT: $query", 0);
   }
   else if ( !$result )
@@ -226,7 +226,9 @@ function block_close() {
   echo "</table>\n";
 }
 
+//-----------------------------------------
 // Very useful function for stripping MS-isms and other things out of the code
+//-----------------------------------------
 function tidy( $instr ) {
   $instr = str_replace( chr(145), "'", $instr);
   $instr = str_replace( chr(146), "'", $instr);
@@ -240,6 +242,9 @@ function tidy( $instr ) {
   return $instr ;
 }
 
+//-----------------------------------------
+// Function used to convert the [] notation to proper html links in help write ups
+//-----------------------------------------
 function link_writeups( $instr ) {
   global $logged_on, $current_node;
   if ( isset($current_node) ) $last_node = "&last=$current_node";
@@ -250,6 +255,5 @@ function link_writeups( $instr ) {
 //  $instr = ereg_replace("\[([a-zA-Z0-9]+)\]", "<a href=\"/wu.php?wu=\\1\">\\1</a>", $instr);
   return $instr;
 }
-
 
 ?>

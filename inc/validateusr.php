@@ -6,11 +6,11 @@
   if ( "$M" == "add" && "$UserPassword" == "")
     $because .= "User has no password.<br>";
 
-  if ( ! ($roles['wrms']['Admin'] || $roles[wrms]['Support'] || $roles[wrms]['Manage']
+  if ( ! ($roles['wrms']['Admin'] || $roles['wrms']['Support'] || $roles[wrms]['Manage']
          || ("$M" == "update" && $user_no == $session->user_no) ) )
     $because .= "You are not authorised<BR>";
 
-  if ( ! ($roles['wrms']['Admin'] || $roles[wrms]['Support']) ) {
+  if ( ! ($roles['wrms']['Admin'] || $roles['wrms']['Support']) ) {
     if ( isset($usr) && $M <> "add" && $usr->org_code <> $session->org_code )
       $because .= "You may only maintain users for your organisation<BR>";
   }

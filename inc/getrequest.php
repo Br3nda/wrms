@@ -12,7 +12,7 @@
     $query .= ", sla_response.lookup_desc AS sla_response_desc";
     $query .= ", importance.lookup_desc AS importance_desc";
     $query .= ", system_desc, request_sla_code(sla_response_time,sla_response_type) ";
-    $query .= " FROM request, usr, organisation";
+    $query .= " FROM ONLY request, usr, organisation";
     $query .= ", lookup_code AS status";
     $query .= ", lookup_code AS request_type";
     $query .= ", lookup_code AS urgency";
@@ -67,6 +67,6 @@
   $editable = ($sysmgr || $allocated_to || ! isset($request_id) );
   if ( $editable ) $editable = ! $plain;
 
-  error_log( "getrequest: plain=$plain, editable=$editable, sysmgr=$sysmgr, request_id=$request_id", 0);
+  error_log( "getrequest: plain=$plain, editable=$editable, statusable=$statusable, cltmgr=$cltmgr, sysmgr=$sysmgr, author=$author, allocated_to=$allocated_to, request_id=$request_id", 0);
 
 ?>

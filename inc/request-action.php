@@ -76,9 +76,9 @@ function dates_equal( $date1, $date2 ) {
   ////////////////////////////////////////////////////////////
   // Things that apply whether this is new or an existing request
   ////////////////////////////////////////////////////////////
-  $note_added = ($new_note != "");
-  $quote_added = ($new_quote_brief != "") && ($new_quote_amount != "");
-  $work_added = ($new_work_on != "") && ($new_work_quantity != "") && ($new_work_details != "") && ($new_work_rate != "") ;
+  $note_added = ("$new_note" != "");
+  $quote_added = ("$new_quote_brief" != "") && ("$new_quote_amount" != "");
+  $work_added = ("$new_work_on" != "") && ("$new_work_quantity" != "") && ("$new_work_details" != "") && ("$new_work_rate" != "") ;
   $interest_added = isset($new_interest) && ($new_interest != "" );
   $allocation_added = isset($new_allocation) && ($new_allocation != "" );
   $attachment_added = isset($HTTP_POST_FILES['new_attachment_file']['name']) && ($HTTP_POST_FILES['new_attachment_file']['name'] != "" );
@@ -503,6 +503,7 @@ function dates_equal( $date1, $date2 ) {
   include("$base_dir/inc/getrequest.php");
 
   if ( $send_some_mail && "$send_no_mail" == "" ) {
+
     //////////////////////////////////////////////
     // Work out what to tell and who to tell it to
     //////////////////////////////////////////////
@@ -550,8 +551,8 @@ function dates_equal( $date1, $date2 ) {
     if ( $quote_added )
       $msg .= "Quotation:    A new quote has been entered against this request.\n";
 
-    if ( $allocation_added )
-      $msg .= "Work Allocated:    $work->fullname has been allocated to work on this request.\n";
+    if ( $allocation_added && isset($alloc) )
+      $msg .= "Work Allocated:    $alloc->fullname has been allocated to work on this request.\n";
 
 
     if ( $chtype == "change" && $detail_changed ) {
@@ -577,5 +578,6 @@ function dates_equal( $date1, $date2 ) {
      $other .= "Reply-To: $session->fullname <$session->email>\n";
      $other .= "Errors-To: wrmsadmin@catalyst.net.nz";
     mail( $send_to, $msub, $msg,  $other );
+
   }
 ?>

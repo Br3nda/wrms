@@ -132,7 +132,7 @@
             $roles["$role->module_name"]["$role->group_name"] = 1;
           }
         }
-        if ( $roles[wrms][Admin] ) {
+        if ( $roles['wrms']['Admin'] ) {
           $query = "SELECT lookup_code AS system_code, 'M' AS role FROM lookup_code ";
           $query .= " WHERE source_table='user' AND source_field='system_code' ";
         }

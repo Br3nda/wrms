@@ -25,7 +25,7 @@ CREATE TABLE usr (
     mail_style CHAR,
     config_data TEXT,
     note CHAR );
-GRANT SELECT,INSERT,UPDATE ON usr, usr_user_no_seq TO PUBLIC;
+GRANT SELECT,INSERT,UPDATE ON usr, usr_user_no_seq TO general;
 GRANT ALL ON usr, usr_user_no_seq TO andrew;
 CREATE FUNCTION max_usr() RETURNS INT4 AS 'SELECT max(user_no) FROM usr' LANGUAGE 'sql';
 CREATE INDEX xak1_usr ON usr ( org_code, username );
@@ -57,7 +57,6 @@ CREATE TABLE organisation (
   org_name TEXT,
   admin_usr TEXT
 ) ;
-GRANT SELECT ON organisation, organisation_org_code_seq TO PUBLIC;
 GRANT INSERT,UPDATE,SELECT ON organisation, organisation_org_code_seq TO general;
 CREATE FUNCTION max_organisation() RETURNS INT4 AS 'SELECT max(org_code) FROM organisation' LANGUAGE 'sql';
 
@@ -136,7 +135,7 @@ CREATE TABLE request_status (
   status_code TEXT
 ) ;
 CREATE UNIQUE INDEX xpk_request_status ON request_status ( request_id, status_on );
-GRANT INSERT,SELECT ON request_status TO PUBLIC;
+GRANT INSERT,SELECT ON request_status TO general;
 
 CREATE TABLE request_quote (
   quote_id SERIAL PRIMARY KEY,
@@ -162,7 +161,7 @@ CREATE TABLE request_allocated (
 	allocated_to_id INT4,
   allocated_to TEXT
 );
-GRANT INSERT,UPDATE,SELECT ON request_allocated TO general;
+GRANT INSERT,UPDATE,SELECT,DELETE ON request_allocated TO general;
 
 CREATE TABLE request_timesheet (
   timesheet_id SERIAL PRIMARY KEY,
@@ -196,7 +195,7 @@ CREATE TABLE request_note (
 	PRIMARY KEY ( request_id, note_on )
 ) ;
 -- CREATE UNIQUE INDEX xpk_request_note ON request_note ( request_id, note_on );
-GRANT INSERT,SELECT ON request_note TO PUBLIC;
+GRANT INSERT,SELECT ON request_note TO general;
 
 CREATE FUNCTION get_last_note_on(INT4)
     RETURNS TIMESTAMP
@@ -210,7 +209,7 @@ CREATE TABLE request_interested (
 	PRIMARY KEY ( request_id, username )
 ) ;
 -- CREATE UNIQUE INDEX xpk_request_interested ON request_interested ( request_id, username );
-GRANT INSERT,SELECT,UPDATE,DELETE ON request_interested TO PUBLIC;
+GRANT INSERT,SELECT,UPDATE,DELETE ON request_interested TO general;
 
 CREATE TABLE request_request (
   request_id INT4,
@@ -220,13 +219,13 @@ CREATE TABLE request_request (
 	PRIMARY KEY ( request_id, link_type, to_request_id )
 ) ;
 CREATE INDEX request_request_sk1 ON request_request ( to_request_id );
-GRANT INSERT,SELECT,UPDATE,DELETE ON request_request TO PUBLIC;
+GRANT INSERT,SELECT,UPDATE,DELETE ON request_request TO general;
 
 
 CREATE TABLE request_history (
   modified_on TIMESTAMP DEFAULT TEXT 'now'
 ) INHERITS (request );
-GRANT INSERT,SELECT ON request_history TO PUBLIC;
+GRANT INSERT,SELECT,UPDATE ON request_history TO general;
 CREATE INDEX xpk_request_history ON request_history ( request_id, modified_on );
 
 ---------------------------------------------------------------
@@ -263,7 +262,6 @@ CREATE TABLE lookup_code (
 );
 CREATE INDEX lookup_code_key ON lookup_code ( source_table, source_field, lookup_seq, lookup_code );
 CREATE UNIQUE INDEX lookup_code_ak1 ON lookup_code ( source_table, source_field, lookup_code );
-GRANT SELECT ON lookup_code TO PUBLIC;
 GRANT SELECT,INSERT,UPDATE ON lookup_code TO general;
 
 
@@ -296,7 +294,7 @@ CREATE TABLE module (
 	 module_description TEXT,
 	 module_seq INT4
 );
-GRANT SELECT ON module TO PUBLIC;
+GRANT SELECT ON module TO general;
 GRANT ALL ON module TO andrew;
 CREATE INDEX xak1module ON module ( module_seq, module_name );
 
@@ -334,7 +332,7 @@ CREATE TABLE system_usr (
 		role CHAR,
 		PRIMARY KEY ( user_no, system_code, role )
 );
-GRANT SELECT,INSERT,UPDATE ON system_usr TO PUBLIC;
+GRANT SELECT,INSERT,UPDATE,DELETE ON system_usr TO general;
 GRANT ALL ON system_usr TO andrew;
 
 CREATE TABLE org_usr (
@@ -343,7 +341,7 @@ CREATE TABLE org_usr (
 		role CHAR,
 		PRIMARY KEY ( user_no, org_code, role )
 );
-GRANT SELECT,INSERT,UPDATE ON org_usr TO PUBLIC;
+GRANT SELECT,INSERT,UPDATE ON org_usr TO general;
 GRANT ALL ON org_usr TO andrew;
 
 CREATE TABLE saved_queries (
@@ -354,7 +352,7 @@ CREATE TABLE saved_queries (
     query_params TEXT,
     PRIMARY KEY (user_no, query_name)
 );
-GRANT SELECT,INSERT,UPDATE,DELETE ON saved_queries TO PUBLIC;
+GRANT SELECT,INSERT,UPDATE,DELETE ON saved_queries TO general;
 GRANT ALL ON saved_queries TO andrew;
 
 
@@ -365,7 +363,7 @@ CREATE TABLE help_hit (
     last TIMESTAMP,
     PRIMARY KEY (user_no, topic)
 );
-GRANT SELECT,INSERT,UPDATE ON help_hit TO PUBLIC;
+GRANT SELECT,INSERT,UPDATE ON help_hit TO general;
 GRANT ALL ON help_hit TO andrew;
 
 CREATE TABLE help (
@@ -375,7 +373,7 @@ CREATE TABLE help (
     content LZTEXT,
     PRIMARY KEY (topic, seq)
 );
-GRANT SELECT,INSERT,UPDATE ON help TO PUBLIC;
+GRANT SELECT,INSERT,UPDATE ON help TO general;
 GRANT ALL ON help TO andrew;
 
 CREATE TABLE infonode (
@@ -387,7 +385,7 @@ CREATE TABLE infonode (
 );
 CREATE INDEX infonode_skey1 ON infonode (created_by, created_on);
 CREATE INDEX infonode_skey2 ON infonode (created_on);
-GRANT SELECT,INSERT,UPDATE ON infonode, infonode_node_id_seq TO PUBLIC;
+GRANT SELECT,INSERT,UPDATE ON infonode, infonode_node_id_seq TO general;
 GRANT ALL ON infonode, infonode_node_id_seq TO andrew;
 
 CREATE TABLE wu (
@@ -402,7 +400,7 @@ CREATE TABLE wu (
 );
 CREATE INDEX wu_skey1 ON wu (wu_by, wu_on);
 CREATE INDEX wu_skey2 ON wu (wu_on);
-GRANT SELECT,INSERT,UPDATE ON wu TO PUBLIC;
+GRANT SELECT,INSERT,UPDATE ON wu TO general;
 GRANT ALL ON wu TO andrew;
 
 CREATE TABLE wu_vote (
@@ -414,7 +412,7 @@ CREATE TABLE wu_vote (
     vote_on TIMESTAMP DEFAULT 'now',
     PRIMARY KEY ( node_id, wu_by, vote_by )
 );
-GRANT SELECT,INSERT,UPDATE ON wu_vote TO PUBLIC;
+GRANT SELECT,INSERT,UPDATE ON wu_vote TO general;
 GRANT ALL ON wu_vote TO andrew;
 
 CREATE TABLE nodetrack (
@@ -424,7 +422,7 @@ CREATE TABLE nodetrack (
     PRIMARY KEY (node_from, node_to)
 );
 CREATE INDEX nodetrack_skey1 ON nodetrack(node_from, node_to);
-GRANT SELECT,INSERT,UPDATE ON nodetrack TO PUBLIC;
+GRANT SELECT,INSERT,UPDATE ON nodetrack TO general;
 GRANT ALL ON nodetrack TO andrew;
 
 

@@ -107,11 +107,9 @@
   <item url="scripts/reload-pages.sh" />
   <item url="scripts/retire-tested.pl" />
   <item url="scripts/seed-awm.sql" />
-  <item url="scripts/set_hours.sql" />
   <item url="scripts/usr-to-awm_usr.sql" />
   <item url="html/inc/help-action.php" />
   <item url="html/inc/help-valid.php" />
-  <item url="html/mockup/wrms.htm" />
   <item url="html/attachment.php" />
   <item url="html/help.php" />
   <item url="html/wu.php" />

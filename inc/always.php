@@ -8,7 +8,7 @@ $client_messages = array();
 error_log( "=============================================== $PHP_SELF" );
 include_once("../config/config.php");
 
-include_once("PgQuery.php");
+require_once("PgQuery.php");
 
 $left_panel = true;
 $right_panel = false;

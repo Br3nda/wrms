@@ -1,5 +1,4 @@
 <?php
-require_once("PgQuery.php");
 function get_organisation_list( $current="", $maxwidth=50 ) {
   global $session;
 
@@ -14,8 +13,6 @@ function get_organisation_list( $current="", $maxwidth=50 ) {
   $sql .= "WHERE organisation.active ORDER BY LOWER(org_name)";
 
   $q = new PgQuery($sql);
-  $rid = awm_pgexec( $dbconn, $sql, "organisation-list");
-
   $org_code_list = $q->BuildOptionList($current,'GetOrgList');
 
   return $org_code_list;

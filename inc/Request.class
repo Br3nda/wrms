@@ -1887,7 +1887,12 @@ EOX
     $sql .=          "WHERE me.user_no = $session->user_no AND su.user_no = usr.user_no AND su.role IN ('S','A') ) )";
     $sql .= " AND usr.status != 'I'; ";
     if ( $this->chtype == 'create' ) {
-      $sql .= "INSERT INTO request_interested ( request_id, user_no, username ) ";
+      $qry = new PgQuery($sql);
+      if ( ! $qry->Exec('WR::NewSubscriptions') ) {
+        $client_messages[] = "$qry->errorstring";
+        return false;
+      }
+      $sql = "INSERT INTO request_interested ( request_id, user_no, username ) ";
       $sql .= "SELECT $this->request_id, u.user_no, username ";
       $sql .= "FROM system_usr s ";
       $sql .= "JOIN usr u ON s.user_no = u.user_no ";

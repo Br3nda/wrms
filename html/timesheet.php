@@ -101,16 +101,15 @@ function build_time_list( $name, $from, $current, $delta ) {
   $query .= "AND work_on < '" . date( 'Y-M-d', $sow + (7 * 86400) ) . "' ";
   $query .= "ORDER BY work_on ASC; ";
   $result = awm_pgexec( $dbconn, $query, 'timesheet' );
-//  echo "<p>Results: " . pg_NumRows($result);
   if ( $result && pg_NumRows($result) ) {
-  //  echo "<p>Results!</p>";
+
     for( $i = 0; $i < pg_NumRows($result); $i++ ) {
       $ts = pg_Fetch_Object( $result, $i );
       $our_dow = ($ts->dow + 6) % 7;
       $start_tod = intval( (($ts->started + $ts->offset) % 86400) / 60 );
       $finish_tod = intval( (($ts->finished + $ts->offset) % 86400) / 60 );
       $duration = $finish_tod - $start_tod;
-      // echo "<p>Day $our_dow, $ts->request_id/$ts->work_description: $start_tod: $duration - $ts->work_units - " . ($ts->work_quantity * 60) . "   =$ts->started=$ts->finished=</p>";
+
       if ( $duration == 0 || "$ts->finished" == "" || ($start_tod + $duration) == 0 ) {
         if ( "$ts->work_units" == "hours" )  $duration = $ts->work_quantity * 60;
       }
@@ -125,7 +124,6 @@ function build_time_list( $name, $from, $current, $delta ) {
         $start_tod = $eod - $duration;
       }
 
-      // echo "<p>$out_dow from $start_tod for $duration</p>";
       for ( $j = 0, $base = intval($start_tod / $period_minutes) * $period_minutes; $j < $duration; $j += $period_minutes ) {
         $tm[$our_dow][sprintf("m%d", $base + $j)] = "$ts->request_id/$ts->work_description" . ("$ts->entry_details" == "$ts->request_id" ? "" : "@|@$sow" );
       }

@@ -12,9 +12,6 @@ one of the recently modified requests from the list below.<br></p>";
   $query .= "FROM request, request_interested, usr, lookup_code AS status, lookup_code AS request_type ";
   $query .= "WHERE request.request_id=request_interested.request_id ";
   if ( $roles['wrms']['Manage'] && ! ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] )  ) {
-//    $query .= "AND EXISTS (SELECT system_usr.system_code FROM system_usr, work_system WHERE system_usr.system_code=work_system.system_code";
-//    $query .= " AND user_no=$session->user_no ";
-//    $query .= " AND role~*'[CES]') ";
     $query .= " AND usr.org_code=$session->org_code ";
   }
   else {
@@ -26,7 +23,6 @@ one of the recently modified requests from the list below.<br></p>";
   $query .= "AND request_type.source_table='request' AND request_type.source_field='request_type' AND request.request_type = request_type.lookup_code ";
   if ( $roles['wrms']['Admin'] || $roles['wrms']['Support']  ) {
     $query .= "AND request.active AND request.last_status~*'[AILNRQAT]' ";
-//    $query .= "ORDER BY request.importance DESC, request.urgency DESC, request.request_id LIMIT 50 ";
     $query .= "ORDER BY last_activity DESC LIMIT 50 ";
   }
   else {

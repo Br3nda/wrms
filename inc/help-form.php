@@ -77,7 +77,6 @@
           echo link_writeups("$help->content\n");
           if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
             echo "<p align=right><a href=\"/help.php?action=edit&h=" . htmlspecialchars($help->topic) . "&seq=$help->seq\">edit this help text</a></p>\n";
-//            echo " &nbsp;| &nbsp;<a href=\"/help.php?action=add&h=" . htmlspecialchars($help->topic) . "\">add new help text</a>\n";
           }
         }
         else

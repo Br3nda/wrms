@@ -1,6 +1,5 @@
 <?php
   include("inc/always.php");
-//  include("inc/options.php");
 
   if ( isset($id) ) $id = intval($id);
   if ( $id == 0 ) {
@@ -40,7 +39,6 @@
   }
 
   header("Content-type: $attachment->lookup_misc");
-//  header("Content-Disposition: inline; filename=$attachment->att_filename" );
   header("Content-Disposition: filename=$attachment->att_filename" );
   $bytes = filesize( "attachments/$id" );
   header("Content-length: $bytes");

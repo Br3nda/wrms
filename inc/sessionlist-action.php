@@ -20,7 +20,5 @@ $because .= "</TABLE>";
   $headers = "";
   if ( strpos("$session->email", "@") ) $headers = "From: $session->email";
   $headers .= "\nContent-Type: text/html; charset=us-ascii";
-
-//  mail( "wrmsadmin@catalyst.net.nz", "Request Training", $msg, $headers  );
 ?>
 

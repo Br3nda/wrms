@@ -25,7 +25,6 @@
       $usr = pg_Fetch_Object($result, 0);
       if ( strtolower("$L") <> "$usr->password" && md5(strtolower("$L")) <> "$usr->password" && "$L" <> md5(strtolower("$usr->password")) ) {
         $error_msg = "<H3>Invalid Logon</H3><P>You have used an invalid ID or password</P>";
-//        $error_msg = "<P>Password: $usr->password<BR>md5hash: " . md5(strtolower($usr->password)) . "<BR>You used: $L<BR>md5hash: " . md5(strtolower($L)) . "</p>";
       }
       else {
         $query = "INSERT INTO session (user_no) VALUES( '$usr->user_no' )";
@@ -37,7 +36,6 @@
         else {
           $query = "SELECT * FROM session WHERE session.user_no='$usr->user_no' ";
           $query .= " ORDER BY session_id DESC";
-//          $query .= " LIMIT 1";
           $result = awm_pgexec( $wrms_db, $query );
           if ( ! $result ) {
             $error_loc = "index.php";

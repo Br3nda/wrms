@@ -45,7 +45,6 @@ see their currently active requests.
 
       echo "<td class=sml align=center><a class=submit href=\"form.php?form=organisation&org_code=$thisorganisation->org_code\">Details</a>";
       echo "&nbsp;&nbsp;<a class=submit href=\"usrsearch.php?org_code=$thisorganisation->org_code\">Users</a>";
-//      echo "&nbsp;<a class=submit href=\"form.php?org_code=$thisorganisation->org_code&form=syslist\">Systems</a>";
       echo "&nbsp;&nbsp;<a class=submit href=\"form.php?org_code=$thisorganisation->org_code&form=timelist&uncharged=1\">Work</a>";
 
       echo "</td></tr>\n";

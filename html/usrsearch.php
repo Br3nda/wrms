@@ -33,14 +33,14 @@
 
       $query = "SELECT *, to_char( last_update, 'dd/mm/yyyy' ) AS last_update, to_char( last_accessed, 'dd/mm/yyyy' ) AS last_accessed ";
       $query .= "FROM usr, organisation";
-//    $query .= ", session";
+
       if ( isset( $system_code ) && $system_code <> "" ) $query .= ", system_usr, lookup_code";
       $query .= " WHERE usr.org_code=organisation.org_code ";
       if ( !isset( $org_code ) || $org_code == "" )
         $query .= "AND organisation.active ";
       if ( !isset( $status ) || $status <> "I" )
         $query .= "AND usr.status != 'I' ";
-//    $query .= " AND usr.user_no=session.user_no ";
+
       if ( "$search_for" != "" ) {
         $query .= " AND (fullname ~* '$search_for' ";
         $query .= " OR username ~* '$search_for' ";
@@ -58,12 +58,11 @@
       }
 
       $query .= " ORDER BY LOWER(fullname);";
-//    $query .= ", session_end DESC ";
-//    $query .= " LIMIT 100 ";
+
       $result = awm_pgexec( $wrms_db, $query, 'usrsearch' );
       if ( $result ) {
       // Build table of usrs found
-        echo "<p>&nbsp;" . pg_NumRows($result) . " users found</p>"; // <p>$query</p>";
+        echo "<p>&nbsp;" . pg_NumRows($result) . " users found</p>";
         echo "<table border=\"0\" cellpadding=2 cellspacing=1 align=center width=100%>\n<tr>\n";
         echo "<th class=cols>User&nbsp;ID</th><th class=cols>Full Name</th>\n";
         if ( "$org_code" == "" )
@@ -96,7 +95,6 @@
         echo "<td class=sml><a class=submit href=\"requestlist.php?user_no=$thisusr->user_no\">Requested</a>\n";
         if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
           echo "<a class=submit href=\"requestlist.php?allocated_to=$thisusr->user_no\">Allocated</a>\n";
-//          echo "<a class=submit href=\"requestlist.php?interested=$thisusr->user_no\">Interested</a>\n";
           echo "<a class=submit href=\"form.php?user_no=$thisusr->user_no&form=timelist&uncharged=1\">Work</a>\n";
         }
         echo "</td></tr>\n";

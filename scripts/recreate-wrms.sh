@@ -3,7 +3,6 @@
 # Recreate the WRMS database from scratch
 #
 DATABASE=wrms
-# pg_dump -a -n -D -d $DATABASE -t session >dump/t-session.sql
 
 echo " Destroying old database..."
 dropdb $DATABASE
@@ -21,7 +20,6 @@ for A in t-*.sql; do
   psql -q -f $A -d $DATABASE 2>&1 | uniq
 done
 cd ..
-# echo "."
 
 echo "Finishing load..."
 psql -qxtf finish-load.sql -d $DATABASE | grep "|"

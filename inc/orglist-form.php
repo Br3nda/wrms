@@ -45,7 +45,7 @@
     else {
       echo "<p><small>" . pg_NumRows($result) . " organisations found</small></p>";
       echo "<table border=\"0\" align=center width=100%><tr>\n";
-//      echo "<th class=cols>Org Code</th>\n";
+
       echo "<th class=cols align=left>Abbrev.</th>\n";
       echo "<th class=cols align=left>Full Name</th>";
       if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] )
@@ -58,7 +58,7 @@
 
         printf("<tr class=row%1d>", $i % 2);
 
-//        echo "<td align=center class=sml>&nbsp;<a href=\"form.php?form=organisation&org_code=$thisorganisation->org_code\">$thisorganisation->org_code</a>&nbsp;</td>\n";
+
         echo "<td class=sml>&nbsp;<a href=\"form.php?form=organisation&org_code=$thisorganisation->org_code\">$thisorganisation->abbreviation</a>&nbsp;</td>\n";
         echo "<td class=sml>&nbsp;<a href=\"form.php?form=organisation&org_code=$thisorganisation->org_code\">$thisorganisation->org_name";
         if ( "$thisorganisation->org_name" == "" ) echo "-- no description --";

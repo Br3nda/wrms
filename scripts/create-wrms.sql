@@ -191,7 +191,6 @@ CREATE TABLE request_note (
   note_detail TEXT,
 	PRIMARY KEY ( request_id, note_on )
 ) ;
--- CREATE UNIQUE INDEX xpk_request_note ON request_note ( request_id, note_on );
 
 CREATE FUNCTION get_last_note_on(INT4)
     RETURNS TIMESTAMP
@@ -204,7 +203,6 @@ CREATE TABLE request_interested (
   username TEXT,
 	PRIMARY KEY ( request_id, username )
 ) ;
--- CREATE UNIQUE INDEX xpk_request_interested ON request_interested ( request_id, username );
 
 CREATE TABLE request_request (
   request_id INT4,
@@ -317,14 +315,6 @@ CREATE TABLE system_usr (
 		PRIMARY KEY ( user_no, system_code, role )
 );
 
--- I think this is bogus and not used, if it ever was.
-CREATE TABLE org_usr (
-    user_no INT4,
-		org_code INT4,
-		role CHAR,
-		PRIMARY KEY ( user_no, org_code, role )
-);
-
 CREATE TABLE saved_queries (
     user_no INT4,
     query_name TEXT,
@@ -333,7 +323,6 @@ CREATE TABLE saved_queries (
     query_params TEXT,
     PRIMARY KEY (user_no, query_name)
 );
-
 
 CREATE TABLE help_hit (
     user_no INT4,

@@ -7,18 +7,12 @@ function nice_time( $in_time ) {
 }
   if ( "$because" != "" )
     echo $because;
-  else if ( ! $plain ) {
-//    ? ><P class=helptext>Use this form to maintain organisations who may have requests associated
-// with them.</P><?php
-  }
-// <P class=helptext>This page lists timesheets.</P>
 
   if ( !isset($tlsort) ) $tlsort = $settings->get('tlsort');
   if ( !isset($tlseq) ) $tlseq = $settings->get('tlseq');
   if ( "$tlsort" == "" ) $tlsort = "requester_name";
   $tlseq = strtoupper($tlseq);
   if ( "$tlseq" == "" ) {
-//    if (  $tlsort == "requester_name" )
       $tlseq = "ASC";
   }
   if ( "$tlseq" != "ASC" ) $tlseq = "DESC";
@@ -42,7 +36,6 @@ function nice_time( $in_time ) {
     }
 
     if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
-      // if ( !isset($user_no) ) $user_no = $session->user_no;
       $user_list = "<option value=\"\">--- All Users ---</option>" . get_user_list( "Support", "", $user_no );
     }
     echo "<td class=smb align=right>&nbsp;&nbsp;Work&nbsp;By:</td><td class=sml><select class=sml name=user_no>$user_list</select></td>\n";
@@ -174,7 +167,7 @@ function nice_time( $in_time ) {
         echo "</tr>";
       }
       if (  "$style" != "stripped" ) {
-        echo "<p><small>&nbsp;" . pg_NumRows($result) . " timesheets found\n"; // <p>$query</p>";
+        echo "<p><small>&nbsp;" . pg_NumRows($result) . " timesheets found\n";
         if ( "$uncharged" != "" ) {
           printf( "<form enctype=\"multipart/form-data\" method=post action=\"%s%s\">\n", $REQUEST_URI, ( ! strpos( $REQUEST_URI, "uncharged" ) ? "&uncharged=1" : ""));
         }
@@ -267,8 +260,6 @@ function nice_time( $in_time ) {
 
       echo "<br clear=all><hr>\n<table cellpadding=5 cellspacing=5 align=right><tr><td>Rerun as report: </td>\n<td>\n";
       printf( "<a href=\"$this_page\" target=_new>Standard</a>\n", "stripped", "brief");
-//      printf( " &nbsp;|&nbsp; <a href=\"$this_page\" target=_new>Activity</a>\n", "stripped", "activity");
-//      printf( " &nbsp;|&nbsp; <a href=\"$this_page\" target=_new>Updateable</a>\n", "stripped", "updateable");
       if ( "$qry" != "" ) {
         echo "</td><td>|&nbsp; &nbsp; or <a href=\"$PHP_SELF?f=form&qs=complex&qry=$qry&action=delete\" class=sbutton>Delete</a> it\n";
       }

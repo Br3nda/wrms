@@ -6,11 +6,6 @@ function nice_time( $in_time ) {
 }
   if ( "$because" != "" )
     echo $because;
-  else if ( ! $plain ) {
-//    ? ><P class=helptext>Use this form to maintain organisations who may have requests associated
-// with them.</P><?php
-  }
-// <P class=helptext>This page lists timesheets.</P>
 ?>
 
 <?php
@@ -42,18 +37,6 @@ function nice_time( $in_time ) {
       $query .= " AND request_timesheet.work_on>'$after' ";
     if ( "$before" != "" )
       $query .= " AND request_timesheet.work_on<'$before' ";
-    if ( "$uncharged" != "" ) {
-//      if ( "$charge" != "" )
-//        $query .= " AND request_timesheet.ok_to_charge=TRUE ";
-//      $query .= " AND request_timesheet.work_charged IS NULL ";
-//      $query .= " ORDER BY org_code, work_on";
-//      $query .= " $order_by ";
-    }
-    else {
- //     $query .= " ORDER BY organisation.org_code, request_timesheet.request_id, request_timesheet.work_on";
- //     $query .= " $order_by ";
- //     $query .= " LIMIT 100 ";
-    }
 
     if( isset ($filter) && is_array($filter) ) {
       while( list( $k, $v ) = each ( $filter ) ) {
@@ -85,33 +68,18 @@ function nice_time( $in_time ) {
         $timesheet = pg_Fetch_Object( $result, $i );
 
         if ( ($i % 2) == 0 ) echo "<tr class=bgcolor0>";
- //       if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
         else echo "<tr class=bgcolor1>";
- //       else echo "<tr bgcolor=$colors[7]>";
 
-//        echo "<td class=sml valign=top>$timesheet->requester_name ($timesheet->abbreviation, #$timesheet->debtor_no)</td>\n";
         echo "<td class=sml valign=top>$timesheet->requester_name</td>\n";
  	echo "<td class=sml valign=top>$timesheet->abbreviation</td>\n";
  	echo "<td class=sml valign=top>$timesheet->debtor_no</td>\n";
         echo "<td class=sml valign=top><a href=\"/request.php?request_id=$timesheet->request_id\">$timesheet->request_id</a></td>\n";
-/*
-        $sub_query = "SELECT status_on, status_code, lookup_code.lookup_desc ";
-        $sub_query .= "  FROM request_status, lookup_code";
-        $sub_query .= "   WHERE request_status.request_id = $timesheet->request_id ";
-        $sub_query .= "   AND lookup_code.source_table = 'request_status'";
-        $sub_query .= "   AND lookup_code.source_field = 'status_code'";
-        $sub_query .= "   AND lookup_code.lookup_code = request_status.status_code";
-        $sub_query .= "   ORDER BY status_on DESC LIMIT 1";
-        $sub_query_result = awm_pgexec( $wrms_db, $sub_query );
-        $sub_query_row = pg_Fetch_Object($sub_query_result, 0) ;
-*/
+
         echo "<td class=sml valign=top>" ;
-//          if ( pg_NumRows($sub_query_result) > 0 ) echo $sub_query_row->lookup_desc ;
         echo "$timesheet->status_desc";
         echo  "</td>\n";
 
         echo "<td class=sml valign=top>" ;
-//          if ( pg_NumRows($sub_query_result) > 0 ) echo substr(nice_date($sub_query_row->status_on),7) ;
         echo "$timesheet->status_on";
         echo  "</td>\n";
 
@@ -125,22 +93,18 @@ function nice_time( $in_time ) {
         if ( "$timesheet->work_charged" == "" ) {
           echo "<input type=text size=6 name=\"chg_amt[$timesheet->timesheet_id]\" value=\"" ;
           if ( "$timesheet->charged_amount" == "" ) echo $timesheet->work_rate*$timesheet->work_quantity;
-          else echo $timesheet->charged_amount ; 
+          else echo $timesheet->charged_amount ;
           echo "\">";
         }
         else echo "$timesheet->charged_amount";
         echo "</td>\n";
-        echo "<td class=sml valign=top>"; 
+        echo "<td class=sml valign=top>";
         if ( "$timesheet->work_charged" == "" ) {
           echo "<input type=checkbox value=1 name=\"chg_ok[$timesheet->timesheet_id]\"";
           if ( "$timesheet->ok_to_charge" == "t" ) echo " checked";
           echo ">";
         }
         echo "</td>\n";
-   //     if ( "$timesheet->work_charged" == "" ) {
-    //      if ( "$uncharged" == "" ) echo "<td class=sml>uncharged</td>";
-     //   }
-      //  else
 
         echo "<td class=sml valign=top>";
         if ( "$timesheet->work_charged" == "" && "$timesheet->ok_to_charge" == "t" ) {

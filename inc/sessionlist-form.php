@@ -1,15 +1,9 @@
-<?php
-//  include("$base_dir/inc/code-list.php");
-//  include("$base_dir/inc/nice-date.php");
-// <P class=helptext>Use this form to select sessions for maintenance or review.</P>
-?>
-
 <FORM METHOD=POST ACTION="<?php echo "$SCRIPT_NAME?form=$form"; ?>">
 <table align=center><tr valign=middle>
 <td><b>Sessions Prior To:</b><font size=2><input TYPE="Text" Size="20" Name="search_for" Value="<?php echo "$search_for"; ?>"></font></td>
 <td><input TYPE="Image" src="images/in-go.gif" alt="go" WIDTH="64" BORDER="0" HEIGHT="27" name="submit"></td>
 </tr></table>
-</form>  
+</form>
 
 <?php
   if ( !($roles['Admin'] || $roles['Support']) ) $session_id = $session->session_id;
@@ -29,7 +23,7 @@
       include("inc/error.php");
     }
     else {
-      echo "<p>" . pg_NumRows($result) . " sessions found</p>"; // <p>$query</p>";
+      echo "<p>" . pg_NumRows($result) . " sessions found</p>";
       echo "<table border=\"0\" align=center><tr>\n";
       echo "<th class=cols>Session #</th><th class=cols>Name</th>";
       echo "<th class=cols align=left>Start</th>";
@@ -54,7 +48,6 @@
 
         echo "</tr>\n";
       }
-//      echo "<tr><td class=mand colspan=5 align=center><a class=r href=\"form.php?form=session&session_id=new\">Add A New Session</a>";
       echo "</table>\n";
     }
   }

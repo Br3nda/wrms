@@ -19,10 +19,6 @@ function get_system_list( $access="", $current="", $maxwidth=50 ) {
   $rid = awm_pgexec( $dbconn, $query);
   if ( ! $rid ) return;
 
-  // Alan changed > 1 to > 0 because - well it wasn't getting the first one
-  // else if ( pg_NumRows($rid) > 1 ) {
-  // AWM - Well, that logic was supposed to be handled elsewhere by forcing requests
-  // AWM - against the only possible system in that case. If there is only one choice, why offer it?
   if ( pg_NumRows($rid) > 0 ) {
     // Build table of systems found
     $rows = pg_NumRows( $rid );

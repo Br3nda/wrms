@@ -142,9 +142,6 @@ function dates_equal( $date1, $date2 ) {
       $rid = awm_pgexec( $wrms_db, $query, "req-action", true, 7 );
       if ( ! $rid ) {
         $because .= "<H3>&nbsp;Submit Interest Failed!</H3>\n";
-//        $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
-//        $because .= "<P>The failed query was:</P><TT>$query</TT>";
-//        awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
         return;
       }
     }
@@ -155,8 +152,6 @@ function dates_equal( $date1, $date2 ) {
     $query .= "AND system_usr.user_no = usr.user_no " ;
     $rid = awm_pgexec( $wrms_db, $query, "req-action", true, 7);
     if ( ! $rid  ) {
-//      $because .= "<P>Query failed:</P><P>$query</P>";
-//      awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
       return;
     }
     else if (!pg_NumRows($rid) )
@@ -170,9 +165,6 @@ function dates_equal( $date1, $date2 ) {
           $rrid = awm_pgexec( $wrms_db, $query, "req-action", true, 7 );
           if ( ! $rrid ) {
             $because .= "<H3>System Manager Interest Failed!</H3>\n";
-//            $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
-//            $because .= "<P>The failed query was:</P><TT>$query</TT>";
-//            awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
             return;
           }
         }
@@ -186,8 +178,6 @@ function dates_equal( $date1, $date2 ) {
     $query .= "AND usr.org_code=$requsr->org_code; " ;
     $rid = awm_pgexec( $wrms_db, $query, "req-action", true, 7);
     if ( ! $rid  ) {
-//      $because .= "<P>Query failed:</P><P>$query</P>";
-//      awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
       return;
     }
     else if (!pg_NumRows($rid) )
@@ -201,8 +191,6 @@ function dates_equal( $date1, $date2 ) {
           $rrid = awm_pgexec( $wrms_db, $query, "req-action", true );
           if ( ! $rrid ) {
             $because .= "<H3>Organisational Cooordinator Interest Failed!</H3>\n";
-//            $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
-//            $because .= "<P>The failed query was:</P><TT>$query</TT>";
             awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
             return;
           }
@@ -221,7 +209,6 @@ function dates_equal( $date1, $date2 ) {
     $requsr = $session;
 
     // Have to be pedantic here - the translation from database -> variable is basic.
-    // error_log( "$sysabbr request-action1: Active: $request->active, New: $new_active", 0);
     if ( $editable && $new_active <> "TRUE" ) $new_active = "FALSE";
     if ( strtolower( substr( $request->active, 0, 1)) == "t" )
       $request->active = "TRUE";
@@ -293,14 +280,7 @@ function dates_equal( $date1, $date2 ) {
         awm_pgexec( $wrms_db, "ROLLBACK;" );
         return;
       }
-/*
-      if ( eregi( "[fhc]", "$new_status") )
-        $new_active = "FALSE";
-      else
-        $new_active = "TRUE";
-*/
     }
-//    error_log( "$sysabbr request-action2: Active: $request->active, New: $new_active (statusable: $statusable, status_changed: $status_changed", 0);
 
     $query = "UPDATE request SET";
    if ( $brief_changed )
@@ -334,10 +314,6 @@ function dates_equal( $date1, $date2 ) {
     $query .= "WHERE request.request_id = '$request_id'; ";
     $rid = awm_pgexec( $wrms_db, $query, "req-action", true, 7 );
     if ( ! $rid ) {
-//      $because .= "<H3>&nbsp;Update Request Failed!</H3>\n";
-//      $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
-//      $because .="<P>The failed query was:</P><TT>$query</TT>";
-//      awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
       return;
     }
     else
@@ -348,11 +324,6 @@ function dates_equal( $date1, $date2 ) {
       $query = "SELECT NEXTVAL('request_quote_quote_id_seq');";
       $rid = awm_pgexec( $wrms_db, $query, "req-action", true, 7 );
       if ( ! $rid ) {
-//        $errmsg = pg_ErrorMessage( $wrms_db );
-//        $because .= "<H3>Failed to get new quote ID!</H3>\n";
-//        $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
-//        $because .= "<P>The failed query was:</P><TT>$query</TT>";
-//        awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
         return;
       }
       $new_quote_id = pg_Result( $rid, 0, 0);
@@ -411,7 +382,6 @@ function dates_equal( $date1, $date2 ) {
     if ( $work_added ) {
       /* non-null timesheet was entered */
       $new_work_details = tidy( $new_work_details );
-//      $query = "DELETE FROM request_timesheet WHERE request_id=$request_id AND work_on='$new_work_on'; ";
       $query = "INSERT INTO request_timesheet (request_id,  work_on, work_quantity, work_units, work_rate, work_by_id, work_by, work_description, entry_details ) ";
       $query .= "VALUES( $request_id, '$new_work_on', '$new_work_quantity', '$new_work_units', '$new_work_rate', $session->user_no, '$session->username', '$new_work_details', '$request_id' )";
       $rid = awm_pgexec( $wrms_db, $query, "req-action" );
@@ -460,7 +430,6 @@ function dates_equal( $date1, $date2 ) {
     if ( $statusable && $status_changed )
       $because .= "<br>Request status has been changed.\n";
 
-//    error_log( "$sysabbr request-action3: Active: $request->active, New: $new_active (statusable: $statusable, status_changed: $status_changed", 0);
     if ( isset($new_active) && $request->active != $new_active ) {
       $because .= "<br>Request has been ";
       if ( $new_active == "TRUE" ) $because .= "re-"; else $because .= "de-";

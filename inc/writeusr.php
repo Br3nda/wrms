@@ -34,7 +34,6 @@
       if ( !is_object($usr->settings)) $usr->settings = new Setting;
       $usr->settings->set('fontsize', "$UserFontsize");
 
-//      error_log( "status=$UserStatus==" . isset($UserStatus), 0);
       $UserStatus  = ( !isset($UserStatus) || "$UserStatus" == "A" ? "A" : "I" );
       if ( ! ($roles['wrms']['Admin'] || $roles['wrms']['Support']) && $M == "add" ) {
         $UserOrganisation = $session->org_code;
@@ -78,9 +77,9 @@
       if ( isset($NewUserRole) && is_array($NewUserRole) ) {
         $query = "DELETE FROM group_member WHERE user_no=$user_no;";
         $result = awm_pgexec( $wrms_db, $query, "writeusr" );
-        //if ( ! $result ) $because .= "<p>$query</p>";
+
         while ( is_array($NewUserRole) && list($k1, $val) = each($NewUserRole)) {
-//          echo "<p>Roles: $k1, $val</p>";
+
           if ( is_array($val) ) {
             /* This should be caught by PHP4 */
             while ( list($k2, $val2) = each($val) ) {
@@ -88,18 +87,15 @@
               $query .= " WHERE module_name='$k1' ";
               $query .= " AND group_name='$k2'; ";
               $result = awm_pgexec( $wrms_db, $query );
-              //if ( ! $result ) $because .= "<p>$query</p>";
             }
           }
           else {
             /* This should work with PHP3 */
             list($k2, $val2) = split("\]\[", $k1) ;
-//            echo "<p>Split: $k2, $val2</p>";
             $query = "INSERT INTO group_member (user_no, group_no) SELECT $user_no AS user_no, group_no FROM ugroup";
             $query .= " WHERE module_name='$k2' ";
             $query .= " AND group_name='$val2'; ";
             $result = awm_pgexec( $wrms_db, $query );
-            //if ( ! $result ) $because .= "<p>$query</p>";
           }
         }
         reset($NewUserRole);
@@ -114,7 +110,6 @@
           $query = "INSERT INTO system_usr (user_no, system_code, role) ";
           $query .= " VALUES( $user_no, '$k1', '$val') ";
           $result = awm_pgexec( $wrms_db, $query );
-          //if ( ! $result ) $because .= "<p>$query</p>";
         }
         reset($NewUserCat);
       }

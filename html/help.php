@@ -10,7 +10,6 @@
   if ( "$submit" <> "") {
     include("inc/$form-valid.php");
     if ( "$because" == "" ) include("inc/$form-action.php");
-//    $because = "<h2>" . ucfirst($form) . " Form Submitted</h2>$because";
   }
 
   $title = "$system_name - " . ucfirst($form);

@@ -1,6 +1,5 @@
 <?php
   include("$base_dir/inc/code-list.php");
-//  $training = get_code_list( "request", "training_code" );
 
 ?>
 <FORM METHOD=POST ACTION="<?php echo "$SCRIPT_NAME?form=$form"; ?>">

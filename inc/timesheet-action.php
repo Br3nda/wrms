@@ -45,9 +45,9 @@ function update_timesheet( $ts_finish ) {
     $query = sprintf( "DELETE FROM request_timesheet WHERE entry_details = 'TS-%d-%d';", $session->user_no, $sow );
     $result = awm_pgexec( $dbconn, $query, 'ts-action' );
     for ( $dow = 0; $dow < 7; $dow ++ ) {
-//      error_log( "dow = $dow", 0);
+
       while( list( $k, $v ) = each ( $tm[$dow] ) ) {
-//        error_log( "tm[$dow]: $k - $v", 0);
+
         if ( $ts_no > 0 && $v == "" ) {
           // Close off an existing timesheet
           update_timesheet( substr($k, 1) );

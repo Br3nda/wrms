@@ -114,8 +114,6 @@
 
         $query = "INSERT INTO request_history (SELECT * FROM request WHERE request.request_id = $ReturnedRequestId);";
 
-        //echo "$query<BR>";
-
         $rid = awm_pgexec( $wrms_db, $query, "requestlist", TRUE, 7 );
         if ( ! $rid ) {
            $because .= "<P>Request $ReturnedRequestId: Error updating request! - query 2</P>\n";
@@ -242,7 +240,7 @@ function column_header( $ftext, $fname ) {
 
   include("inc/headers.php");
 
-if ( ! $roles['wrms']['Request'] || "$error_msg$error_qry" != "" ) {   //note four
+if ( ! $roles['wrms']['Request'] || "$error_msg$error_qry" != "" ) {
   include( "inc/error.php" );
 }
 else {
@@ -296,15 +294,11 @@ else {
         echo "<td class=smb>Watching:</td><td class=sml><select class=sml name=interested_in>$user_list</select></td>\n";
       }
       if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
-//        if ( !isset($allocated_to) ) $allocated_to = $session->user_no;
         $user_list = "<option value=\"\">--- Any Assigned Staff ---</option>" . get_user_list( "Support", "", $allocated_to );
         echo "<td class=smb>ToDo:</td><td class=sml><select class=sml name=allocated_to>$user_list</select></td>\n";
       }
       echo "</tr></table></td></tr>\n";
     }
-//  else if ( !isset($requested_by) )
-//    $requested_by = $session->user_no;
-
 
     $request_types = get_code_list( "request", "request_type", "$type_code" );
 ?>
@@ -341,7 +335,6 @@ else {
       echo "<input type=checkbox name=inactive";
       if ( isset($inactive) ) echo " checked";
       echo " value=1>Inactive";
-//      echo "</td>\n</tr></table></td></tr>";
       echo "c</td>\n";
     }
     echo "<td valign=middle class=smb align=center><input type=submit value=\"RUN QUERY\" alt=go name=submit class=\"submit\"></td>\n";
@@ -449,11 +442,9 @@ $query";
 
     if ( "$style" != "stripped" ) {
       if ( $result && pg_NumRows($result) > 0 )
-        echo "\n<small>" . pg_NumRows($result) . " requests found</small>"; // <p>$query</p>";
+        echo "\n<small>" . pg_NumRows($result) . " requests found</small>";
       else {
         echo "\n<p><small>No requests found</small></p>";
-        //if ( $roles['wrms']['Admin'] )
-          //echo "<p>You are an admin, so I can show you this:<br>\n<small><small>$query</small></small></p>";
       }
     }
 
@@ -528,7 +519,6 @@ $query";
         echo "<td class=sml nowrap><a href=\"mailto:$thisrequest->email\">$thisrequest->fullname</a></td>\n";
         echo "<td class=sml align=center>$thisrequest->date_requested</td>\n";
         echo "<td class=sml><a href=\"request.php?request_id=$thisrequest->request_id\">$thisrequest->brief";
-//        if ( "$thisrequest->brief" == "" ) echo "-- no description --";
         if ( "$thisrequest->brief" == "" ) echo substr( $thisrequest->detailed, 0, 50) . "...";
         echo "</a></td>\n";
         if ( "$format" == "edit" )//tests to see if report should provide editable status fields where appropriate
@@ -578,10 +568,6 @@ $query";
             echo html_format($thisquote->quote_details);
             echo "</td>\n";
             printf("<td align=right>%9.2f &nbsp; %s</td>\n", $thisquote->quote_amount, $thisquote->quote_units);
-            // printf("<td align=right>%9.2f &nbsp; </td>\n", $thisquote->quote_rate);
-            // $value = $thisquote->quote_quantity * $thisquote->quote_rate;
-            // $total += $value;
-            // printf("<td align=right>%9.2f &nbsp; </td>\n", $value);
             echo "</tr>\n";
           }
         }

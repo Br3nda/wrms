@@ -1,17 +1,6 @@
 <?php
-// Turn on output buffering so that we can send a "Content-Length" header.
-// function my_ob_callback( $buffer ) {
-  // Tidy up the output buffer and send it.
-  // $length = strlen($buffer);
-  // Header( "Content-Length: $length" );
-  // return $buffer;
-// }
-// ob_start( 'my_ob_callback' );
-
-
 $begin_processing = microtime();
-// Always connect to the database...
-// $wrms_db = pg_Connect("dbname=wrms user=general port=5444");
+
 $wrms_db = pg_Connect("dbname=wrms user=general");
 $dbconn = $wrms_db;
 
@@ -256,7 +245,6 @@ function link_writeups( $instr ) {
   $instr = ereg_replace("\[mailto:([^]|]+)\]", "<a class=wu href=\"mailto:\\1\">\\1</a>", $instr);
   $instr = ereg_replace("\[([^]|]+)\|([^]|]+)\]", "<a class=wu href=\"/wu.php?wu=\\1$last_node\">\\2</a>", $instr);
   $instr = ereg_replace("\[([^]|]+)\]", "<a class=wu href=\"/wu.php?wu=\\1$last_node\">\\1</a>", $instr);
-//  $instr = ereg_replace("\[([a-zA-Z0-9]+)\]", "<a href=\"/wu.php?wu=\\1\">\\1</a>", $instr);
   return $instr;
 }
 

@@ -62,7 +62,6 @@ th.h3, td.h3  {font: bold $fontsizes[3] $fonts[0], sans-serif; color: $colors[fg
     echo ".block { text-decoration: none; font: $fontsizes[1] $fonts[block], sans-serif; color: " . $colors["blockfront"] . "; }\n";
     echo ".blockhead { text-decoration: none; font: $fontsizes[1] $fonts[block], sans-serif; color: " . $colors["blockfront"] . "; font-weight: 700; }\n";
 
-// body { font: $fontsizes[1]  $fonts[0], sans-serif; background: $colors[bg1]; color=$colors[fg1]; }
     echo "body, p, td, input {font: $fontsizes[1]  $fonts[0], sans-serif; color: $colors[fg1]; }
 .help		{font: italic $fontsizes[1] $fonts[help], serif; color: $colors[fghelp]; background: $colors[bghelp]; }
 .blocka		{font: $fontsizes[1] $fonts[block], sans-serif; color: $colors[blockfront]; }
@@ -86,7 +85,7 @@ th.cols, th.rows, a.cols  {font: small-caps bold $fontsizes[1] $fonts[0], sans-s
 .cols  {font: small-caps bold $fontsizes[1] $fonts[0], sans-serif; color: $colors[fg3];  background: $colors[bg3]; }
 .cols:hover  { color: $colors[hv2]; }\n";
 
-// table, body { background-image: url(/images/page-tile2.jpg); }
+
 
     if ( (isset($error_message) && $error_message <> "") || (isset($warn_message) && $warn_message <> "") ) {
       echo ".error {font: bold $fontsizes[2] $fonts[0], sans-serif; color: $colors[fgerr]; background: $colors[bgerr]; padding: 10px; margin: 20px; }\n";
@@ -98,7 +97,7 @@ th.cols, th.rows, a.cols  {font: small-caps bold $fontsizes[1] $fonts[0], sans-s
   echo "</head>\n";
   echo "<body bgcolor=\"$colors[bg1]\" fgcolor=\"$colors[fg1]\" leftmargin=\"0\" marginheight=\"0\" marginwidth=\"0\" topmargin=\"0\" text=\"$colors[fg1]\" link=\"$colors[link1]\" vlink=\"$colors[link1]\" alink=\"$colors[link2]\" background=\"images/tanTile.gif\">\n";
   if ( "$style" != "stripped" ) {
-//  echo "<basefont face=\"$fonts[0], sans-serif\" size=\"2\" color=\"$colors[fg1]\">\n";
+
 ?>
 <table width="100%" border="0" cellspacing="0" cellpadding="0">
   <tr>

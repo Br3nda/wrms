@@ -1,17 +1,11 @@
 <?php
   block_open();
-//  block_title("<a title=\"\" href=\"usr.php?user_no=$session->user_no\" class=blockhead>$session->fullname</a>");
+
   block_title("&nbsp;");
   echo "<tr><td class=block>\n &nbsp;";
   $tooltip = "Maintain your name, phone and e-mail details, or change your password";
   echo "<a href=\"usr.php?user_no=$session->user_no\" class=block title=\"$tooltip\" alt=\"$tooltip\">Edit&nbsp;My&nbsp;Info</a>\n";
 
-  /*
-  $my_uri = ereg_replace( "[?&]togglehelp=[0-9]", "", $REQUEST_URI);
-  echo  "<br>\n &nbsp;<a href=\"$my_uri";
-  echo  ( !strpos($my_uri,"?") ? "?" : "&");
-  echo "togglehelp=1\" class=block>Turn Help " . ( "$session->help" == "t" ?"Off":"On") . "</a>";
-  */
   $tooltip = "Au revoir!";
   echo  "<br>\n &nbsp;<a href=\"/?M=LO$hurl\" class=block title=\"$tooltip\" alt=\"$tooltip\">Log Off</a>";
   $tooltip = "Log me out and stop logging me in automatically";
@@ -33,8 +27,6 @@
   }
 
   if ( $PHP_SELF == "/request.php" && $request_id > 0 ) {
-    // $tooltip = "Show the current request in an editable view";
-    // echo  "<br>\n &nbsp;<a href=\"$base_url/request.php?request_id=$request_id\" class=block title=\"$tooltip\" alt=\"$tooltip\">Editable</a>";
     $tooltip = "Show the current request in a printable view";
     echo  "<br>\n &nbsp;<a href=\"$base_url/request.php?request_id=$request_id&style=plain\" target=_new class=block title=\"$tooltip\" alt=\"$tooltip\">Printable View</a>";
   }

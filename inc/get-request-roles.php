@@ -27,20 +27,15 @@
     $error_qry = "$query";
     include("inc/error.php");
   }
-  if ( $rid && pg_NumRows($rid) > 0 ) $cltmgr = TRUE;
 
-  /* Is the person client or support manager for this (or any?) organisation? */
-  $query = "SELECT * FROM org_usr WHERE org_usr.user_no=$session->user_no";
-  $query .= " AND org_usr.role~'[CS]' ";
-  if ( isset($request) )
-    $query .= " AND org_usr.org_code = '$request->org_code' ";
-  $rid = awm_pgexec( $wrms_db, $query);
-  if ( ! $rid ) {
-    $error_loc = "get-request-roles.php";
-    $error_qry = "$query";
-    include("inc/error.php");
+  if ( $rid && pg_NumRows($rid) > 0 )
+  {
+     $sysman_role = pg_fetch_object($rid, 0);
+     if (eregi('S', $sysman_role->role))
+        $sysmgr = TRUE;
+     else
+        $cltmgr = TRUE;
   }
-  if ( $rid && pg_NumRows($rid) > 0 ) $sysmgr = TRUE;
 
   // Also set $sysmgr if the person is Admin...
   if ( $roles['wrms']['Admin'] ) $sysmgr = TRUE;

@@ -24,7 +24,6 @@
         echo "<p>Error in query<BR>$query</p>";
         exit;
       }
-//      $because=$query;
 
       $deleted = pg_Fetch_Object( $result, 0);
       $lookup_seq  = $deleted->lookup_seq;

@@ -5,7 +5,6 @@
   include("inc/block-wusearch.php");
   echo "<br>\n";
   if ( $logged_on ) {
-    // include("inc/block-search.php");
     echo "<br>\n";
   }
 ?></td></tr>

@@ -40,16 +40,7 @@
     }
     $rows = pg_NumRows($rid);
     if ( ! $rows ) {
-      /* We do a really basic query to make sure we actually get the request */
-//      $query = "SELECT * FROM request WHERE request_id='$request_id' ";
-//      $rid = awm_pgexec( $wrms_db, $query);
-//      if ( ! $rid ) {
-//        $error_loc = "request-form.php";
-//        $error_qry = "$query";
-//        include("inc/error.php");
-//      }
-      echo "<p>No records for: $query</p>";
-      // header("Location: $base_url");  /* Redirect browser to login page */
+      echo "<p>No records for request: $request_id</p>";
       exit; /* Make sure that code below does not get executed when we redirect. */
     }
     $request = pg_Fetch_Object( $rid, 0 );
@@ -62,7 +53,7 @@
 
   /* Current request is editable if the user requested it or user is sysmgr, cltmgr or allocated the job */
   if ( ! isset($plain) && isset($style) ) $plain = ("$style" == "plain");
-  $statusable = /* isset($request) && */ ($author || $sysmgr || $cltmgr || $allocated_to );
+  $statusable = ($author || $sysmgr || $cltmgr || $allocated_to );
   $quotable = $statusable;
   $editable = ($sysmgr || $allocated_to || ! isset($request_id) );
   if ( $editable ) $editable = ! $plain;

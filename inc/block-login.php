@@ -14,12 +14,11 @@
 
   echo "<br> &nbsp;password:<br>\n";
   echo "&nbsp; <font size=1><input type=password name=L size=\"7\"></font>";
-//  echo "&nbsp;<input type=image src=\"$images/in-go.gif\" alt=go $dim border=\"0\" name=submit$submit_align></font><br clear=all>\n";
+
   echo "&nbsp;<input type=submit value=\"GO!\" alt=go name=submit class=\"submit\"></font><br clear=all>\n";
   echo " &nbsp;forget&nbsp;me&nbsp;not:<font size=2><input type=checkbox name=remember value=\"1\"></font>\n";
 
   echo "</form></td></tr>\n";
-// <!--tr valign=middle><td class=blockhead align=center style="padding: 4px 0px 5px 0px;"><a href="join.php" title="Click here to join!"><img src="images/join.gif" width="106" height="15" border="0"></a></td></tr-->
 
   echo "<tr><td class=block>\n";
   echo "<img src=\"images/clear.gif\" width=\"155\" height=\"1\" hspace=\"0\" vspace=\"2\" border=\"0\">\n";

@@ -1843,7 +1843,7 @@ EOX
   function NewSubscriptions( ) {
     global $sysabbr, $session, $client_messages;
 
-    if ( $this->chtype = 'create' ) {
+    if ( $this->chtype == 'create' ) {
       $subscribers = array_merge( array( $_POST['requester_id'], $session->user_no  ),
                                   $_POST['new_allocations'], $_POST['new_subscriptions'] );
     }

@@ -4,13 +4,13 @@
     /* Complex request mainly because we hook in all of the codes tables for easy display */
     $rows = 0;
     // Note: careful adjustment of the field order - work_system and request both have 'active' e.g.
-    $query = "SELECT usr.*, work_system.*, request.*";
+    $query = "SELECT organisation.*, usr.*, work_system.*, request.*";
     $query .= ", status.lookup_desc AS status_desc";
     $query .= ", request_type.lookup_desc AS request_type_desc";
     $query .= ", urgency.lookup_desc AS urgency_desc";
     $query .= ", importance.lookup_desc AS importance_desc";
     $query .= ", system_desc ";
-    $query .= " FROM request, usr";
+    $query .= " FROM request, usr, organisation";
     $query .= ", lookup_code AS status";
     $query .= ", lookup_code AS request_type";
     $query .= ", lookup_code AS urgency";
@@ -18,6 +18,7 @@
     $query .= ", work_system ";
     $query .= " WHERE request.request_id = '$request_id'";
     $query .= " AND request.requester_id = usr.user_no ";
+    $query .= " AND organisation.org_code = usr.org_code ";
     $query .= " AND status.source_table='request' AND status.source_field='status_code' AND status.lookup_code = request.last_status";
     $query .= " AND request_type.source_table='request' AND request_type.source_field='request_type' AND request.request_type = request_type.lookup_code";
     $query .= " AND urgency.source_table='request' AND urgency.source_field='urgency' AND int(urgency.lookup_code)=request.urgency";

@@ -308,8 +308,8 @@
   $rows = pg_NumRows($workq);
   if ( $rows > 0  || (($allocated_to || $sysmgr) && !$plain) ) {
 ?>
-<?php echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=6>&nbsp;</TD></TR><TR>$hdcell"; ?>
-<TD CLASS=h3 COLSPAN=5 ALIGN=RIGHT<?php echo " bgcolor=$colors[8]"; ?>><FONT SIZE=+1 color=<?php echo $colors[1]; ?>><B>Work Done</B></FONT></TD></TR>
+<?php echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=7>&nbsp;</TD></TR><TR>$hdcell"; ?>
+<TD CLASS=h3 COLSPAN=6 ALIGN=RIGHT<?php echo " bgcolor=$colors[8]"; ?>><FONT SIZE=+1 color=<?php echo $colors[1]; ?>><B>Work Done</B></FONT></TD></TR>
  <TR VALIGN=TOP>
    <th>&nbsp;</th>
    <TH ALIGN=LEFT class=cols>Done By</TH>
@@ -317,6 +317,7 @@
    <TH class=cols>Quantity</TH>
    <TH class=cols>Rate</TH>
    <TH class=cols>Description</TH>
+   <TH class=cols>&nbsp;</TH>
  </TR>
 <?php
     for( $i=0; $i<$rows; $i++ ) {
@@ -328,7 +329,10 @@
       echo "<TD align=center>" . substr( nice_date($work->work_on), 7) . "</TD>\n";
       echo "<TD ALIGN=RIGHT>$work->work_quantity&nbsp;$work->work_units &nbsp; &nbsp; </TD>\n";
       echo "<TD ALIGN=RIGHT>$work->work_rate &nbsp; &nbsp; </TD>\n";
-      echo "<TD>$work->work_description</TD></TR>\n";
+      echo "<TD>$work->work_description</TD>\n";
+      echo "<TD ALIGN=RIGHT nowrap><font size=-2><A CLASS=r HREF=\"request.php?submit=deltime";
+      echo "&request_id=$request_id&timesheet_id=$work->timesheet_id\">";
+      echo "DEL</a></font>";
     }
 
     if ( ($allocated_to || $sysmgr) && ! $plain ) {
@@ -336,11 +340,20 @@
       else echo "<tr bgcolor=$colors[7]";
       echo " valign=top><th>&nbsp;</th>\n";
       echo "<td><BR>$session->fullname</td>\n";
-      echo "<TD><input name=new_work_on size=9 type=text value=today></TD>\n";
-      echo "<TD align=center><input name=new_work_quantity size=6 type=text><br>\n";
+      echo "<TD><input name=new_work_on size=10 type=text value=\"";
+      if ( isset($old_work_on) ) {
+        echo substr( nice_date($old_work_on), 7);
+        $quote_units = get_code_list( "request_quote", "quote_units", "$old_work_units" );
+      }
+      else {
+        echo "today";
+        $old_work_rate = $request->work_rate;
+      }
+      echo "\"></TD>\n";
+      echo "<td align=center><input name=new_work_quantity size=6 type=text value=\"$old_work_quantity\"><br>\n";
       echo "<select name=new_work_units>$quote_units</select></TD>\n";
-      echo "<TD><input name=new_work_rate size=5 type=text><br>($ per unit)</TD>\n";
-      echo "<TD><textarea name=new_work_details rows=3 cols=30 wrap=soft></textarea></TD></TR>\n";
+      echo "<td><input name=new_work_rate size=5 type=text value=\"$old_work_rate\"><br>($ per unit)</TD>\n";
+      echo "<td colspan=2><textarea name=new_work_details rows=3 cols=30 wrap=soft>$old_work_details</textarea></TD></TR>\n";
     }
     echo "</TABLE>\n";
 
@@ -380,8 +393,8 @@
         $action = "register";
       }
 
-      echo "</TD>\n<TD ALIGN=RIGHT nowrap><font size=-2><A HREF=\"request.php?submit=$action&request_id=$request_id\">";
-      echo "<span style=\"background: $colors[6];\">$tell</span></a></font>";
+      echo "</TD>\n<TD ALIGN=RIGHT nowrap><font size=-2><a class=r href=\"request.php?submit=$action&request_id=$request_id\">";
+      echo "$tell</a></font>";
     }
     echo "</TD>\n</TR></TABLE>\n";
   }

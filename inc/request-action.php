@@ -19,12 +19,40 @@
     $query = "DELETE FROM request_interested WHERE request_id=$request_id AND user_no=$session->user_no; ";
     $rid = pg_Exec( $wrms_db, $query );
     if ( ! $rid ) {
-      $because .= "<H3>&nbsp;Submit Interest Failed!</H3>\n";
+      $because .= "<H3>&nbsp;Remove Interest Failed!</H3>\n";
       $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
       $because .= "<P>The failed query was:</P><TT>$query</TT>";
     }
     else {
       $because .= "<h3>You have been removed from this request</h3>";
+    }
+    return;
+  }
+  else if ( "$submit" == "deltime" ) {
+    $query = "SELECT * FROM request_timesheet WHERE timesheet_id=$timesheet_id ; ";
+    $rid = pg_Exec( $wrms_db, $query );
+    if ( ! $rid ) {
+      $because .= "<H3>&nbsp;Delete Timesheet Failed!</H3>\n";
+      $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
+      $because .= "<P>The failed query was:</P><TT>$query</TT>";
+    }
+    else {
+      $work = pg_Fetch_Object( $rid, 0);
+      $old_work_on = $work->work_on;
+      $old_work_units = $work->work_units;
+      $old_work_quantity = $work->work_quantity;
+      $old_work_rate = $work->work_rate;
+      $old_work_details = $work->work_description;
+    }
+    $query = "DELETE FROM request_timesheet WHERE timesheet_id=$timesheet_id ; ";
+    $rid = pg_Exec( $wrms_db, $query );
+    if ( ! $rid ) {
+      $because .= "<H3>&nbsp;Delete Timesheet Failed!</H3>\n";
+      $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
+      $because .= "<P>The failed query was:</P><TT>$query</TT>";
+    }
+    else {
+      $because .= "<h3>Timesheet deleted.</h3>";
     }
     return;
   }
@@ -181,8 +209,8 @@
     if ( $work_added ) {
       /* non-null timesheet was entered */
       $new_work_details = tidy( $new_work_details );
-      $query = "DELETE FROM request_timesheet WHERE request_id=$request_id AND work_on='$new_work_on'; ";
-      $query .= "INSERT INTO request_timesheet (request_id,  work_on, work_quantity, work_units, work_rate, work_by_id, work_by, work_description ) ";
+//      $query = "DELETE FROM request_timesheet WHERE request_id=$request_id AND work_on='$new_work_on'; ";
+      $query = "INSERT INTO request_timesheet (request_id,  work_on, work_quantity, work_units, work_rate, work_by_id, work_by, work_description ) ";
       $query .= "VALUES( $request_id, '$new_work_on', '$new_work_quantity', '$new_work_units', '$new_work_rate', $session->user_no, '$session->username', '$new_work_details')";
       $rid = pg_exec( $wrms_db, $query );
       if ( ! $rid ) {

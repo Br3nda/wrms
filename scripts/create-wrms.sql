@@ -138,7 +138,10 @@ CREATE TABLE request_quote (
   quote_type TEXT,
   quote_units TEXT,
   quote_brief TEXT,
-  quote_details TEXT
+  quote_details TEXT,
+  approved_by_id INT4,
+  approved_on TIMESTAMP,
+  invoice_no INT4
 );
 CREATE INDEX xak1_request_quote ON request_quote ( request_id );
 

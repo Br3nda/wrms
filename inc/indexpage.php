@@ -6,7 +6,7 @@ if ( $logged_on ) { ?>
 one of the recently modified requests from the list below.</H4>
 <?php
   include( "$base_dir/inc/nice-date.php" );
-  $query = "SELECT DISTINCT ON ( request.severity_code, request_id ) request.request_id, brief, fullname, email, last_activity, lookup_desc AS status_desc ";
+  $query = "SELECT DISTINCT request.request_id, brief, fullname, email, last_activity, lookup_desc AS status_desc ";
   $query .= "FROM request, request_interested, usr, lookup_code AS status ";
   $query .= "WHERE request.request_id=request_interested.request_id ";
   $query .= "AND request_interested.user_no=$session->user_no ";

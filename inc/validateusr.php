@@ -7,7 +7,7 @@
     $because .= "User has no password.<br>";
 
   if ( ! is_member_of('Admin','Support','Manage')
-         || ("$M" == "update" && $user_no == $session->user_no) )
+         || ("$M" == "update" && $user_no != $session->user_no) )
     $because .= "You are not authorised<BR>";
 
   if ( ! is_member_of('Admin','Support') ) {

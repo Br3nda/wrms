@@ -21,8 +21,8 @@
   echo "</form></td></tr>\n";
 
   echo "<tr><td class=block>\n";
-  echo "<img src=\"images/clear.gif\" width=\"155\" height=\"1\" hspace=\"0\" vspace=\"2\" border=\"0\">\n";
+  echo "<img src=\"/images/clear.gif\" width=\"155\" height=\"1\" hspace=\"0\" vspace=\"2\" border=\"0\">\n";
   echo "</td></tr>\n";
   block_close();
-  echo "<img src=\"images/clear.gif\" width=\"155\" height=\"50\" hspace=\"0\" vspace=\"2\" border=\"0\">\n";
+  echo "<img src=\"/images/clear.gif\" width=\"155\" height=\"50\" hspace=\"0\" vspace=\"2\" border=\"0\">\n";
 ?>

@@ -8,7 +8,7 @@
     echo "<br>\n";
   }
 ?></td></tr>
-<tr><td valign=top align=center><img src=images/clear.gif width=125 height=2 hspace=0 vspace=0 border=0></td></tr>
+<tr><td valign=top align=center><img src=/images/clear.gif width=125 height=2 hspace=0 vspace=0 border=0></td></tr>
 </table>
 
 

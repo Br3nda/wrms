@@ -1,7 +1,7 @@
 <FORM METHOD=POST ACTION="<?php echo "$SCRIPT_NAME?form=$form"; ?>">
 <table align=center><tr valign=middle>
 <td><b>Sessions Prior To:</b><font size=2><input TYPE="Text" Size="20" Name="search_for" Value="<?php echo "$search_for"; ?>"></font></td>
-<td><input TYPE="Image" src="images/in-go.gif" alt="go" WIDTH="64" BORDER="0" HEIGHT="27" name="submit"></td>
+<td><input TYPE="Image" src="$images/in-go.gif" alt="go" WIDTH="64" BORDER="0" HEIGHT="27" name="submit"></td>
 </tr></table>
 </form>
 

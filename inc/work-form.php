@@ -164,10 +164,10 @@ function nice_time( $in_time ) {
       echo       "</th>\n";
 
       echo       '<th class=cols>Dbtr. No.';
-      echo         '<input TYPE="Image" src="images/down.gif" alt="Sort" BORDER="0" name="sort[organisation.org_code]" >';
+      echo         '<input TYPE="Image" src="/$images/down.gif" alt="Sort" BORDER="0" name="sort[organisation.org_code]" >';
       echo       "</th>\n";
 
-      echo       '<th class=cols>WR No.<input TYPE="Image" src="images/down.gif" alt="Sort" BORDER="0" name="sort[request_timesheet.request_id]" ></th>' . "\n";
+      echo       '<th class=cols>WR No.<input TYPE="Image" src="/$images/down.gif" alt="Sort" BORDER="0" name="sort[request_timesheet.request_id]" ></th>' . "\n";
 
       echo       "<th class=cols>WR Status";
       echo         '<select class=sml name="filter[request.last_status]">' . "\n";
@@ -194,15 +194,15 @@ function nice_time( $in_time ) {
       echo         '<table cellpadding=2 cellspacing=0 border=0>';
       echo           '<tr>';
       echo             '<td></td>';
-      echo             '<td align="middle"><input TYPE="Image" src="images/up.gif" alt="Sort Ascending" BORDER="0" name="sort_asc[request_timesheet.work_description]" ></td>';
+      echo             '<td align="middle"><input TYPE="Image" src="/$images/up.gif" alt="Sort Ascending" BORDER="0" name="sort_asc[request_timesheet.work_description]" ></td>';
       echo           '</tr>';
       echo           '<tr>';
-      echo             '<td><input TYPE="Image" src="images/hide.gif" alt="Hide Work Description" BORDER="0" name="hide[request_timesheet.work_description]" ></td>';
+      echo             '<td><input TYPE="Image" src="/$images/hide.gif" alt="Hide Work Description" BORDER="0" name="hide[request_timesheet.work_description]" ></td>';
       echo             '<td>Work Description</td>';
       echo           '</tr>';
       echo           '<tr>';
       echo             '<td></td>';
-      echo             '<td align="middle"><input TYPE="Image" src="images/down.gif" alt="Sort Descending" BORDER="0" name="sort[request_timesheet.work_description]" ></td>';
+      echo             '<td align="middle"><input TYPE="Image" src="/$images/down.gif" alt="Sort Descending" BORDER="0" name="sort[request_timesheet.work_description]" ></td>';
       echo           '</tr>';
       echo         '</table>';
       echo       "</th>\n";
@@ -213,13 +213,13 @@ function nice_time( $in_time ) {
       echo         '<a href="javascript:show_calendar(\'options.done_on_from_date\');"';
       echo           ' onmouseover="window.status=\'Date Picker\';return true;"';
       echo           ' onmouseout="window.status=\'\';return true;">';
-      echo           '<img valign="middle" src="/images/date-picker.gif" border=0>';
+      echo           '<img valign="middle" src="/$images/date-picker.gif" border=0>';
       echo         '</a><br>';
       echo         '<input type="text" name="done_on_to_date" size=10 maxlength=10 class=sml >';
       echo         '<a href="javascript:show_calendar(\'options.done_on_to_date\');"';
       echo           ' onmouseover="window.status=\'Date Picker\';return true;"';
       echo           ' onmouseout="window.status=\'\';return true;">';
-      echo           '<img valign="middle" src="/images/date-picker.gif" border=0>';
+      echo           '<img valign="middle" src="/$images/date-picker.gif" border=0>';
       echo         '</a>';
       echo       "</th>\n";
       echo       "<th class=cols>Qty.</th>\n";

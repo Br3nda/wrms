@@ -13,12 +13,12 @@
       echo "</tr></table>\n";
     }
 ?>
-<table width="100%" border="0" cellspacing="0" cellpadding="0" height="16" background="images/WRMSbottomTile.gif">
+<table width="100%" border="0" cellspacing="0" cellpadding="0" height="16" background="/<?php echo $images; ?>/WRMSbottomTile.gif">
   <tr>
-    <td width="41%" height="10" valign="top"><img src="images/WRMSbottom.gif" width="473" height="16">
+    <td width="41%" height="10" valign="top"><img src="/<?php echo $images; ?>/WRMSbottom.gif" width="473" height="16">
     </td>
     <td width="37%" height="10">&nbsp;</td>
-    <td width="22%" align="right" height="10" valign="top"><img src="images/WRMSbottom1.gif" width="155" height="16"></td>
+    <td width="22%" align="right" height="10" valign="top"><img src="/<?php echo $images; ?>/WRMSbottom1.gif" width="155" height="16"></td>
   </tr>
 </table>
 <?php

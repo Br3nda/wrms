@@ -12,23 +12,16 @@
     $query .= ", sla_response.lookup_desc AS sla_response_desc";
     $query .= ", importance.lookup_desc AS importance_desc";
     $query .= ", system_desc, request_sla_code(sla_response_time,sla_response_type) ";
-    $query .= " FROM request, usr, organisation";
-    $query .= ", lookup_code AS status";
-    $query .= ", lookup_code AS request_type";
-    $query .= ", lookup_code AS urgency";
-    $query .= ", lookup_code AS sla_response";
-    $query .= ", lookup_code AS importance";
-    $query .= ", work_system ";
+    $query .= " FROM request LEFT OUTER JOIN usr ON (request.requester_id = usr.user_no)";
+    $query .= " LEFT OUTER JOIN organisation USING( org_code )";
+    $query .= " LEFT OUTER JOIN lookup_code AS status ON status.source_table='request' AND status.source_field='status_code' AND status.lookup_code = request.last_status";
+    $query .= " LEFT OUTER JOIN lookup_code AS request_type ON request_type.source_table='request' AND request_type.source_field='request_type' AND request.request_type = request_type.lookup_code";
+    $query .= " LEFT OUTER JOIN lookup_code AS urgency ON urgency.source_table='request' AND urgency.source_field='urgency' AND int4(urgency.lookup_code)=request.urgency";
+    $query .= " LEFT OUTER JOIN lookup_code AS sla_response ON sla_response.source_table='request' AND sla_response.source_field='sla_response' AND sla_response.lookup_code=request_sla_code(sla_response_time,sla_response_type)";
+    $query .= " LEFT OUTER JOIN lookup_code AS importance ON importance.source_table='request' AND importance.source_field='importance' AND int4(importance.lookup_code)=request.importance";
+    $query .= " LEFT OUTER JOIN work_system USING( system_code )";
     $query .= " WHERE request.request_id = '$request_id'";
-    $query .= " AND request.requester_id = usr.user_no ";
-    $query .= " AND organisation.org_code = usr.org_code ";
     if (! is_member_of('Admin','Support') ) $query .= " AND organisation.org_code = '$session->org_code' ";
-    $query .= " AND status.source_table='request' AND status.source_field='status_code' AND status.lookup_code = request.last_status";
-    $query .= " AND request_type.source_table='request' AND request_type.source_field='request_type' AND request.request_type = request_type.lookup_code";
-    $query .= " AND urgency.source_table='request' AND urgency.source_field='urgency' AND int4(urgency.lookup_code)=request.urgency";
-    $query .= " AND sla_response.source_table='request' AND sla_response.source_field='sla_response' AND sla_response.lookup_code=request_sla_code(sla_response_time,sla_response_type) ";
-    $query .= " AND importance.source_table='request' AND importance.source_field='importance' AND int4(importance.lookup_code)=request.importance";
-    $query .= " AND work_system.system_code=request.system_code";
 
     /* now actually query the database... */
     $rid = awm_pgexec( $dbconn, $query, "getrequest", false, 7);
@@ -40,7 +33,10 @@
     $rows = pg_NumRows($rid);
     if ( ! $rows ) {
       echo "<p>No records for request: $request_id</p>";
-      echo "<p>$query</p>";
+      if ( is_member_of('Admin','Support') ) {
+        echo "<p>There is probably a bug in the following query:</p>";
+        echo "<p>$query</p>";
+      }
       exit; /* Make sure that code below does not get executed when we redirect. */
     }
     $request = pg_Fetch_Object( $rid, 0 );

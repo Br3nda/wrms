@@ -47,7 +47,7 @@ th.h3, td.h3  {font: bold $fontsizes[3] $fonts[0], sans-serif; color: $colors[fg
       echo "A:hover { color: $colors[hv1];  }\n";
       echo ".bmenu $linkstyle font: small-caps bold $fontsizes[1] $fonts[1]; background: $colors[bg3]; color: $colors[fg3]; padding: 0px 1px 1px; margin: 0px 1px; }
 .block		{font: $fontsizes[1] $fonts[block], sans-serif; color: $colors[blockfront]; }
-hr.block	{line-height: 9px; margin: 0px; padding: 0px; width: 130px; image: url(images/menuBreak.gif); }
+hr.block	{line-height: 9px; margin: 0px; padding: 0px; width: 130px; image: url(/$images/menuBreak.gif); }
 img.block	{height: 9px; margin: 0px; padding: 0px; width: 130px; clear: both }
 td.sidebarleft { color: white; background-color: $colors[blockback]; }
 .sml {font: $fontsizes[1] $fonts[narrow], sans-serif; }
@@ -97,29 +97,29 @@ th.cols, th.rows, a.cols  {font: small-caps bold $fontsizes[1] $fonts[0], sans-s
 
   // Now start the body
   echo "</head>\n";
-  echo "<body bgcolor=\"$colors[bg1]\" fgcolor=\"$colors[fg1]\" leftmargin=\"0\" marginheight=\"0\" marginwidth=\"0\" topmargin=\"0\" text=\"$colors[fg1]\" link=\"$colors[link1]\" vlink=\"$colors[link1]\" alink=\"$colors[link2]\" background=\"images/tanTile.gif\">\n";
+  echo "<body bgcolor=\"$colors[bg1]\" fgcolor=\"$colors[fg1]\" leftmargin=\"0\" marginheight=\"0\" marginwidth=\"0\" topmargin=\"0\" text=\"$colors[fg1]\" link=\"$colors[link1]\" vlink=\"$colors[link1]\" alink=\"$colors[link2]\" background=\"/$images/tanTile.gif\">\n";
   if ( ! isset($style) || "$style" != "stripped" ) {
 
 ?>
 <table width="100%" border="0" cellspacing="0" cellpadding="0">
   <tr>
     <td>
-      <table width="100%" border="0" cellspacing="0" cellpadding="0" background="images/tanTile.gif">
+      <table width="100%" border="0" cellspacing="0" cellpadding="0" background="<?php echo $images; ?>/tanTile.gif">
         <tr>
-          <td background="images/tanTile.gif" height="55"><img src="images/wrmsTOP.gif" width="700" height="60"></td>
+          <td background="<?php echo $images; ?>/tanTile.gif" height="55"><img src="<?php echo $images; ?>/wrmsTOP.gif" width="700" height="60"></td>
         </tr>
       </table>
-      <table width="100%" border="0" cellspacing="0" cellpadding="0" background="images/midTile.gif">
+      <table width="100%" border="0" cellspacing="0" cellpadding="0" background="<?php echo $images; ?>/midTile.gif">
         <tr>
           <td width="40%">
             <table width="142" border="0" cellspacing="0" cellpadding="0">
               <tr>
-                <td align="left"><img src="images/WRMSheader.gif" width="470" height="19"></td>
+                <td align="left"><img src="<?php echo $images; ?>/WRMSheader.gif" width="470" height="19"></td>
               </tr>
             </table>
           </td>
           <td width="28%"><font size=1>&nbsp;</font></td>
-          <td width="32%" align="right"><a href="/help.php?h=<?php echo str_replace(".php","",$PHP_SELF); ?>"><img src="images/help.gif" width="101" height="19" border=0></a></td>
+          <td width="32%" align="right"><a href="/help.php?h=<?php echo str_replace(".php","",$PHP_SELF); ?>"><img src="<?php echo $images; ?>/help.gif" width="101" height="19" border=0></a></td>
         </tr>
       </table>
     </td>

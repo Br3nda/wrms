@@ -540,25 +540,31 @@
   $link_wr_query  = "SELECT ";
   $link_wr_query .= "rr.request_id    AS parent_request_id, ";
   $link_wr_query .= "r.brief          AS parent_brief, ";
+  $link_wr_query .= "lcs.lookup_desc  AS parent_status, ";
   $link_wr_query .= "lc.lookup_desc   AS parent_link_desc, ";
   $link_wr_query .= "null             AS child_link_desc, ";
   $link_wr_query .= "null             AS child_request_id, ";
-  $link_wr_query .= "null             AS child_brief ";
+  $link_wr_query .= "null             AS child_brief, ";
+  $link_wr_query .= "null             AS child_status ";
   $link_wr_query .= "FROM request_request rr ";
   $link_wr_query .= "JOIN request r USING (request_id) ";
-  $link_wr_query .= "JOIN lookup_code lc ON source_table = 'request_request' AND source_field = 'link_type' AND lookup_code = rr.link_type ";
+  $link_wr_query .= "JOIN lookup_code lc ON lc.source_table = 'request_request' AND lc.source_field = 'link_type' AND lc.lookup_code = rr.link_type ";
+  $link_wr_query .= "JOIN lookup_code lcs ON lcs.source_table = 'request' AND lcs.source_field = 'status_code' AND lcs.lookup_code = r.last_status ";
   $link_wr_query .= "WHERE rr.to_request_id = '$request->request_id' ";
 
   $link_wr_query .= "UNION SELECT ";
   $link_wr_query .= "null             AS parent_request_id, ";
   $link_wr_query .= "null             AS parent_brief, ";
+  $link_wr_query .= "null             AS parent_status, ";
   $link_wr_query .= "null             AS parent_link_desc, ";
   $link_wr_query .= "lc.lookup_desc   AS child_link_desc, ";
   $link_wr_query .= "rr.to_request_id AS child_request_id, ";
-  $link_wr_query .= "r.brief          AS child_brief ";
+  $link_wr_query .= "r.brief          AS child_brief, ";
+  $link_wr_query .= "lcs.lookup_desc  AS child_status ";
   $link_wr_query .= "FROM request_request rr ";
   $link_wr_query .= "JOIN request r ON r.request_id = rr.to_request_id ";
-  $link_wr_query .= "JOIN lookup_code lc ON source_table = 'request_request' AND source_field = 'link_type' AND lookup_code = rr.link_type ";
+  $link_wr_query .= "JOIN lookup_code lc ON lc.source_table = 'request_request' AND lc.source_field = 'link_type' AND lc.lookup_code = rr.link_type ";
+  $link_wr_query .= "JOIN lookup_code lcs ON lcs.source_table = 'request' AND lcs.source_field = 'status_code' AND lcs.lookup_code = r.last_status ";
   $link_wr_query .= "WHERE rr.request_id = '$request->request_id' ";
 
   $link_wr_result = awm_pgexec( $dbconn, $link_wr_query );
@@ -568,9 +574,11 @@
     echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=7>&nbsp;</TD></TR>\n";
     echo "<TR>$hdcell<TD CLASS=h3 COLSPAN=7 align=right>Linked Work Requests</TD></TR>\n";
     echo "<TR><TH ALIGN=LEFT class=cols>Parent WR</TH><TH ALIGN=LEFT class=cols>Brief</TH>";
+    echo "<TH ALIGN=LEFT class=cols>Status</TH>";
     echo "<TH ALIGN=LEFT class=cols>Link Description</TH><TH ALIGN=LEFT class=cols>This WR</TH>";
     echo "<TH ALIGN=LEFT class=cols>Link Description</TH><TH ALIGN=LEFT class=cols>Child WR</TH>";
-    echo "<TH ALIGN=LEFT class=cols>Brief</TH></TR>\n";
+    echo "<TH ALIGN=LEFT class=cols>Brief</TH>";
+    echo "<TH ALIGN=LEFT class=cols>Status</TH></TR>\n";
 
     /*** details of linked WRs */
     for( $i=0; $i<$rows; $i++ ) {
@@ -578,11 +586,13 @@
       printf("<tr class=row%1d>", ($i % 2) );
       echo "<TD><A href=request.php?request_id=$link_wr->parent_request_id>$link_wr->parent_request_id</A></TD>";
       echo "<TD>$link_wr->parent_brief</TD>";
+      echo "<TD>$link_wr->parent_status</TD>";
       echo "<TD>$link_wr->parent_link_desc</TD>";
       echo "<TD>$request->request_id</TD>";
       echo "<TD>$link_wr->child_link_desc</TD>";
       echo "<TD><A href=request.php?request_id=$link_wr->child_request_id>$link_wr->child_request_id</A></TD>";
-      echo "<TD>$link_wr->child_brief</TD></TR>\n";
+      echo "<TD>$link_wr->child_brief</TD>";
+      echo "<TD>$link_wr->child_status</TD></TR>\n";
     }
     echo "</TABLE>\n";
   }  // if rows > 0

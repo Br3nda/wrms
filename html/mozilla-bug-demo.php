@@ -20,8 +20,8 @@ select		{font: xx-small tahoma, sans-serif; background: $colors[7]; }
 <li>font-family for TEXTAREA is not being applied from the 
 style <a href=http://bugzilla.mozilla.org/show_bug.cgi?id=28219>(see bug)</a></li>
 <li>ROWS=Y COLS=X also seem to be being ignored (or 
-misinterpreted in some fashion) for TEXTAREA</li>
-<li>SIZE=X doesn't seem to be being dealt with appropriately for INPUT TYPE=TEXT fields</li>
+misinterpreted in some fashion) for TEXTAREA  <a href=http://bugzilla.mozilla.org/show_bug.cgi?id=33654>(see bug)</a></li>
+<li>SIZE=X doesn't seem to be being dealt with appropriately for INPUT TYPE=TEXT fields <a href=http://bugzilla.mozilla.org/show_bug.cgi?id=33655>(see bug)</a></li>
 
 <form action=mozilla-bug-demo.php method=post>
 <table>

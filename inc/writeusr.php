@@ -41,13 +41,13 @@
         $query .= " mail_style, status, last_update";
         if ( $UserPassword <> "      " ) $query .= ", password";
         $query .= ")  VALUES(";
-        $query .= "$user_no, LOWER('$UserName'), LOWER('$UserEmail'), '$UserFullName', '$UserOrganisation', ";
+        $query .= "$user_no, LOWER('$UserName'), '$UserEmail', '$UserFullName', '$UserOrganisation', ";
         $query .= " '$UserPhone', '$UserFax', '$UserPager', '$UserMail', '$UserStatus', 'now' ";
         if ( $UserPassword <> "      " ) $query .= ", '$UserPassword' ";
 	    $query .= " ) ";
       }
       else {
-        $query = "UPDATE usr SET email=LOWER('$UserEmail'), fullname='$UserFullName', ";
+        $query = "UPDATE usr SET email='$UserEmail', fullname='$UserFullName', ";
         if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
           if ( "$UserOrganisation" <> "" ) $query .= " org_code='$UserOrganisation', ";
         }

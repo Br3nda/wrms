@@ -328,7 +328,7 @@ function dates_equal( $date1, $date2 ) {
     if ( "$new_agreed_due_date" <> "" ) $query .= ", agreed_due_date";
     $query .= ") ";
     $query .= "VALUES( $request_id, '$requsr->username', '" . tidy($new_brief) . "','" . tidy($new_detail) . "', ";
-    $query .= "TRUE, 'N', $new_urgency, $new_importance, '$new_system_code' , '$new_type', $requsr->user_no, 'now', ";
+    $query .= "TRUE, 'N', '$new_urgency', $new_importance, '$new_system_code' , '$new_type', $requsr->user_no, 'now', ";
     $query .= "'" . intval($sla_split[0]) . " hours', '$sla_split[1]' ";
     if ( "$new_requested_by_date" <> "" ) $query .= ", '$new_requested_by_date'";
     if ( "$new_agreed_due_date" <> "" ) $query .= ", '$new_agreed_due_date'";

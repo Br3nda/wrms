@@ -242,7 +242,7 @@
 
 //Builds up and outputs the HTML for a linked column header on the request list
 function column_header( $ftext, $fname ) {
-  global $rlsort, $rlseq, $header_cell;
+  global $rlsort, $rlseq, $header_cell, $images;
   $fseq = "";
   $seq_image = "";
   if ( "$rlsort" == "$fname" ) {

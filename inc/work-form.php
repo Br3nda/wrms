@@ -159,11 +159,11 @@ function nice_time( $in_time ) {
         echo "</tr>\n";
       }
       if ( "$uncharged" != "" ) {
-        echo "<tr><td class=mand colspan=6 align=center><input TYPE=submit alt=\"apply changes\" name=submit value=\"Apply Charges\"></td></tr>\n";
+        echo "<tr><td class=mand colspan=6 align=center><input type=submit alt=\"apply changes\" name=submit value=\"Apply Charges\"></td></tr>\n";
         echo "</form>\n";
       }
 
-//      echo "<FORM METHOD=POST ACTION=\"$REQUEST_URI\">\n";
+      echo "<form method=post action=\"$REQUEST_URI\">\n";
       echo "<thead><tr>";
 
       echo "<th class=cols>Requested by";
@@ -241,7 +241,7 @@ function nice_time( $in_time ) {
       echo "</tr>\n";
       echo "</thead>\n";
 
-//      echo "</form>\n";
+      echo "</form>\n";
 
       echo "</table>\n";
     }

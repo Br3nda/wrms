@@ -15,7 +15,6 @@
 
 if ( is_object ( $settings ) ) {
 
-/*
   if ( ! is_numeric( $settings->get('counter')) )
     $settings->set('counter', 0 );
   else
@@ -29,7 +28,7 @@ if ( is_object ( $settings ) ) {
   if ( !$result ) {
     error_log( "$sysabbr footers QF: $query", 0);
   }
-*/
+}
 
 
   error_reporting(7);
@@ -40,5 +39,4 @@ if ( is_object ( $settings ) ) {
     error_log( "$sysabbr process_time TT: $total_time      $HTTP_USER_AGENT $HTTP_REFERER  ", 0);
   }
 
-}
 ?>

@@ -11,13 +11,44 @@ li		{font: small tahoma, sans-serif; }
 th		{font: bold x-small tahoma, sans-serif; color: white; text-align: right; background: $colors[8]; }
 td		{font: x-small tahoma, sans-serif; }
 input		{font: bold x-large tahoma, sans-serif; background: $colors[7]; }
-textarea		{font: bold x-large tahoma, sans-serif; background: $colors[7]; }
 select		{font: xx-small tahoma, sans-serif; background: $colors[7]; }
+textarea		{font: bold x-large arial narrow,tahoma, sans-serif; background: $colors[7]; }
 --></style>";
 
   include("inc/bodydef.php");
 
 ?>
+<p>Update 26/9/2000 (Linux build 20000925):<BR>
+All styling now working but rows/columns still seem excessive (at least under Linux).
+<p>RodS advises that:
+<i>"We get the width of "Ww" and divide by 2 to get an average char width instead of using the 
+average char width of the font."</i> but that seems exceptionally wide.  In the example below,
+Netscape 4.75 manages to get exactly 30 digits for the width, which seems a reasonable sort of
+a choice (but it gets the font wrong).  IE 4 (build 3110) gets the area too small, at 24 digits wide.
+<a href=http://bugzilla.mozilla.org/show_bug.cgi?id=33655>See bug 33655</a>
+<p>Where things are still really loopy though, is the number of rows.  The textarea definitely says
+5, but here we are with 8.  In general the INPUT fields all seem pretty large for the characters
+in them (even including descenders and uppercase).
+
+<form action=mozilla-bug-demo.php method=post>
+<table>
+<tr>
+<th>Textarea</th><td>&nbsp;<textarea NAME=system_code wrap=off 
+rows=5 cols=30>1234567890123456789012345678901234567890123456789012345678901234567890
+WwWwWwWwWwWwWwWwWwWwWwWwWwWwWw
+3
+4
+5
+6
+7
+8
+9</textarea><BR><b>TEXTAREA ROWS=5 COLS=30 WRAP=OFF</b></td>
+</tr>
+</table>
+</form>
+
+
+
 <p>Update 14/5/2000 (Linux build 2000051210):<BR>No change since29/3/2000 but RodS advises: 
 <i>"We get the width of "Ww" and divide by 2 to get an average char width instead of using the 
 average char width of the font."</i>
@@ -65,7 +96,7 @@ for that one yet.  If you do, can you cc: me on it, thanks.</li>
 </td>
 </tr>
 <tr>
-<th>Textarea</th><td>&nbsp;<textarea NAME=system_code wrap=soft rows=5 cols=30 WRAP>Text in a text area before we play with it
+<th>Textarea</th><td>&nbsp;<textarea NAME=system_code rows=5 cols=30 wrap=off>Text in a text area before we play with it
 12345678901234567890123456789012345678901234567890
 3
 4
@@ -73,7 +104,7 @@ for that one yet.  If you do, can you cc: me on it, thanks.</li>
 6
 7
 8
-9</textarea><BR>TEXTAREA ROWS=5 COLS=30 WRAP=SOFT</td>
+9</textarea><BR>TEXTAREA ROWS=5 COLS=30 WRAP=OFF</td>
 </tr>
 <tr>
 <th>Select</th><td>&nbsp;<select NAME=select_code>

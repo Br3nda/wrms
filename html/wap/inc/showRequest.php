@@ -42,10 +42,10 @@
       // Have to put '$id' onto the name of the fieldset otherwise the value gets cached!
       $request .= "<p align=\"center\">
 <fieldset title=\"Status$id\">
-Status: <select name=\"active\">
-<option value=\"0\"" . ($thisrequest->wap_status == 0 ? " selected" : "") . ">Inactive</option>
-<option value=\"1\"" . ($thisrequest->wap_status == 1 ? " selected" : "") . ">Active</option>
-<option value=\"2\"" . ($thisrequest->wap_status == 2 ? " selected" : "") . ">Complete</option>
+Status: <select name=\"active\" ivalue=\"$thisrequest->wap_status\">
+<option value=\"0\">Inactive</option>
+<option value=\"1\">Active</option>
+<option value=\"2\">Complete</option>
 </select>
 </fieldset>
 </p>";

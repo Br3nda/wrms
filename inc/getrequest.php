@@ -19,6 +19,8 @@
     $query .= " WHERE request.request_id = '$request_id'";
     $query .= " AND request.requester_id = usr.user_no ";
     $query .= " AND organisation.org_code = usr.org_code ";
+    if (! ($roles['wrms']['Admin'] || $roles['wrms']['Support']) )
+      $query .= " AND organisation.org_code = '$session->org_code' ";
     $query .= " AND status.source_table='request' AND status.source_field='status_code' AND status.lookup_code = request.last_status";
     $query .= " AND request_type.source_table='request' AND request_type.source_field='request_type' AND request.request_type = request_type.lookup_code";
     $query .= " AND urgency.source_table='request' AND urgency.source_field='urgency' AND int4(urgency.lookup_code)=request.urgency";
@@ -35,17 +37,18 @@
     $rows = pg_NumRows($rid);
     if ( ! $rows ) {
       /* We do a really basic query to make sure we actually get the request */
-      $query = "SELECT * FROM request WHERE request_id='$request_id' ";
-      $rid = pg_Exec( $wrms_db, $query);
-      if ( ! $rid ) {
-        $error_loc = "request-form.php";
-        $error_qry = "$query";
-        include("inc/error.php");
-      }
-      echo "<p>$query</p>";
+//      $query = "SELECT * FROM request WHERE request_id='$request_id' ";
+//      $rid = pg_Exec( $wrms_db, $query);
+//      if ( ! $rid ) {
+//        $error_loc = "request-form.php";
+//        $error_qry = "$query";
+//        include("inc/error.php");
+//      }
+//      echo "<p>$query</p>";
+      header("Location: $base_url");  /* Redirect browser to login page */
+      exit; /* Make sure that code below does not get executed when we redirect. */
     }
     $request = pg_Fetch_Object( $rid, 0 );
-
   }
 
   /* get the user's roles relative to the current request */

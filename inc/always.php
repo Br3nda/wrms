@@ -3,6 +3,7 @@
 
 // Always connect to the database...
 $wrms_db = pg_Connect("dbname=wrms user=general");
+pg_Exec( $wrms_db, "SET DATESTYLE TO 'Postgres';");
 
 $admin_email = "wrmsadmin@catalyst.net.nz";
 $basefont = "verdana,sans-serif";

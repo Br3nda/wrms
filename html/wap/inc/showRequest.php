@@ -23,6 +23,7 @@
       Request By: " . tidy($thisrequest->request_by) . "<br/>
       Severity Code: " . tidy($thisrequest->severity_code) . "<br/>
       Urgency: " . tidy($thisrequest->urgency);
+      $request .= "</small></p>";
 
       $title = $thisrequest->brief ;
 
@@ -37,7 +38,6 @@ Status: <select name=\"active\">
 </fieldset>
 </p>";
 
-      $request .= "</small></p>";
     }
   }
   else {

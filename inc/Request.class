@@ -520,13 +520,22 @@ class Request {
      if ( $ef->editmode || $q->rows )
        $html .= $ef->BreakLine("Attached Files");
      if ( $q->rows ) {
-       $html .= '<tr><td colspan="2"><table width="100%">'."\n";
-       $html .= '<tr><th class="pcol">File</th><th class="pcol">Description</th><th class="pcol">By</th><th class="pcol">On</th><th class="pcol">Type</th><th class="pcol">&nbsp;</th></tr>'."\n";
+       $html .= '<tr>';
+       $html .= '<td colspan="2"><table width="100%">'."\n";
+       $html .= '<tr><th class="pcol">File</th>';
+       $html .= '<th class="pcol">Description</th>';
+       $html .= '<th class="pcol">By</th>';
+       $html .= '<th class="pcol">On</th>';
+       $html .= '<th class="pcol">Type</th>';
+       if ( $ef->editmode ) $html .= '<th class="pcol">&nbsp;</th>';
+       $html .= '</tr>'."\n";
        $attachment_format = '<tr class="row%d"><td class="entry"><a href="/attachment.php/%s?id=%d">%s</a></td>';
-       $attachment_format .= '<td class="entry">%s</td><td class="entry" style="white-space: nowrap;">%s</td><td class="entry">%s</td><td class="entry">%s</td><td class="entry" width="2%%">%s</td></tr>'."\n";
+       $attachment_format .= '<td class="entry">%s</td><td class="entry" style="white-space: nowrap;">%s</td><td class="entry">%s</td><td class="entry">%s</td>';
+       $attachment_format .= ( $ef->editmode ? '<td class="entry" width="2%%">%s</td>' : '%s');
+       $attachment_format .= '</tr>'."\n";
        $delete_link_format = '<a href="/wr.php?request_id=%d&action=removeatt&attachment_id=%d&edit=1" title="Remove attachment from this request"><img src="'.$GLOBALS['images'].'/delete.png" border="none"></a>';
        while( $row = $q->Fetch() ) {
-         $delete_link = sprintf( $delete_link_format, $this->request_id, $row->attachment_id );
+         $delete_link = ( $ef->editmode ? sprintf( $delete_link_format, $this->request_id, $row->attachment_id ) : '');
          $html .= sprintf( $attachment_format, ($q->rownum % 2),
                     $row->att_filename, $row->attachment_id, $row->att_filename, $row->att_brief,
                     $row->fullname, $row->att_on, $row->type_desc, $delete_link
@@ -649,6 +658,8 @@ class Request {
      global $session;
      $html = "";
      $header_done = false;
+     $delete_link_format .= '<td class="entry" width="2%%"><a href="/wr.php?edit=1&request_id=%d&action=disassociate&other_id=%d" title="Break the association with this request"><img src="'.$GLOBALS['images'].'/delete.png" border="none"></a></td>';
+
      $sql = "SELECT parent.*, request_request.*, parent.request_id AS parent_id, ";
      $sql .= "lsd.lookup_desc AS last_status_desc, llt.lookup_desc AS link_type_desc ";
      $sql .= "FROM request_request ";
@@ -672,19 +683,20 @@ class Request {
        $html .= '<th class="pcol">Status</th>';
        $html .= '<th class="pcol">Link</th>';
        $html .= '<th class="pcol">This W/R</th>';
-       $html .= '<th class="pcol">&nbsp;</th></tr>'."\n";
+       if ( $ef->editmode ) $html .= '<th class="pcol">&nbsp;</th>';
+       $html .= '</tr>'."\n";
        $line_format = '<tr class="row%d"><td class="entry" width="5%%"><a href="/wr.php?request_id=%d">%s</a></td>';
        $line_format .= '<td class="entry"><a href="/wr.php?request_id=%d">%s</a></td>';
        $line_format .= '<td class="entry">%s</td>';
        $line_format .= '<td class="entry">%s</td>';
-       $line_format .= '<td class="entry">%s</td>';
-       $line_format .= '<td class="entry" width="2%%"><a href="/wr.php?request_id=%d&action=disassociate&other_id=%d" title="Break the association with this request"><img src="'.$GLOBALS['images'].'/delete.png" border="none"></a></td>';
+       $line_format .= '<td class="entry">%s</td>%s';
        $line_format .= '</tr>'."\n";
        while( $row = $q->Fetch() ) {
          if ( trim($row->brief) == '' ) $row->brief = substr($row->detailed,0,50) . "...";
+         $delete_link = ( $ef->editmode ? sprintf( $delete_link_format, $this->request_id, $row->parent_id) : '');
          $html .= sprintf( $line_format,
                     ($q->rownum % 2), $row->parent_id, $row->parent_id, $row->parent_id, $row->brief, $row->last_status_desc, $row->link_type_desc,
-                    $this->request_id, $this->request_id, $row->parent_id
+                    $this->request_id, $delete_link
                   );
        }
        $html .= '</table></td></tr>'."\n";
@@ -718,15 +730,14 @@ class Request {
        $line_format .= '<td class="entry">%s</td>';
        $line_format .= '<td class="entry"><a href="/wr.php?request_id=%d">%s</a></td>';
        $line_format .= '<td class="entry"><a href="/wr.php?request_id=%d">%s</a></td>';
-       $line_format .= '<td class="entry">%s</td>';
-       $line_format .= '<td class="entry" width="2%%"><a href="/wr.php?request_id=%d&action=disassociate&other_id=%d" title="Break the association with this request"><img src="'.$GLOBALS['images'].'/delete.png" border="none"></a></td>';
+       $line_format .= '<td class="entry">%s</td>%s';
        $line_format .= '</tr>'."\n";
        while( $row = $q->Fetch() ) {
          if ( trim($row->brief) == '' ) $row->brief = substr($row->detailed,0,50) . "...";
+         $delete_link = ( $ef->editmode ? sprintf( $delete_link_format, $this->request_id, $row->child_id) : '');
          $html .= sprintf( $line_format,
-                    ($q->rownum % 2), $this->request_id, $row->link_type_desc,
-                    $row->child_id, $row->child_id, $row->child_id, $row->brief, $row->last_status_desc,
-                    $this->request_id, $row->parent_id
+                    ($q->rownum % 2), $this->request_id, $row->link_type_desc, $row->child_id,
+                    $row->child_id, $row->child_id, $row->brief, $row->last_status_desc, $delete_link
                   );
        }
        $html .= '</table></td></tr>'."\n";
@@ -837,9 +848,9 @@ class Request {
        $line_format .= '<td class="entry" style="white-space: nowrap; text-align: right; ">%s %s</td>';
        $line_format .= '<td class="entry" style="white-space: nowrap; text-align: right; ">%s</td>';
        $line_format .= '<td class="entry" style="white-space: nowrap; text-align: right; ">%s</td>';
-       $line_format .= '<td class="entry" width="50%%">%s</td>';
-       $line_format .= '<td class="entry" width="2%%">%s</td></tr>'."\n";
-       $delete_link_format = '<a href="/wr.php?request_id=%d&action=removets&timesheet_id=%d&edit=1" title="Remove timesheet from this request"><img src="'.$GLOBALS['images'].'/delete.png" border="none"></a>';
+       $line_format .= '<td class="entry" width="50%%">%s</td>%s';
+       $line_format .= '</tr>'."\n";
+       $delete_link_format = '<td class="entry" width="2%%"><a href="/wr.php?request_id=%d&action=removets&timesheet_id=%d&edit=1" title="Remove timesheet from this request"><img src="'.$GLOBALS['images'].'/delete.png" border="none"></a></td>';
 
        $html .= '<tr><td colspan="2"><table width="100%">'."\n";
        $html .= '<tr><th class="pcol">Done By</th>';
@@ -848,13 +859,13 @@ class Request {
        $html .= '<th class="pcol">Rate</th>';
        $html .= '<th class="pcol">Cost</th>';
        $html .= '<th class="pcol">Description</th>';
-       $html .= '<th class="pcol">&nbsp;</th></tr>'."\n";
+       if ( $ef->editmode ) $html .= '<th class="pcol">&nbsp;</th>';
+       $html .= '</tr>'."\n";
      }
      if ( $q->rows ) {
        $total = 0;
        while( $row = $q->Fetch() ) {
-         $delete_link = sprintf( $delete_link_format,
-                    $this->request_id, $row->timesheet_id );
+         $delete_link = ( $ef->editmode ? sprintf( $delete_link_format, $this->request_id, $row->timesheet_id ) : '');
          $html .= sprintf( $line_format,
                     ($q->rownum % 2), $row->fullname, $row->work_on, $row->work_quantity, $row->work_units,
                     $row->work_rate, $row->work_quantity * $row->work_rate, $row->work_description, $delete_link

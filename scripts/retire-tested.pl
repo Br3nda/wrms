@@ -13,10 +13,7 @@ $mailprog = "sendmail -t";
 
 use Pg;
 $conn = Pg::connectdb("dbname=wrms");
-
-if ( $conn->status == PGRES_CONNECTION_BAD ) {
-  die "Couldn\'t connect to database!" ;
-}
+die "Couldn\'t connect to database!" if ( $conn->status == PGRES_CONNECTION_BAD );
 
 
 sub retire_request {
@@ -24,7 +21,7 @@ sub retire_request {
   $query = "SELECT fullname, email FROM request_interested, usr ";
   $query .= " WHERE request_interested.request_id = $request_id" ;
   $query .= " AND request_interested.user_no = usr.user_no";
-#  print "$query\n";
+  print "$query\n";
   $users = $conn->exec( $query );
   $status = $users->resultStatus;
   # print STDERR "$status \t$query\n";

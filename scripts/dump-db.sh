@@ -1,15 +1,18 @@
 #!/bin/bash
 DATABASE=wrms
-DUMPDIR=/tmp/wrms-dump
+DUMPDIR=${1:-/tmp/wrms-dump}
 
 if [ ! -e ${DUMPDIR} ]
 then
    mkdir -p ${DUMPDIR}
 elif [ ! -d ${DUMPDIR} ]
 then
-   rm -f ${DUMPDIR}
-   mkdir -p ${DUMPDIR}
+   echo "${DUMPDIR} already exists and is not a directory."
+   echo "dump-db.sh script aborted!"
+   exit 1
 fi
+
+echo "Dumping to directory: ${DUMPDIR}"
 
 rm ${DUMPDIR}/*.sql
 echo "Dumping schema"

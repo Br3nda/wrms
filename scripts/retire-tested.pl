@@ -1,12 +1,12 @@
 #!/usr/bin/perl 
 #
 #  This is a hack to retire requests which have been marked as 'testing'
-#  for more than 40 days.
+#  for more than X days.
 #
 
 # A few semi-constants...
 $retire_days = 35;
-$base_url = "http://wrms.cat-it.co.nz";
+$base_url = "http://wrms.catalyst.net.nz";
 $mailprog = "sendmail -t";
 # $mailprog = "pretendmail";
 

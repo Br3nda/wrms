@@ -17,16 +17,18 @@
     $request_types = get_code_list( "request", "request_type", "$request->request_type" );
     $sla_urgencies = get_code_list( "request", "sla_response", "$request->request_sla_code" );
 
-    if ( is_member_of('Admin', 'Support' ,'Manage') ) {
-      if ( is_member_of('Admin', 'Support')  ) {
+    if ( $sysmgr || is_member_of('Admin', 'Support' ,'Manage') ) {
+      if ( $sysmgr || is_member_of('Admin', 'Support')  ) {
         $user_list = "<option value=\"\">--- not selected ---</option>\n" . get_user_list( "", "", "" );
         $support_list = "<option value=\"\">--- not assigned ---</option>\n";
         $support_list .= get_user_list( "Support", "", $session->user_no );
       }
       else
         $user_list = get_user_list( "", $session->org_code, $session->user_no );
+      $quote_types = get_code_list( "request_quote", "quote_type", "Q" );
+      $quote_units = get_code_list( "request_quote", "quote_units", "hours" );
     }
-    if ( $allocated_to || $sysmgr || is_member_of('Support') ) {
+    else if ( $allocated_to ) {
       $quote_types = get_code_list( "request_quote", "quote_type", "Q" );
       $quote_units = get_code_list( "request_quote", "quote_units", "hours" );
     }

@@ -58,7 +58,7 @@
   $statusable = ($author || $sysmgr || $cltmgr || $allocated_to ) && ! $plain;
   $quotable = $statusable && ! $plain;
   $prioritisable = $statusable && ! $plain;
-  $editable = ($sysmgr || $allocated_to || ! $is_request );
+  $editable = ($sysmgr || $allocated_to || ! $is_request || is_member_of('Admin','Support') );
   if ( $editable ) $editable = ! $plain;
 
 //  error_log( "getrequest: plain=$plain, editable=$editable, statusable=$statusable, cltmgr=$cltmgr, sysmgr=$sysmgr, author=$author, allocated_to=$allocated_to, request_id=$request_id", 0);

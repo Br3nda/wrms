@@ -31,6 +31,14 @@
     $tooltip = "A comprehensive search facility for reporting on work requests";
     echo "<br>\n &nbsp;<a href=$base_url/requestlist.php?qs=complex class=block title=\"$tooltip\" alt=\"$tooltip\">Request&nbsp;Search</a>";
   }
+
+  if ( $PHP_SELF == "/request.php" && $request_id > 0 ) {
+    // $tooltip = "Show the current request in an editable view";
+    // echo  "<br>\n &nbsp;<a href=\"$base_url/request.php?request_id=$request_id\" class=block title=\"$tooltip\" alt=\"$tooltip\">Editable</a>";
+    $tooltip = "Show the current request in a printable view";
+    echo  "<br>\n &nbsp;<a href=\"$base_url/request.php?request_id=$request_id&style=plain\" target=_new class=block title=\"$tooltip\" alt=\"$tooltip\">Printable View</a>";
+  }
+
   if ( $roles[wrms][Admin] || $roles[wrms][Support] || $roles[wrms][Manage] ) {
     $tooltip = "Run this saved work request report";
     $query = "SELECT * FROM saved_queries WHERE user_no = '$session->user_no' ORDER BY query_name";
@@ -43,8 +51,14 @@
       }
     }
   }
+
+  echo "<br><img class=blocksep src=\"images/menuBreak.gif\" width=\"130\" height=\"9\">";
+  echo "<table border=0 width=100%><form method=get action=\"/request.php\"><tr><td align=right>";
+  echo "Go to: </td><td><input type=hidden value=\"$style\" name=style>";
+  echo "<input type=text size=7 value=\"$request_id\" name=request_id></td></tr></form></table>";
+
   if ( $roles[wrms][Admin] || $roles[wrms][Support] || $roles[wrms][Manage] ) {
-    echo "<br><img class=blocksep src=\"images/menuBreak.gif\" width=\"130\" height=\"9\">";
+    echo "<img class=blocksep src=\"images/menuBreak.gif\" width=\"130\" height=\"9\">";
     $tooltip = "Review and update details about your organisation.";
     echo "<br>\n &nbsp;<a href=\"$base_url/form.php?form=organisation&org_code=$session->org_code\" class=block title=\"$tooltip\" alt=\"$tooltip\">My&nbsp;Organisation</a>";
     $tooltip = "List the WRMS users for your organisation.";

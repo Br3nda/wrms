@@ -338,6 +338,8 @@ function dates_equal( $date1, $date2 ) {
       $query = "SELECT NEXTVAL('request_quote_quote_id_seq');";
       $rid = awm_pgexec( $wrms_db, $query, "req-action", true, 7 );
       if ( ! $rid ) {
+        $because .= "<H3 class=error>New Quote Failed!</H3>\n";
+        $because .= "<p class=error>Database error</p>\n";
         return;
       }
       $new_quote_id = pg_Result( $rid, 0, 0);
@@ -349,9 +351,8 @@ function dates_equal( $date1, $date2 ) {
       $query .= "VALUES( $new_quote_id, '$session->username', '$new_quote_brief', '$new_quote_details', '$new_quote_type', '$new_quote_amount', '$new_quote_unit', $request_id, $session->user_no )";
       $rid = awm_pgexec( $wrms_db, $query, "req-action" );
       if ( ! $rid ) {
-        $because .= "<H3>New Quote Failed!</H3>\n";
-        $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
-        $because .= "<P>The failed query was:</P><TT>$query</TT>";
+        $because .= "<H3 class=error>New Quote Failed!</H3>\n";
+        $because .= "<p class=error>There was a database error.</p>";
         awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
         return;
       }
@@ -390,7 +391,7 @@ function dates_equal( $date1, $date2 ) {
         return;
       }
       move_uploaded_file($HTTP_POST_FILES['new_attachment_file']['tmp_name'], "attachments/$attachment_id");
-      if ( $rid ) $because .= "<h3>File attachment \"$attachment->att_filename\" added to this request</h3>";
+      if ( $rid ) $because .= "<h3>File attachment \"$att_name\" added to this request</h3>";
     }
 
     if ( $work_added ) {
@@ -493,7 +494,7 @@ function dates_equal( $date1, $date2 ) {
     $because .="<p>Details of the changes, along with future notes and status updates will be e-mailed to the following addresses:<br>";
     $because .= htmlentities($send_to) . "</p>";
 
-    $msub = "WR #$request_id [$session->username] $chtype" . "d: " . stripslashes($request->brief);
+    $msub = "WR #$request_id [$request->system_code/$session->username] $chtype" . "d: " . stripslashes($request->brief);
     $msg = "Request No.:  $request_id\n"
          . "Overview:     $request->brief\n";
 
@@ -536,6 +537,8 @@ function dates_equal( $date1, $date2 ) {
     if ( $allocation_added && isset($alloc) )
       $msg .= "Work Allocated:    $alloc->fullname has been allocated to work on this request.\n";
 
+    if ( $attachment_added && isset($attachment) )
+      $msg .= "File \"$att_name\" attached: $new_attach_brief\n";
 
     if ( $chtype == "change" && $detail_changed ) {
       $msg .= "\nPrevious Description:\n"

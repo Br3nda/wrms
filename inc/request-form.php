@@ -85,7 +85,7 @@
     echo "<TD ALIGN=CENTER>";
     if ( $editable ) {
       echo "<LABEL><INPUT TYPE=\"checkbox\" NAME=\"new_active\" VALUE=\"TRUE\"";
-      if ( $request->active == "TRUE" ) echo " CHECKED";
+      if ( strtolower( substr( $request->active, 0, 1)) == "t" ) echo " CHECKED";
         echo ">&nbsp;Active</LABEL>";
     }
     else if ( $request->active == "TRUE" ) echo "Active";
@@ -303,8 +303,9 @@
       if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
       else echo "<tr bgcolor=$colors[7]>";
       echo "<th>&nbsp;</th><TD>$work->fullname</TD>\n";
-      echo "<TD align=center>" . substr( nice_date($work->work_on), 8) . "</TD>\n";
+      echo "<TD align=center>" . substr( nice_date($work->work_on), 7) . "</TD>\n";
       echo "<TD ALIGN=RIGHT>" . sprintf( "%.2f", round(($work->seconds / 900) + 0.4 ) / 4) . " &nbsp; &nbsp; </TD>\n";
+      echo "<TD ALIGN=RIGHT>$work->work_rate &nbsp; &nbsp; </TD>\n";
       echo "<TD>$work->work_description</TD></TR>\n";
     }
 

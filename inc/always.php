@@ -12,15 +12,15 @@ $base_dns = "http://$HTTP_HOST";
 $base_url = "";
 $base_dir = "/var/www/wrms.catalyst.net.nz";
 $module = "base";
-$colors = array( "#ccb8a1", // primary background
+$colors = array( "#ccbea1", // primary background
 		 "#ffffff", // secondary background (behind menus)
 		 "#302080", // text on primary background
 		 "#802050", // text on secondary background
 		 "#5e486f", // text on links
 		 "#886c50", // tertiary background, column headings
-		 "#e4d6c2", // dark rows in listings
-		 "#f4e8d6", // light rows in listings
-		 "#106020", // Form headings
+		 "#e4ddc2", // dark rows in listings
+		 "#f4f0dc", // light rows in listings
+		 "#583818", // Form headings
 		 "#e8f4d0", // Mandatory forms
 		 "#50a070" );
 

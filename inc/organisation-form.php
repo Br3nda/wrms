@@ -62,10 +62,12 @@ with them.</P><?php
 ?>
 <TR><TH ALIGN=RIGHT>Name:</TH>
 <TD><input type=text size=50 maxlen=50 name=org_name value="<?php echo "$org->org_name"; ?>"></TD></TR>
-<TR><TH ALIGN=RIGHT>Debtor #:</TH>
-<TD><input type=text name=debtor_no value="<?php echo "$org->debtor_no"; ?>"></TD></TR>
 <TR><TH ALIGN=RIGHT>Active:</TH>
 <TD><input type=checkbox value="t" name=active<?php if ( "$org->active" == "t" ) echo " checked"; ?>></TD></TR>
+<TR><TH ALIGN=RIGHT>Debtor #:</TH>
+<TD><input type=text size=5 name=debtor_no value="<?php echo "$org->debtor_no"; ?>"></TD></TR>
+<TR><TH ALIGN=RIGHT>Hourly&nbsp;Rate:</TH>
+<TD><input type=text size=5 name=work_rate value="<?php echo "$org->work_rate"; ?>"></TD></TR>
 
 <?php
   if ( $roles[wrms][Admin] && pg_NumRows($sys_res) > 0 ) {

@@ -78,7 +78,7 @@
     $note_added = ($new_note != "");
     $quote_added = ($new_quote_brief != "") && ($new_quote_amount != "");
     $work_added = ($new_work_on != "") && ($new_work_quantity != "") && ($new_work_details != "") && ($new_work_rate != "") ;
-    $status_changed = ($request->last_status != $new_status );
+    $status_changed = isset($new_status) && ($request->last_status != $new_status );
     $old_eta = substr( nice_date($request->eta), 7);
     $eta_changed = (("$old_eta" != "$new_eta") && ( "$new_eta" != ""));
     $changes =  (isset($new_brief) && $request->brief != $new_brief)
@@ -89,7 +89,6 @@
              || (isset($new_importance) && $request->importance != $new_importance )
              || (isset($new_system_code) && $request->system_code != $new_system_code )
              || (isset($new_active) && $request->active != $new_active )
-             || (isset($new_status) && $request->last_status != $new_status )
              || $eta_changed || $status_changed || $note_added || $quote_added;
     $send_some_mail = $changes;
     $changes = $changes || $work_added;
@@ -101,8 +100,7 @@
              . (isset($new_urgency) && $request->urgency != $new_urgency ) . "-"
              . (isset($new_importance) && $request->importance != $new_importance ) . "+"
              . (isset($new_system_code) && $request->system_code != $new_system_code ) . "-"
-             . (isset($new_active) && $request->active != $new_active ) . "+"
-             . (isset($new_status) && $request->last_status != $new_status ) . "-"
+             . (isset($new_active) && $request->active != $new_active ) . "+  also  -"
              . $eta_changed . "+" . $status_changed . "-" . $note_added . "+"
              . $quote_added . "-" . $work_added . "+"
              . "---$request->request_type != $new_type</p>" ;

@@ -1,0 +1,13 @@
+#
+# Virtual Host def for WRMS on kant (Andrew's laptop)
+<VirtualHost 192.168.2.86 127.0.0.1 >
+  DocumentRoot /home/andrew/wrms/html
+  DirectoryIndex index.php index.html
+  ServerName mywrms
+  ServerAlias mywrms mywrms.laptop.cat-it.co.nz
+  ServerAlias mywrms mywrms.wgtn.cat-it.co.nz
+  php_value include_path /home/andrew/wrms/inc
+  php_value magic_quotes_gpc 0
+</VirtualHost>
+
+

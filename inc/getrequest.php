@@ -48,8 +48,8 @@
 //        $error_qry = "$query";
 //        include("inc/error.php");
 //      }
-//      echo "<p>$query</p>";
-      header("Location: $base_url");  /* Redirect browser to login page */
+      echo "<p>No records for: $query</p>";
+      // header("Location: $base_url");  /* Redirect browser to login page */
       exit; /* Make sure that code below does not get executed when we redirect. */
     }
     $request = pg_Fetch_Object( $rid, 0 );

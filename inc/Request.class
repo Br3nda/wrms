@@ -9,7 +9,7 @@ class Request {
    var $new_record;
 
    function Request( $id = 0 ) {
-     global $session;
+     global $session, $tmnu;
      if ( !$session->logged_in ) return false;
      $loaded = false;
      $id = intval("$id");
@@ -46,6 +46,9 @@ class Request {
              }
              $this->{$k} = $v;
            }
+           $tmnu->AddOption("Organisation","/org.php?org_code=$this->org_code&request_id=$id","View the details for this organisation");
+           $tmnu->AddOption("System","/system.php?system_code=$this->system_code&request_id=$id","View the details for this system");
+           $tmnu->AddOption("User","/usr.php?user_no=$this->user_no&request_id=$id","View the details for the requesting user");
          }
        }
      }
@@ -447,12 +450,15 @@ class Request {
        $html .= $ef->BreakLine("Work Allocated To");
      if ( $q->rows ) {
        $html .= '<tr><th class="prompt">&nbsp;</th><td class="entry" style="vertical-align: middle;">'."\n";
-       $attachment_format = '<a href="/usr.php/user_no=%d">%s</a>';
-       $attachment_format .= '<a href="/wr.php/request_id=%d&deallocate=%d"><img src="'.$GLOBALS['images'].'/delete.png" border="none"></a>&nbsp;'."\n";
+       $line_format = '<a href="/usr.php?user_no=%d">%s</a>';
+       if ( $ef->editmode ) {
+         $line_format .= '<a href="/wr.php?request_id=%d&action=deallocate&user_no=%d&edit=1" title="Deallocate %s from this request"><img src="'.$GLOBALS['images'].'/delete.png" border="none"></a>';
+       }
+       $line_format .= "&nbsp; &nbsp;\n";
        while( $row = $q->Fetch() ) {
-         $html .= sprintf( $attachment_format,
+         $html .= sprintf( $line_format,
                     $row->allocated_to_id, $row->fullname,
-                    $this->request_id, $row->allocated_to_id
+                    $this->request_id, $row->allocated_to_id, $row->fullname
                   );
        }
        $html .= '</td></tr>'."\n";
@@ -586,12 +592,15 @@ class Request {
        $html .= $ef->BreakLine("Interested Users");
      if ( $q->rows ) {
        $html .= '<tr><th class="prompt">&nbsp;</th><td class="entry" style="vertical-align: middle;">'."\n";
-       $line_format = '<a href="/usr.php/user_no=%d">%s</a>';
-       $line_format .= '<a href="/wr.php/request_id=%d&unsubscribe=%d"><img src="'.$GLOBALS['images'].'/delete.png" border="none"></a>&nbsp;'."\n";
+       $line_format = '<a href="/usr.php?user_no=%d">%s</a>';
+       if ( $ef->editmode ) {
+         $line_format .= '<a href="/wr.php?request_id=%d&action=unsubscribe&user_no=%d&edit=1" title="Unsubscribe %s from this request"><img src="'.$GLOBALS['images'].'/delete.png" border="none"></a>';
+       }
+       $line_format .= "&nbsp; &nbsp;\n";
        while( $row = $q->Fetch() ) {
          $html .= sprintf( $line_format,
                     $row->user_no, $row->fullname,
-                    $this->request_id, $row->user_no
+                    $this->request_id, $row->user_no, $row->fullname
                   );
        }
        $html .= '</td></tr>'."\n";
@@ -616,7 +625,7 @@ class Request {
                        "onClick" => "return AllocateSelected(document.forms.form.subscribable,'new_subscriptions[]');" ) );
 
        $html .= $ef->DataEntryField( "", "select", "new_subscriptions[]",
-                 array("title" => "Unselect the person to not them to this W/R",
+                 array("title" => "Unselect the person to not subscribe them to this W/R",
                        "style" => "width: 20em;", "multiple"  => "true", "size" => 1 ) );
        $html .= '</td></tr>'."\n";
      }
@@ -649,7 +658,7 @@ class Request {
        $line_format .= '<td class="entry">%s</td></tr>'."\n";
        while( $row = $q->Fetch() ) {
          $html .= sprintf( $line_format,
-                    ($q->rownum % 2), $row->note_by, $row->noted_on, $row->note_detail
+                    ($q->rownum % 2), $row->note_by, $row->noted_on, html_format($row->note_detail)
                   );
        }
        $html .= '</table></td></tr>'."\n";
@@ -666,7 +675,7 @@ class Request {
 
        $html .= '<td class="entry">';
        $html .= $ef->DataEntryField( "", "checkbox", "convert_html",
-                 array("title" => "Process HTML as text, so that the HTML is not displayed inline" ) );
+                 array("title" => "Process HTML as text, so that the HTML is not inlined, and the HTML codes will be visible" ) );
        $html .= 'Convert HTML</td></table>';
 
      }
@@ -732,6 +741,9 @@ class Request {
      global $client_messages;
      error_log("$system_name: vpw: ERROR: Not validating request");
      $client_messages[] = "WARNING: Not validating request details yet.";
+
+     // If we validated OK, make sure the request.last_status is synced with any submitted status.
+     $_POST['last_status'] = $_POST['status_code'];
      return true;
    }
 
@@ -773,6 +785,10 @@ class Request {
        $db_errors = ! $this->AddQuote();
      }
 
+     if ( !$db_errors && trim($_POST['work_description']) != "" ) {
+       $db_errors = ! $this->AddWork();
+     }
+
      if ( !$db_errors && intval(trim($_POST['parent_request_id'])) > 0 ) {
        $db_errors = ! $this->AddParent();
      }
@@ -783,6 +799,14 @@ class Request {
 
      if ( !$db_errors && isset($_POST['new_subscriptions']) ) {
        $db_errors = ! $this->NewSubscriptions();
+     }
+
+     if ( !$db_errors && isset($_POST['status_code']) && $_POST['status_code'] != $this->last_status ) {
+       $db_errors = ! $this->NewStatusCode();
+     }
+
+     if ( !$db_errors && isset($_POST['note_detail']) && trim($_POST['note_detail']) != "" ) {
+       $db_errors = ! $this->AddNote();
      }
 
      $qry = new PgQuery( ( $db_errors ? "ROLLBACK;" : "COMMIT;") );  $qry->Exec("WR::Write");
@@ -856,7 +880,34 @@ class Request {
        $client_messages[] = "$qry->errorstring";
        return false;
      }
-     $client_messages[] = "Quote added to this request</h3>";
+     $client_messages[] = "Quote added to this request";
+     return true;
+   }
+
+   /////////////////////////////////////////////////////////////
+   /////////////////////////////////////////////////////////////
+   function AddWork( ) {
+     global $session, $client_messages;
+     error_log( "$sysabbr Request::AddWork: DBG: Adding work: " . $_POST['work_description'], 0);
+     $sql = "SELECT nextval('request_timesheet_timesheet_id_seq') AS id ;";
+     $qry = new PgQuery( $sql );
+     if ( ! $qry->Exec('WR::AddWork') ) {
+       $client_messages[] = "$qry->errorstring";
+       return false;
+     }
+     $row = $qry->Fetch();
+     $id = $row->id;
+
+     $sql = "INSERT INTO request_timesheet ( timesheet_id, request_id, work_by_id, ";
+     $sql .= "work_on, work_quantity, work_units, work_rate, work_description ) ";
+     $sql .= "VALUES( ?, ?, ?, ?, ?, ?, ?, ? );";
+     $qry = new PgQuery( $sql, $id, $this->request_id, $session->user_no,
+                         $_POST['work_on'], $_POST['work_quantity'], $_POST['work_units'], $_POST['work_rate'], $_POST['work_description'] ) ;
+     if ( ! $qry->Exec('WR::AddWork') ) {
+       $client_messages[] = "$qry->errorstring";
+       return false;
+     }
+     $client_messages[] = "Work added to this request";
      return true;
    }
 
@@ -873,7 +924,7 @@ class Request {
        $client_messages[] = "$qry->errorstring";
        return false;
      }
-     $client_messages[] = "W/R linked to this request</h3>";
+     $client_messages[] = "W/R linked to this request";
      return true;
    }
 
@@ -920,6 +971,47 @@ class Request {
      $client_messages[] = sprintf("Request subscription added for %d people.", count($_POST['new_subscriptions']));
      return true;
    }
+
+   /////////////////////////////////////////////////////////////
+   /////////////////////////////////////////////////////////////
+   function NewStatusCode( ) {
+     global $session, $client_messages;
+     error_log( "$sysabbr Request::NewStatusCode: DBG: Status changed from '$this->last_status' to '" . $_POST['status_code']."'", 0);
+
+     $sql = "INSERT INTO request_status ( request_id, status_on, status_by_id, status_code ) ";
+     $sql .= "VALUES( ?, current_timestamp, ?, ? );";
+     $qry = new PgQuery( $sql, $this->request_id, $session->user_no, $_POST['status_code'] ) ;
+     if ( ! $qry->Exec('WR::NewStatusCode') ) {
+       $client_messages[] = "$qry->errorstring";
+       return false;
+     }
+     $client_messages[] = "Status changed from '$this->last_status' to '".$_POST['status_code']."'";
+     $_POST['last_status'] = $_POST['status_code'];
+     return true;
+   }
+
+   /////////////////////////////////////////////////////////////
+   /////////////////////////////////////////////////////////////
+   function AddNote( ) {
+     global $session, $client_messages;
+     error_log( "$sysabbr Request::AddNote: DBG: Note added to request", 0);
+
+     $note_detail = str_replace( "'", "''", str_replace( '\\', '\\\\', $_POST['note_detail'] ));
+     if ( isset($_POST['convert_html']) && $_POST['convert_html'] != '' ) {
+       $note_detail = htmlspecialchars($note_detail);
+     }
+
+     $sql = "INSERT INTO request_note ( request_id, note_on, note_by_id, note_detail ) ";
+     $sql .= "VALUES( ?, current_timestamp, ?, ? );";
+     $qry = new PgQuery( $sql, $this->request_id, $session->user_no, $note_detail ) ;
+     if ( ! $qry->Exec('WR::NewStatusCode') ) {
+       $client_messages[] = "$qry->errorstring";
+       return false;
+     }
+     $client_messages[] = "Note added to request";
+     return true;
+   }
+
 }
 
 ?>

@@ -28,22 +28,19 @@ if ( !isset($session) ) {
   }
 }
 
-if ( ! function_exists('salted_md5') ) {
-  function salted_md5( $instr, $salt = "" ) {
-    if ( $salt == "" ) $salt = substr( md5(rand(100000,999999)), 2, 8);
-    return ( "*$salt*" . md5($salt . $instr) );
-  }
+function session_salted_md5( $instr, $salt = "" ) {
+  if ( $salt == "" ) $salt = substr( md5(rand(100000,999999)), 2, 8);
+  return ( "*$salt*" . md5($salt . $instr) );
 }
 
-if ( ! function_exists('validate_password') ) {
-function validate_password( $they_sent, $we_have ) {
+function session_validate_password( $they_sent, $we_have ) {
   global $system_name, $debuggroups;
 
   // In some cases they send us a salted md5 of the password, rather
   // than the password itself (i.e. if it is in a cookie)
   $pwcompare = $we_have;
   if ( ereg('^\*(.+)\*.+$', $they_sent, $regs ) ) {
-    $pwcompare = salted_md5( $we_have, $regs[1] );
+    $pwcompare = session_salted_md5( $we_have, $regs[1] );
     if ( $they_sent == $pwcompare ) return true;
   }
 
@@ -56,7 +53,7 @@ function validate_password( $they_sent, $we_have ) {
   if ( ereg('^\*(.+)\*.+$', $we_have, $regs ) ) {
     // A nicely salted md5sum like "*<salt>*<salted_md5>"
     $salt = $regs[1];
-    $md5_sent = salted_md5( $they_sent, $salt ) ;
+    $md5_sent = session_salted_md5( $they_sent, $salt ) ;
     if ( $debuggroups['Login'] )
       error_log( "$system_name: vpw: DBG: Salt=$salt, comparing=$md5_sent with $pwcompare" );
     return ( $md5_sent == $pwcompare );
@@ -68,7 +65,6 @@ function validate_password( $they_sent, $we_have ) {
   // Otherwise they just have a plain text string, which we
   // compare directly, but case-insensitively
   return ( $they_sent == $pwcompare || strtolower($they_sent) == strtolower($we_have) );
-}
 }
 
 class Session
@@ -178,7 +174,7 @@ class Session
     $qry = new PgQuery( $sql, strtolower($username), md5($password), $password );
     if ( $qry->Exec('Login') && $qry->rows == 1 ) {
       $usr = $qry->Fetch();
-      if ( validate_password( $password, $usr->password ) ) {
+      if ( session_validate_password( $password, $usr->password ) ) {
         // Now get the next session ID to create one from...
         $qry = new PgQuery( "SELECT nextval('session_session_id_seq')" );
         if ( $qry->Exec('Login') && $qry->rows == 1 ) {

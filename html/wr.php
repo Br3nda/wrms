@@ -29,6 +29,9 @@ if ( $M != "LC" && $wr->AllowedTo("update") && isset($_POST['submit']) ) {
     $wr = new Request($request_id);
   }
 }
+elseif ( $M != "LC" && isset($action) ) {
+  $wr->Actions($wrf);
+}
 
   include("headers.php");
   echo '<script language="JavaScript" src="/js/request.js"></script>' . "\n";

@@ -4,7 +4,7 @@
 SITE=$1
 DUMPDIR=/tmp/wrms-dump
 
-[ "$SITE" == "" ] && SITE=wrms@levy.catalyst.net.nz
+[ "$SITE" == "" ] && SITE=andrew@dewey
 
 if [ ! -e ~/wrms/scripts/dump ]
 then
@@ -18,9 +18,13 @@ fi
 
 if [ "${SITE}" != "nofetch" ] ; then
   echo "Grabbing latest version off $SITE"
-  ssh $SITE "cd ~/wrms/scripts; ./dump-db.sh $DUMPDIR; cd $DUMPDIR; tar cvfz ~/wrms-tables.tgz t-*.sql"
-  scp $SITE:wrms-tables.tgz ~/wrms/scripts/dump
-  ssh $SITE "rm wrms-tables.tgz; rm -r $DUMPDIR"
+  nssh $SITE ~/wrms/scripts/dump-db.sh
+  nssh plato "scp $SITE:wrms-tables.tgz ."
+  nssh plato "scp wrms-tables.tgz socrates:"
+  scp socrates:wrms-tables.tgz ~/wrms/scripts/dump
+  ssh socrates rm wrms-tables.tgz
+  nssh plato rm wrms-tables.tgz
+  nssh $SITE "rm wrms-tables.tgz; rm -r $DUMPDIR"
 else
   echo "Using previous dump"
 fi

@@ -220,11 +220,16 @@ function AllocateSelected(select_from, append_fname) {
   else {
     append_to.value += "," + sel_id;
   }
+  j = select_from.selectedIndex;
   i = append_to.options.length;
-  append_to.options[i] = select_from.options[select_from.selectedIndex];
+  append_to.options[i] = select_from.options[j];
   append_to.options[i].selected = true;
   append_to.size = i + 1;
-  select_from.options[select_from.selectedIndex] = null;
+  // alert( select_from.options[j].value );
+//  select_from.options[j] = null;
+  if ( j < select_from.options.length ) {
+    select_from.options[j].selected = true;
+  }
 }
 
 function UnallocateSelected(remove_from, display_to) {

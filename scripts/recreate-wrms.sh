@@ -5,6 +5,7 @@
 DATABASE=${1:-wrms}
 
 echo " Destroying old database..."
+sudo pkill -f 'postgres: .* idle'
 dropdb $DATABASE
 echo " Creating new database..."
 createdb --encoding "SQL_ASCII" $DATABASE

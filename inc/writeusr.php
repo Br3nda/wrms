@@ -50,7 +50,7 @@
         $query .= " '$UserPhone', '$UserMobile', '$UserNotifications', '$UserStatus', 'now' ";
         if ( $UserPassword <> "      " ) $query .= ", '" . salted_md5($UserPassword) . "' ";
         if ( is_object ( $usr->settings ) ) $query .= ", '" . $usr->settings->to_save() . "'";
-	    $query .= " ) ";
+      $query .= " ) ";
       }
       else {
         $query = "UPDATE usr SET email='$UserEmail', fullname='$UserFullName', ";
@@ -77,7 +77,9 @@
 
       // Roles
       if ( isset($NewUserRole) && is_array($NewUserRole) ) {
-        $query = "DELETE FROM group_member WHERE user_no=$user_no;";
+        // Delete groups from the target person that the maintaining user has access to
+        $query = "DELETE FROM group_member WHERE user_no=$user_no ";
+        $query .= "AND group_no IN (SELECT group_no FROM group_member WHERE user_no = $session->user_no);";
         $result = awm_pgexec( $dbconn, $query, "writeusr" );
 
         while ( is_array($NewUserRole) && list($k1, $val) = each($NewUserRole)) {
@@ -87,17 +89,11 @@
             while ( list($k2, $val2) = each($val) ) {
               $query = "INSERT INTO group_member (user_no, group_no) SELECT $user_no AS user_no, group_no FROM ugroup";
               $query .= " WHERE module_name='$k1' ";
-              $query .= " AND group_name='$k2'; ";
+              $query .= " AND group_name='$k2' ";
+              // Only insert groups to the target person that the maintaining user has access to
+              $query .= " AND group_no IN (SELECT group_no FROM group_member WHERE user_no = $session->user_no);";
               $result = awm_pgexec( $dbconn, $query );
             }
-          }
-          else {
-            /* This should work with PHP3 */
-            list($k2, $val2) = split("\]\[", $k1) ;
-            $query = "INSERT INTO group_member (user_no, group_no) SELECT $user_no AS user_no, group_no FROM ugroup";
-            $query .= " WHERE module_name='$k2' ";
-            $query .= " AND group_name='$val2'; ";
-            $result = awm_pgexec( $dbconn, $query );
           }
         }
         reset($NewUserRole);

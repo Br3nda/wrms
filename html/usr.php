@@ -215,7 +215,7 @@ if (isset($user_no) && $user_no > 0 ) echo "      ";
       echo " Add User ";
     echo "\"></b></td>\n</tr></table></form>";
   } // end of "else 'there was no error' way up there.
-  } Do we need another?
+  } // Do we need another?
 ?>
 </body> 
 </html>

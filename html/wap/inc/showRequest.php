@@ -40,10 +40,9 @@
       $title = $thisrequest->brief ;
 
       // Have to put '$id' onto the name of the fieldset otherwise the value gets cached!
-      $request .= "<setvar name=\"active\" value=\"$thisrequest->wap_status\">
-<p align=\"center\">
+      $request .= "<p align=\"center\">
 <fieldset title=\"Status\">
-Status: <select name=\"active\">
+Status: <select name=\"active\" value=\"$thisrequest->wap_status\">
 <option value=\"0\">Inactive</option>
 <option value=\"1\">Active</option>
 <option value=\"2\">Complete</option>

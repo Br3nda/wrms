@@ -77,9 +77,10 @@ CREATE TABLE request (
   requested_by_date TIMESTAMP,
   agreed_due_date TIMESTAMP,
   request_by TEXT,
-  brief TEXT,
+  brief TEXT,                  
   detailed TEXT,
-  system_code TEXT
+  system_code TEXT,
+  entered_by INT4
 ) ;
 CREATE INDEX xak0_request ON request ( active, request_id );
 CREATE INDEX xak1_request ON request ( active, severity_code );
@@ -215,9 +216,9 @@ CREATE TABLE request_request (
 CREATE INDEX request_request_sk1 ON request_request ( to_request_id );
 
 
-CREATE TABLE request_history (
-  modified_on TIMESTAMP DEFAULT current_timestamp
-) INHERITS (request );
+CREATE TABLE request_history
+  AS SELECT *, current_timestamp AS modified_on FROM request WHERE request_id != request_id;
+ALTER TABLE request_history ALTER COLUMN modified_on SET DEFAULT current_timestamp;
 CREATE INDEX xpk_request_history ON request_history ( request_id, modified_on );
 
 
@@ -320,6 +321,9 @@ CREATE TABLE saved_queries (
     query_type TEXT,
     query_sql TEXT,
     query_params TEXT,
+    maxresults INT,
+    rlsort TEXT,
+    rlseq TEXT,
     PRIMARY KEY (user_no, query_name)
 );
 

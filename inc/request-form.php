@@ -9,13 +9,13 @@
                  || ( !$is_request && ($session->current_sla == 't' || is_member_of('Admin', 'Support' ) ) ) ;
   $attach_types = get_code_list( "request", "attach_type", "" );
 
+  $urgencies = get_code_list( "request", "urgency", "$request->urgency" );
+  $importances = get_code_list( "request", "importance", "$request->importance" );
   if ( $editable ) {
     /* if it's editable then we'll need severity and request_type lists for drop-downs */
     $severities = get_code_list( "request", "severity_code", "$request->severity_code" );
     $request_types = get_code_list( "request", "request_type", "$request->request_type" );
     $sla_urgencies = get_code_list( "request", "sla_response", "$request->request_sla_code" );
-    $urgencies = get_code_list( "request", "urgency", "$request->urgency" );
-    $importances = get_code_list( "request", "importance", "$request->importance" );
 
     if ( is_member_of('Admin', 'Support' ,'Manage') ) {
       if ( is_member_of('Admin', 'Support')  ) {
@@ -165,7 +165,7 @@
   }
   printf( "<td align=left%s>",  ($is_request ?  "" : " colspan=2"));
   if ( is_member_of('Admin', 'Support', 'Manage')  ) {
-    if ( $editable ) {
+    if ( $editable || $prioritisable ) {
       echo "<select class=sml name=\"new_urgency\">$urgencies</select>";
       if ( !$is_request || $use_sla ) {
         echo " <b>OR</b> ";
@@ -180,7 +180,7 @@
     echo "</td></tr>\n";
   }
   else {
-    if ( $editable ) {
+    if ( $editable || $prioritisable  ) {
       printf( "<SELECT class=sml name=\"new_%s\">$urgencies</SELECT>", ($use_sla ? "sla_code" : "urgency"));
       if ( $session->current_sla ) {
         echo " <b>OR</b> ";
@@ -201,7 +201,7 @@
     printf( "<td align=center>%s</td>\n", ("" == "$request->agreed_due_date" ? $request->requested_by_date : $request->agreed_due_date) );
   }
   printf( "<td align=left%s><b class=smb>Requested:</b>",  ($is_request ?  "" : " colspan=2"));
-  if ( $editable ) {
+  if ( $editable || $prioritisable  ) {
     echo "<input class=sml name=\"new_requested_by_date\" value=\"$request->requested_by_date\" size=10>";
   }
   else if ( ! $is_request || "$request->requested_by_date" == "" )
@@ -212,7 +212,7 @@
 
   // ---------------Agreed Due By -------------------
   echo "<b class=smb>Agreed:</b>";
-  if ( is_member_of('Admin', 'Support') && $editable ) {
+  if ( is_member_of('Admin', 'Support', 'Manage') && ( $editable || $prioritisable ) ) {
     echo "<input class=sml name=\"new_agreed_due_date\" value=\"$request->agreed_due_date\" size=10>";
   }
   else if ( $is_request && "$request->agreed_due_date" == "" )
@@ -226,7 +226,7 @@
   echo "<tr><th class=rows align=right>Importance:</th>\n";
   if ( $is_request ) echo "<TD ALIGN=CENTER>&nbsp;</TD>\n";
   printf( "<td align=left%s>",  ($is_request ?  "" : " colspan=2"));
-  if ( $editable )
+  if ( $editable || $prioritisable  )
     echo "<SELECT class=sml NAME=\"new_importance\">$importances</SELECT>";
   else
     echo "$request->importance_desc";
@@ -242,7 +242,7 @@
   echo "</td></tr>\n";
 
   // ----------------- NOTIFY (for normal users) -----------------
-  if ( ! $is_request || is_member_of('Admin', 'Support', 'Manage') ) {
+  if ( ! $plain && ( ! $is_request || is_member_of('Admin', 'Support', 'Manage') ) ) {
     echo "<tr><th class=rows align=right>Notify:</th>\n";
     echo "<td colspan=2><label><input type=checkbox name=\"in_notify\" value=1 checked>&nbsp;Keep me updated on the status of this request.</label></td></tr>\n";
   }
@@ -608,6 +608,9 @@
         echo substr( nice_date( $request->eta ), 7);
         if ( $sysmgr || $allocated_to ) echo "\">";
         echo "</td>";
+      }
+      else {
+        echo "<th class=rows align=right colspan=2>&nbsp;</th>";
       }
       echo "</tr>\n";
     }

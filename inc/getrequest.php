@@ -55,8 +55,9 @@
   /* Current request is editable if the user requested it or user is sysmgr, cltmgr or allocated the job */
   if ( ! isset($style) ) $style = "";
   if ( ! isset($plain) && isset($style) ) $plain = ("$style" == "plain");
-  $statusable = ($author || $sysmgr || $cltmgr || $allocated_to );
-  $quotable = $statusable;
+  $statusable = ($author || $sysmgr || $cltmgr || $allocated_to ) && ! $plain;
+  $quotable = $statusable && ! $plain;
+  $prioritisable = $statusable && ! $plain;
   $editable = ($sysmgr || $allocated_to || ! $is_request );
   if ( $editable ) $editable = ! $plain;
 

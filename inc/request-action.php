@@ -155,8 +155,10 @@ function dates_equal( $date1, $date2 ) {
     if ( ! $rid  ) {
       return;
     }
-    else if (!pg_NumRows($rid) )
-      $because .= "<P><B>Warning: </B> No system maintenance manager for '$new_system_code'</P>";
+    else if (!pg_NumRows($rid) ) {
+      // $because .= "<P><B>Warning: </B> No system maintenance manager for '$new_system_code'</P>";
+      error_log( "INFO: No system maintenance manager for '$new_system_code'" );
+    }
     else {
       for ( $i=0; $i<pg_NumRows($rid); $i++ ) {
         $sys_notify = pg_Fetch_Object( $rid, $i );
@@ -182,8 +184,10 @@ function dates_equal( $date1, $date2 ) {
     if ( ! $rid  ) {
       return;
     }
-    else if (!pg_NumRows($rid) )
-      $because .= "<P><B>Warning: </B> No system organisational coordinator for '$new_system_code'</P>";
+    else if (!pg_NumRows($rid) ) {
+      // $because .= "<P><B>Warning: </B> No system organisational coordinator for '$new_system_code'</P>";
+      error_log( "INFO: No system organisational coordinator for '$new_system_code'" );
+    }
     else {
       for ( $i=0; $i<pg_NumRows($rid); $i++ ) {
         $sys_notify = pg_Fetch_Object( $rid, $i );
@@ -499,8 +503,9 @@ function dates_equal( $date1, $date2 ) {
       $msg .= "          (was: $previous->brief)\n";
     }
 
-    $msg .= "Urgency:      $request->urgency_desc\n"
-          . "Importance:   $request->importance_desc\n";
+    $msg .= "Type:         $request->request_type\n"
+          . "Importance:   $request->importance_desc\n"
+          . "Urgency:      $request->urgency_desc\n";
 
     if ( $chtype == "change" )
       $msg .= "Request On:   $request->request_on\n";
@@ -556,10 +561,9 @@ function dates_equal( $date1, $date2 ) {
     $msg .= "\nFull details of the request, with all changes and notes, can be reviewed and changed at:\n"
          .  "    https://$HTTP_HOST$base_url/request.php?request_id=$request_id\n";
 
-     $other = "From: $system_name <$admin_email>\n";
-     $other .= "Reply-To: $session->fullname <$session->email>\n";
-     $other .= "Errors-To: $admin_email";
+    $other = "From: $system_name <$admin_email>\n";
+    $other .= "Reply-To: $session->fullname <$session->email>\n";
+    $other .= "Errors-To: $admin_email";
     mail( $send_to, $msub, $msg,  $other );
-
   }
 ?>

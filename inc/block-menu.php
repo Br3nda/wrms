@@ -49,7 +49,8 @@
 
   echo "<br><img class=blocksep src=\"/$images/menuBreak.gif\" width=\"130\" height=\"9\">";
   echo "<table border=0 width=100%><form method=get action=\"/request.php\"><tr><td align=right>";
-  echo "Go to: </td><td><input type=hidden value=\"$style\" name=style>";
+  // echo "Go to: </td><td><input type=hidden value=\"$style\" name=style>";
+  echo "Go to: </td><td><input type=hidden value=\"\" name=style>";
   echo "<input type=text size=7 value=\"$request_id\" name=request_id></td></tr></form></table>";
 
   if ( is_member_of('Admin', 'Support', 'Manage') ) {

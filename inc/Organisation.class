@@ -173,15 +173,15 @@ class Organisation {
      global $session, $org_code;
      $html = "";
      $sql = "SELECT * ";
-     $sql .= "FROM organisation_tag JOIN org_system ON ( org_code ) ";
+     $sql .= "FROM organisation_tag  ";
      if ( $ef->editmode && ($session->AllowedTo('Admin') || $session->AllowedTo('Support')) ) {
-       $sql .= "WHERE org_system.org_code = ".intval($org_code);
+       $sql .= "WHERE organisation_tag.org_code = ".intval($org_code);
      }
      elseif ( $session->AllowedTo('Admin') || $session->AllowedTo('Support') ) {
-       $sql .= "WHERE org_system.org_code = ".intval($org_code);
+       $sql .= "WHERE organisation_tag.org_code = ".intval($org_code);
      }
      else {
-       $sql .= "WHERE org_system.org_code = ".intval($session->org_code);
+       $sql .= "WHERE organisation_tag.org_code = ".intval($session->org_code);
      }
      $sql .= "ORDER BY tag_sequence, lower(tag_description)";
 

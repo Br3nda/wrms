@@ -31,6 +31,7 @@
       $UserPassword = tidy("$UserPassword");
       $UserMobile   = tidy("$UserMobile");
       $UserNotifications   = tidy("$UserNotifications");
+      if ( !is_object($usr->settings)) $usr->settings = new Setting;
       $usr->settings->set('fontsize', "$UserFontsize");
 
 //      error_log( "status=$UserStatus==" . isset($UserStatus), 0);

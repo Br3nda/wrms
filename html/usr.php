@@ -124,9 +124,9 @@ if (isset($user_no) && $user_no > 0 ) echo "      ";
 <tr bgcolor=<?php echo $colors[6]; ?>> 
 	<th align=right>User Status</th> 
 	<td><font Size="2">
-	<input Type="Radio" Name="UserStatus" Value="N"<?php if ("$usr->status" == "S" ) echo " CHECKED"; ?>> System Support &nbsp; 
-	<input Type="Radio" Name="UserStatus" Value="R"<?php if ("$usr->status" == "C" ) echo " CHECKED"; ?>> Client Coordinator &nbsp;
-	<input Type="Radio" Name="UserStatus" Value="C"<?php if ("$usr->status" == "U" ) echo " CHECKED"; ?>> System User &nbsp;</font></td> 
+	<input Type="Radio" Name="UserStatus" Value="S"<?php if ("$usr->status" == "S" ) echo " CHECKED"; ?>> System Support &nbsp; 
+	<input Type="Radio" Name="UserStatus" Value="C"<?php if ("$usr->status" == "C" ) echo " CHECKED"; ?>> Client Coordinator &nbsp;
+	<input Type="Radio" Name="UserStatus" Value="U"<?php if ("$usr->status" == "U" ) echo " CHECKED"; ?>> System User &nbsp;</font></td> 
 </tr>
 <?php
   }  // end of   'if Admin... ' about 5 lines up
@@ -215,6 +215,7 @@ if (isset($user_no) && $user_no > 0 ) echo "      ";
       echo " Add User ";
     echo "\"></b></td>\n</tr></table></form>";
   } // end of "else 'there was no error' way up there.
+  } Do we need another?
 ?>
 </body> 
 </html>

@@ -3,30 +3,32 @@
 //  $training = get_code_list( "request", "training_code" );
 
 ?>
-<P class=helptext>Use this form to select organisations for maintenance or review.</P>
+<P class=helptext>Use this form to select systems for maintenance or review.</P>
 
 <FORM METHOD=POST ACTION="<?php echo "$SCRIPT_NAME?form=$form"; ?>">
-<table><tr valign=middle>
+<table align=center><tr valign=middle>
 <td><b>Name</b><input TYPE="Text" Size="20" Name="search_for" Value="<?php echo "$search_for"; ?>"></td>
 <td><input TYPE="Image" src="images/in-go.gif" alt="go" WIDTH="44" BORDER="0" HEIGHT="26" name="submit"></td>
 </tr></table>
 </form>  
 
 <?php
+  if ( !($roles['wrms']['Admin'] || $roles['wrms']['Support']) ) $org_code = $session->org_code;
   if ( "$search_for$org_code " != ""  && ( $roles['wrms']['Manage'] || $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) ) {
-    $query = "SELECT DISTINCT ON system_code * FROM work_system, org_system ";
-    $query .= "WHERE work_system.system_code=org_system.system_code ";
+    $query = "SELECT DISTINCT ON system_code * FROM work_system";
+    if ( "$org_code" <> "" ) $query .= ", org_system ";
+    if ( "$search_for$org_code" != "" ) $query .= "WHERE ";
     if ( "$search_for" <> "" ) {
-      $query .= " AND (system_code ~* '$search_for' ";
+      $query .= " (system_code ~* '$search_for' ";
       $query .= " OR system_desc ~* '$search_for' ) ";
+      if ( "$org_code" <> "" ) $query .= "AND ";
     }
-    if ( $roles[wrms][Manage] && ! ($roles[wrms][Admin] || $roles[wrms][Support]) )
-      $query .= " AND org_system.org_code='$session->org_code' ";
-    else if ( "$org_code" <> "" )
+    if ( "$org_code" <> "" ) {
+      $query .= " work_system.system_code=org_system.system_code ";
       $query .= "AND org_system.org_code='$org_code' ";
+    }
     $query .= " ORDER BY work_system.system_code ";
     $query .= " LIMIT 100 ";
-    echo "<p>$query</p>";
     $result = pg_Exec( $wrms_db, $query );
     if ( ! $result ) {
       $error_loc = "syslist-form.php";
@@ -36,8 +38,8 @@
     else {
       echo "<p>" . pg_NumRows($result) . " systems found</p>"; // <p>$query</p>";
       echo "<table border=\"0\" align=center><tr>\n";
-      echo "<th class=cols>Org Code</th>";
-      echo "<th class=cols align=left>Full Name</th>";
+      echo "<th class=cols>System</th>";
+      echo "<th class=cols align=left>&nbsp;Full Name</th>";
       echo "<th class=cols align=center>Actions</th></tr>";
 
       // Build table of systems found
@@ -53,9 +55,11 @@
         echo "</a>&nbsp;</td>\n";
         echo "<td class=sml>&nbsp;<a href=\"requestlist.php?system_code=$thissystem->system_code\">Requests</a> &nbsp; \n";
         echo "<a href=\"form.php?form=orglist&system_code=$thissystem->system_code\">Organisations</a> &nbsp; \n";
-        echo "<a href=\"usrsearch.php?system_code=$thissystem->system_code\">Users</a>&nbsp;</td>\n";
+        echo "<a href=\"usrsearch.php?system_code=$thissystem->system_code\">Users</a>\n";
+        if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] )
+          echo " &nbsp; <a href=\"form.php?system_code=$thissystem->system_code&form=timelist\">Work</a>\n";
 
-        echo "</tr>\n";
+        echo "&nbsp;</td></tr>\n";
       }
       echo "</table>\n";
     }

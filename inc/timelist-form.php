@@ -8,11 +8,11 @@ function nice_time( $in_time ) {
 ?>
 <P class=helptext>This page lists timesheets.</P>
 
-<FORM METHOD=POST ACTION="<?php echo "$SCRIPT_NAME?form=$form"; ?>">
+<FORM METHOD=POST ACTION="<?php echo "$REQUEST_URI"; ?>">
 <table align=center><tr valign=middle>
-<td><b>Name</b><input TYPE="Text" Size="20" Name="search_for" Value="<?php echo "$search_for"; ?>"></td>
+<td><b>Desc.</b><input TYPE="Text" Size="20" Name="search_for" Value="<?php echo "$search_for"; ?>"></td>
+<td><label for=uncharged><input type=checkbox value=1 name=uncharged> Uncharged</label></td>
 <td><input TYPE="Image" src="images/in-go.gif" alt="go" WIDTH="44" BORDER="0" HEIGHT="26" name="submit"></td>
-<td><label for=uncharged><input type=checkbox value=1 name=uncharged> Uncharged</label>
 </tr></table>
 </form>  
 

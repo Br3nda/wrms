@@ -17,6 +17,7 @@
 </form>  
 
 <?php
+  if ( !($roles['wrms']['Admin'] || $roles['wrms']['Support']) ) $org_code = $session->org_code;
   if ( "$search_for$system_code " != "" ) {
     $query = "SELECT * FROM organisation ";
     if ( "$system_code" <> "" ) $query .= ", org_system ";
@@ -28,6 +29,9 @@
     if ( "$system_code" <> "" ) {
       $query .= " AND org_system.org_code = organisation.org_code ";
       $query .= " AND org_system.system_code='$system_code' ";
+    }
+    if ( "$org_code" <> "" ) {
+      $query .= " AND org_system.org_code = $org_code ";
     }
     $query .= " ORDER BY organisation.org_code ";
     $query .= " LIMIT 100 ";
@@ -58,9 +62,11 @@
         echo "</a>&nbsp;</td>\n";
         echo "<td class=sml>&nbsp;<a href=\"requestlist.php?org_code=$thisorganisation->org_code\">Requests</a> &nbsp; \n";
         echo "<a href=\"usrsearch.php?org_code=$thisorganisation->org_code\">Users</a> &nbsp; \n";
-        echo "<a href=\"form.php?org_code=$thisorganisation->org_code&form=syslist\">Systems</a>&nbsp;</td>\n";
+        echo "<a href=\"form.php?org_code=$thisorganisation->org_code&form=syslist\">Systems</a>\n";
+        if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] )
+          echo " &nbsp; <a href=\"form.php?org_code=$thisorganisation->org_code&form=timelist\">Work</a>\n";
 
-        echo "</tr>\n";
+        echo "&nbsp;</td></tr>\n";
       }
       echo "</table>\n";
     }

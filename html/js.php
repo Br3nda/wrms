@@ -45,7 +45,7 @@ if ( isset($org_code) ) {
     }
   }
 
-  if ( isset($org2_code) || $session->org_code != $org_code ) {
+//  if ( isset($org2_code) || $session->org_code != $org_code  ) {
     $org2_code = intval($org2_code);
     $sql = "SELECT user_no, abbreviation || ': ' || fullname AS name ";
     $sql .= "FROM usr JOIN organisation ON (usr.org_code = organisation.org_code) ";
@@ -64,7 +64,7 @@ if ( isset($org_code) ) {
         echo "Subscriber: <option value=\"$row->user_no\">$row->name</option>\n";
       }
     }
-  }
+//  }
 
 }
 else if ( isset($person_id) ) {

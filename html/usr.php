@@ -2,6 +2,7 @@
   include("inc/always.php");
   include("inc/options.php");
   include("inc/organisation-list.php");
+  include("inc/tidy.php");
 
   if ( ! ($roles['wrms']['Admin'] || $roles['wrms']['Support'] || $roles['wrms']['Manage']) )
     $user_no = $session->user_no;
@@ -22,7 +23,7 @@
 
   include("inc/getusr.php");
 
-  if ( ! ($roles['wrms']['Admin'] || $roles['wrms']['Support']) && $session->org_code <> $usr->org_code )
+  if ( ! ($roles['wrms']['Admin'] || $roles['wrms']['Support']) && ($session->org_code <> $usr->org_code && intval("$user_no") <> 0) )
     $because = "You may only view users from your organisation";
 
   $title = "$system_name User Manager";
@@ -30,71 +31,59 @@
 
   // Pre-build the list of systems
   if ( "$error_qry" == "" ) {
-    $query = "SELECT * FROM work_system ";
+    $query = "SELECT * FROM work_system, org_system ";
     if ( ! ($roles['wrms']['Admin'] || $roles['wrms']['Support'] ) ) {
-      $query .= " WHERE system_code=org_system.system_code ";
+      $query .= " WHERE work_system.system_code=org_system.system_code ";
       $query .= " AND org_system.org_code='$session->org_code' ";
     }
-    $query .= " ORDER BY system_code ";
-    $sys_res = pg_Exec( $wrms_db, $query );
-    if ( ! $sys_res ) {
-      $error_loc = "usr.php";
-      $error_qry = "$query";
-    }
+    $query .= " ORDER BY work_system.system_code ";
+    $sys_res = awm_pgexec( $wrms_db, $query, "usr" );
   }
 
   // Pre-build the list of user groups
-  if ( "$error_qry" == "" ) {
+  if ( $sys_res ) {
     $query = "SELECT * FROM ugroup";
-    $grp_res = pg_Exec( $wrms_db, $query );
-    if ( ! $grp_res ) {
-      $error_loc = "usr.php";
-      $error_qry = "$query";
-    }
+    $grp_res = awm_pgexec( $wrms_db, $query, "usr" );
   }
 
   $hdcell = "";
   $tbldef = "<table width=100% cellspacing=0 border=0 cellpadding=2";
 
-  if ( "$error_qry" != "" ) {
-    include( "inc/error.php" );
-  }
-  else {
-    if ( ! ($roles['wrms']['Admin'] || $roles['wrms']['Support']) && $session->org_code <> $usr->org_code )
+  if ( ! ($roles['wrms']['Admin'] || $roles['wrms']['Support']) && ($session->org_code <> $usr->org_code && intval("$user_no") <> 0) )
       return;
 
-    echo "<table border=0 cellspacing=0 cellpadding=0 width=90% height=30><tr valign=bottom><td>\n";
-    if ( "$because" != "" ) {
-      echo "$because";
-    }
-    else {
-      echo "<h3 style=\"padding: 0pt; margin: 0pt; \">User Profile";
-      if (isset($user_no) && $user_no > 0 ) echo " for $usr->fullname";
-      echo "</h3>\n";
-    }
-    echo "</td>\n";
-    if ( $roles['wrms']['Admin'] ) {
-      echo "<td align=right><form action=usr.php method=post>";
-      echo "<input type=hidden name=user_no value=$user_no>";
-      echo "<input type=hidden name=M value=delete>";
-      echo "<font size=1 weight=bold><input type=submit value=\"Delete This User\" name=submit style=\"color: navy; padding: 0pt; margin: 0pt;\"></font></form></td>\n";
-    }
-    echo "</tr></table>\n";
-    echo "<form action=usr.php method=post>";
+  echo "<table border=0 cellspacing=0 cellpadding=0 width=90% height=30><tr valign=bottom><td>\n";
+  if ( "$because" != "" ) {
+    echo "$because";
+  }
+  else {
+    echo "<h3 style=\"padding: 0pt; margin: 0pt; \">User Profile";
+    if (isset($user_no) && $user_no > 0 ) echo " for $usr->fullname";
+    echo "</h3>\n";
+  }
+  echo "</td>\n";
+  if ( $roles['wrms']['Admin'] ) {
+    echo "<td align=right><form action=usr.php method=post>";
     echo "<input type=hidden name=user_no value=$user_no>";
-    echo "<input type=hidden name=M value=";
-    if (isset($user_no) && $user_no > 0 ) echo "update"; else echo "add";
-    echo ">";
+    echo "<input type=hidden name=M value=delete>";
+    echo "<font size=1 weight=bold><input type=submit value=\"Delete This User\" name=submit style=\"color: navy; padding: 0pt; margin: 0pt;\"></font></form></td>\n";
+  }
+  echo "</tr></table>\n";
+  echo "<form action=usr.php method=post>";
+  echo "<input type=hidden name=user_no value=$user_no>";
+  echo "<input type=hidden name=M value=";
+  if (isset($user_no) && $user_no > 0 ) echo "update"; else echo "add";
+  echo ">";
 ?>
 
 <?php echo "$tbldef><TR><TD CLASS=sml COLSPAN=2>&nbsp;</TD></TR><TR>$hdcell"; ?>
 <TD CLASS=h3 ALIGN=RIGHT colspan=2<?php echo " bgcolor=$colors[8]"; ?>><FONT SIZE=+1 color=<?php echo $colors[1]; ?>><B>User Details</B></FONT></TD></TR>
-<TR bgcolor=<?php echo $colors[6]; ?>> 
+<TR bgcolor=<?php echo $colors[6]; ?>>
 	<th align=right class=rows>Login ID</TH>
 	<TD><font Size=2><?php echo "$user_no"; ?>&nbsp;</font></td>
-</tr>	 
-<tr bgcolor=<?php echo $colors[6]; ?>> 
-	<th align=right class=rows>User Name</th> 
+</tr>
+<tr bgcolor=<?php echo $colors[6]; ?>>
+	<th align=right class=rows>User Name</th>
 	<td><?php
 if ( $roles['wrms']['Admin'] || ("$usr->username" == ""))
   echo "<input Type=\"Text\" Name=\"UserName\" Size=\"15\" Value=\"";
@@ -103,9 +92,9 @@ else
 echo "$usr->username";
 if ( $roles['wrms']['Admin'] || ("$usr->username" == "") ) echo "\">";
 echo "</td>"; ?>
-</tr> 
+</tr>
 <tr bgcolor=<?php echo $colors[6]; ?>>
-	<th align=right class=rows>Password</th> 
+	<th align=right class=rows>Password</th>
 	<td><font Size="2"><input Type=password Name="UserPassword" Size="15" Value="<?php
 if (isset($user_no) && $user_no > 0 ) echo "      ";
 ?>"></font></td>
@@ -120,14 +109,16 @@ if (isset($user_no) && $user_no > 0 ) echo "      ";
 </tr>
 <?php
 
-  if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
+  if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] || $roles['wrms']['Manage'] ) {
     echo "\n<tr bgcolor=$colors[6]>\n<th align=right class=rows>Status</th>";
     echo "<td VALIGN=TOP><font Size=2>\n<table border=0 cellspacing=0 cellpadding=3><tr>\n";
     echo "<td><font size=2>";
     echo "<label><input type=radio name=\"UserStatus\"" . ( !isset($usr->status) || $usr->status <> "I" ? " CHECKED" : "" ) . " value=\"A\"> Active</label>\n";
     echo "<label><input type=radio name=\"UserStatus\"" . ( "$usr->status" == "I" ? " CHECKED" : "" ) . " value=\"I\"> Inactive</label>\n";
     echo "</font></td>\n</tr></table></td></tr>\n";
+  }
 
+  if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
     $org_code_list = get_organisation_list( "$usr->org_code" );
     echo "<tr bgcolor=$colors[6]>\n";
     echo "<th align=right class=rows>Organisation</th>\n";
@@ -165,25 +156,26 @@ if (isset($user_no) && $user_no > 0 ) echo "      ";
 <TD CLASS=h3 COLSPAN=2 ALIGN=RIGHT<?php echo " bgcolor=$colors[8]"; ?>><FONT SIZE=+1 color=<?php echo $colors[1]; ?>><B>System Access</B></FONT></TD></TR>
 
 <?php
-    // This displays all those checkboxes to select the systems the user can access.
-    for ( $i=0; $i < pg_NumRows($sys_res); $i++) {
-      $sys = pg_Fetch_Object( $sys_res, $i );
-      if ( $i % 2 == 0 ) echo "<tr bgcolor=$colors[row1]>";
-      else echo "<tr bgcolor=$colors[row2]>";
-      echo "$hdcell\n";
-      echo "<td nowrap><font size=1>$sys->system_desc</td>\n";
-      echo "<td nowrap><font size=1>\n";
-      if ( isset($UserCat) && is_array($UserCat) )
-        $code = $UserCat[$sys->system_code];
-      else
-        $code = "";
+  // This displays all those checkboxes to select the systems the user can access.
+  for ( $i=0; $i < pg_NumRows($sys_res); $i++) {
+    $sys = pg_Fetch_Object( $sys_res, $i );
+    if ( $i % 2 == 0 ) echo "<tr bgcolor=$colors[row1]>";
+    else echo "<tr bgcolor=$colors[row2]>";
+    echo "$hdcell\n";
+    echo "<td nowrap><font size=1>$sys->system_desc</td>\n";
+    echo "<td nowrap><font size=1>\n";
+    if ( isset($UserCat) && is_array($UserCat) )
+      $code = $UserCat[$sys->system_code];
+    else
+      $code = "";
+    if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] || $roles['wrms']['Manage'] ) {
+      echo "<select name=\"NewUserCat[$sys->system_code]\">\n";
+
+      echo "<option value=\"\"";
+      if ( "$code" == "" && ($roles['wrms']['Admin'] || $roles['wrms']['Support']) ) echo " selected";
+      echo ">--- no access ---</option>\n";
+
       if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
-        echo "<select name=\"NewUserCat[$sys->system_code]\">\n";
-
-        echo "<option value=\"\"";
-        if ( "$code" == "" ) echo " selected";
-        echo ">--- no access ---</option>\n";
-
         echo "<option value=A";
         if ( "$code" == 'A') echo " selected";
         echo ">Administration</option>\n";
@@ -191,45 +183,45 @@ if (isset($user_no) && $user_no > 0 ) echo "      ";
         echo "<option value=S";
         if ( "$code" == 'S') echo " selected";
         echo ">System Support</option>\n";
-
-        echo "<option value=C";
-        if ( "$code" == 'C') echo " selected";
-        echo ">Client Coordinator</option>\n";
-
-        echo "<option value=E";
-        if ( "$code" == 'E') echo " selected";
-        echo ">Enter Requests</option>\n";
-
-        echo "<option value=R";
-        if ( "$code" == 'R') echo " selected";
-        echo ">Own Requests</option>\n";
-
-        echo "<option value=U";
-        if ( "$code" == 'U') echo " selected";
-        echo ">View Requests</option>\n";
-
-        echo "</select></font></td>\n";
       }
-      else {
-        if ( "$code" == 'A')      echo "Administration";
-        else if ( "$code" == 'S') echo "System Support";
-        else if ( "$code" == 'C') echo "Client Coordinator";
-        else if ( "$code" == 'E') echo "Enter Requests";
-        else if ( "$code" == 'R') echo "Own Requests";
-        else if ( "$code" == 'U') echo "View Requests";
-      }
+
+      echo "<option value=C";
+      if ( "$code" == 'C') echo " selected";
+      echo ">Client Coordinator</option>\n";
+
+      echo "<option value=E";
+      if ( "$code" == 'E' || ("$code" == "" && !($roles['wrms']['Admin'] || $roles['wrms']['Support'])) ) echo " selected";
+      echo ">Enter Requests</option>\n";
+
+      echo "<option value=R";
+      if ( "$code" == 'R') echo " selected";
+      echo ">Own Requests</option>\n";
+
+      echo "<option value=U";
+      if ( "$code" == 'U') echo " selected";
+      echo ">View Requests</option>\n";
+
+      echo "</select></font></td>\n";
     }
+    else {
+      if ( "$code" == 'A')      echo "Administration";
+      else if ( "$code" == 'S') echo "System Support";
+      else if ( "$code" == 'C') echo "Client Coordinator";
+      else if ( "$code" == 'E') echo "Enter Requests";
+      else if ( "$code" == 'R') echo "Own Requests";
+      else if ( "$code" == 'U') echo "View Requests";
+    }
+  }
 
-    echo "</table>\n";
+  echo "</table>\n";
 
-    echo "$tbldef>\n<tr><td align=center class=mand>";
-    echo "<B><INPUT TYPE=\"submit\" NAME=\"submit\" VALUE=\"";
-    if ( isset($user_no) && $user_no > 0 )
-      echo " Apply Changes ";
-    else
-      echo " Add User ";
-    echo "\"></b></td>\n</tr></table></form>";
-  } // end of "else 'there was no error' way up there.
+  echo "$tbldef>\n<tr><td align=center class=mand>";
+  echo "<B><INPUT TYPE=\"submit\" NAME=\"submit\" VALUE=\"";
+  if ( isset($user_no) && $user_no > 0 )
+    echo " Apply Changes ";
+  else
+    echo " Add User ";
+  echo "\"></b></td>\n</tr></table></form>";
 
-  include("inc/footers.php");
+include("inc/footers.php");
 ?>

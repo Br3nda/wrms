@@ -1,4 +1,10 @@
 <?php
+  $now = time();
+  Header("Last-Modified: " . gmdate( "D, d M Y H:i:s T", $now) );
+  $then = $now + 15;
+  Header("Expires: " . gmdate( "D, d M Y H:i:s T", $then) );
+  Header("Cache-Control: max-age=5, private");
+
   // Standard headers included everywhere.
   echo "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\" \"http://www.w3.org/TR/REC-html40/loose.dtd\">\n";
   echo "<html>\n<head>\n<title>$title</title>\n";

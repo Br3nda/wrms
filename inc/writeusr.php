@@ -1,5 +1,4 @@
 <?php
-  include("inc/tidy.php");
   $debuglevel = 5;
 
   if ( "$because" <> "" ) {
@@ -34,6 +33,9 @@
       $UserPager    = tidy("$UserPager");
 //      error_log( "status=$UserStatus==" . isset($UserStatus), 0);
       $UserStatus  = ( !isset($UserStatus) || "$UserStatus" == "A" ? "A" : "I" );
+      if ( ! ($roles['wrms']['Admin'] || $roles['wrms']['Support']) && $M == "add" ) {
+        $UserOrganisation = $session->org_code;
+      }
       if ( "$M" == "add" ) {
         $query = "INSERT INTO usr ( user_no, username, email, fullname, org_code, phone, fax, pager, ";
         $query .= " mail_style, status, last_update";

@@ -13,18 +13,18 @@
     echo "<form Action=\"$base_url/usrsearch.php\" Method=\"POST\">\n";
 
     echo "<table align=center cellspacing=0 cellpadding=2><tr valign=middle>\n";
-    echo "<td><b>Name:</b><input type=text size=\"20\" name=search_for value=\"$search_for\"></td>\n";
+    echo "<td><b>Name:</b><input type=text size=\"10\" name=search_for value=\"$search_for\"></td>\n";
 
     if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
       include( "inc/organisation-list.php" );
-      $orglist = "<option value=\"\">--- All Organisations ---</option>\n" . get_organisation_list( "$org_code" );
+      $orglist = "<option value=\"\">--- All Organisations ---</option>\n" . get_organisation_list( "$org_code", 20 );
       echo "<td><b>Org:</b><select name=\"org_code\">\n$orglist</select></td>\n";
-      echo "<td>&nbsp;<label><b>Inactive:</b><input type=\"checkbox\" name=status value=I" . ("$status" == "I" ? " checked" : "") . "></label></td>\n";
     }
-    else if ( $roles['wrms']['Manage'] ) {
+    if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] || $roles['wrms']['Manage']) {
       include( "inc/system-list.php" );
-      $syslist = get_system_list( "VOECS", "$system_code" );
+      $syslist = get_system_list( "VOECS", "$system_code", 20 );
       echo "<td><b>Type </b><select name=\"system_code\">\n$syslist</select></td>\n";
+      echo "<td>&nbsp;<label><b>Inactive:</b><input type=\"checkbox\" name=status value=I" . ("$status" == "I" ? " checked" : "") . "></label></td>\n";
     }
 
     echo "<td><input type=image src=images/in-go.gif alt=go width=\"44\" border=\"0\" height=\"26\" name=submit></td>\n";

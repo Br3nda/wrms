@@ -1900,11 +1900,11 @@ EOX
       $sql .= "AND u.user_no NOT IN ( $new_subscriptions ) ";
       $sql .= "AND NOT EXISTS( SELECT 1 FROM request_interested WHERE request_id = $this->request_id ";
       $sql .=                  "AND request_interested.user_no = u.user_no) ";
-      $sql .= "AND (usr.org_code IN ( $this->org_code, $session->org_code ) ";
+      $sql .= "AND (u.org_code IN ( $this->org_code, $session->org_code ) ";
       $sql .= "OR EXISTS(SELECT 1 FROM system_usr su ";
       $sql .=          "JOIN system_usr me USING(system_code) ";
       $sql .=          "WHERE me.user_no = $session->user_no AND su.user_no = usr.user_no AND su.role IN ('S','A') ) )";
-      $sql .= " AND usr.status != 'I' ";
+      $sql .= " AND u.status != 'I' ";
     }
     $qry = new PgQuery($sql);
     if ( ! $qry->Exec('WR::NewSubscriptions') ) {

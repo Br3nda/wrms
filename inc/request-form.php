@@ -229,10 +229,14 @@
 
   //---------------- Attachment Details */
   if ( isset( $request ) || $roles[wrms][Admin] || $roles[wrms][Support] ) {
-    $query = "SELECT * FROM request_attachment WHERE request_attachment.request_id = $request->request_id ";
-    $query .= "ORDER BY request_attachment.attachment_id;";
-    $updateq = awm_pgexec( $wrms_db, $query, 'request_form');
-    $rows = pg_NumRows($updateq);
+    if ( isset( $request ) ) {
+      $query = "SELECT * FROM request_attachment WHERE request_attachment.request_id = $request->request_id ";
+      $query .= "ORDER BY request_attachment.attachment_id;";
+      $updateq = awm_pgexec( $wrms_db, $query, 'request_form');
+      $rows = pg_NumRows($updateq);
+    }
+    else
+      $rows = 0;
     echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=5>&nbsp;</TD></TR><TR>$hdcell";
     echo "<td class=h3 colspan=4 align=right>File Attachments</td></tr>\n";
     echo "<tr>\n";
@@ -375,13 +379,16 @@
 
   /***** Timesheet Details */
   /* we only show timesheet details if they exist */
-  $query = "SELECT *, date_part('epoch',request_timesheet.work_duration) AS seconds ";
-  $query .= "FROM request_timesheet, usr ";
-  $query .= "WHERE request_timesheet.request_id = $request->request_id ";
-  $query .= "AND request_timesheet.work_by_id = usr.user_no ";
-  $query .= "ORDER BY request_timesheet.work_on ";
-  $workq = awm_pgexec( $wrms_db, $query);
-  $rows = pg_NumRows($workq);
+  if ( isset( $request )  ) {
+    $query = "SELECT *, date_part('epoch',request_timesheet.work_duration) AS seconds ";
+    $query .= "FROM request_timesheet, usr ";
+    $query .= "WHERE request_timesheet.request_id = $request->request_id ";
+    $query .= "AND request_timesheet.work_by_id = usr.user_no ";
+    $query .= "ORDER BY request_timesheet.work_on ";
+    $workq = awm_pgexec( $wrms_db, $query);
+    $rows = pg_NumRows($workq);
+  }
+  else $rows = 0;
   if ( $rows > 0  || (($allocated_to || $sysmgr) && !$plain) ) {
 ?>
 <?php echo "$tbldef>\n<tr><td class=sml colspan=7>&nbsp;</td></tr><tr>$hdcell"; ?>

@@ -70,9 +70,9 @@ $fonts = array( "tahoma",               // primary font
                 "block" => "tahoma");   // block font
 
 
-// Set the bebug variable initially to '0'. This variable is made available
-// to all local routines for verbose printing.
-if ( !isset($debuglevel) ) $debuglevel = 2;
+// Set the bebug variable initially to '0'. This variable is made available 
+// to all local routines for verbose printing. 
+if ( !isset($debuglevel) ) $debuglevel = 0;
 
 
 

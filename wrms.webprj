@@ -120,5 +120,7 @@
   <item url="html/inc/wu-action.php" />
   <item url="html/inc/block-newnodes.php" />
   <item url="html/inc/block-wusearch.php" />
+  <item url="html/inc/indexclients.php" />
+  <item url="html/inc/indexsupport.php" />
  </project>
 </webproject>

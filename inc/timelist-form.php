@@ -32,7 +32,7 @@ function nice_time( $in_time ) {
   if (  "$style" != "stripped" ) {
     echo "<form method=get action=\"$base_url/form.php\">\n";
     echo "<input type=hidden value=\"timelist\" name=f>\n";
-    echo "<table border=0 cellpadding=0 cellspacing=2 align=center class=row0><tr><td><table border=0 cellpadding=0 cellspacing=0 width=100%><tr>\n";
+    echo "<table border=0 cellpadding=0 cellspacing=2 align=center class=row0 style=\"border: 1px dashed #aaaaaa;\"><tr><td><table border=0 cellpadding=0 cellspacing=0 width=100%><tr>\n";
     echo "<td class=smb>Find:</td>\n";
     printf("<td class=sml><input class=sml type=text size=\"10\" name=search_for value=\"%s\"></td>\n", htmlspecialchars($search_for));
 

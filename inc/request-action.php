@@ -85,7 +85,7 @@ function dates_equal( $date1, $date2 ) {
 
   /* scope a transaction to the whole change */
   awm_pgexec( $wrms_db, "BEGIN;", "req-action" );
-  if ( !isset( $request ) ) {
+  if ( !isset( $request ) || $request == 0 ) {
     /////////////////////////////////////
     // Create a new request
     /////////////////////////////////////

@@ -260,7 +260,7 @@
       $requsr = $session;
 
     $query = "INSERT INTO request (request_id, request_by, brief, detailed, active, last_status, urgency, importance, system_code, request_type, requester_id, last_activity) ";
-    $query .= "VALUES( $request_id, '$requsr->username', '" . tidy($new_brief) . "','" . tidy($new_detail) . "', TRUE, 'N', $new_urgency, $new_importance, '$new_system_code' , '$new_request_type', $requsr->user_no, 'now' )";
+    $query .= "VALUES( $request_id, '$requsr->username', '" . tidy($new_brief) . "','" . tidy($new_detail) . "', TRUE, 'N', $new_urgency, $new_importance, '$new_system_code' , '$new_type', $requsr->user_no, 'now' )";
     $rid = pg_exec( $wrms_db, $query );
     if ( ! $rid ) {
       $because .= "<P>The failed query was:</P><TT>$query</TT>";

@@ -86,6 +86,7 @@
   $rows = pg_NumRows( $rid );
   for ( $i=0; $i < $rows; $i++ ) {
     $request = pg_Fetch_Object( $rid, $i );
+    if ( "$request->brief" == "" ) $request->brief = substr( $request->detailed, 0, 80);
     $href_req = "<A HREF=\"$wrms_home/modify-request.php3?request_id=$request->request_id\">";
 
     echo "<TR><TD ALIGN=RIGHT><B>$request->request_id</B>&nbsp;</TD>";

@@ -5,36 +5,17 @@ one of the recently modified requests from the list below.<br></p>";
 
   $query = "SELECT DISTINCT request.request_id, brief, fullname, email, last_activity, status.lookup_desc AS status_desc, ";
   $query .= "request.system_code, request_type.lookup_desc AS request_type_desc ";
-  if ( is_member_of('Admin','Support') ) {
-    // Satisfy v7 requirement for order field in target list
-    $query .= ", request.urgency, request.importance ";
-  }
   $query .= "FROM request ";
-  if ( ! is_member_of('Admin', 'Support') ) {
-    $query .= "JOIN work_system USING (system_code) ";
-    $query .= "JOIN system_usr ON (work_system.system_code = system_usr.system_code AND system_usr.user_no = $session->user_no) ";
-  }
-  $query .= ", request_interested, usr, lookup_code AS status, lookup_code AS request_type ";
+  $query .= "JOIN work_system USING (system_code) ";
+  $query .= "JOIN system_usr ON (work_system.system_code = system_usr.system_code AND system_usr.user_no = $session->user_no) ";
+  $query .= ", usr, lookup_code AS status, lookup_code AS request_type ";
   $query .= "WHERE request.request_id=request_interested.request_id ";
-  if ( is_member_of('Manage')  && ! is_member_of('Admin', 'Support') ) {
-    $query .= " AND usr.org_code=$session->org_code ";
-  }
-  else {
-    $query .= "AND (request_interested.user_no=$session->user_no ";
-    $query .= "OR request.requester_id=$session->user_no) ";
-  }
+  $query .= "AND usr.org_code=$session->org_code ";
   $query .= "AND request.requester_id=usr.user_no ";
   $query .= "AND status.source_table='request' AND status.source_field='status_code' AND status.lookup_code=request.last_status ";
   $query .= "AND request_type.source_table='request' AND request_type.source_field='request_type' AND request.request_type = request_type.lookup_code ";
-  if ( is_member_of('Admin','Support') ) {
-    $query .= "AND request.active AND request.last_status~*'[AILNRQAT]' ";
-    $query .= "ORDER BY last_activity DESC LIMIT 50 ";
-  }
-  else {
-    $query .= "AND request.active AND request.last_status~*'[AILNRQAT]' ";
-    $query .= "ORDER BY last_activity DESC LIMIT 100 ";
-  }
-  // echo "<p>$query<p>";
+  $query .= "AND request.active AND request.last_status~*'[AILNRQAT]' ";
+  $query .= "ORDER BY last_activity DESC LIMIT 100 ";
 
   $result = awm_pgexec( $dbconn, $query, 'indexpage', false, 7 );
   if ( $result ) {

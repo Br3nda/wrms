@@ -19,7 +19,7 @@ if ( !isset($session) ) {
     // Try and log in if we have a username and password
     $session->Login( $username, $password );
     if ( $debuggroups['Login'] )
-      error_log( "$system_name: vpw: DBG: User $username - $session->fullname ($session->user_no) login status is $session->logged_in" );
+      $session->Log( "DBG: User $username - $session->fullname ($session->user_no) login status is $session->logged_in" );
   }
 }
 
@@ -35,7 +35,7 @@ function session_validate_password( $they_sent, $we_have ) {
   global $system_name, $debuggroups;
 
   if ( $debuggroups['Login'] )
-    error_log( "$system_name: vpw: DBG: Comparing they_sent=$they_sent with $we_have" );
+    error_log( "$system_name: Session: DBG: Comparing they_sent=$they_sent with $we_have" );
 
   // In some cases they send us a salted md5 of the password, rather
   // than the password itself (i.e. if it is in a cookie)
@@ -56,7 +56,7 @@ function session_validate_password( $they_sent, $we_have ) {
     $salt = $regs[1];
     $md5_sent = session_salted_md5( $they_sent, $salt ) ;
     if ( $debuggroups['Login'] )
-      error_log( "$system_name: vpw: DBG: Salt=$salt, comparing=$md5_sent with $pwcompare or $we_have" );
+      error_log( "$system_name: Session-vpw: DBG: Salt=$salt, comparing=$md5_sent with $pwcompare or $we_have" );
     return ( $md5_sent == $pwcompare );
   }
 
@@ -121,7 +121,7 @@ class Session
       //  Kill the existing cookie, which appears to be bogus
       setcookie('sid', '', 0,'/');
       $this->cause = 'ERR: Other than one session record matches. ' . $qry->rows;
-      error_log( "$sysname Login $this->cause" );
+      $this->Log( "WARN: Login $this->cause" );
     }
   }
 
@@ -195,9 +195,9 @@ class Session
 
   function Login( $username, $password )
   {
-    global $sysname, $sid, $debuggroups;
+    global $sysname, $sid, $debuggroups, $client_messages;
     if ( $debuggroups['Login'] )
-      error_log( "$sysname: Login: DBG: Attempting login for $username" );
+      $this->Log( "DBG: Login: Attempting login for $username" );
 
     $sql = "SELECT * FROM usr WHERE lower(username) = ? ";
     $qry = new PgQuery( $sql, strtolower($username), md5($password), $password );
@@ -211,7 +211,7 @@ class Session
           $session_id = $seq->nextval;
           $session_key = md5( rand(1010101,1999999999) . microtime() );  // just some random shite
           if ( $debuggroups['Login'] )
-            error_log( "$sysname: Login: DBG: Valid username/password for $username ($usr->user_no)" );
+            $this->Log( "DBG:: Login: Valid username/password for $username ($usr->user_no)" );
 
           // And create a session
           $sql = "INSERT INTO session (session_id, user_no, session_key) VALUES( ?, ?, ? )";
@@ -224,7 +224,7 @@ class Session
             setcookie('sid',$sid, 0,'/');
             // Recognise that we have started a session now too...
             $this->Session();
-            error_log( "$sysname: Login: INFO: New session $session_id started for $username ($usr->user_no)" );
+            $this->Log( "DBG: Login: INFO: New session $session_id started for $username ($usr->user_no)" );
             return true;
           }
    // else ...
@@ -235,6 +235,7 @@ class Session
         }
       }
       else {
+        $client_messages[] = 'WARN: Invalid username or password.';
         if ( $debuggroups['Login'] )
           $this->cause = 'WARN: Invalid password.';
         else
@@ -242,13 +243,14 @@ class Session
       }
     }
     else {
+    $client_messages[] = 'WARN: Invalid username or password.';
     if ( $debuggroups['Login'] )
       $this->cause = 'WARN: Invalid username.';
     else
       $this->cause = 'WARN: Invalid username or password.';
     }
 
-    error_log( "$sysname Login $this->cause" );
+    $this->Log( "DBG: Login $this->cause" );
     return false;
   }
 }

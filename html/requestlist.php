@@ -1,9 +1,10 @@
 <?php
-  include("always.php");
-  include("authorisation-page.php");
-  include("code-list.php");
-  include("user-list.php" );
-  include("maintenance-page.php");
+  require_once("always.php");
+  require_once("authorisation-page.php");
+  require_once("code-list.php");
+  require_once("user-list.php" );
+  require_once("maintenance-page.php");
+  require_once("organisation-selectors-sql.php");
 
   // Force some variables to have values.
   if ( !isset($format) ) $format = "";
@@ -27,7 +28,7 @@
   if ( !isset($columns) || $columns == "" || $columns == array() ) {
     $columns = array("request_id","lfull","request_on","lbrief","status_desc","request_type_desc","request.last_activity");
     if ( "$format" == "edit" )  //adds in the Active field header for the Brief (editable) report
-      array_push( $columns, "active");
+      array_push( $columns, "request.active");
   }
   elseif ( ! is_array($columns) )
     $columns = explode( ',', $columns );
@@ -43,7 +44,7 @@
           "request_type_desc" => "Type",
           "status_desc" => "Status",
           "request.last_activity" => "Last Chng",
-          "active" => "Active",
+          "request.active" => "Active",
    );
 
 //Uses a URL variable format = edit in order to indicate that the report should be in the Brief (editable) format
@@ -384,13 +385,9 @@ else {
     echo "<form name=\"search\" action=\"$form_url\" Method=\"POST\">";
     echo "</h3>\n";
 
-    include("system-list.php");
-    if ( is_member_of('Admin', 'Support' ) ) {
-      $system_list = get_system_list( "", "$system_code", 35);
-    }
-    else {
-      $system_list = get_system_list( "CESOAV", "$system_code", 35);
-    }
+    $systems = new PgQuery(SqlSelectSystems($org_code));
+    $system_list = $systems->BuildOptionList($system_code,"requestlist");
+
 
     echo "<table border=0 cellspacing=2 cellpadding=0 align=center class=row0 width=100% style=\"border: 1px dashed #aaaaaa;\">\n<tr>\n";
     echo "<td width=100%><table border=0 cellspacing=0 cellpadding=0 width=100%><tr valign=middle>\n";
@@ -399,10 +396,10 @@ else {
 
     echo "<td class=smb>&nbsp;System:</td><td class=sml><select class=sml name=system_code><option value=\".\">--- All Systems ---</option>$system_list</select></td>\n";
 
-  if ( is_member_of('Admin', 'Support') ) {
-    include( "organisation-list.php" );
-    $orglist = "<option value=\"\">--- All Organisations ---</option>\n" . get_organisation_list( "$org_code", 30 );
-    echo "<td class=smb>&nbsp;Organisation:</td><td class=sml><select class=sml name=\"org_code\">\n$orglist</select></td>\n";
+  if ( is_member_of('Admin', 'Support','Contractor') ) {
+    $organisations = new PgQuery(SqlSelectOrganisations($org_code));
+    $orglist = "<option value=\"\">--- All Organisations ---</option>\n" . $organisations->BuildOptionList( "$org_code", "requestlist" );
+    echo "<td class=\"smb\">&nbsp;Organisation:</td><td class=\"sml\"><select class=\"sml\" name=\"org_code\">\n$orglist</select></td>\n";
   }
   if ( "$qs" != "complex" )
    echo "<td valign=middle class=smb align=center><input type=submit value=\"RUN QUERY\" alt=go name=submit class=\"submit\"></td><td class=smb width=100px> &nbsp; &nbsp; &nbsp; </td>\n";
@@ -410,25 +407,20 @@ else {
 
 
   if ( "$qs" == "complex" ) {
-    if ( is_member_of('Admin', 'Support', 'Manage') ) {
-      if ( is_member_of('Admin', 'Support') ) {
-        $user_org_code = "";
-      }
-      else {
-        $user_org_code = "$session->org_code";
-      }
-      echo "<tr><td width=100%><table border=0 cellspacing=0 cellpadding=0 width=100%><tr valign=middle>\n";
-      if ( is_member_of('Admin', 'Support', 'Manage') ) {
-        $user_list = "<option value=\"\">--- Any Requester ---</option>" . get_user_list( "", $user_org_code, "" );
-        echo "<td class=smb>By:</td><td class=sml><select class=sml name=requested_by>$user_list</select></td>\n";
-        if ( ! is_member_of('Admin', 'Support')  && ! isset($interested_in) ) $interested_in = $session->user_no;
-        $user_list = "<option value=\"\">--- Any Interested User ---</option>" . get_user_list( "", $user_org_code, $interested_in );
-        echo "<td class=smb>Watching:</td><td class=sml><select class=sml name=interested_in>$user_list</select></td>\n";
-      }
-      if ( is_member_of('Admin', 'Support', 'Manage') ) {
-        $user_list = "<option value=\"\">--- Any Assigned Staff ---</option><option value=\"-1\">Not Yet Allocated</option>" . get_user_list( "Support", "", $allocated_to );
-        echo "<td class=smb>ToDo:</td><td class=sml><select class=sml name=allocated_to>$user_list</select></td>\n";
-      }
+    $requesters = new PgQuery(SqlSelectRequesters($org_code));
+    $subscribers = new PgQuery(SqlSelectSubscribers($org_code));
+    if ( ! is_member_of('Admin', 'Support')  && ! isset($interested_in) ) $interested_in = $session->user_no;
+    $subscriber_list = $subscribers->BuildOptionList($interested_in,'requestlist');
+    if ( is_member_of('Admin', 'Support', 'Manage', 'Contractor') ) {
+      echo "<tr><td width=\"100%\"><table border=\"0\" cellspacing=\"0\" cellpadding=\"0\" width=\"100%\"><tr valign=\"middle\">\n";
+      $user_list = "<option value=\"\">--- Any Requester ---</option>" . $requesters->BuildOptionList($requested_by,'requestlist');
+      echo "<td class=\"smb\">By:</td><td class=\"sml\"><select class=\"sml\" name=\"requested_by\">$user_list</select></td>\n";
+
+      $user_list = "<option value=\"\">--- Any Interested User ---</option>" . $subscriber_list;
+      echo "<td class=\"smb\">Watching:</td><td class=\"sml\"><select class=\"sml\" name=\"interested_in\">$user_list</select></td>\n";
+
+      $user_list = "<option value=\"\">--- Any Assigned Staff ---</option><option value=\"-1\">Not Yet Allocated</option>" . $subscriber_list;
+      echo "<td class=\"smb\">ToDo:</td><td class=\"sml\"><select class=\"sml\" name=\"allocated_to\">$user_list</select></td>\n";
       echo "</tr></table></td></tr>\n";
     }
 
@@ -552,12 +544,12 @@ else {
       $query .= ", to_char( request.last_activity, 'FMdd Mon yyyy') AS last_change ";
       $query .= ", to_char( request.request_on, 'FMdd Mon yyyy') AS date_requested";
       //provides extra fields that are needed to create a Brief (editable) report
-      $query .= ", active, last_status ";
+      $query .= ", request.active, last_status ";
       $query .= ", creator.email AS by_email, creator.fullname AS by_fullname, lower(creator.fullname) AS lby_fullname ";
       $query .= "FROM ";
       if ( intval("$interested_in") > 0 ) $query .= "request_interested, ";
       if ( intval("$allocated_to") > 0 ) $query .= "request_allocated, ";
-      $query .= "request";
+      $query .= "request ";
       if ( ! is_member_of('Admin', 'Support') ) {
         $query .= "JOIN work_system USING (system_code) ";
         $query .= "JOIN system_usr ON (work_system.system_code = system_usr.system_code AND system_usr.user_no = $session->user_no) ";
@@ -569,8 +561,8 @@ else {
 
       $query .= " WHERE request.requester_id=usr.user_no AND request.entered_by=creator.user_no ";
       $query .= " AND request_type.source_table='request' AND request_type.source_field='request_type' AND request.request_type = request_type.lookup_code";
-      if ( "$inactive" == "" )        $query .= " AND active ";
-      if ( ! is_member_of('Admin', 'Support' ) ) {
+      if ( "$inactive" == "" )        $query .= " AND request.active ";
+      if ( ! is_member_of('Admin', 'Support', 'Contractor' ) ) {
         $query .= " AND usr.org_code = '$session->org_code' ";
       }
       else if ( isset($org_code) && intval($org_code) > 0 )
@@ -591,7 +583,7 @@ else {
         $query .= " AND (brief ~* '$search_for' ";
         $query .= " OR detailed ~* '$search_for' ) ";
       }
-      if ( "$system_code" != "" )     $query .= " AND system_code='$system_code' ";
+      if ( "$system_code" != "" )     $query .= " AND request.system_code='$system_code' ";
       if ( "$type_code" != "" )     $query .= " AND request_type=" . intval($type_code);
 
       if ( "$from_date" != "" )     $query .= " AND request.last_activity >= '$from_date' ";
@@ -630,6 +622,7 @@ $query";
 
     $query .= " ORDER BY $rlsort $rlseq ";
     $query .= " LIMIT $maxresults ";
+//    echo "<p>$query</p>";
 
     $result = awm_pgexec( $dbconn, $query, "requestlist", false, 7 );
 

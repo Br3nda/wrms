@@ -21,7 +21,7 @@
     $roles["wrms"]["$k"] = 1;
   }
 
-  if ( !($session->AllowedTo("Admin") && $session->AllowedTo("Support") ) ) {
+  if ( !($session->AllowedTo("Admin") || $session->AllowedTo("Support") || $session->AllowedTo("Contractor")) ) {
     $org_code = $session->org_code;
   }
 

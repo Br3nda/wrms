@@ -40,6 +40,7 @@ ALTER TABLE ugroup ADD COLUMN seq INT4;
 UPDATE ugroup SET seq = group_no * 100;
 
 INSERT INTO ugroup (module_name,group_name,seq) VALUES('wrms','Accounts', 230);
+INSERT INTO ugroup (module_name,group_name,seq) VALUES('wrms','Contractor', 250);
 INSERT INTO ugroup (module_name,group_name,seq) VALUES('wrms','OrgMgr', 270);
 
 -- Set a user as having a particular system-related role

@@ -1,4 +1,5 @@
 <?php
+require_once("organisation-selectors-sql.php");
 
   // Force some variables to have values.
   if ( !isset($format) ) $format = "";
@@ -21,7 +22,7 @@
 
   // If they didn't provide a $columns, we use a default.
   if ( !isset($columns) || $columns == "" || $columns == array() ) {
-    $columns = array("request_id","lfull","request_on","lbrief","status_desc","request_type_desc","request.last_activity");
+    $columns = array("to be ignored!!!", "request_id","lfull","request_on","lbrief","status_desc","request_type_desc","request.last_activity");
   }
   elseif ( ! is_array($columns) )
     $columns = explode( ',', $columns );
@@ -69,6 +70,8 @@ function RenderSearchForm( $target_url ) {
 
   $html = "";
   $search_record = (object) array();
+  $org_code = intval($GLOBALS['org_code']);
+  if ( $org_code > 0 ) $search_record->org_code = $org_code;
 //  $session->Log( 'DBG: isset($_POST[submit])=%s isset($_GET[saved_query])=%s', isset($_POST[submit]), isset($_GET['saved_query'] ) );
   if ( !isset($_POST['submit']) && isset($_GET['saved_query'])) {
     $qry = new PgQuery("SELECT query_params FROM saved_queries WHERE (user_no = ? OR public ) AND lower(query_name) = lower(?);",
@@ -93,90 +96,40 @@ function RenderSearchForm( $target_url ) {
                    "title" => "Search for free text in the request or notes.  Regular expressions are OK too." ) );
 
   // Organisation drop-down
-  if ( $session->AllowedTo("Admin") || $session->AllowedTo("Support") ) {
-    $sql = "SELECT org_code, org_name || ' (' || abbreviation || ')' AS org_name ";
-    $sql .= "FROM organisation WHERE active AND abbreviation !~ '^ *$' ";
-    $sql .= "AND EXISTS(SELECT user_no FROM usr WHERE usr.org_code = organisation.org_code AND usr.status != 'I') ";
-    $sql .= "AND EXISTS(SELECT work_system.system_code FROM org_system JOIN work_system ON (org_system.system_code = work_system.system_code) WHERE org_system.org_code = organisation.org_code AND work_system.active) ";
-    $sql .= "ORDER BY lower(org_name)";
+  if ( $session->AllowedTo("Admin") || $session->AllowedTo("Support") || $session->AllowedTo("Contractor") ) {
+
     $html .= $ef->DataEntryLine( "Organisation", "", "lookup", "org_code",
-              array("_sql" => $sql, "_null" => "-- All Organisations --", "onchange" => "OrganisationChanged();",
+              array("_sql" => SqlSelectOrganisations($org_code),
+                    "_null" => "-- All Organisations --", "onchange" => "OrganisationChanged();",
                     "title" => "The organisation that this work will be done for.",
                     "class" => "srchf",
                     "style" => "width: 18em" ) );
   }
 
   // System (within Organisation) drop-down
-  $sql = "SELECT work_system.system_code, system_desc FROM work_system ";
-  if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) ) {
-    $sql .= "JOIN system_usr ON (work_system.system_code=system_usr.system_code AND system_usr.user_no=$session->user_no) ";
-  }
-  $sql .= "WHERE active ";
-  $sql .= "AND EXISTS (SELECT 1 FROM org_system WHERE org_system.system_code = work_system.system_code ";
-  if ( $org_code != 0 && ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) )
-    $sql .= "AND org_system.org_code = $org_code ";
-  else if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) )
-    $sql .= "AND org_system.org_code = $session->org_code ";
-  $sql .= ") ";
-  $sql .= "ORDER BY lower(system_desc);";
   $html .= $ef->DataEntryLine( "System", "", "lookup", "system_code",
-            array("_sql" => $sql, "_null" => "-- All Systems --", "onchange" => "SystemChanged();",
+            array("_sql" => SqlSelectSystems($org_code),
+                  "_null" => "-- All Systems --", "onchange" => "SystemChanged();",
                   "title" => "The business system that this request applies to.",
                   "class" => "srchf",
                   "style" => "width: 18em") );
 
-  $sql = "SELECT user_no, fullname || ' (' || abbreviation || ')' AS name ";
-  $sql .= "FROM usr JOIN organisation ON (usr.org_code = organisation.org_code) ";
-  $sql .= "WHERE status != 'I' ";
-  if ( $org_code != 0 && ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) )
-    $sql .= "AND organisation.org_code = $org_code ";
-  else if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) )
-    $sql .= "AND organisation.org_code = $session->org_code ";
-  $sql .= "ORDER BY lower(fullname)";
   $html .= $ef->DataEntryLine( "By", "", "lookup", "requester_id",
-            array("_sql" => $sql, "_null" => "-- Any Requester --", "onchange" => "PersonChanged();",
+            array("_sql" => SqlSelectRequesters($org_code),
+                  "_null" => "-- Any Requester --", "onchange" => "PersonChanged();",
                   "title" => "The client who is requesting this, or who is in charge of ensuring it happens.",
                   "class" => "srchf",
                   "style" => "width: 12em" ) );
 
-  // Person within Organisation drop-down
-  $sql = "SELECT user_no, fullname ";
-  $sql .= " ||' ('||abbreviation||')' ";
-  $sql .= "FROM usr JOIN organisation USING (org_code) ";
-  $sql .= "WHERE status != 'I' AND organisation.active ";
-  if ( isset($org_code) && $org_code > 0 && ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) ) {
-    $sql .= "AND organisation.org_code = usr.org_code AND usr.org_code IN ( $org_code, $session->org_code ) ";
-    $sql .= "OR EXISTS (SELECT 1 FROM organisation oo ";
-    $sql .= "JOIN org_system USING (org_code) ";
-    $sql .= "JOIN work_system USING (system_code) ";
-    $sql .= "JOIN system_usr ON (work_system.system_code=system_usr.system_code AND system_usr.user_no=$session->user_no) ";
-    $sql .= "JOIN system_usr worker ON (work_system.system_code=worker.system_code AND worker.user_no=usr.user_no) ";
-    $sql .= "AND oo.org_code IN ( $org_code, $session->org_code ) ";
-    $sql .= "AND worker.role = 'S') ";
-  }
-  elseif ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) ) {
-    $sql .= "AND organisation.org_code = usr.org_code AND usr.org_code IN ( $session->org_code ) ";
-    $sql .= "OR EXISTS (SELECT 1 FROM organisation oo ";
-    $sql .= "JOIN org_system USING (org_code) ";
-    $sql .= "JOIN work_system USING (system_code) ";
-    $sql .= "JOIN system_usr ON (work_system.system_code=system_usr.system_code AND system_usr.user_no=$session->user_no) ";
-    $sql .= "JOIN system_usr worker ON (work_system.system_code=worker.system_code AND worker.user_no=usr.user_no) ";
-    $sql .= "AND oo.org_code = $session->org_code ";
-    $sql .= "AND worker.role = 'S') ";
-  }
-  $sql .= "AND EXISTS(SELECT work_system.system_code FROM org_system JOIN work_system ON (org_system.system_code = work_system.system_code) WHERE org_system.org_code = organisation.org_code AND work_system.active) ";
-  $sql .= "ORDER BY lower(fullname)";
-
-  // Person Interested in W/R
   $html .= $ef->DataEntryLine( "Watching", "", "lookup", "subscribable",
-            array("_sql" => $sql, "_null" => "-- Any Interested User --",
+            array("_sql" => SqlSelectSubscribers($org_code), "_null" => "-- Any Interested User --",
                   "title" => "The client who is requesting this, or who is in charge of ensuring it happens.",
                   "class" => "srchf",
                   "style" => "width: 12em" ) );
 
   // Person Assigned to W/R
   $html .= $ef->DataEntryLine( "ToDo", "", "lookup", "allocatable",
-            array("_sql" => $sql,
+            array("_sql" => SqlSelectSubscribers($org_code),
                   "_null" => "-- Any Assigned User --",
                   "_all" => "-- Not Yet Allocated --",
                   "class" => "srchf",
@@ -294,7 +247,7 @@ function RenderTagsPanel( $ef ) {
 
   $html .= "<div id=\"tagselect\" style=\"display :none;\">";
   $html .= $ef->DataEntryLine( "Tag List", "", "lookup", "orgtaglist",
-            array("_sql" => $sql, "_null" => "-- Any Tag --", /* "onchange" => "TagChanged();", */
+            array("_sql" => SqlSelectOrgTags($org_code), "_null" => "-- Any Tag --", /* "onchange" => "TagChanged();", */
                   "title" => "A tag that you want included or excluded from the report.",
                   "class" => "srchf",
                   "id"    => "taglistselect",
@@ -343,6 +296,7 @@ function RenderColumnSelections( $ef ) {
   $i=0;
   foreach( $available_columns AS $k => $v ) {
     $ef->record->columns[$k] = (intval($flipped_columns[$k])?$k:'');
+    error_log( "DBG: $k => $v " . $flipped_columns[$k] . ", " . $ef->record->columns[$k] );
     $html .= $ef->DataEntryField( "%s", "checkbox", "columns[$k]",
               array("_label" => $v, "class" => "srchf", "value" => $k ) );
     $i++;

@@ -42,13 +42,9 @@ if (!xmlhttp && typeof XMLHttpRequest!='undefined') {
 }
 
 function CleanSelectOptions( sel ) {
-  if ( typeof(sel) != 'undefined' ) {
-    if ( sel.options.length > 0 ) {
-      for ( var i=0; i < sel.options.length; i++ ) {
-        sel.options[i] = null;
-        i--;
-      }
-    }
+  for ( var i=0; i < sel.options.length; i++ ) {
+    sel.options[i] = null;
+    i--;
   }
 }
 

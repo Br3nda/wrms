@@ -34,12 +34,12 @@
     $search_query .= ", to_char( request.last_activity, 'FMdd Mon yyyy') AS last_change ";
     $search_query .= ", to_char( request.request_on, 'FMdd Mon yyyy') AS date_requested";
     //provides extra fields that are needed to create a Brief (editable) report
-    $search_query .= ", active, last_status ";
+    $search_query .= ", request.active, last_status ";
     $search_query .= ", creator.email AS by_email, creator.fullname AS by_fullname, lower(creator.fullname) AS lby_fullname ";
     $search_query .= "FROM ";
     if ( intval("$interested_in") > 0 ) $search_query .= "request_interested, ";
     if ( intval("$allocated_to") > 0 ) $search_query .= "request_allocated, ";
-    $search_query .= "request";
+    $search_query .= "request ";
     if ( ! is_member_of('Admin', 'Support') ) {
       $search_query .= "JOIN work_system USING (system_code) ";
       $search_query .= "JOIN system_usr ON (work_system.system_code = system_usr.system_code AND system_usr.user_no = $session->user_no) ";
@@ -51,7 +51,7 @@
 
     $search_query .= " WHERE request.requester_id=usr.user_no AND request.entered_by=creator.user_no ";
     $search_query .= " AND request_type.source_table='request' AND request_type.source_field='request_type' AND request.request_type = request_type.lookup_code";
-    if ( "$inactive" == "" )        $search_query .= " AND active ";
+    if ( "$inactive" == "" )        $search_query .= " AND request.active ";
     if ( ! is_member_of('Admin', 'Support' ) ) {
       $search_query .= " AND usr.org_code = '$session->org_code' ";
     }
@@ -141,4 +141,5 @@ $search_query";
   $search_query .= " ORDER BY $rlsort $rlseq ";
   if ( !isset($maxresults) || intval($maxresults) == 0 ) $maxresults = 200;
   $search_query .= " LIMIT $maxresults ";
+  // echo "<p>$search_query</p>";
 ?>

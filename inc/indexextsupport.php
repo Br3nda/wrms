@@ -15,21 +15,7 @@ and the numbers of requests active for each one.  Click on the name of a system 
 see those currently active requests.
 <?php
   // Should already be tested, but we might as well check again.
-  if ( ! is_member_of('Admin','Support') ) return;
-/*
-  $query = "SELECT o.org_code, lower(o.org_name) AS lcname, o.org_name, ";
-  $query .= "to_char( max(r.request_on), 'D Mon YYYY') AS last_request_date, ";
-  $query .= "count(r.request_id) AS active_org_requests ";
-  $query .= "FROM organisation o ";
-  $query .= "JOIN usr tu ON o.org_code = tu.org_code ";
-  $query .= "JOIN usr u ON o.org_code = u.org_code ";
-  $query .= "JOIN request r ON u.user_no = r.requester_id ";
-  $query .= "WHERE tu.user_no = $session->user_no AND o.active AND r.active ";
-  $query .= "AND (r.last_activity > (current_timestamp - '90 days'::interval) ";
-  $query .= "     OR r.last_status NOT IN ( 'F', 'C' ) ) ";
-  $query .= "GROUP BY lower(o.org_name), o.org_code, o.org_name ";
-  $query .= "HAVING COUNT(r.request_id) > 0 ";
-*/
+  if ( ! is_member_of('Admin','Support','Contractor') ) return;
 
   $query = "SELECT s.system_code, lower(s.system_desc) AS lcname, s.system_desc, ";
   $query .= "to_char( max(r.request_on), 'D Mon YYYY') AS last_request_date, ";
@@ -38,7 +24,7 @@ see those currently active requests.
   $query .= "JOIN system_usr su ON s.system_code = su.system_code ";
   $query .= "JOIN request r ON r.system_code = su.system_code ";
   $query .= "WHERE su.user_no = $session->user_no AND s.active AND r.active ";
-  $query .= "AND su.role IN ( 'A', 'S', 'C', 'E', 'R', 'U' ) ";
+  $query .= "AND su.role IN ( 'A', 'S', 'C', 'E', 'O', 'V' ) ";
   $query .= "AND (r.last_activity > (current_timestamp - '30 days'::interval) ";
   $query .= "     OR r.last_status NOT IN ( 'F', 'C' ) ) ";
   $query .= "GROUP BY lower(s.system_desc), s.system_code, s.system_desc ";

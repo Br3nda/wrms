@@ -20,6 +20,7 @@ var alloc_sel;
 var subsc_sel;
 var orgtag_sel;
 
+var looks_like_ie = true;
 var xmlhttp=false;
 /*@cc_on @*/
 /*@if (@_jscript_version >= 5)
@@ -37,6 +38,7 @@ var xmlhttp=false;
 @end @*/
 if (!xmlhttp && typeof XMLHttpRequest!='undefined') {
   xmlhttp = new XMLHttpRequest();
+  looks_like_ie = false;
 }
 
 function CleanSelectOptions( sel ) {
@@ -53,6 +55,7 @@ function OrganisationChanged() {
   alloc_sel = document.forms.form.allocatable;
   subsc_sel = document.forms.form.subscribable;
   orgtag_sel = document.forms.form.orgtaglist;
+  var orgtag_ok = ( typeof(orgtag_sel) != 'undefined' );
   if ( new_org_id != organisation_id ) {
     organisation_id = new_org_id;
     xmlhttp.open("GET", "/js.php?org_code=" + new_org_id, true);
@@ -63,15 +66,20 @@ function OrganisationChanged() {
         var old_person_id = per_sel.value;
         var old_system_code = sys_sel.value;
         CleanSelectOptions(per_sel);
+//        alert("Person Cleaned!");
         CleanSelectOptions(sys_sel);
+//        alert("System Cleaned!");
         CleanSelectOptions(alloc_sel);
+//        alert("Allocations Cleaned!");
         CleanSelectOptions(subsc_sel);
-        CleanSelectOptions(orgtag_sel);
+        if ( orgtag_ok )
+          CleanSelectOptions(orgtag_sel);
         per_sel.options[0] = new Option( "--- select a person ---", "" );
         sys_sel.options[0] = new Option( "--- select a system ---", "" );
         alloc_sel.options[0] = new Option( "--- select a person ---", "" );
         subsc_sel.options[0] = new Option( "--- select a person ---", "" );
-        orgtag_sel.options[0] = new Option( "--- select a tag ---", "" );
+        if ( orgtag_ok )
+          orgtag_sel.options[0] = new Option( "--- select a tag ---", "" );
         person_id = -1;
         system_code = "";
         for ( var i=0; i < lines.length; i++ ) {
@@ -91,7 +99,7 @@ function OrganisationChanged() {
             alloc_sel.options[alloc_sel.options.length] = new Option( lines[i].replace( aopt_rx, "$2"), lines[i].replace( aopt_rx, "$1") )
             subsc_sel.options[subsc_sel.options.length] = new Option( lines[i].replace( aopt_rx, "$2"), lines[i].replace( aopt_rx, "$1") )
           }
-          else if ( lines[i].match( /^OrgTag:/ ) ) {
+          else if ( orgtag_ok && lines[i].match( /^OrgTag:/ ) ) {
             orgtag_sel.options[orgtag_sel.options.length] = new Option( lines[i].replace( orgtag_rx, "$2"), lines[i].replace( orgtag_rx, "$1") )
           }
         }

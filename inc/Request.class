@@ -5,6 +5,7 @@
 require_once("html-format.php");
 require_once("guess-file-type.php");
 require_once('class.phpmailer.php');
+require_once("organisation-selectors-sql.php");
 
 // Random Joe Functions we use
 function simplify_string( $str ) {
@@ -381,13 +382,13 @@ class Request {
   //   on the W/R.
   /////////////////////////////////////////////////////////////
   function Render( ) {
-    global $edit, $tmnu;
+    global $session;
     $html = "";
 
-    $ef = new EntryForm( $REQUEST_URI, $this, $edit );
+    $ef = new EntryForm( $REQUEST_URI, $this, $GLOBALS['edit'] );
     $ef->NoHelp();  // Prefer this style, for the moment
 
-    if ( $edit ) $html .= $ef->StartForm( array("autocomplete" => "off", "onsubmit" => "return CheckRequestForm();" ) );
+    if ( $ef->editmode ) $html .= $ef->StartForm( array("autocomplete" => "off", "onsubmit" => "return CheckRequestForm();" ) );
 
     $html .= "<table width=\"100%\" class=\"data\" cellspacing=\"0\" cellpadding=\"0\">\n";
 
@@ -403,14 +404,14 @@ class Request {
     $html .= $this->RenderNotes($ef);
     $html .= $this->RenderStatuses($ef);
 
-    if ( $edit ) {
+    if ( $ef->editmode ) {
       $html .= $ef->DataEntryLine( "Quiet update", "%s", "checkbox", "send_no_email",
               array( "size" => 70, "title" => "Check the box if this update should not send e-mail notifications") );
       $html .= '<tr><th class="prompt">&nbsp;</th><td class="entry">';
       $html .= "</td></tr>";
     }
     $html .= "</table>\n";
-    if ( $edit ) {
+    if ( $ef->editmode ) {
       $html .= '<div id="footer">';
       $html .= $ef->SubmitButton( "submit", ($this->new_record ? "Create" : "Update") );
       $html .= '</div>';
@@ -425,7 +426,7 @@ class Request {
   // Display the core W/R details
   /////////////////////////////////////////////////////////////
   function RenderDetails( $ef ) {
-    global $edit, $session, $bigboxcols, $bigboxrows;
+    global $session, $bigboxcols, $bigboxrows;
     $html = "";
     $html .= $ef->BreakLine("Request Details");
     if ( !$this->new_record ) {
@@ -436,14 +437,10 @@ class Request {
               array( "size" => 70, "title" => "A brief description of the request.") );
 
     // Organisation drop-down
-    if ( $session->AllowedTo("Admin") || $session->AllowedTo("Support") ) {
-      $sql = "SELECT org_code, org_name || ' (' || abbreviation || ')' AS org_name ";
-      $sql .= "FROM organisation WHERE active AND abbreviation !~ '^ *$' ";
-      $sql .= "AND EXISTS(SELECT user_no FROM usr WHERE usr.org_code = organisation.org_code AND usr.status != 'I') ";
-      $sql .= "AND EXISTS(SELECT work_system.system_code FROM org_system JOIN work_system ON (org_system.system_code = work_system.system_code) WHERE org_system.org_code = organisation.org_code AND work_system.active) ";
-      $sql .= "ORDER BY lower(org_name)";
+    if ( $session->AllowedTo("Admin") || $session->AllowedTo("Support") || $session->AllowedTo("Contractor") ) {
       $html .= $ef->DataEntryLine( "Organisation", "$this->org_name", "lookup", "org_code",
-                array("_sql" => $sql, "_null" => "--- select an organisation ---", "onchange" => "OrganisationChanged();",
+                array("_sql" => SqlSelectOrganisations($this->org_code),
+                      "_null" => "--- select an organisation ---", "onchange" => "OrganisationChanged();",
                       "title" => "The organisation that this work will be done for." ) );
     }
     else {
@@ -452,47 +449,15 @@ class Request {
     }
 
     // Person within Organisation drop-down
-    $sql = "SELECT user_no, fullname ";
-    if ( $this->new_record ) $sql .= " ||' ('||abbreviation||')' ";
-    $sql .= "FROM usr JOIN organisation ON organisation.org_code = usr.org_code ";
-    if ( $this->new_record ) {
-      $sql .= "WHERE status != 'I' AND organisation.active ";
-      if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) )
-        $sql .= "AND organisation.org_code = $session->org_code AND usr.org_code = $session->org_code ";
-      $sql .= "AND EXISTS(SELECT work_system.system_code FROM org_system JOIN work_system ON (org_system.system_code = work_system.system_code) WHERE org_system.org_code = organisation.org_code AND work_system.active) ";
-    }
-    else {
-      $sql .= "WHERE organisation.org_code = $this->org_code AND usr.org_code = $this->org_code ";
-    }
-    $sql .= "ORDER BY lower(fullname)";
     $html .= $ef->DataEntryLine( "Person", "$this->fullname", "lookup", "requester_id",
-              array("_sql" => $sql, "_null" => "--- select a person ---", "onchange" => "PersonChanged();",
+              array("_sql" => SqlSelectRequesters($this->org_code),
+                    "_null" => "--- select a person ---", "onchange" => "PersonChanged();",
                     "title" => "The client who is requesting this, or who is in charge of ensuring it happens." ) );
 
     // System (within Organisation) drop-down
-    $sql = "SELECT work_system.system_code, system_desc FROM work_system ";
-    if ( $this->new_record ) {
-      if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) ) {
-        $sql .= "JOIN org_system ON org_system.system_code = work_system.system_code ";
-        $sql .= "JOIN system_usr ON $session->user_no = system_usr.user_no AND org_system.system_code = system_usr.system_code ";
-      }
-      $sql .= "WHERE active ";
-      if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) ) {
-        $sql .= "AND org_system.org_code = $session->org_code ";
-        $sql .= "AND system_usr.role IN ( 'A', 'S', 'C', 'E' ) ";
-      }
-    }
-    else {
-      $sql .= "JOIN org_system ON org_system.system_code = work_system.system_code ";
-      if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) )
-        $sql .= "JOIN system_usr ON $session->user_no = system_usr.user_no AND org_system.system_code = system_usr.system_code ";
-      $sql .= "WHERE org_system.org_code = $this->org_code ";
-      if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) )
-        $sql .= "AND system_usr.role IN ( 'A', 'S', 'C', 'E' ) ";
-    }
-    $sql .= "ORDER BY lower(system_desc)";
     $html .= $ef->DataEntryLine( "System", "$this->system_desc", "lookup", "system_code",
-              array("_sql" => $sql, "_null" => "--- select a system ---", "onchange" => "SystemChanged();",
+              array("_sql" => SqlSelectSystems($this->org_code),
+                    "_null" => "--- select a system ---", "onchange" => "SystemChanged();",
                     "title" => "The business system that this request applies to.") );
 
     // Type of Request
@@ -518,7 +483,7 @@ class Request {
   // Display the organisationally defined actions and dates
   /////////////////////////////////////////////////////////////
   function RenderActions( $ef ) {
-    global $edit, $session;
+    global $session;
 
     if ( (!isset($this->request_id) || $this->request_id == 0) && (!isset($this->org_code) || $this->org_code == 0) ) return "";
 
@@ -852,22 +817,12 @@ class Request {
 
     if ( $ef->editmode ) {
       $html .= '<tr><th class="prompt">Allocate</th>'."\n";
-      // Select the file
-      $usr_sql = "SELECT user_no, abbreviation || ': ' || fullname ";
-      $usr_sql .= "FROM usr JOIN organisation ON ( usr.org_code = organisation.org_code) ";
-      if ( isset($this->org_code) ) {
-        $usr_sql .= "WHERE status != 'I' AND organisation.org_code IN ( $this->org_code, $session->org_code )";
-      }
-      else {
-          $usr_sql .= "WHERE status != 'I' AND organisation.org_code = $session->org_code ";
-      }
-      $usr_sql .= " ORDER BY organisation.org_code, fullname;";
       $html .= '<td class="entry">';
       $html .= $ef->DataEntryField( "", "lookup", "allocatable",
                 array("title" => "Select the person to allocate this W/R to",
                       "style" => "vertical-align: top; width: 20em;",
                       "_null" => "--- select a person ---",
-                      "_sql"  => $usr_sql ) );
+                      "_sql"  => SqlSelectSubscribers($this->org_code) ) );
 
       // Enter the description
       $html .= $ef->DataEntryField( "", "button", "add_allocation",
@@ -1061,22 +1016,12 @@ class Request {
 
     if ( $ef->editmode ) {
       $html .= '<tr><th class="prompt">Subscribe</th>'."\n";
-      // Select the file
-      $usr_sql = "SELECT user_no, abbreviation || ': ' || fullname ";
-      $usr_sql .= "FROM usr JOIN organisation ON ( usr.org_code = organisation.org_code) ";
-      if ( isset($this->org_code) ) {
-        $usr_sql .= "WHERE status != 'I' AND organisation.org_code IN ( $this->org_code, $session->org_code )";
-      }
-      else {
-          $usr_sql .= "WHERE status != 'I' AND organisation.org_code = $session->org_code ";
-      }
-      $usr_sql .= " ORDER BY organisation.org_code, fullname;";
       $html .= '<td class="entry">';
       $html .= $ef->DataEntryField( "", "lookup", "subscribable",
                 array("title" => "Select the person to subscribe to this W/R",
                       "style" => "vertical-align: top; width: 20em;",
                       "_null" => "--- select a person ---",
-                      "_sql"  => $usr_sql ) );
+                      "_sql"  => SqlSelectSubscribers($this->org_code) ) );
 
       // Enter the description
       $html .= $ef->DataEntryField( "", "button", "add_subscription",
@@ -1107,7 +1052,7 @@ class Request {
     $q = new PgQuery($sql);
     $q->Exec('WR::Tags') ;
 
-    if ( $q->rows )
+    if ( $ef->editmode || $q->rows )
       $html .= $ef->BreakLine("Assigned Tags");
     if ( $q->rows ) {
       $html .= '<tr><th class="prompt">&nbsp;</th><td class="entry" style="vertical-align: middle;">'."\n";
@@ -1126,44 +1071,24 @@ class Request {
     }
 
     if ( $ef->editmode ) {
-      // Select the file
-      $usr_sql = "SELECT tag_id, tag_description ";
-      $usr_sql .= "FROM organisation_tag JOIN organisation ON ( organisation_tag.org_code = organisation.org_code) ";
-      $usr_sql .= "WHERE organisation_tag.active AND organisation.active AND organisation.org_code ";
-      if ( isset($this->org_code) ) {
-        $usr_sql .= "IN ( $this->org_code, $session->org_code )";
-      }
-      else {
-          $usr_sql .= "= $session->org_code ";
-      }
-      $usr_sql .= " ORDER BY organisation_tag.tag_sequence, lower(organisation_tag.tag_description);";
+      $html .= '<tr><th class="prompt">Assign Tag</th>'."\n";
+      $html .= '<td class="entry">';
 
-      $field .= $ef->DataEntryField( "", "lookup", "orgtaglist",
+      $html .= $ef->DataEntryField( "", "lookup", "orgtaglist",
                 array("title" => "Select the tag to assign to this W/R",
                       "style" => "vertical-align: top; width: 20em;",
                       "_null" => "--- select a tag ---",
-                      "_sql"  => $usr_sql ) );
+                      "_sql"  => SqlSelectOrgTags($this->org_code) ) );
 
-      // Only display this stuff if there is a tag choice
-      if ( preg_match( '/<option .+<option /', $field ) ) {
+      $html .= $ef->DataEntryField( "", "button", "add_orgtag",
+                array("title" => "Add this tag to the assigned list for this work request",
+                      "value" => "Assign Tag", "style" => "vertical-align: top;",
+                      "onClick" => "return AssignSelected(document.forms.form.orgtaglist,'new_tags[]');" ) );
 
-        if ( ! $q->rows )
-          $html .= $ef->BreakLine("Assigned Tags");
-
-        $html .= '<tr><th class="prompt">Assign Tag</th>'."\n";
-        $html .= '<td class="entry">' . $field;
-
-        // Enter the description
-        $html .= $ef->DataEntryField( "", "button", "add_orgtag",
-                  array("title" => "Add this tag to the assigned list for this work request",
-                        "value" => "Assign Tag", "style" => "vertical-align: top;",
-                        "onClick" => "return AssignSelected(document.forms.form.orgtaglist,'new_tags[]');" ) );
-
-        $html .= $ef->DataEntryField( "", "select", "new_tags[]",
-                  array("title" => "Deselect the tag to not assign it to this W/R",
-                        "style" => "width: 20em;", "multiple"  => "true", "size" => 1 ) );
-        $html .= '</td></tr>'."\n";
-      }
+      $html .= $ef->DataEntryField( "", "select", "new_tags[]",
+                array("title" => "Deselect the tag to not assign it to this W/R",
+                      "style" => "width: 20em;", "multiple"  => "true", "size" => 1 ) );
+      $html .= '</td></tr>'."\n";
     }
     return $html;
   }

@@ -3,6 +3,9 @@ if ( $logged_on ) {
   if ( is_member_of('Admin','Support') ) {
     include("indexsupport.php");
   }
+  elseif ( $session->AllowedTo('Contractor') ) {
+    include("indexextsupport.php");
+  }
   else {
     include("indexclients.php");
   }

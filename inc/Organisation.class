@@ -232,7 +232,7 @@ class Organisation {
     else {
       $sql .= "WHERE organisation_tag.org_code = ".intval($session->org_code);
     }
-    $sql .= "ORDER BY tag_sequence, lower(tag_description)";
+    $sql .= " ORDER BY tag_sequence, lower(tag_description)";
 
     # Select the records
     $q = new PgQuery($sql);
@@ -289,7 +289,7 @@ class Organisation {
     else {
       $sql .= "WHERE organisation_action.org_code = ".intval($session->org_code);
     }
-    $sql .= "ORDER BY action_sequence, lower(action_description)";
+    $sql .= " ORDER BY action_sequence, lower(action_description)";
 
     # Select the records
     $q = new PgQuery($sql);

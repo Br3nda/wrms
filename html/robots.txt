@@ -1,0 +1,5 @@
+# /robots.txt file for http://wrms.catalyst.net.nz/
+
+User-agent: *
+Disallow: /
+

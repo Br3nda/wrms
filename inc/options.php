@@ -24,6 +24,7 @@
     }
     else {
       $usr = pg_Fetch_Object($result, 0);
+      $usr->password = strtolower($usr->password);
       if ( strtolower("$L") <> "$usr->password" && md5(strtolower("$L")) <> "$usr->password" && "$L" <> md5(strtolower("$usr->password")) ) {
         $error_msg = "<H3>Invalid Logon</H3><P>You have used an invalid ID or password</P>";
       }

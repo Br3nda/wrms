@@ -5,7 +5,7 @@
     $because .= "You must log on with a valid password and maintainer ID\n";
 
   // Validate that they are only maintaining an organisation they are allowed to access
-  if ( is_member_of('Admin') ) {
+  if ( is_member_of('Admin')  || is_member_of('Support') ) {
     // OK, they can do anything :-)
   }
   else

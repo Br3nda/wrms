@@ -68,7 +68,7 @@
       echo "<ol type=\"1\">";
       for( $i = 0; $i < $rows; $i ++ ) {
         $help = pg_Fetch_Object($rid,$i);
-        echo "<li><a href=\"/form.php?form=help&topic=" . htmlspecialchars($help->topic) . "\">$help->title</a></li>\n";
+        echo "<li><a href=\"/form.php?form=help&topic=" . htmlspecialchars($help->topic) . "&seq=$help->seq\">$help->title</a></li>\n";
       }
       echo "</ol>";
       if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {

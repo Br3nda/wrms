@@ -3,7 +3,7 @@
   block_title("<a title=\"\" href=\"usr.php?user_no=$session->user_no\" class=blockhead>$session->fullname</a>");
   echo "<tr><td class=block>\n &nbsp;";
   echo  "<a href=\"/?M=LO$hurl\" class=block>logoff</a>";
-  echo "<br>\n &nbsp;<a href=\"join.php?user_no=$session->user_no\" class=block>edit&nbsp;my&nbsp;info</a>\n";
+  echo "<br>\n &nbsp;<a href=\"usr.php?user_no=$session->user_no\" class=block>edit&nbsp;my&nbsp;info</a>\n";
   $my_uri = ereg_replace( "[?&]togglehelp=[0-9]", "", $REQUEST_URI);
   echo  "<br>\n &nbsp;<a href=\"$my_uri";
   echo  ( !strpos($my_uri,"?") ? "?" : "&");

@@ -3,15 +3,21 @@
   include("$base_dir/inc/html-format.php");
 function nice_time( $in_time ) {
   /* does nothing yet... */
-  return "$in_time";
+  return substr("$in_time", 2);
 }
+  if ( "$because" != "" )
+    echo $because;
+  else if ( ! $plain ) {
+//    ? ><P class=helptext>Use this form to maintain organisations who may have requests associated
+// with them.</P><?php
+  }
+// <P class=helptext>This page lists timesheets.</P>
 ?>
-<P class=helptext>This page lists timesheets.</P>
 
-<FORM METHOD=POST ACTION="<?php echo "$REQUEST_URI"; ?>">
+<FORM METHOD=POST ACTION="<?php echo "$base_url/form.php?form=timelist"; ?>">
 <table align=center><tr valign=middle>
 <td><b>Desc.</b><input TYPE="Text" Size="20" Name="search_for" Value="<?php echo "$search_for"; ?>"></td>
-<td><label for=uncharged><input type=checkbox value=1 name=uncharged> Uncharged</label></td>
+<td><label for=uncharged><input type=checkbox value=1 name=uncharged<?php if ("$uncharged"<>"" ) echo " checked"; ?>> Uncharged</label></td>
 <td><input TYPE="Image" src="images/in-go.gif" alt="go" WIDTH="44" BORDER="0" HEIGHT="26" name="submit"></td>
 </tr></table>
 </form>  
@@ -49,11 +55,15 @@ function nice_time( $in_time ) {
       include("inc/error.php");
     }
     else {
-      echo "<p>" . pg_NumRows($result) . " timesheets found</p>"; // <p>$query</p>";
+      echo "<p>&nbsp;" . pg_NumRows($result) . " timesheets found</p>\n"; // <p>$query</p>";
+      if ( "$uncharged" != "" )
+        echo "<FORM METHOD=POST ACTION=\"$REQUEST_URI&uncharged=1\">\n";
       echo "<table border=\"0\" align=center><tr>\n";
-      echo "<th class=cols>Done On</th><th class=cols>Duration</th>";
+      echo "<th class=cols>Done On</th><th class=cols>Duration</th><th class=cols>Rate</th>";
       echo "<th class=cols>Done By</th><th class=cols>Work for</th>";
-      echo "<th class=cols>Charged on</th><th class=cols>Description</th></tr>";
+      if ( "$uncharged" == "" )
+        echo "<th class=cols>Charged on</th>";
+      echo "<th class=cols>Description</th></tr>";
 
       // Build table of organisations found
       for ( $i=0; $i < pg_NumRows($result); $i++ ) {
@@ -62,17 +72,32 @@ function nice_time( $in_time ) {
         if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
         else echo "<tr bgcolor=$colors[7]>";
 
-        echo "<td class=sml>" . substr( nice_date($timesheet->work_on), 7) . "</td>";
-        echo "<td class=sml>" . nice_time($timesheet->work_duration) . "</td>";
-        echo "<td class=sml>$timesheet->worker_name</td>";
-        echo "<td class=sml>$timesheet->requester_name</td>";
-        if ( "$timesheet->work_charged" == "" )
-          echo "<td class=sml>uncharged</td>";
+        echo "<td class=sml nowrap>" . substr( nice_date($timesheet->work_on), 7) . "</td>\n";
+        echo "<td class=sml nowrap>" . nice_time($timesheet->work_duration) . "</td>\n";
+        echo "<td class=sml align=right nowrap>$timesheet->work_rate&nbsp;</td>\n";
+        echo "<td class=sml>$timesheet->worker_name</td>\n";
+        echo "<td class=sml>$timesheet->requester_name</td>\n";
+        if ( "$timesheet->work_charged" == "" ) {
+          if ( "$uncharged" == "" ) echo "<td class=sml>uncharged</td>";
+        }
         else
           echo "<td class=sml>" . substr( nice_date($timesheet->work_charged), 7) . "</td>";
         echo "<td class=sml>" . html_format( $timesheet->work_description) . " <I> <A HREF=$base_url/request.php?request_id=$timesheet->request_id>(WR #$timesheet->request_id)</A></I></td>";
 
+        if ( "$uncharged" != "" ) {
+          echo "</tr>\n";
+          if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
+          else echo "<tr bgcolor=$colors[7]>";
+          echo "<th class=cols align=right colspan=3>Charged&nbsp;On:</th>\n";
+          echo "<td><input type=text size=10 name=\"chg_on[$timesheet->timesheet_id]\" value=\"" . date( "d/m/Y" ) . "\"></td>\n";
+          echo "<th class=cols align=right>Amount:</th>\n";
+          echo "<td><input type=text size=12 name=\"chg_amt[$timesheet->timesheet_id]\" value=\"\"></td>\n";
+        }
         echo "</tr>\n";
+      }
+      if ( "$uncharged" != "" ) {
+        echo "<tr><td class=mand colspan=6 align=center><input TYPE=submit alt=\"apply changes\" name=submit value=\"Apply Charges\"></td></tr>\n";
+        echo "</form>\n";
       }
       echo "</table>\n";
     }

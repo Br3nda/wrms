@@ -1,26 +1,31 @@
 <?php
-$because = "<TABLE BORDER=1 WIDTH=50% ALIGN=CENTER>";
-$because .= "<TR><TH ALIGN=RIGHT>System:</TH><TD> $fsystem_code</TD></TR>\n";
-$because .= "<TR><TH ALIGN=RIGHT>UserName:</TH><TD> $session->fullname ($session->username)</TD></TR>\n";
-$because .= "<TR><TH ALIGN=RIGHT>UserPassword:</TH><TD> *** validated ***</TD></TR>\n";
-$because .= "<TR><TH ALIGN=RIGHT>User Email:</TH><TD> $session->email</TD></TR>\n";
-$because .= "<TR><TH ALIGN=RIGHT>Change Type:</TH><TD> Training</TD></TR>\n";
-$because .= "<TR><TH ALIGN=RIGHT>Request No:</TH><TD> $frequestno</TD></TR>\n";
-$because .= "<TR><TH ALIGN=RIGHT>Family Name:</TH><TD> $fpfamily</TD></TR>\n";
-$because .= "<TR><TH ALIGN=RIGHT>First Name:</TH><TD> $fpfirst</TD></TR>\n";
-$because .= "<TR><TH ALIGN=RIGHT>Parent Education<BR>Completed</TH><TD> $ftparent_ed</TD></TR>\n";
-$because .= "<TR><TH ALIGN=RIGHT>Personal Development<BR>Training</TH><TD> $ftpersonal</TD></TR>\n";
-$because .= "<TR><TH ALIGN=RIGHT>Leadership Certificate<BR>Training</TH><TD> $ftleadership</TD></TR>\n";
-$because .= "</TABLE>";
 
+  if ( $logged_on && isset( $chg_on ) && is_array( $chg_on ) && is_array( $chg_amt ) ) {
+    $because = "<TABLE BORDER=1 WIDTH=50% ALIGN=CENTER>";
+    $query = "";
+    while( list( $k, $v ) = each ( $chg_on ) ) {
+      $amount = doubleval( $chg_amt["$k"] );
+      if ( $amount == 0 ) continue;
+      $because .= "<tr><td>$k</td><td>$v</td></tr>";
+      $query .= "UPDATE request_timesheet SET";
+      $query .= " work_charged='$v',";
+      $query .= " charged_by_id=$session->user_no,";
+      $query .= " charged_amount=$amount";
+      $query .= " WHERE timesheet_id=$k;";
+    }
+    $because .= "</TABLE>";
 
-  $msg = "<HEAD><TITLE>Request Training</TITLE></HEAD><BODY BGCOLOR=#E7FFE7><H2>Request Training</H2>$because</BODY></HTML>";
-  $msg = "<!doctype html public \"-//w3c//dtd html 4.0 transitional//en\"><HTML>$msg";
+    $because .= "<TT>$query</TT>";
+    $rid = pg_Exec( $wrms_db, $query );
 
-  $headers = "";
-  if ( strpos("$session->email", "@") ) $headers = "From: $session->email";
-  $headers .= "\nContent-Type: text/html; charset=us-ascii";
+    $msg = "<HEAD><TITLE>Timesheets Charged</TITLE></HEAD><BODY BGCOLOR=#E7FFE7><H2>Timesheets Charged**</H2>$because</BODY></HTML>";
+    $msg = "<!doctype html public \"-//w3c//dtd html 4.0 transitional//en\"><HTML>$msg";
 
-  mail( "wrmsadmin@catalyst.net.nz", "Request Training", $msg, $headers  );
+    $headers = "Content-Type: text/html; charset=us-ascii";
+    if ( strpos("$session->email", "@") ) $headers = "\nFrom: $session->email";
+
+    mail( "wrmsadmin@catalyst.net.nz", "Timesheets Charged", $msg, $headers  );
+
+  }
 ?>
 

@@ -107,7 +107,8 @@ INSERT INTO lookup_code ( source_table, source_field, lookup_seq, lookup_code, l
 
 ALTER TABLE request ADD COLUMN urgency INT;
 UPDATE request SET urgency=(severity_code/10)*10;
-UPDATE request SET urgency=urgency+30 WHERE urgency >= 20 AND urgency<50;
+UPDATE request SET urgency=urgency+20 WHERE urgency = 40 ;
+UPDATE request SET urgency=urgency+30 WHERE urgency >= 20 AND urgency<40;
 
 INSERT INTO lookup_code (source_table, source_field, lookup_code, lookup_seq, lookup_desc )
     VALUES('codes', 'menus', 'request|importance', 5, 'Importance');
@@ -236,6 +237,14 @@ INSERT INTO group_member ( group_no, user_no )
 	        WHERE awm_usr.enabled>0 AND LOWER(awm_usr.username)=usr.username;
 
 
+UPDATE organisation SET work_rate=120.0;
+UPDATE organisation SET work_rate=100.0 WHERE abbreviation='TTP' OR abbreviation='AGP';
+UPDATE organisation SET work_rate=70.0 WHERE abbreviation='PCNZ';
+UPDATE request_timesheet SET work_rate=organisation.work_rate
+    FROM request, organisation, usr
+		WHERE request.request_id=request_timesheet.request_id
+		AND request.requester_id=usr.user_no
+		AND organisation.org_code=usr.org_code;
 
 \i dump/t-session.sql
 

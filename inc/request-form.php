@@ -293,6 +293,7 @@
    <TH ALIGN=LEFT class=cols>Done By</TH>
    <TH class=cols>Done On</TH>
    <TH class=cols>Hours</TH>
+   <TH class=cols>Rate</TH>
    <TH class=cols>Description</TH>
  </TR>
 <?php
@@ -314,6 +315,7 @@
       echo "<td>$session->fullname</td>\n";
       echo "<TD><input name=new_work_on size=9 type=text value=today></TD>\n";
       echo "<TD><input name=new_work_duration size=7 type=text><br>(e.g. &quot;2 hours&quot;)</TD>\n";
+      echo "<TD><input name=new_work_rate size=5 type=text><br>($ per hour)</TD>\n";
       echo "<TD><textarea name=new_work_details rows=3 cols=40 wrap=soft></textarea></TD></TR>\n";
     }
     echo "</TABLE>\n";
@@ -333,7 +335,7 @@
   $rows = pg_NumRows($peopleq);
   if ( $rows > 0 ) {
     echo "$tbldef><TR><TD CLASS=sml COLSPAN=3>&nbsp;</TD></TR>\n";
-    echo "<TR>$hdcell<TD CLASS=h3 COLSPAN=2 ALIGN=RIGHT bgcolor=$colors[8]><FONT SIZE=+1 color=$colors[1]><B>Other Interested Users</B></FONT></TD></TR>\n";
+    echo "<TR>$hdcell<TD CLASS=h3 COLSPAN=2 ALIGN=RIGHT bgcolor=$colors[8]><FONT SIZE=+1 color=$colors[1]><B>Interested Users</B></FONT></TD></TR>\n";
     echo "<TR VALIGN=TOP><th nowrap>&nbsp;</th>\n<td>";
     for( $i=0; $i<$rows; $i++ ) {
       $interested = pg_Fetch_Object( $peopleq, $i );
@@ -341,14 +343,18 @@
       echo "$interested->fullname ($interested->abbreviation)\n";
     }
 
-    $notify_to = notify_emails( $wrms_db, $request_id );
-    if ( strstr( $notify_to, $session->email ) )
-      $tell = "Stop informing me on this request";
-    else
-      $tell = "Inform me about updates to this request!";
+    if ( $plain )
+      echo "</TD>\n<TD>&nbsp;";  // Or we could correct the cellspan above for this case...
+    else {
+      $notify_to = notify_emails( $wrms_db, $request_id );
+      if ( strstr( $notify_to, $session->email ) )
+        $tell = "Stop informing me on this request";
+      else
+        $tell = "Inform me about updates to this request!";
 
-    echo "</TD>\n<TD ALIGN=RIGHT nowrap><font size=-2><A HREF=\"request.php?submit=register&request_id=$request_id\">";
-    echo "<span style=\"background: $colors[6];\">$tell</span></a></font>";
+      echo "</TD>\n<TD ALIGN=RIGHT nowrap><font size=-2><A HREF=\"request.php?submit=register&request_id=$request_id\">";
+      echo "<span style=\"background: $colors[6];\">$tell</span></a></font>";
+    }
     echo "</TD>\n</TR></TABLE>\n";
   }
 ?>

@@ -49,6 +49,7 @@ CREATE TABLE organisation (
   org_code TEXT NOT NULL UNIQUE PRIMARY KEY,
 	active BOOL DEFAULT TRUE,
 	debtor_no INT4,
+	work_rate FLOAT,
   org_name TEXT,
   admin_usr TEXT
 ) ;
@@ -180,6 +181,7 @@ CREATE TABLE request_allocated (
 GRANT INSERT,UPDATE,SELECT ON request_allocated TO general;
 
 CREATE TABLE request_timesheet (
+  timesheet_id SERIAL PRIMARY KEY,
   request_id INT4,
   work_on DATETIME,
   work_duration INTERVAL,
@@ -189,9 +191,9 @@ CREATE TABLE request_timesheet (
   work_rate FLOAT8,
   work_charged DATETIME,
 	charged_amount FLOAT8,
-	charged_by_id INT4,
-	PRIMARY KEY ( work_on, work_by_id )
+	charged_by_id INT4
 );
+CREATE UNIQUE INDEX request_timesheet_skey1 ON request_timesheet ( work_on, work_by_id, request_id );
 GRANT INSERT,UPDATE,SELECT ON request_timesheet TO general;
 
 

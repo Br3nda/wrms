@@ -18,7 +18,7 @@
   if ( is_member_of('Admin','Support') ) {
     // Pre-build the list of systems
     if ( "$error_qry" == "" ) {
-      $query = "SELECT * FROM work_system";
+      $query = "SELECT * FROM work_system ORDER BY system_code";
       $sys_res = awm_pgexec( $dbconn, $query );
     }
   }

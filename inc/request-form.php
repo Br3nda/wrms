@@ -26,7 +26,7 @@
       else
         $user_list = get_user_list( "", $session->org_code, $session->user_no );
     }
-    if ( $allocated_to || $sysmgr ) {
+    if ( $allocated_to || $sysmgr || is_member_of('Support') ) {
       $quote_types = get_code_list( "request_quote", "quote_type", "Q" );
       $quote_units = get_code_list( "request_quote", "quote_units", "hours" );
     }
@@ -321,7 +321,7 @@
     }
     else
       $rows = 0;
-    if ( $rows > 0 || (($allocated_to || $sysmgr) && !$plain) ) {
+    if ( $rows > 0 || (($allocated_to || $sysmgr || is_member_of('Support') ) && !$plain) ) {
       echo "$tbldef><tr><td class=sml colspan=6>&nbsp;</td></tr><tr>$hdcell";
       echo "<td class=h3 colspan=6 align=right>Quotations</td></tr>\n";
 
@@ -351,7 +351,7 @@
         echo html_format($quote->quote_details) . "</A></TD></TR>\n";
       }
     }
-    if ( ($allocated_to || $sysmgr) && ! $plain ) {
+    if ( ($allocated_to || $sysmgr  || is_member_of('Support') ) && ! $plain ) {
       printf("<tr class=row%1d>", ($i % 2) );
       echo "<TD colspan=3><input name=new_quote_brief size=35 type=text></TD>\n";
       echo "<TD><select class=sml name=new_quote_type>$quote_types</select></TD>\n";
@@ -423,7 +423,7 @@
   else
     $rows = 0;
 
-  if ( $rows > 0  || (($allocated_to || $sysmgr) && !$plain) ) {
+  if ( $rows > 0  || (($allocated_to || $sysmgr || is_member_of('Support')) && !$plain) ) {
 
     echo "$tbldef>\n<tr><td class=sml colspan=7>&nbsp;</td></tr><tr>$hdcell";
     echo "<td class=h3 colspan=7 align=right>Work Done</TD></TR>\n";
@@ -463,7 +463,7 @@
 </tr>";
     $i++;
 
-    if ( ($allocated_to || $sysmgr) && ! $plain ) {
+    if ( ($allocated_to || $sysmgr || is_member_of('Support')) && ! $plain ) {
       printf("<tr class=row%1d>", ($i % 2) );
       echo "<td colspan=2>$session->fullname<br>\n";
       echo "<input name=new_work_on size=10 type=text value=\"";
@@ -601,12 +601,12 @@
       echo "<tr>";
       echo "<th class=rows align=right>New Status:</th>";
       echo "<td align=left width=100><select class=sml name=\"new_status\">$status_list</select></td>";
-      if ( $sysmgr || $allocated_to || "$request->eta" <> "" ) {
+      if ( $sysmgr || $allocated_to || is_member_of('Support') || "$request->eta" <> "" ) {
         echo "<th class=rows align=right>&nbsp; ETA:</th>";
         echo "<td align=left>&nbsp;";
-        if ( $sysmgr || $allocated_to ) echo "<input type=text name=\"new_eta\" size=30 value=\"";
+        if ( $sysmgr || $allocated_to || is_member_of('Support') ) echo "<input type=text name=\"new_eta\" size=30 value=\"";
         echo substr( nice_date( $request->eta ), 7);
-        if ( $sysmgr || $allocated_to ) echo "\">";
+        if ( $sysmgr || $allocated_to || is_member_of('Support') ) echo "\">";
         echo "</td>";
       }
       else {

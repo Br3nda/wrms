@@ -62,7 +62,7 @@ function get_numeric_setting( $name, $current, $default ) {
 // Helper function for building select lists of times, since we need From: and To:
 function build_time_list( $name, $from, $current, $delta ) {
   $time_list = "<select name=$name onchange='form.submit()'>\n";
-  $to = $from + 480;
+  $to = 1425;
   for ( $i = $from; $i <= $to; $i += $delta ) {
     $time_list .= sprintf( "<option value=%d%s>%02d:%02d</option>\n", $i, ( $i == $current ? " selected" : ""), $i / 60, $i % 60 );
   }
@@ -74,7 +74,7 @@ function build_time_list( $name, $from, $current, $delta ) {
   echo "<tr>\n";
   echo "<th>Week Starting:</th><td>$week_list</td>\n";
   echo "<th>Periods:</th><td>$period_list</td>\n";
-  echo "<th>From:</th><td>" . build_time_list('sod', 360, $sod, 30) . "</td>\n";
+  echo "<th>From:</th><td>" . build_time_list('sod', 0, $sod, 30) . "</td>\n";
   echo "<th>To:</th><td>" . build_time_list('eod', $sod + 240, $eod, max($period_minutes / 4, 30)) . "</td>\n";
   echo "</tr>\n";
   echo "</table>\n</form>\n";

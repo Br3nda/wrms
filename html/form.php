@@ -15,10 +15,6 @@
   echo "<BODY bgcolor=\"$colors[0]\" topmargin=\"0\" marginwidth=\"0\" marginheight=\"0\" leftmargin=\"0\">\n";
   include("inc/menuhead.php");
 
-  if ( "$submit" <> "" ) {
-    echo "$because";
-  }
-
   include("inc/getrequest.php");
   include("inc/$form-form.php");
 ?>

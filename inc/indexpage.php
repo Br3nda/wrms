@@ -44,7 +44,7 @@ one of the recently modified requests from the list below.</H4>
 
       echo "</tr>\n";
     }
-    echo "</table><p>$query</p>\n";
+    echo "</table>\n";
   }
 }
 else { ?>

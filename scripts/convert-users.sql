@@ -27,8 +27,18 @@ INSERT INTO system_usr ( user_no, system_code, role )
 				 AND perorg_system.persys_role='USER';
 
 INSERT INTO system_usr ( user_no, system_code, role )
-   SELECT user_no, system_code, 'S' FROM usr, work_system
-	       WHERE usr.username=work_system.notify_usr;
+   SELECT user_no, work_system.system_code, 'S'
+	    FROM usr, work_system, perorg_system, awm_usr, awm_perorg_rel
+     WHERE usr.username=awm_usr.username
+		   AND awm_usr.perorg_id=perorg_rel_id
+			 AND perorg_rel_type='Employer'
+			 AND awm_perorg_rel.perorg_id=perorg_system.perorg_id
+			 AND perorg_system.persys_role='SUPPORT'
+			 AND perorg_system.system_code=work_system.system_code;
+
+-- INSERT INTO system_usr ( user_no, system_code, role )
+--   SELECT user_no, system_code, 'S' FROM usr, work_system
+--	       WHERE usr.username=work_system.notify_usr;
 
 INSERT INTO org_usr ( user_no, org_code, role )
    SELECT user_no, org_code, 'C' FROM usr
@@ -194,6 +204,11 @@ UPDATE usr SET status='U' FROM awm_usr
 UPDATE usr SET status='C' FROM awm_usr
   WHERE awm_usr.access_level>=5000 AND LOWER(awm_usr.username)=usr.username;
 
+UPDATE usr SET status='C' FROM perorg_system, awm_usr
+  WHERE persys_role='CLTMGR'
+	  AND awm_usr.perorg_id=perorg_system.perorg_id
+  	AND awm_usr.username=usr.username ;
+
 UPDATE usr SET status='S' FROM awm_usr
   WHERE awm_usr.access_level>=10000 AND LOWER(awm_usr.username)=usr.username;
 
@@ -218,6 +233,7 @@ INSERT INTO group_member ( group_no, user_no )
 INSERT INTO group_member ( group_no, user_no )
   SELECT '4', user_no FROM awm_usr, usr
 	        WHERE awm_usr.enabled>0 AND LOWER(awm_usr.username)=usr.username;
+
 
 
 \i dump/t-session.sql

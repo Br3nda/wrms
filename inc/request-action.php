@@ -34,7 +34,9 @@
              || (isset($new_system_code) && $request->system_code != $new_system_code )
              || (isset($new_active) && $request->active != $new_active )
              || (isset($new_status) && $request->last_status != $new_status )
-             || $eta_changed || $status_changed || $note_added || $quote_added || $work_added;
+             || $eta_changed || $status_changed || $note_added || $quote_added;
+    $send_some_mail = $changes;
+    $changes = $changes || $work_added;
     if ( $debuglevel >= 1 ) {
       echo "<p>---" . (isset($new_brief) && $request->brief != $new_brief) . "-"
              . (isset($new_detail) && $request->detailed != $new_detail) . "+"
@@ -89,7 +91,7 @@
 
     $query = "UPDATE request SET";
     if ( $request->brief != $new_brief )
-      $query .= " brief = '" . tidy($new_brief) . ",";
+      $query .= " brief = '" . tidy($new_brief) . "',";
     if ( $request->detailed != $new_detail )
       $query .= " detailed = '" . tidy( $new_detail ) . "',";
     if ( ($sysmgr || $allocated_to) && $eta_changed ) $query .= " eta = '$new_eta',";
@@ -167,7 +169,6 @@
 
     if ( $note_added ) {
       /* non-null note was entered */
-      $new_note = tidy( $new_note );
       $query = "INSERT INTO request_note (request_id, note_by, note_by_id, note_on, note_detail) ";
       $query .= "VALUES( $request_id, '$session->username', $session->user_no, 'now', '" . tidy($new_note) . "')";
       $rid = pg_exec( $wrms_db, $query );
@@ -200,6 +201,8 @@
 
     if ( $note_added )
       $because .= "<br>Notes added to request.\n";
+
+    $previous = $request;
   }
   else {
     /////////////////////////////////////
@@ -318,6 +321,7 @@
       }
     }
     $because .= "<H2>Your request number for enquiries is $request_id.</H2>";
+    $send_some_mail = TRUE;
   }
 
 
@@ -343,46 +347,73 @@
 
   include("$base_dir/inc/getrequest.php");
 
-  //////////////////////////////////////////////
-  // Work out what to tell and who to tell it to
-  //////////////////////////////////////////////
-  $send_to = notify_emails( $wrms_db, $request_id );
-  $because .="<p>Details of the changes, along with future notes and status updates will be e-mailed to the following addresses: &nbsp; $send_to.</p>";
+  if ( $send_some_mail ) {
+    //////////////////////////////////////////////
+    // Work out what to tell and who to tell it to
+    //////////////////////////////////////////////
+    $send_to = notify_emails( $wrms_db, $request_id );
+    $because .="<p>Details of the changes, along with future notes and status updates will be e-mailed to the following addresses: &nbsp; $send_to.</p>";
 
-  $msub = "WR #$request_id [$session->username] $chtype" . "d: " . stripslashes($request->brief);
-  $msg = "Request No.:  $request_id\n"
-       . "Request On:   $request->request_on\n"
-       . "Overview:     $request->brief\n\n"
-       . "Changed by:   $session->fullname\n";
+    $msub = "WR #$request_id [$session->username] $chtype" . "d: " . stripslashes($request->brief);
+    $msg = "Request No.:  $request_id\n"
+         . "Overview:     $request->brief\n";
 
-  if ( $requsr->user_no <> $session->user_no )
-    $msg .= "Changed for:  $requsr->fullname\n";
+    if ( $request->brief != $previous->brief ) {
+      $msg .= "          (was: $previous->brief)\n";
+    }
 
-  $msg .= "Changed on:   " . date( "D d M H:i:s Y" ) . "\n"
-       . "Urgency:      $request->severity_code \"$request->severity_desc\"\n\n"
-       . "Detailed Description:\n" . stripslashes($request->detailed) . "\n\n\n";
-  if ( $status_changed ) {
-    $rid = pg_Exec( $wrms_db, "SELECT get_status_desc('$new_status')" );
-    $msg .= "New Status:   $new_status - " . pg_Result( $rid, 0, 0) . " (previous status was $request->last_status - $request->status_desc)\n\n";
+    $msg .= "Urgency:      $request->urgency_desc\n"
+          . "Importance:   $request->importance_desc\n";
+
+    $msg .= "Request On:   $request->request_on\n"
+          . ucfirst($chtype) . "d by:   $session->fullname\n";
+
+    if ( $requsr->user_no <> $session->user_no )
+      $msg .= ucfirst($chtype) . "d for:  $requsr->fullname\n";
+
+    $msg .= ucfirst($chtype) . "d on:   " . date( "D d M H:i:s Y" ) . "\n\n";
+
+    if ( $status_changed ) {
+      $rid = pg_Exec( $wrms_db, "SELECT get_status_desc('$new_status')" );
+      $msg .= "New Status:   $new_status - " . pg_Result( $rid, 0, 0) . " (previous status was $previous->last_status - $previous->status_desc)\n";
+    }
+
+    if ( $chtype == "change" && $request->active != $new_active ) {
+      $msg .= "<Request has been ";
+      if ( $new_active == "TRUE" ) $msg .= "re-"; else $msg .= "de-";
+      $msg .= "activated\n";
+    }
+
+    if ( $request->eta <> $previous->eta )  {
+      $msg .= "New ETA:      $new_eta";
+      if ( "$request->eta" != "" ) $msg .= "  (previous ETA was " . substr( nice_date($previous->eta), 7) . ")";
+      $msg .= "\n";
+    }
+    if ( $quote_added )
+      $msg .= "Quotation:    A new quote has been entered against this request.\n";
+
+
+    if ( $chtype == "change" && $request->detailed != $previous->detailed ) {
+      $msg .= "\nPrevious Description:\n"
+            . "====================\n"
+            . stripslashes($previous->detailed) . "\n\n";
+    }
+
+    if ( $chtype == "request" || ( $chtype == "change" && $request->detailed != $previous->detailed ) )
+      $msg .= "\nDetailed Description:\n"
+            . "====================\n"
+            . stripslashes($request->detailed) . "\n\n";
+
+    if ( $note_added )
+      $msg .= "\nAdditional Notes:\n"
+            . "================\n"
+            . stripslashes($new_note) . "\n\n";
+
+    $msg .= "\nFull details of the request, with all changes and notes, can be reviewed and changed at:\n"
+         .  "    http://$HTTP_HOST$base_url/request.php?request_id=$request_id\n";
+
+    mail( $send_to, $msub, $msg, "From: wrms@catalyst.net.nz\nErrors-To: wrmsadmin@catalys.net.nz" );
   }
-  if ( $chtype == "change" && $request->active != $new_active ) {
-    $msg .= "<p>Request has been ";
-    if ( $new_active == "TRUE" ) $msg .= "re-"; else $msg .= "de-";
-    $msg .= "activated</p>";
-  }
-  if ( $eta_changed )  {
-    $msg .= "New ETA:      $new_eta";
-    if ( "$request->eta" != "" ) $msg .= "  (previous ETA was $request->eta)";
-    $msg .= "\n";
-  }
-  if ( $note_added )
-    $msg .= "\nAdditional Notes:\n" . stripslashes($new_note) . "\n\n";
-
-  $msg .= "\nFull details of the request, with all changes and notes, can be reviewed and changed at:\n"
-       .  "    $base_url/request.php?request_id=$request_id\n";
-
-  mail( $send_to, $msub, $msg, "From: catalyst-wrms@cat-it.co.nz\nReply-To: $requsr->email" );
-
 ?>
 
 

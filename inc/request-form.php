@@ -3,9 +3,6 @@
   include( "$base_dir/inc/html-format.php");
   $status_list   = get_code_list( "request", "status_code", "$request->last_status" );
 
-  include("$base_dir/inc/system-list.php");
-  $system_codes = get_system_list("ACERS", "$request->system_code");
-
   if ( $editable ) {
     /* if it's editable then we'll need severity and request_type lists for drop-downs */
     $severities = get_code_list( "request", "severity_code", "$request->severity_code" );
@@ -25,6 +22,9 @@
       $quote_types = get_code_list( "request_quote", "quote_type", "Q" );
       $quote_units = get_code_list( "request_quote", "quote_units", "hours" );
     }
+
+    include("$base_dir/inc/system-list.php");
+    $system_codes = get_system_list("ACERS", "$request->system_code");
   }
 
   $hdcell = "<th width=7%><img src=images/clear.gif width=60 height=2></th>";

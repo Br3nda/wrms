@@ -1,4 +1,5 @@
 <?php
+  if ( !isset($org_code) ) $org_code = $session->org_code;
   if ( isset($org_code) && $org_code > 0 ) {
 
     $query = "SELECT * FROM organisation WHERE org_code='$org_code' ";
@@ -42,9 +43,13 @@
     }
   }
 
+  if ( "$because" != "" )
+    echo $because;
+  else if ( ! $plain ) {
+    ?><P class=helptext>Use this form to maintain organisations who may have requests associated
+with them.</P><?php
+  }
 ?>
-<P class=helptext>Use this form to maintain organisations who may have requests associated
-with them.</P>
 <FORM METHOD=POST ACTION="form.php?form=<?php echo "$form"; ?>" ENCTYPE="multipart/form-data">
 <input type=hidden name=org_code value="<?php echo "$org->org_code"; ?>">
 <TABLE WIDTH=100% cellspacing=0 border=0>

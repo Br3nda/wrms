@@ -32,6 +32,6 @@
 
   $rid = pg_Exec( $wrms_db, "COMMIT" );
 
-  $because .= "<HR><H2>Organisation Changed</H2>";
+  $because .= "<H2>Organisation Details Changed</H2>";
 ?>
 

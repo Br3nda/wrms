@@ -388,7 +388,7 @@
     $msg = "Request No.:  $request_id\n"
          . "Overview:     $request->brief\n";
 
-    if ( "$request->brief" != "$previous->brief" ) {
+    if ( isset($previous) && "$request->brief" != "$previous->brief" ) {
       $msg .= "          (was: $previous->brief)\n";
     }
 
@@ -414,7 +414,7 @@
       $msg .= "activated\n";
     }
 
-    if ( "$request->eta" <> "$previous->eta" )  {
+    if ( isset($previous) && "$request->eta" <> "$previous->eta" )  {
       $msg .= "New ETA:      $new_eta";
       if ( "$request->eta" != "" ) $msg .= "  (previous ETA was " . substr( nice_date($previous->eta), 7) . ")";
       $msg .= "\n";
@@ -429,7 +429,7 @@
             . stripslashes($previous->detailed) . "\n\n";
     }
 
-    if ( $chtype == "request" || ( $chtype == "change" && $request->detailed != $previous->detailed ) )
+    if ( $chtype == "create" || ( $chtype == "change" && $request->detailed != $previous->detailed ) )
       $msg .= "\nDetailed Description:\n"
             . "====================\n"
             . stripslashes($request->detailed) . "\n\n";

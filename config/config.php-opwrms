@@ -1,0 +1,245 @@
+<?php
+
+$dbconn = pg_Connect("dbname=opwrms user=general");
+$pg_version = 7.2;
+
+$admin_email = "andrew@catalyst.net.nz";
+$basefont = "verdana,sans-serif";
+$system_name = "Eduforge Support: ";
+$sysabbr = "wrms";
+$debuglevel = 3;
+
+$base_dns = "http://$HTTP_HOST";
+$base_url = "";
+$base_dir = $DOCUMENT_ROOT;
+$module = "base";
+$images = "images/eduforge";
+$colors = array(
+  "bg1" => "#ffffff", // primary background
+  "fg1" =>  "#000000", // text on primary background
+  "link1" =>  "#205070", // Links on row0/row1
+  "bg2" =>  "#6C859F", // secondary background (behind menus)
+  "fg2" =>  "#ffffff", // text on links
+  "bg3" =>  "#000000", // tertiary background
+  "fg3" =>  "#ffffff", // tertiary foreground
+  "hv1" =>  "#30a070", // text on hover
+  "hv2" =>  "#40f0a0", // other text on hover
+  "row0" =>  "#ffffff", // dark rows in listings
+  "row1" =>  "#F5F8FA", // light rows in listings
+  "link2" =>  "#333333", // Links on row0/row1
+  "bghelp" => "#ffffff", // help background
+  "fghelp" =>  "#000000", // text on help background
+  8 =>  "#583818", // Form headings
+  9 =>  "#f5f8fa", // Mandatory forms
+  10 =>  "#50a070", // whatever!
+
+// Parts of a text block (default colors - some blocks might code around this
+    "blockfront" => "black",
+    "blockback" => "white",
+    "blockbg2" => "white",
+    "blocktitle" => "white",
+    "blocksides" => "#ffffff",
+    "blockextra" => "#660000"
+);
+
+$fonts = array( "tahoma",   // primary font
+    "verdana",  // secondary font
+    "help"  => "times",   // help text
+    "quote" => "times new roman, times, serif", // quotes in messages
+    "narrow"  => "arial narrow, helvetica narrow, times new roman, times", // quotes in messages
+    "fixed" => "courier, fixed",  // monospace font
+    "block" => "tahoma");   // block font
+
+
+// Set the bebug variable initially to '0'. This variable is made available
+// to all local routines for verbose printing.
+if ( !isset($debuglevel) ) $debuglevel = 2;
+
+
+function block_open(  $bgcolor="", $border_color="") {
+  echo '<table border="0" cellpadding="5" cellspacing="0" width="100%">';
+}
+
+//-----------------------------------------
+// Function to title a block of options / menus / whatever
+//-----------------------------------------
+function block_title( $title="&nbsp;", $bgcolor="", $border_color="") {
+  echo "  <tr>
+    <td class=\"aqua-tile\" valign=\"middle\">
+      <div align=\"left\"><b><span class=\"mockup\"><span class=\"heading-blue\">$title</span></span></b></div>
+    </td>
+  </tr>\n";
+
+}
+
+//-----------------------------------------
+// Function to finish a block of options / menus / whatever
+//-----------------------------------------
+function block_close() {
+  echo "</table>\n";
+}
+
+
+//-----------------------------------------
+// Function to do the page header, that is local to this installation
+//-----------------------------------------
+function local_inline_styles() {
+  global $sysabbr, $fonts, $fontsizes, $linkstyle, $colors;
+
+  echo "
+.standardtable {
+  width: 100%;
+  border-spacing: 0;
+  border: 0;
+  color: #333333;
+}
+
+td.spaced-out {
+  color: #000000;
+  padding-left:20px;
+}
+.spaced-out-grey {
+  color:#666666;
+}
+td.searchbar-cell {
+  background-color:#6C859F;
+}
+.searchbar{
+  font-family:verdana,arial,helvetica,sans-serif;
+  padding-top:2px;
+  padding-bottom:2px;
+}
+.searchbar td {
+  color:white;
+  font-size:9px;
+  vertical-align:center;
+
+
+}
+.aqua-tile {
+  background-image:url('/images/eduforge/aquaTile.gif');
+  background-repeat:repeat-x;
+  height:15px;
+  padding-left:10px;
+}
+.aqua-tile-solid {
+  background-image:url('/images/eduforge/aquaTileSolid.gif');
+  background-repeat:repeat-x;
+  height:30px;
+  padding-left:10px;
+}
+
+th.cols, th.rows {
+  background: #fff;
+  background-image:url('/images/eduforge/aquaTileSolid.gif');
+  background-repeat:repeat-x;
+  font: small-caps bold $fontsizes[1] $fonts[0], sans-serif;
+  color: #205070;
+  margin: 6px 0px 0px 0px;
+  height:15px;
+  padding-left:10px;
+}
+
+a.cols {
+  font: small-caps bold $fontsizes[1] $fonts[0], sans-serif;
+  color: #205070;
+  background: transparent;
+}
+
+td.h3, th.h3 {
+  font: bold $fontsizes[1] $fonts[0], sans-serif;
+  color: $colors[fg2];
+  background-color: $colors[bg2];
+  margin: 6px 0px 0px 0px;
+}
+
+";
+}
+
+
+//-----------------------------------------
+// Function to do the page header, that is local to this installation
+//-----------------------------------------
+function local_page_header() {
+  global $sysabbr;
+?>
+<table summary="" class="standardtable" cellpadding="0" cellspacing="0" width="100%">
+  <tr>
+   <td>
+
+    <!-- start main body cell -->
+    <table border="0" cellspacing="0" cellpadding="0" style="height:86px;width:100%;background:url('/images/eduforge/eduforge_paua.jpg');">
+      <tr>
+       <td width="175" nowrap="nowrap" align="center">
+        <a href="/"><img alt="logo" border="0" src="/images/eduforge/eduforge_logo.gif" width="145" height="62" /></a>
+      </td>
+       <td class="spaced-out">s u p p o r t <span class="spaced-out-grey">. e d u f o r g e . o r g</span></td>
+      </tr>
+
+    </table>
+    <table summary="" class="standardtable" cellpadding="0" cellspacing="0" style="margin-top:5px;">
+      <tr>
+        <td colspan="2" align="right" class="searchbar-cell">
+         <form action="/requestlist.php" method="post" style="display:inline;" name="search">
+         <input type="hidden" name="type_of_search" value="soft" />
+         <table class="searchbar" cellpadding="0" cellspacing="0">
+          <tr>
+<?php
+  if ( ! $GLOBALS['logged_on'] || preg_match( "/requestlist\.php\?.*qs=complex/i", $GLOBALS['REQUEST_URI'] ) ) {
+    echo '<td width="100%" align="right" nowrap="nowrap">';
+  }
+  else {
+?>
+           <td width="22%" align="right" nowrap="nowrap">Search All Requests <b>&raquo;</b>&nbsp;</td>
+           <td width="16%" align="center"><input type="text" name="search_for" /></td>
+<?php
+   $sql = "SELECT * FROM work_system WHERE active ";
+   if ( ! $session->AllowedTo('Admin','Support') ) {
+     $sql .= " AND EXISTS (SELECT system_usr.system_code FROM system_usr WHERE system_usr.system_code=work_system.system_code";
+     $sql .= " AND user_no=$session->user_no)";
+   }
+   $sql .= "ORDER BY system_desc;";
+
+   $qry = new PgQuery( $sql );
+   if ( $qry->Exec() && $qry->rows > 0 ) {
+     echo '<td width="10%" align="center" nowrap="nowrap">or Systems</td>
+          <td width="20%" align="right"> <select name="system_code" size="1">
+           <option value="0">-- select --</option>';
+     while( $row = $qry->Fetch() ) {
+       echo "<option value=\"$row->system_code\">$row->system_desc</option>";
+     }
+     echo '</select></td>';
+   }
+?>
+
+
+           <td class="default" style="background:url('/images/eduforge/greyTile.gif');">
+            <div align="left">&nbsp;<input type="image" border="0" alt="go" src="/images/eduforge/go.gif" align="middle" onclick="processSubmit(document.search);" style="cursor:hand;" /></div>
+            </form>
+<?php
+  }
+?>
+           </td>
+          </tr>
+         </table>
+        </td>
+      </tr>
+    </table>
+   </td>
+  </tr>
+</table>
+
+
+<?php
+
+}
+
+
+//-----------------------------------------
+// Function to do the page footer, that is local to this installation
+//-----------------------------------------
+function local_page_footer() {
+  global $sysabbr;
+}
+
+?>

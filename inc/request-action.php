@@ -375,14 +375,15 @@ function dates_equal( $date1, $date2 ) {
       }
       $attachment_id =pg_Result( $rid, 0, 0);
       $att_name = tidy($HTTP_POST_FILES['new_attachment_file']['name']);
-      $new_attach_full = $new_attach_brief;
+      $tattach_brief = tidy("$new_attach_brief");
+      $tattach_full = $tattach_brief;
       $new_attach_x = intval($new_attach_x);
       $new_attach_y = intval($new_attach_y);
       $attach_id = pg_Result( $rid, 0, 0);
       $query = "INSERT INTO request_attachment ( attachment_id, request_id,  attached_by, att_brief, att_description, att_filename, att_type";
       if ( isset($new_attach_inline) ) $query .= ", att_inline";
       $query .= ", att_width, att_height ) ";
-      $query .= "VALUES( $attachment_id, $request_id, $session->user_no, '$new_attach_brief', '$new_attach_full', '$att_name', '$new_attachment_type'";
+      $query .= "VALUES( $attachment_id, $request_id, $session->user_no, '$tattach_brief', '$tattach_full', '$att_name', '$new_attachment_type'";
       if ( isset($new_attach_inline) )
         $query .= ", " . (intval("$new_attach_inline") > 0 ? "TRUE" : "FALSE");
       $query .= ", $new_attach_x, $new_attach_y )";

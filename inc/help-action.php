@@ -29,6 +29,6 @@ $debuglevel = 7;
 
   $rid = awm_pgexec( $wrms_db, "COMMIT", "help-action", true );
 
-  $because .= "<H2>Help Details Changes</H2>";
+  $because .= "<H2>Help Details Changed</H2>";
+  $seq = intval($new['seq']);
 ?>
-

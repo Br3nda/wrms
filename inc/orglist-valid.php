@@ -21,7 +21,7 @@
     // That's OK - this is their home system_code, or maintenance is enabled
   }
   else {
-    $because .= "You may only maintain requests from your system_code\n";
+    $because .= "You may only maintain requests from your organisation\n";
   }
 
   if ( "$because" <> "" ) {
@@ -29,4 +29,3 @@
     $because .= "<P><B>Changes have not been processed - please correct because and re-submit</B></P>\n";
   }
 ?>
-

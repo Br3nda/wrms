@@ -150,6 +150,7 @@ function dates_equal( $date1, $date2 ) {
     $query .= "WHERE system_usr.system_code = '$new_system_code' ";
     $query .= "AND system_usr.role = 'S' " ;
     $query .= "AND system_usr.user_no = usr.user_no " ;
+    $query .= "AND usr.status = 'A' " ;
     $rid = awm_pgexec( $wrms_db, $query, "req-action", true, 7);
     if ( ! $rid  ) {
       return;
@@ -176,6 +177,7 @@ function dates_equal( $date1, $date2 ) {
     $query .= "AND system_usr.role = 'C' " ;
     $query .= "AND system_usr.user_no = usr.user_no " ;
     $query .= "AND usr.org_code=$requsr->org_code; " ;
+    $query .= "AND usr.status = 'A' " ;
     $rid = awm_pgexec( $wrms_db, $query, "req-action", true, 7);
     if ( ! $rid  ) {
       return;
@@ -493,7 +495,7 @@ function dates_equal( $date1, $date2 ) {
     $msg = "Request No.:  $request_id\n"
          . "Overview:     $request->brief\n";
 
-    if ( isset($previous) && "$request->brief" != "$previous->brief" ) {
+    if ( isset($previous) && $previous->brief != "" && "$request->brief" != "$previous->brief" ) {
       $msg .= "          (was: $previous->brief)\n";
     }
 

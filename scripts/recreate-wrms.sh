@@ -17,6 +17,7 @@ psql -q -f create-wrms.sql -d $DATABASE 2>&1 | grep -v "will create implicit "
 echo " Loading database tables... "
 cd dump
 for A in t-*.sql; do
+  [ "$A" = "t-request_words.sql" ] && continue
   echo "    $A "
   psql -q -f $A -d $DATABASE 2>&1 | uniq
 done

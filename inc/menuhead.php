@@ -16,7 +16,8 @@
     echo "<a href=$base_url/";
     if ( $roles[wrms][Admin] ) {
       $module_menu .= "<span style=\"font-weight: 700; \"><b>Admin:</b></span>&nbsp;";
-      $module_menu .= "<a href=$base_url/lookups.php>Lookup&nbsp;Codes</a> &nbsp; ";
+      $module_menu .= "<a href=$base_url/lookups.php>Lookup&nbsp;Codes</a> | ";
+      $module_menu .= "<a href=$base_url/form.php?form=sessionlist>Sessions</a> &nbsp; ";
     }
     if ( $roles[wrms][Support] ) {
       $module_menu .= "<span style=\"font-weight: 700; \"><b>Support:</b></span>&nbsp;";

@@ -166,6 +166,7 @@ CREATE TABLE request_timesheet (
   timesheet_id SERIAL PRIMARY KEY,
   request_id INT4,
   work_on DATETIME,
+  ok_to_charge BOOL,
 	work_quantity FLOAT8,
   work_duration INTERVAL,
   work_by_id INT4,
@@ -179,6 +180,7 @@ CREATE TABLE request_timesheet (
 	charged_details TEXT
 );
 CREATE INDEX request_timesheet_skey1 ON request_timesheet ( work_on, work_by_id, request_id );
+CREATE INDEX request_timesheet_skey2 ON request_timesheet ( ok_to_charge, request_id );
 GRANT INSERT,UPDATE,SELECT ON request_timesheet TO general;
 CREATE FUNCTION max_timesheet() RETURNS INT4 AS 'SELECT max(timesheet_id) FROM request_timesheet' LANGUAGE 'sql';
 

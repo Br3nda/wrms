@@ -907,6 +907,7 @@ class Request {
     }
     if ( $q->rows ) {
       $total = 0;
+      $total_hours = 0;
       $this->ts_ok_to_charge   = array();
       $this->ts_charged_amount = array();
       while( $row = $q->Fetch() ) {
@@ -946,9 +947,11 @@ class Request {
                     $row->charged_by, $row->charged_on, $invoice_details, $amount_charged, $bill_ok, $delete_link
                   );
         $total += ($row->work_charged != "" ? $row->charged_amount : $row->work_quantity * $rate);
+        if ( preg_match('/hour/i', $row->work_units) ) $total_hours += $row->work_quantity;
+        elseif ( preg_match('/day/i', $row->work_units) ) $total_hours += (8 * $row->work_quantity);
       }
       $html .= sprintf( $line_format,
-                    (($q->rownum + 1) % 2), "<b>Total</b>", "", "", "", "", "", "", "", "", sprintf('<b>$%.2lf</b>',$total), "", "", "" );
+                    (($q->rownum + 1) % 2), "<b>Total</b>", "", "", "<b>$total_hours hours</b>", "", "", "", "", "", sprintf('<b>$%.2lf</b>',$total), "", "", "" );
     }
 
     if ( $ef->editmode ) {

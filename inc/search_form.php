@@ -210,15 +210,14 @@ function RenderTagsPanel( $ef ) {
                   "style" => "width: 12em" ) );
   $html .= "</div>";
   $html .= "<div id=\"moretags\" style=\"display :inline;\">";
-  $html .= "<script type='text/javascript'>document.write(TagSelectionStanza());</script>";
+  $html .= "<script type='text/javascript'>TagSelectionStanza();</script>";
   $html .= "</div>";
 
   $html .= $ef->DataEntryLine( "", "", "button", "extend_tags",
             array("value" => "Extend",
-                  "class" => "fsubmit",
-                  "onclick" => "ExtendTagPanel();",
+                  "onclick" => "TagSelectionStanza();",
                   "title" => "Click to add another tag for the search.",
-                  "class" => "srchf" ) );
+                  "class" => "fsubmit" ) );
 
 //  $html .= "</div>";
 

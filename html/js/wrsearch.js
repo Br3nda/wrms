@@ -188,7 +188,7 @@ function CheckSearchForm() {
 // be named like "variable[]"
 //////////////////////////////////////////////////////////
 function GetFieldFromName(fname) {
-  for ( i=0; i < document.forms.form.elements.length ; i++ ) {
+  for ( var i=0; i < document.forms.form.elements.length ; i++ ) {
     if ( document.forms.form.elements[i].name == fname ) {
       return document.forms.form.elements[i];
     }
@@ -212,8 +212,8 @@ function AssignSelected(select_from, append_fname) {
   else {
     append_to.value += "," + sel_id;
   }
-  j = select_from.selectedIndex;
-  i = append_to.options.length;
+  var j = select_from.selectedIndex;
+  var i = append_to.options.length;
   append_to.options[i] = select_from.options[j];
   append_to.options[i].selected = true;
   append_to.size = i + 1;
@@ -226,8 +226,16 @@ function AssignSelected(select_from, append_fname) {
 // Copy the options from one select to another.
 //////////////////////////////////////////////////////////
 function CopyOptions( from_field, to_field ) {
-  for ( i=0 ; i < from_field.options.length ; i ++ ) {
+  var currval = 'nothing is selected yet';
+  if ( to_field.length > 0 && to_field.selectedIndex < to_field.length ) {
+    currval = to_field.options[to_field.selectedIndex].value;
+  }
+  CleanSelectOptions(to_field);
+  for ( var i=0 ; i < from_field.length ; i ++ ) {
     to_field.options[i] = new Option( from_field.options[i].text, from_field.options[i].value, false, false);
+    if ( from_field.options[i].value == currval ) {
+      to_field.options[i].selected = true;
+    }
   }
 }
 
@@ -243,16 +251,19 @@ function TagSelectionStanza() {
   var moretags = document.getElementById('moretags');
   var stanza = '<span class="srchf" style="white-space: nowrap;">';
   if ( stanza_count > 0 ) {
-    stanza += ' <select class="srchf" style=\"width: 4.5em\" name="tag_and['+stanza_count+']"><option value="AND">AND</option><option value="OR" checked>OR</option></select> ';
+    stanza += ' <select class="srchf" style=\"width: 4em\" name="tag_and['+stanza_count+']"><option value="AND">AND</option><option value="OR" checked>OR</option></select> ';
   }
   else {
-    stanza += ' <div class="srchp" style=\"display: block; clear: none; float: left; vertical-align: middle; width: 4.5em\">Tags: </div> ';
+    stanza += ' <div class="srchp" style=\"display: block; clear: none; float: left; vertical-align: bottom; margin-top: 0.2em; font-weight: 700; height: 1.2em; width: 4.2em\">&nbsp; Tags: </div> ';
   }
   stanza += ' <select class="srchf" name="tag_lb['+stanza_count+']"><option value=" "> </option><option value="(">(</option><option value="((">((</option></select> ';
-  stanza += ' <select class="srchf" name="taglist['+stanza_count+']"></select>';
+  stanza += ' <select class="srchf" style=\"width: 12em\" name="taglist['+stanza_count+']"></select>';
   stanza += ' <select class="srchf" name="tag_rb['+stanza_count+']"><option value=" "> </option><option value=")">)</option><option value="))">))</option></select> ';
   stanza += '</span>';
+
+  SaveTagSettings();
   moretags.innerHTML += stanza;
+  RestoreTagSettings();
 
   tag_selections[stanza_count] = GetFieldFromName('taglist['+stanza_count+']');
   CopyOptions( orgtag_sel, tag_selections[stanza_count] );
@@ -262,16 +273,56 @@ function TagSelectionStanza() {
 }
 
 //////////////////////////////////////////////////////////
-// Extend the Tag stanzas by another tag at this point
+// Fix the Tag options to make them match the organisation ones
 //////////////////////////////////////////////////////////
-function ExtendTagPanel() {
-  TagSelectionStanza();
+function FixTagOptions(from_field) {
+  var to_field;
+  for( var i=0; i < stanza_count; i++ ) {
+    alert( "Copying options to select " + i );
+    to_field = GetFieldFromName('taglist['+ i +']');
+    // to_field = tag_selections[i];
+    CopyOptions(from_field,to_field);
+  }
 }
 
-function FixTagOptions(from_field) {
-  alert( "Stanza count = " + stanza_count );
-  for( i=0; i < stanza_count; i++ ) {
-    CleanSelectOptions(tag_selections[i]);
-    CopyOptions(from_field,tag_selections[i]);
+//////////////////////////////////////////////////////////
+// Save the current settings in the Tag panel so we can restore them
+//////////////////////////////////////////////////////////
+var tag_and_vals = new Array();
+var tag_lb_vals = new Array();
+var tag_list_vals = new Array();
+var tag_rb_vals = new Array();
+function SaveTagSettings() {
+  var fld;
+  for( var i=0; i < stanza_count; i++ ) {
+    if ( i > 0 ) {
+      fld = GetFieldFromName('tag_and[' + i + ']');
+      tag_and_vals[i] = fld.value;
+    }
+    fld = GetFieldFromName('tag_lb[' + i + ']');
+    tag_lb_vals[i] = fld.value;
+    fld = GetFieldFromName('tag_rb[' + i + ']');
+    tag_rb_vals[i] = fld.value;
+    fld = GetFieldFromName('taglist['+ i +']');
+    tag_list_vals[i] = fld.selectedIndex;
+  }
+}
+
+//////////////////////////////////////////////////////////
+// Restore the settings in the Tag panel from the saved ones
+//////////////////////////////////////////////////////////
+function RestoreTagSettings() {
+  var fld;
+  for( var i=0; i < stanza_count; i++ ) {
+    if ( i > 0 ) {
+      fld = GetFieldFromName('tag_and[' + i + ']');
+      fld.value = tag_and_vals[i];
+    }
+    fld = GetFieldFromName('tag_lb[' + i + ']');
+    fld.value = tag_lb_vals[i];
+    fld = GetFieldFromName('tag_rb[' + i + ']');
+    fld.value = tag_rb_vals[i];
+    fld = GetFieldFromName('taglist['+ i +']');
+    fld.options[tag_list_vals[i]].selected = true;
   }
 }

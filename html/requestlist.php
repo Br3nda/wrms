@@ -176,11 +176,11 @@
      }
   }
 
-  unset( $col_array );
-  function header_row() {
-    global $format, $columns, $col_array;
+unset( $col_array );
+function header_row() {
+  global $format, $columns, $col_array;
 
-    $available_columns = array( "request_id" => "WR&nbsp;#",
+  $available_columns = array( "request_id" => "WR&nbsp;#",
           "lfull" => "Request For",
           "request_on" => "Request On",
           "lbrief" => "Description",
@@ -189,22 +189,87 @@
           "request.last_activity" => "Last Chng",
           "active" => "Active",
           "" => "",
-     );
+   );
 
-    // If they didn't provide a $columns, we use a default.
-    if ( $columns == "" ) {
-      $columns = "request_id,lfull,request_on,lbrief,status_desc,request_type_desc,request.last_activity";
-      if ( "$format" == "edit" )  //adds in the Active field header for the Brief (editable) report
-        $columns .= ",active";
-    }
-
-    echo "<tr>\n";
-    $col_array = explode( ',', $columns );
-    while( list($k,$v) = each( $col_array ) ) {
-      column_header($available_columns[$v], $v);
-    }
-    echo "</tr>";
+  // If they didn't provide a $columns, we use a default.
+  if ( $columns == "" ) {
+    $columns = "request_id,lfull,request_on,lbrief,status_desc,request_type_desc,request.last_activity";
+    if ( "$format" == "edit" )  //adds in the Active field header for the Brief (editable) report
+      $columns .= ",active";
   }
+
+  echo "<tr>\n";
+  $col_array = explode( ',', $columns );
+  while( list($k,$v) = each( $col_array ) ) {
+    column_header($available_columns[$v], $v);
+  }
+  echo "</tr>";
+}
+
+function show_column_value( $column_name, $row ) {
+  global $format, $status_edit, $active_edit, $EditableRequests_count;
+  switch( $column_name ) {
+    case "request_id":
+      if ( "$format" == "edit" )  //used to control whether or not a request id hidden variable is also added which builds up the 'id' column in the EditableRequests array for the Brief (editable) report
+        echo "<td class=sml align=center>" . ( ($status_edit || $active_edit ) ? "<input type=hidden name=\"EditableRequests[$EditableRequests_count][0]\" value=\"$row->request_id\">" : "" ) . "<a href=\"request.php?request_id=$row->request_id\">$row->request_id</a></td>\n";
+      else
+        echo "<td class=sml align=center><a href=\"request.php?request_id=$row->request_id\">$row->request_id</a></td>\n";
+      break;
+    case "lfull":
+      echo "<td class=sml nowrap><a href=\"mailto:$row->email\">$row->fullname</a></td>\n";
+      break;
+    case "request_on":
+      echo "<td class=sml align=center>$row->date_requested</td>\n";
+      break;
+    case "lbrief":
+      echo "<td class=sml><a href=\"request.php?request_id=$row->request_id\">$row->brief";
+      if ( "$row->brief" == "" ) echo substr( $row->detailed, 0, 50) . "...";
+      echo "</a></td>\n";
+      break;
+    case "status_desc":
+      if ( "$format" == "edit" && $status_edit ) {
+        //tests to see if report should provide editable status fields where appropriate
+        //tests to see if the logged in user is able to edit the status field for this request record
+        //provide a drop down to allow editing of the status code for that request
+        $status_list   = get_code_list( "request", "status_code", "$row->last_status" );
+        echo "<td class=sml><select class=sml name=\"EditableRequests[$EditableRequests_count][1]\">$status_list</select></td>\n";
+      }
+      else {
+        //otherwise output plain text of the current request status
+        echo "<td class=sml>&nbsp;".str_replace(' ', '&nbsp;',$row->status_desc)."&nbsp;</td>\n";
+      }
+      break;
+    case "request_type_desc":
+      echo "<td class=sml>&nbsp;" . str_replace( " ", "&nbsp;", $row->request_type_desc) . "&nbsp;</td>\n";
+      break;
+    case "request.last_activity":
+      echo "<td class=sml align=center>" . str_replace( " ", "&nbsp;", $row->last_change) . "</td>\n";
+      break;
+    case "active":
+      if ( "$format" == "edit" && ( $active_edit || $status_edit) ) {
+        //adds in the Active field for the Brief (editable) reports
+        if ( $active_edit ) //tests to see if the logged in user is able to edit the active field for this request
+          echo "<td class=sml align=center><input type=\"hidden\" name=\"EditableRequests[$EditableRequests_count][2]\" value=\"active_edit\"><input type=checkbox name=\"EditableRequests[$EditableRequests_count][3]\" value=\"1\" " . ( $row->active == 't' ? "CHECKED" : "" ) . "></td>\n";
+        else if ( $status_edit )
+          echo "<td class=sml align=center><input type=\"hidden\" name=\"EditableRequests[$EditableRequests_count][2]\" value=\"active_read\">" . ( $row->active == 't' ? "Active" : "Inactive" ) . "</td>\n";
+      }
+      else {
+        echo "<td class=sml align=center>" . ( $row->active == 't' ? "Active" : "Inactive" ) . "</td>\n";
+      }
+      break;
+  }
+}
+
+function data_row( $row, $rc ) {
+  global $col_array;
+
+  printf( "<tr class=row%1d>\n", $rc % 2);
+  reset($col_array);
+  while( list($k,$v) = each( $col_array ) ) {
+    show_column_value($v,$row);
+  }
+  echo "</tr>\n";
+}
 
   if ( "$format" == "edit" && isset($submitBriefEditable) ) // If changes have been returned from Brief (editable) then function is called update the database with the changes
   {
@@ -573,40 +638,7 @@ $query";
         }
 
         if ( $show_details ) header_row();
-        printf( "<tr class=row%1d>\n", $i % 2);
-        if ( "$format" == "edit" )  //used to control whether or not a request id hidden variable is also added which builds up the 'id' column in the EditableRequests array for the Brief (editable) report
-           echo "<td class=sml align=center>" . ( ($status_edit || $active_edit ) ? "<input type=hidden name=\"EditableRequests[$EditableRequests_count][0]\" value=\"$thisrequest->request_id\">" : "" ) . "<a href=\"request.php?request_id=$thisrequest->request_id\">$thisrequest->request_id</a></td>\n";
-        else
-           echo "<td class=sml align=center><a href=\"request.php?request_id=$thisrequest->request_id\">$thisrequest->request_id</a></td>\n";
-        echo "<td class=sml nowrap><a href=\"mailto:$thisrequest->email\">$thisrequest->fullname</a></td>\n";
-        echo "<td class=sml align=center>$thisrequest->date_requested</td>\n";
-        echo "<td class=sml><a href=\"request.php?request_id=$thisrequest->request_id\">$thisrequest->brief";
-        if ( "$thisrequest->brief" == "" ) echo substr( $thisrequest->detailed, 0, 50) . "...";
-        echo "</a></td>\n";
-        if ( "$format" == "edit" )//tests to see if report should provide editable status fields where appropriate
-        {
-           if ( $status_edit ) //tests to see if the logged in user is able to edit the status field for this request record
-           {  //provide a drop down to allow editing of the status code for that request
-              $status_list   = get_code_list( "request", "status_code", "$thisrequest->last_status" );
-              echo "<td class=sml><select class=sml name=\"EditableRequests[$EditableRequests_count][1]\">$status_list</select></td>\n";
-           }
-           else //otherwise output plain text of the current request status
-              echo "<td class=sml>&nbsp;".str_replace(' ', '&nbsp;',$thisrequest->status_desc)."&nbsp;</td>\n";
-        }
-        else
-           echo "<td class=sml>&nbsp;".str_replace(' ', '&nbsp;',$thisrequest->status_desc)."&nbsp;</td>\n";
-        echo "<td class=sml>&nbsp;" . str_replace( " ", "&nbsp;", $thisrequest->request_type_desc) . "&nbsp;</td>\n";
-        echo "<td class=sml align=center>" . str_replace( " ", "&nbsp;", $thisrequest->last_change) . "</td>\n";
-        if ( "$format" == "edit" ) //adds in the Active field for the Brief (editable) reports
-        {
-           if ( $active_edit ) //tests to see if the logged in user is able to edit the active field for this request
-              echo "<td class=sml align=center><input type=\"hidden\" name=\"EditableRequests[$EditableRequests_count][2]\" value=\"active_edit\"><input type=checkbox name=\"EditableRequests[$EditableRequests_count][3]\" value=\"1\" " . ( $thisrequest->active == 't' ? "CHECKED" : "" ) . "></td>\n";
-           else if ( $status_edit )
-              echo "<td class=sml align=center><input type=\"hidden\" name=\"EditableRequests[$EditableRequests_count][2]\" value=\"active_read\">" . ( $thisrequest->active == 't' ? "Active" : "Inactive" ) . "</td>\n";
-           else
-              echo "<td class=sml align=center>" . ( $thisrequest->active == 't' ? "Active" : "Inactive" ) . "</td>\n";
-        }
-        echo "</tr>\n";
+        data_row($thisrequest, $i);
 
         if ( $show_details ) {
           printf( "<tr class=row%1d>\n", $i % 2);

@@ -2,8 +2,46 @@ set sql_inheritance to 'off';
 
 -- Change the request_history table to be _not_ an inherited table
 alter table request_history rename to old_request_history;
-create table request_history as select * from old_request_history;
+create table request_history as select * from request where request_id != request_id ;
+alter table request_history add column entered_by int;
+alter table request_history add column modified_on timestamptz;
+alter table request_history alter column modified_on set default current_timestamp;
+insert into request_history 
+       (
+            request_id, 
+            request_on, 
+            active, 
+            last_status, 
+            wap_status, 
+            sla_response_hours, 
+            urgency, 
+            importance, 
+            severity_code, 
+            request_type, 
+            requester_id, 
+            eta, 
+            last_activity, 
+            sla_response_time, 
+            sla_response_type, 
+            requested_by_date, 
+            agreed_due_date, 
+            request_by, 
+            brief, 
+            detailed, 
+            system_code, 
+            modified_on
+       )
+       select * from old_request_history;
 drop table old_request_history;
+GRANT INSERT, UPDATE, SELECT ON request_history TO general;
+
+
+-- Add a field to request to identify the person who entered the request
+alter table request add column entered_by int;
+update request
+   set entered_by = (select status_by_id from request_status 
+                                        where request_status.request_id = request.request_id
+                                        order by status_on limit 1) ;
 
 -- Change the indexes on request to be partial (where active)
 drop index xak0_request;

@@ -112,14 +112,14 @@ function dates_equal( $date1, $date2 ) {
     $sla_split = explode('|', $new_sla_code, 2);
     $sla_type = strtoupper( $sla_split[1] );
     $query = "INSERT INTO request (request_id, request_by, brief, detailed, active, last_status, urgency, importance, ";
-    $query .= "system_code, request_type, requester_id, last_activity, sla_response_time";
+    $query .= "system_code, request_type, requester_id, last_activity, sla_response_time, entered_by";
     if ( ereg( "[BEO]", $sla_type ) ) $query .= ", sla_response_type";
     if ( "$new_requested_by_date" <> "" ) $query .= ", requested_by_date";
     if ( "$new_agreed_due_date" <> "" ) $query .= ", agreed_due_date";
     $query .= ") ";
     $query .= "VALUES( $request_id, '$requsr->username', '" . tidy($new_brief) . "','" . tidy($new_detail) . "', ";
     $query .= "TRUE, '$new_status', '$new_urgency', $new_importance, '$new_system_code' , '$new_type', $requsr->user_no, 'now', ";
-    $query .= "'" . intval($sla_split[0]) . " hours'";
+    $query .= "'" . intval($sla_split[0]) . " hours', " . $session->user_no;
     if ( ereg( "[BEO]", $sla_type ) ) $query .= ", '$sla_type' ";
     if ( "$new_requested_by_date" <> "" ) $query .= ", '$new_requested_by_date'";
     if ( "$new_agreed_due_date" <> "" ) $query .= ", '$new_agreed_due_date'";
@@ -216,12 +216,13 @@ function dates_equal( $date1, $date2 ) {
     $requsr = $session;
 
     // Have to be pedantic here - the translation from database -> variable is basic.
+    error_log( "$system_name: req_action: DBG: active=$request->active, new_active=$new_active, isset=". isset($new_active) );
     if ( strtolower( substr( $request->active, 0, 1)) == "t" )
       $request->active = "TRUE";
     else
       $request->active = "FALSE";
-    if ( ! isset($new_active) ) $new_active = $request->active ;
     if ( $editable && $new_active <> "TRUE" ) $new_active = "FALSE";
+    if ( ! isset($new_active) ) $new_active = $request->active ;
 
     $behalf_changed = isset($new_user_no) && intval($new_user_no) > 0 && ($request->requester_id != $new_user_no );
     $status_changed = isset($new_status) && ($request->last_status != $new_status );

@@ -5,7 +5,7 @@ function get_system_list( $access="", $current="", $maxwidth=50 ) {
   $system_code_list = "";
 
   $query = "SELECT work_system.system_code, system_desc ";
-  $query .= "FROM work_system WHERE TRUE ";
+  $query .= "FROM work_system WHERE active ";
   if ( $access != "" && !is_member_of('Admin','Support') ) {
     $query .= " AND EXISTS (SELECT system_usr.system_code FROM system_usr WHERE system_usr.system_code=work_system.system_code";
     $query .= " AND user_no=$session->user_no ";

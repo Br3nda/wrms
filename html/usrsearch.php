@@ -25,7 +25,9 @@
 <?php
   if ( "$search_for$org_code$system_code " != "" && ( $roles['wrms']['Manage'] || $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) ) {
 
-    $query = "SELECT * FROM usr, organisation WHERE usr.org_code=organisation.org_code ";
+    $query = "SELECT DISTINCT ON usr.user_no * FROM usr, organisation";
+    if ( isset( $system_code ) ) $query .= ", sustem_usr";
+    $query .= " WHERE usr.org_code=organisation.org_code ";
     if ( "$search_for" != "" ) {
       $query .= " AND (fullname ~* '$search_for' ";
       $query .= " OR username ~* '$search_for' ";
@@ -36,8 +38,10 @@
     else if ( isset( $org_code ) ) 
       $query .= " AND usr.org_code='$org_code' ";
 
-    if ( isset( $system_code ) ) 
-      $query .= " AND system_usr.system_code='$system_code' AND system_usr.user_no=usr.user_no";
+    if ( isset( $system_code ) ) {
+      $query .= " AND system_usr.system_code='$system_code'";
+      $query .= " AND system_usr.user_no=usr.user_no";
+    }
 
     $query .= " ORDER BY username ";
 //    $query .= " LIMIT 100 ";

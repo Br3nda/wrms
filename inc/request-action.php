@@ -280,7 +280,7 @@
 
     if ( $in_notify ) {
       $query = "INSERT INTO request_interested (request_id, username, user_no ) ";
-      $query .= " VALUES( $request_id, '$requsr->username', $requsr->user_no); ");
+      $query .= " VALUES( $request_id, '$requsr->username', $requsr->user_no); ";
       $rid = pg_Exec( $wrms_db, $query );
       if ( ! $rid ) {
         $because .= "<H3>&nbsp;Submit Interest Failed!</H3>\n";

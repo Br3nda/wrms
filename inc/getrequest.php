@@ -50,7 +50,7 @@
   /* get the user's roles relative to the current request */
   include( "$base_dir/inc/get-request-roles.php");
 
-  if ( strtolower($request->active) == "t" ) $request->active = "TRUE";
+  if ( strtolower("$request->active") == "t" ) $request->active = "TRUE";
 
   /* Current request is editable if the user requested it or user is sysmgr, cltmgr or allocated the job */
   if ( ! isset($plain) ) $plain = ("$style" == "plain");

@@ -42,7 +42,7 @@
 <A NAME=screens><H2>Screens</H2></A>
 <A HREF=#manual>Manual</A>&nbsp;&nbsp;|
 <A HREF=#list-requests>List Requests</A>&nbsp;&nbsp;|
-<A HREF=#view-request>View Request</A>&nbsp;&nbsp;|
+<A HREF=#modify-request>View Request</A>&nbsp;&nbsp;|
 <A HREF=#view-update>View Update</A>&nbsp;&nbsp;|
 <A HREF=#manual>Manual</A>&nbsp;&nbsp;|
 
@@ -55,10 +55,10 @@
 <A NAME=list-requests><H4>List Requests</H4></A>
 <P>This is probably the most important screen in the WRMS.  It lists requests according to various criteria which may be adjusted through the form at the bottom of the page.</P>
 <P>The default is to list requests in the same way that you last listed them.  The first time this will default to listing those requests which have been asked for by people who work for your organisation.</P>
-<P>Each request listed includes a link to the full details of the request.  Click on <A HREF="#view-request">this link</A> to display the full details of the request.</P>
+<P>Each request listed includes a link to the full details of the request.  Click on <A HREF="#modify-request">this link</A> to display the full details of the request.</P>
 
 <BR><HR>
-<A NAME=view-request><H4>View Request</H4></A>
+<A NAME=modify-request><H4>View Request</H4></A>
 <P>Another key screen, this shows all possible information related to a particular work request, including:
 <UL><LI>Basic request details</LI>
 <LI>Any '<A HREF=#update>update</A>' files pertaining to the request</LI>
@@ -80,7 +80,7 @@
 <P>All those little bist and pieces of information that don't really fit anywhere else</P>
 <BR><HR>
 <A NAME=interested><H4>Registering 'Interest' in a Request</H4></A>
-<P>The <A HREF=#view-request>View Requests</A> screen has a button at the top right which allows users to identify themselves as 'interested' in a particular request.</P>
+<P>The <A HREF=#modify-request>View Requests</A> screen has a button at the top right which allows users to identify themselves as 'interested' in a particular request.</P>
 <P>Some people are automatically identified as 'interested' when a request is added, including:
 <UL><LI>The person responsible for the system which the request pertains to</LI>
 <LI>The person identified as the contact point for the organisation making the request</LI>

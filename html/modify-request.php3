@@ -40,9 +40,10 @@
 
   /* Current request is editable if the user requested it or user is sysmgr, cltmgr or allocated the job */
   $plain = !strcmp( "$args->style", "plain");
-  $editable = !strcmp( $request->request_by, $usr->username );
-  if ( ! $editable ) $editable = ($sysmgr || $cltmgr || $allocated_to);
-  $quotable = $editable;
+  $notable = !strcmp( $request->request_by, $usr->username );
+  if ( ! $notable ) $notable = ($sysmgr || $cltmgr || $allocated_to);
+  $quotable = $notable;
+  $editable = ($sysmgr || $allocated_to);
   if ( $editable ) $editable = ! $plain;
 
   if ( $editable ) {
@@ -214,7 +215,7 @@
         $quote = pg_Fetch_Object( $quoteq, $i );
         echo "<TR>";
         echo "<TH ALIGN=CENTER VALIGN=TOP ROWSPAN=2><FONT SIZE=+2>$quote->quote_id</FONT></TH>\n";
-        echo "<TD ALIGN=CENTER><A HREF=\"view-request.php3?request_id=$quote->request_id\">$quote->request_id</A></TD>\n";
+        echo "<TD ALIGN=CENTER><A HREF=\"modify-request.php3?request_id=$quote->request_id\">$quote->request_id</A></TD>\n";
         echo "<TD ALIGN=CENTER>$quote->perorg_name</TD>\n";
         echo "<TD><A HREF=\"view-quote.php3?quote_id=$quote->quote_id\">$quote->quote_brief</A></TD>\n";
         echo "<TD ALIGN=CENTER>" . nice_date($quote->quoted_on) . "</TD>\n";
@@ -369,7 +370,7 @@
 <?php echo "<INPUT TYPE=\"hidden\" NAME=\"request_id\" VALUE=\"$request->request_id\">"; ?>
 <TABLE BORDER=1 ALIGN=CENTER WIDTH=100%>
 <?php /**** only update status & eta if they are administrator */
-  if ( $editable ) {
+  if ( $notable ) {
     echo "<TR>";
     echo "<TH ALIGN=RIGHT>New Status:</TH>";
     echo "<TD ALIGN=LEFT>&nbsp;<SELECT NAME=\"new_status\">$stat_list</SELECT></TD>";
@@ -396,8 +397,8 @@
    $admin_options = "&nbsp;|&nbsp;<A HREF=\"$wrms_home/new-quote.php3?request_id=$request_id\">Quote for</A>";
     $admin_options .= "&nbsp;|&nbsp;<A HREF=\"$wrms_home/new-assignment.php3?request_id=$request_id\">Assign to</A>";
     $admin_options .= "&nbsp;|&nbsp;<A HREF=\"$wrms_home/new-timesheet.php3?request_id=$request_id\">Add time</A>";
-    $user_options = "&nbsp;|&nbsp;<A HREF=\"view-request.php3?request_id=$request_id&style=plain\">Printer Friendly</A>";
-
+    $user_options = "&nbsp;|&nbsp;<A HREF=\"modify-request.php3?request_id=$request_id&style=plain\">Printer Friendly</A>";
+edi
     include("$homedir/apms-footer.php3");
   } /* of 'if plain' */
  ?>

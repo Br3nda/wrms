@@ -54,14 +54,14 @@
 
   $msg = "A quote has now been prepared regarding WR#$in_request which ";
   $msg .= "you are registered against. For more information visit:\n";
-  $msg .= "  $wrms_home/view-request.php3?request_id=$in_request\n\n\n";
+  $msg .= "  $wrms_home/modify-request.php3?request_id=$in_request\n\n\n";
   $msg .= "$in_quote_type #$quote_id - $in_brief\n\n";
   $msg .= "Amount: $in_amount $in_quote_units\n\n";
   $msg .= "Description:\n$in_details\n";
   $msub = "WR #$in_request" . "[$usr->username] Quote prepared";
 
   $msg .= "\nFull details of the request, with all changes, quotes, notes and updates, can be reviewed and changed at:\n"
-           . "    $wrms_home/view-request.php3?request_id=$request->request_id\n";
+           . "    $wrms_home/modify-request.php3?request_id=$request->request_id\n";
 
   mail( $mail_to, $msub, $msg, "From: catalyst-wrms@cat-it.co.nz\nReply-To: $rusr->email" );
 

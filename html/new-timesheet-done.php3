@@ -40,7 +40,7 @@
 
   $mail_to = notify_emails( $dbid, $in_request );
   $msg = "Timesheet added for $in_work_by for $in_work_duration against WR#$in_request.";
-  $msg .= "  $wrms_home/view-request.php3?request_id=$in_request\n\n\n";
+  $msg .= "  $wrms_home/modify-request.php3?request_id=$in_request\n\n\n";
   $msub = "WR #$in_request" . "[$usr->username] Assigned to $in_assigned";
 
   mail( $mail_to, $msub, $msg, "From: catalyst-wrms@cat-it.co.nz\nReply-To: $rusr->email" );

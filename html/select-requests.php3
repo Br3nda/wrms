@@ -80,7 +80,7 @@
   $rows = pg_NumRows( $rid );
   for ( $i=0; $i < $rows; $i++ ) {
     $request = pg_Fetch_Object( $rid, $i );
-    $href_req = "<A HREF=\"$wrms_home/view-request.php3?request_id=$request->request_id\">";
+    $href_req = "<A HREF=\"$wrms_home/modify-request.php3?request_id=$request->request_id\">";
 
     echo "<TR><TD ALIGN=RIGHT><B>$request->request_id</B>&nbsp;</TD>";
     echo "<TD>$request->fullname ($request->org_code)</TD><TD>";

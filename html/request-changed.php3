@@ -120,7 +120,7 @@
     if ( $note_added )          $msg .= "New Notes:\n" . stripslashes($new_note) . "\n\n";
 
     $msg .= "\nFull details of the request, with all changes and notes, can be reviewed and changed at:\n"
-               . "    $wrms_home/view-request.php3?request_id=$request->request_id\n";
+               . "    $wrms_home/modify-request.php3?request_id=$request->request_id\n";
 
     mail( $mto, $msub . $request->brief, $msg, "From: catalyst-wrms@cat-it.co.nz\nReply-To: $usr->email" );
     echo "<H2>Request '$request_id' has been changed.</H2>";

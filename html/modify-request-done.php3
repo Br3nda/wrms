@@ -93,7 +93,7 @@
            . "Urgency:       $request->severity_code \"$request->severity_desc\"\n\n"
            . "Detailed Description:\n" . stripslashes($request->detailed) . "\n\n\n"
            . "The request can be reviewed and changed at:\n"
-           . "    $wrms_home/view-request.php3?request_id=$request->request_id\n";
+           . "    $wrms_home/modify-request.php3?request_id=$request->request_id\n";
   mail( $send_to, $msub, $msg, "From: catalyst-wrms@cat-it.co.nz\nReply-To: $usr->email" );
 
   include("$homedir/apms-footer.php3");

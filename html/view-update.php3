@@ -165,7 +165,7 @@
 
       echo "<TR><TD>$request->request_id&nbsp;</TD>";
       echo "<TD>" . nice_date($request->request_on) . "&nbsp;</TD>";
-      echo "<TD><A HREF=\"$wrms_home/view-request.php3?request_id=$request->request_id\">$request->brief</A></TD>";
+      echo "<TD><A HREF=\"$wrms_home/modify-request.php3?request_id=$request->request_id\">$request->brief</A></TD>";
       echo "<TD>$request->system_code</TD></TR>";
     }
     echo "</TABLE>";

@@ -162,7 +162,7 @@
            . "Overview:      $request->brief\n\n"
            . "Detailed Description:\n$request->detailed\n\n"
            . "The request can be reviewed and changed at:\n"
-           . "    $wrms_home/view-request.php3?request_id=$request->request_id\n";
+           . "    $wrms_home/modify-request.php3?request_id=$request->request_id\n";
 
   mail( $send_to, $subject, $message, "From: catalyst-wrms@cat-it.co.nz\nReply-To: $rusr->email" );
 

@@ -18,7 +18,7 @@
     $quote = pg_Fetch_Object( $rid, $i );
     echo "<TR>";
     echo "<TH ALIGN=CENTER VALIGN=TOP ROWSPAN=2><FONT SIZE=+2>$quote->quote_id</FONT></TH>\n";
-    echo "<TD ALIGN=CENTER><A HREF=\"view-request.php3?request_id=$quote->request_id\">$quote->request_id</A></TD>\n";
+    echo "<TD ALIGN=CENTER><A HREF=\"modify-request.php3?request_id=$quote->request_id\">$quote->request_id</A></TD>\n";
     echo "<TD ALIGN=CENTER>$quote->quoted_by</TD>\n";
     echo "<TD><A HREF=\"view-quote.php3?quote_id=$quote->quote_id\">$quote->quote_brief</A></TD>\n";
     echo "<TD ALIGN=CENTER>" . nice_date($quote->quoted_on) . "</TD>\n";

@@ -567,7 +567,7 @@
   $link_wr_query .= "JOIN lookup_code lcs ON lcs.source_table = 'request' AND lcs.source_field = 'status_code' AND lcs.lookup_code = r.last_status ";
   $link_wr_query .= "WHERE rr.request_id = '$request->request_id' ";
 
-  $link_wr_result = awm_pgexec( $dbconn, $link_wr_query );
+  $link_wr_result = awm_pgexec( $dbconn, $link_wr_query, 'requestlist-rr' );
 
   $rows = pg_NumRows($link_wr_result);
   if ( $rows > 0 ) {
@@ -593,6 +593,17 @@
       echo "<TD><A href=request.php?request_id=$link_wr->child_request_id>$link_wr->child_request_id</A></TD>";
       echo "<TD>$link_wr->child_brief</TD>";
       echo "<TD>$link_wr->child_status</TD></TR>\n";
+    }
+    
+    if ( !$plain && is_member_of('Admin', 'Support', 'Manage') ) {
+      $types = new PgQuery("SELECT lookup_code, lookup_desc FROM lookup_code WHERE source_table = 'request_request' AND source_field = 'link_type';");
+      $type_options = $types->BuildOptionList( 'I' );
+      printf("<tr class=\"row%1d\">", ($i % 2) );
+      echo "<TD colspan=\"3\">&nbsp;</TD>";
+      echo "<TD>$request_id</TD>";
+      echo "<TD><select name=\"rr_link_type\">$type_options</select></TD>";
+      echo "<TD colspan=\"2\"><input size=\"7\" type=\"text\" name=\"rr_other_request\"></TD>";
+      echo "</TR>\n";
     }
     echo "</TABLE>\n";
   }  // if rows > 0

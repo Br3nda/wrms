@@ -12,6 +12,10 @@
 
       echo "</tr></table>\n";
     }
+    if ( function_exists("local_page_header") ) {
+      local_page_footer();
+    }
+    else {
 ?>
 <table width="100%" border="0" cellspacing="0" cellpadding="0" height="16" background="/<?php echo $images; ?>/WRMSbottomTile.gif">
   <tr>
@@ -22,6 +26,7 @@
   </tr>
 </table>
 <?php
+    }
   }
 if ( is_object ( $settings ) && $settings->is_modified() ) {
 

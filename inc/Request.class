@@ -1,0 +1,319 @@
+<?php
+/////////////////////////////////////////////////////////////
+//   C L A S S   F O R   W O R K   R E Q U E S T S
+/////////////////////////////////////////////////////////////
+require_once("html-format.php");
+class Request {
+   var $request_id;      // Which WR is this
+   var $new_record;
+
+   function Request( $id = 0 ) {
+     global $session;
+     if ( !$session->logged_in ) return false;
+     $loaded = false;
+     $id = intval("$id");
+     if ( $id > 0 ) {
+       // Try and load it from file
+       // Note: careful adjustment of the field order - work_system and request both have 'active' e.g.
+       $sql = "SELECT organisation.*, usr.*, work_system.*, request.*";
+       $sql .= ", to_char( request.requested_by_date, 'dd/mm/yyyy' ) AS requested_by_date, to_char( request.agreed_due_date, 'dd/mm/yyyy' ) AS agreed_due_date ";
+       $sql .= ", status.lookup_desc AS status_desc";
+       $sql .= ", request_type.lookup_desc AS request_type_desc";
+       $sql .= ", urgency.lookup_desc AS urgency_desc";
+       $sql .= ", sla_response.lookup_desc AS sla_response_desc";
+       $sql .= ", importance.lookup_desc AS importance_desc";
+       $sql .= ", system_desc, request_sla_code(sla_response_time,sla_response_type) ";
+       $sql .= " FROM request LEFT OUTER JOIN usr ON (request.requester_id = usr.user_no)";
+       $sql .= " LEFT OUTER JOIN organisation USING( org_code )";
+       $sql .= " LEFT OUTER JOIN lookup_code AS status ON status.source_table='request' AND status.source_field='status_code' AND status.lookup_code = request.last_status";
+       $sql .= " LEFT OUTER JOIN lookup_code AS request_type ON request_type.source_table='request' AND request_type.source_field='request_type' AND request.request_type = request_type.lookup_code";
+       $sql .= " LEFT OUTER JOIN lookup_code AS urgency ON urgency.source_table='request' AND urgency.source_field='urgency' AND int4(urgency.lookup_code)=request.urgency";
+       $sql .= " LEFT OUTER JOIN lookup_code AS sla_response ON sla_response.source_table='request' AND sla_response.source_field='sla_response' AND sla_response.lookup_code=request_sla_code(sla_response_time,sla_response_type)";
+       $sql .= " LEFT OUTER JOIN lookup_code AS importance ON importance.source_table='request' AND importance.source_field='importance' AND int4(importance.lookup_code)=request.importance";
+       $sql .= " LEFT OUTER JOIN work_system USING( system_code )";
+       $sql .= " WHERE request.request_id = '$id'";
+       if ( !($session->AllowedTo('Admin') || $session->AllowedTo('Support')) )
+         $sql .= " AND organisation.org_code = '$session->org_code' ";
+
+       if ( $qry = new PgQuery($sql) ) {
+         if ( $qry->Exec("newRequest")
+                  && $qry->rows == 1 && $row = $qry->Fetch() ) {
+           $this->new_record = false;
+           while( list($k,$v) = each($row) ) {
+             if ( isset($debuggroups['Request']) && $debuggroups['Request'] ) {
+               error_log( sprintf("%s: DBG: \$this->{'%-25.25s = %s", $sysabbr, "$k'}", $v) );
+             }
+             $this->{$k} = $v;
+           }
+         }
+       }
+     }
+     else {
+       $this->new_record = true;
+       $this->request_id = 0;
+       // Assign some defaults because it looks like we're starting a new one
+       if ( isset($_GET['wr_template']) ) {
+         // Oh goody, we can get some defaults from a saved template :-)
+         $loaded = false;  // templates aren't done yet :-(
+       }
+       if ( ! $loaded ) {
+         // Initialise to standard default values
+       }
+     }
+   }
+
+   /////////////////////////////////////////////////////////////
+   // AllowedTo - Can the user do that to this request?
+   /////////////////////////////////////////////////////////////
+   function AllowedTo( $action ) {
+     return true;  // Of course they can!
+   }
+
+   /////////////////////////////////////////////////////////////
+   // Render - Return HTML to show the W/R
+   //   A separate function is called for each logical area
+   //   on the W/R.
+   /////////////////////////////////////////////////////////////
+   function Render( ) {
+     global $edit;
+     $html = "";
+
+     $ef = new EntryForm( $REQUEST_URI, $this, $edit );
+     $ef->NoHelp();  // Prefer this style, for the moment
+
+     if ( $edit ) $html .= $ef->StartForm( "autocomplete=off" );
+
+     $html .= "<table width=\"100%\" class=\"data\" cellspacing=\"0\" cellpadding=\"0\">\n";
+
+     $html .= $this->RenderDetails($ef);
+     $html .= $this->RenderAttachments($ef);
+     $html .= $this->RenderQuotations($ef);
+     $html .= $this->RenderRelations($ef);
+     $html .= $this->RenderAllocations($ef);
+     $html .= $this->RenderTimesheets($ef);
+     $html .= $this->RenderInterests($ef);
+     $html .= $this->RenderNotes($ef);
+     $html .= $this->RenderStatuses($ef);
+
+     if ( $edit ) $html .= $ef->SubmitButton( "submit", ($this->new_record ? "Create" : "Update") );
+     $html .= "</table>\n";
+     if ( $edit ) $html .= $ef->EndForm();
+
+     return $html;
+   }
+
+
+   function RenderDetails( $ef ) {
+     global $edit, $session, $bigboxcols, $bigboxrows;
+     $html = "";
+     $html .= $ef->BreakLine("Request Details");
+     if ( !$this->new_record ) {
+       $html .= $ef->DataEntryLine( "W/R #", "$this->request_id &nbsp; &nbsp; <b>Requested:</b> " . nice_date($this->request_on));
+     }
+
+     $html .= $ef->DataEntryLine( "Brief", "%s", "text", "brief",
+               array( "size" => 70, "title" => "A brief description of the request.") );
+
+     // Organisation drop-down
+     if ( $session->AllowedTo("Admin") || $session->AllowedTo("Support") ) {
+       $sql = "SELECT org_code, org_name FROM organisation WHERE active ORDER BY lower(org_name)";
+       $html .= $ef->DataEntryLine( "Organisation", "$this->org_name", "lookup", "org_code",
+                 array("_sql" => $sql, "onchange" => "sync_selects();" ) );
+     }
+     else {
+       $html .= $ef->DataEntryLine( "Organisation", "$this->org_name", "", "" );
+     }
+
+     // Person within Organisation drop-down
+     $sql = "SELECT user_no, fullname ";
+     if ( $this->new_record ) $sql .= " ||' ('||abbreviation||')' ";
+     $sql .= "FROM usr JOIN organisation ON organisation.org_code = usr.org_code ";
+     if ( $this->new_record ) {
+       $sql .= "WHERE status != 'I' AND organisation.active ";
+       if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) )
+         $sql .= "AND organisation.org_code = $session->org_code AND usr.org_code = $session->org_code ";
+     }
+     else {
+       $sql .= "WHERE organisation.org_code = $this->org_code AND usr.org_code = $this->org_code ";
+     }
+     $sql .= "ORDER BY lower(fullname)";
+     $html .= $ef->DataEntryLine( "Person", "$this->fullname", "lookup", "requester_id",
+               array("_sql" => $sql, "onchange" => "sync_selects();") );
+
+     // System (within Organisation) drop-down
+     $sql = "SELECT work_system.system_code, system_desc FROM work_system ";
+     if ( $this->new_record ) {
+       if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) )
+         $sql .= "JOIN org_system ON org_system.system_code = work_system.system_code ";
+       $sql .= "WHERE active ";
+       if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) )
+         $sql .= "AND org_system.org_code = $session->org_code ";
+     }
+     else {
+       $sql .= "JOIN org_system ON org_system.system_code = work_system.system_code ";
+       $sql .= "WHERE org_system.org_code = $this->org_code ";
+     }
+     $sql .= "ORDER BY lower(system_desc)";
+     $html .= $ef->DataEntryLine( "System", "$this->system_desc", "lookup", "system_code",
+               array("_sql" => $sql, "onchange" => "sync_selects();") );
+
+     // Type of Request
+     $html .= $ef->DataEntryLine( "Type", $this->request_type_desc, "lookup", "request_type",
+               array("_type" => "request|request_type") );
+
+     // Urgency of Request
+     $html .= $ef->DataEntryLine( "Urgency", $this->urgency_desc, "lookup", "urgency",
+               array("_type" => "request|urgency") );
+
+     // Importance of Request
+     $html .= $ef->DataEntryLine( "Importance", $this->importance_desc, "lookup", "importance",
+               array("_type" => "request|importance") );
+
+     // Detailed description
+     $html .= $ef->DataEntryLine( "Details", html_format($this->detailed), "textarea", "detailed",
+               array("title" => "Full details of the request", "rows" => $bigboxrows, "cols" => $bigboxcols  ) );
+
+     return $html;
+   }
+
+   function RenderAttachments( $ef ) {
+     global $session, $request_id;
+     $html = "";
+     $sql = "SELECT att_filename, attachment_id, att_brief, att_description, ";
+     $sql .= "to_char(attached_on, 'DD-MM-YYYY') AS att_on, fullname ";
+     $sql .= "FROM request_attachment JOIN usr ON ( attached_by = user_no ) ";
+     $sql .= "WHERE request_id = $request_id";
+     $sql .= "ORDER BY request_id, attachment_id";
+     # Select the records
+     $q = new PgQuery($sql);
+     if ( $q && $q->Exec() && $q->rows ) {
+       $html .= $ef->BreakLine("Attached Files");
+       $html .= '<tr><td colspan="2"><table>'."\n";
+       $html .= '<tr><th class="pcol">File</th><th class="pcol">Description</th><th class="pcol">By</th><th class="pcol">On</th></tr>'."\n";
+       $attachment_format = '<tr class="row%d"><td class="entry"><a href="/attachment.php/%s?id=%d">%s</a></td>';
+       $attachment_format .= '<td class="entry">%s</td><td class="entry" style="white-space: nowrap;">%s</td><td class="entry">%s</td></tr>'."\n";
+       while( $row = $q->Fetch() ) {
+         $html .= sprintf( $attachment_format, ($q->rownum % 2),
+                    $row->att_filename, $row->attachment_id, $row->att_filename, $row->att_brief,
+                    $row->fullname, $row->att_on
+                  );
+       }
+     }
+     $html .= '</table></td></tr>'."\n";
+
+     if ( $ef->editmode ) {
+       $html .= '<tr><td colspan="2"><table><tr>'."\n";
+       // Select the file
+       $html .= '<th class="prompt">Add File</th><td class="entry">';
+       $html .= $ef->DataEntryField( "", "file", "att_filename",
+                 array("title" => "Enter the name of the file to be attached" ) );
+       $html .= '</td>';
+
+       // Enter the description
+       $html .= '<th class="prompt">Description</th><td class="entry">';
+       $html .= $ef->DataEntryField( "", "text", "att_brief",
+                 array("title" => "Enter a description for the file", "size" => 50 ) );
+       $html .= '</td>';
+
+       $html .= '</tr></table></td></tr>'."\n";
+     }
+     return $html;
+   }
+
+   function RenderQuotations( $ef ) {
+     global $session;
+     $html = "";
+     $html .= $ef->BreakLine("Quotations");
+     return $html;
+   }
+
+   function RenderRelations( $ef ) {
+     global $session;
+     $html = "";
+     $html .= $ef->BreakLine("Related Requests");
+     return $html;
+   }
+   function RenderAllocations( $ef ) {
+     global $session;
+     $html = "";
+     $html .= $ef->BreakLine("Work Allocated To");
+     return $html;
+   }
+
+   function RenderTimesheets( $ef ) {
+     global $session;
+     $html = "";
+     $html .= $ef->BreakLine("Work Done");
+     return $html;
+   }
+
+   function RenderInterests( $ef ) {
+     global $session;
+     $html = "";
+     $html .= $ef->BreakLine("Interested Users");
+     return $html;
+   }
+
+   function RenderNotes( $ef ) {
+     global $session;
+     $html = "";
+     $html .= $ef->BreakLine("Notes");
+     return $html;
+   }
+
+   function RenderStatuses( $ef ) {
+     global $session;
+     $html = "";
+     $html .= $ef->BreakLine("Changes in Status");
+     return $html;
+   }
+
+   function Validate( $ef ) {
+     global $client_messages;
+     error_log("$system_name: vpw: ERROR: Not validating request");
+     $client_messages[] = "WARNING: Not validating request details yet.";
+     return true;
+   }
+
+   function Write( $ef ) {
+     global $client_messages;
+     error_log("$system_name: vpw: ERROR: Not writing request form details to database");
+     $client_messages[] = "WARNING: Not writing request form details to database.";
+     $qry = new PgQuery("BEGIN");  $qry->Exec("Request::Write");
+     if ( $_FILES['att_filename']['tmp_name'] != "" ) $this->AttachFile('att_filename',$att_brief);
+     $qry = new PgQuery("COMMIT; ROLLBACK;");
+     $qry->Exec("Request::Write");
+     return true;
+   }
+
+   function AttachFile( $fname, $description ) {
+     error_log( "$sysabbr Request::AttachFile: DBG: Adding attachment: " . $_FILES[$fname]['name'], 0);
+     $sql = "SELECT nextval('request_attac_attachment_id_seq') AS id ;";
+     $qry = new PgQuery( $sql );
+     if ( ! $qry->PgExec('R-AttachFile') ) return;
+
+     $row = $qry->Fetch();
+     $attachment_id = $row->id;
+     move_uploaded_file($HTTP_POST_FILES[$fname]['tmp_name'], "attachments/$attachment_id");
+     $att_name = tidy($HTTP_POST_FILES[$fname]['name']);
+     $sql = "INSERT INTO request_attachment ( attachment_id, $this->request_id,  attached_by, att_brief, att_description, att_filename, att_type";
+     if ( isset($new_attach_inline) ) $query .= ", att_inline";
+      $query .= ", att_width, att_height ) ";
+      $query .= "VALUES( $attachment_id, $request_id, $session->user_no, '$tattach_brief', '$tattach_full', '$att_name', '$new_attachment_type'";
+      if ( isset($new_attach_inline) )
+        $query .= ", " . (intval("$new_attach_inline") > 0 ? "TRUE" : "FALSE");
+      $query .= ", $new_attach_x, $new_attach_y )";
+      $rid = awm_pgexec( $dbconn, $query, "req-action" );
+      if ( ! $rid ) {
+        $because .= "<H3>New Attachment Failed!</H3>\n";
+        $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $dbconn ) . "</TT>";
+        $because .= "<P>The failed query was:</P><TT>$query</TT>";
+        awm_pgexec( $dbconn, "ROLLBACK;", "req-action" );
+        return;
+      }
+      chmod( "attachments/$attachment_id", 0644 );
+      if ( $rid ) $because .= "<h3>File attachment \"$att_name\" added to this request</h3>";
+   }
+}
+
+?>

@@ -1,14 +1,18 @@
 <?php
   $now = time();
+  if ( eregi( "/usr.php/", $REQUEST_URI ) ) $now = 0;
   Header("Last-Modified: " . gmdate( "D, d M Y H:i:s T", $now) );
   $then = $now + 15;
-  Header("Expires: " . gmdate( "D, d M Y H:i:s T", $then) );
-  Header("Cache-Control: max-age=5, private");
+  if ( eregi( "/usr.php/", $REQUEST_URI ) ) $then = 0;
+  // Header("Expires: " . gmdate( "D, d M Y H:i:s T", $then) );
+  // Header("Cache-Control: max-age=5, private");
+  Header("Pragma: no-cache");
 
   // Standard headers included everywhere.
   echo "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\" \"http://www.w3.org/TR/REC-html40/loose.dtd\">\n";
   echo "<html>\n<head>\n<title>$title</title>\n";
 
+  echo '<link rel="stylesheet" type="text/css" href="main.css" />' . "\n";
   echo '<script language="JavaScript" src="js/date-picker.js"></script>' . "\n";
 
   if ( is_object($settings) )
@@ -31,9 +35,9 @@
 
     if ( $agent == "moz4" ) {
       echo ".menu, .bmenu $linkstyle font: bold $fontsizes[1] $fonts[1]; text-decoration: underline; background: $colors[bg3]; color: $colors[fg3]; }
-.block		{font: $fontsizes[1] $fonts[block], sans-serif; color: $colors[blockfront]; }
+.block    {font: $fontsizes[1] $fonts[block], sans-serif; color: $colors[blockfront]; }
 .sml {font: $fontsizes[1] $fonts[narrow], sans-serif; }
-hr.block	{line-height: 0px; margin: -6px; padding: 0px 25px; width: 100px; }
+hr.block  {line-height: 0px; margin: -6px; padding: 0px 25px; width: 100px; }
 td.sidebarleft { color: white; background-color: $colors[blockback]; }
 th.h3, td.h3  {font: bold $fontsizes[3] $fonts[0], sans-serif; color: $colors[fg3]; background-color: $colors[blockback];margin: 6px 0px 0px 0px; }
 .sbutton, .r $linkstyle font: bold $fontsizes[0] $fonts[1]; text-decoration: underline; background: $colors[bg3]; color: $colors[fg3]; vertical-align: top; }
@@ -46,9 +50,9 @@ th.h3, td.h3  {font: bold $fontsizes[3] $fonts[0], sans-serif; color: $colors[fg
       echo "A.block:hover, A.blockhead:hover { color: $colors[hv1]; }\n";
       echo "A:hover { color: $colors[hv1];  }\n";
       echo ".bmenu $linkstyle font: small-caps bold $fontsizes[1] $fonts[1]; background: $colors[bg3]; color: $colors[fg3]; padding: 0px 1px 1px; margin: 0px 1px; }
-.block		{font: $fontsizes[1] $fonts[block], sans-serif; color: $colors[blockfront]; }
-hr.block	{line-height: 9px; margin: 0px; padding: 0px; width: 130px; image: url(/$images/menuBreak.gif); }
-img.block	{height: 9px; margin: 0px; padding: 0px; width: 130px; clear: both }
+.block    {font: $fontsizes[1] $fonts[block], sans-serif; color: $colors[blockfront]; }
+hr.block  {line-height: 9px; margin: 0px; padding: 0px; width: 130px; image: url(/$images/menuBreak.gif); }
+img.block {height: 9px; margin: 0px; padding: 0px; width: 130px; clear: both }
 td.sidebarleft { color: white; background-color: $colors[blockback]; }
 .sml {font: $fontsizes[1] $fonts[narrow], sans-serif; }
 .sbutton, .r $linkstyle font: small-caps bold $fontsizes[0] $fonts[1]; background: $colors[bg2]; color: $colors[fg2]; padding: 0px 1px 1px 1px; margin: 0px 1px; }
@@ -66,17 +70,17 @@ th.h3, td.h3  {font: bold $fontsizes[3] $fonts[0], sans-serif; color: $colors[fg
 .error h2 { font-size: $fontsizes[4]; }
 .error h3 { font-size: $fontsizes[3]; }
 .error h4 { font-size: $fontsizes[2]; }
-.help		{font: italic $fontsizes[1] $fonts[help], serif; color: $colors[fghelp]; background: $colors[bghelp]; }
-.blocka		{font: $fontsizes[1] $fonts[block], sans-serif; color: $colors[blockfront]; }
-.blockhead	{font: $fontsizes[1] $fonts[block], sans-serif; font-weight: 700; color: $colors[blockfront]; }
-.msgtitle		{font: bold $fontsizes[1] $fonts[1], sans-serif; font-weight: 700; color: $colors[blockfront]; background: $colors[blocktitle]; margin: 6px 0px 0px 0px; }
-.msginfo		{font: $fontsizes[0] $fonts[1], sans-serif; margin: 0; text-align: right; color: $colors[fg2]; background: $colors[bg2]; }
-.mand		{font: bold $fontsizes[0] $fonts[1], sans-serif; background: $colors[9];}
+.help   {font: italic $fontsizes[1] $fonts[help], serif; color: $colors[fghelp]; background: $colors[bghelp]; }
+.blocka   {font: $fontsizes[1] $fonts[block], sans-serif; color: $colors[blockfront]; }
+.blockhead  {font: $fontsizes[1] $fonts[block], sans-serif; font-weight: 700; color: $colors[blockfront]; }
+.msgtitle   {font: bold $fontsizes[1] $fonts[1], sans-serif; font-weight: 700; color: $colors[blockfront]; background: $colors[blocktitle]; margin: 6px 0px 0px 0px; }
+.msginfo    {font: $fontsizes[0] $fonts[1], sans-serif; margin: 0; text-align: right; color: $colors[fg2]; background: $colors[bg2]; }
+.mand   {font: bold $fontsizes[0] $fonts[1], sans-serif; background: $colors[9];}
 .smb {font: $fontsizes[0] $fonts[narrow], sans-serif; color: $colors[fg1]; }
 .row0 { background: $colors[row0]; color: $colors[link2]; }
 .row1 { background: $colors[row1]; color: $colors[link2]; }
 a.row0, a.row1 { color: $colors[link2]; }
-.menu		{font: $fontsizes[1] $fonts[1], sans-serif; color: $colors[fg2]; background: $colors[bg1]; }
+.menu   {font: $fontsizes[1] $fonts[1], sans-serif; color: $colors[fg2]; background: $colors[bg1]; }
 blockquote {font: italic $fontsizes[1]  $fonts[quote]; color: $colors[fg2]; }
 input.sml, select.sml {font: $fontsizes[0] $fonts[0], sans-serif; }
 textarea.sml { font: $fontsizes[0] $fonts[fixed], fixed; }
@@ -93,13 +97,20 @@ th.cols, th.rows, a.cols  {font: small-caps bold $fontsizes[1] $fonts[0], sans-s
       echo ".error {font: bold $fontsizes[2] $fonts[0], sans-serif; color: $colors[fgerr]; background: $colors[bgerr]; padding: 10px; margin: 20px; }\n";
     }
 
+    if ( function_exists("local_inline_styles") ) {
+      local_inline_styles();
+    }
+
     echo "--></style>\n";
 
   // Now start the body
   echo "</head>\n";
   echo "<body bgcolor=\"$colors[bg1]\" fgcolor=\"$colors[fg1]\" leftmargin=\"0\" marginheight=\"0\" marginwidth=\"0\" topmargin=\"0\" text=\"$colors[fg1]\" link=\"$colors[link1]\" vlink=\"$colors[link1]\" alink=\"$colors[link2]\" background=\"/$images/tanTile.gif\">\n";
   if ( ! isset($style) || "$style" != "stripped" ) {
-
+    if ( function_exists("local_page_header") ) {
+      local_page_header();
+    }
+    else {
 ?>
 <table width="100%" border="0" cellspacing="0" cellpadding="0">
   <tr>
@@ -126,6 +137,7 @@ th.cols, th.rows, a.cols  {font: small-caps bold $fontsizes[1] $fonts[0], sans-s
   </tr>
 </table>
 <?php
+    }
 
     // The left hand sidebar.
     if ( $left_panel ) {
@@ -143,7 +155,16 @@ th.cols, th.rows, a.cols  {font: small-caps bold $fontsizes[1] $fonts[0], sans-s
     echo "<tr><td>\n";
   } // if style not stripped
 
-  // Display errors / Warnings
+  if ( isset($client_messages) && is_array($client_messages) && count($client_messages) > 0 ) {
+    echo "<div class=\"messages\"><ul class=\"messages\">\n";
+    reset($client_messages);
+    while( list($i,$msg) = each($client_messages) ) {
+      echo "<li class=\"messages\">$msg</li>\n";
+    }
+    echo "</ul></div>\n";
+  }
+
+  // The older style way to display errors / warnings
   if ( (isset($error_message) && $error_message <> "") || (isset($warn_message) && $warn_message <> "") ) {
     echo "<table border=\"0\" width=\"450\" cellspacing=\"0\" cellpadding=\"0\" bgcolor=\"$colors[bgerr]\" fgcolor=\"$colors[fgerr]\" align=center><tr>\n";
     echo "<th class=error>$error_message$warn_message<th>\n</tr></table>\n<br clear=all>";

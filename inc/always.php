@@ -3,6 +3,7 @@ $begin_processing = microtime();
 $error_loc = "";
 $error_msg = "";
 $warn_msg = "";
+$client_messages = array();
 
 error_log( "=============================================== $PHP_SELF" );
 include_once("../config/config.php");

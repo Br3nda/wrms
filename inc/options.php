@@ -138,8 +138,11 @@ function validate_password( $they_sent, $we_have ) {
   }
   $settings = "";
 
-  if ( "$M" <> "LO" && "$session_id" <> "" ) {
-    list( $session_test, $session_hash) = explode( " ", $session_id);
+  if ( "$M" <> "LO" && ("$session_id" <> "" || "$sid" <> "") ) {
+    if ( "$sid" != "" )
+      list( $session_test, $session_hash ) = explode( ';', $sid, 2 );
+    else
+      list( $session_test, $session_hash) = explode( " ", $session_id);
     $query = "SELECT * FROM organisation, session, usr WHERE session_id='$session_test' ";
     $query .= "AND session.user_no=usr.user_no AND usr.org_code = organisation.org_code; ";
     $result = awm_pgexec( $dbconn, $query, "options" );
@@ -147,13 +150,15 @@ function validate_password( $they_sent, $we_have ) {
       $session = pg_Fetch_Object($result, 0);
 
       $session_check = "$session_test " . md5($session->session_start);
-      if ( "$session_id" <> "$session_check" ) {
+      if ( "$session_id" <> "$session_check" && ( "$sid" <> "" && ($session_hash != $session->session_key)) ) {
         $error_msg = "<h3>Internal Processing Error</h3><p>An internal processing error has occurred.  You will need to log on again.</p>";
+        $session->logged_in = false;
       }
       else {
         $query = "UPDATE session SET session_end='now' WHERE session_id='$session_test'; ";
         $query .= "UPDATE usr SET last_accessed='now' WHERE user_no=$session->user_no; ";
         $result = awm_pgexec( $dbconn, $query );
+        $session->logged_in = true;
         $logged_on = true;
         $settings = new Setting( $session->config_data );
 

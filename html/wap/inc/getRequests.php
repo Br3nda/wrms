@@ -14,18 +14,22 @@
 
   if("$user_no" <> "") {
 
-    $query = "SELECT DISTINCT ON request_id request.request_id, brief,
-		last_activity, lookup_desc AS status_desc 
-		FROM request, request_interested, usr, lookup_code AS status 
+    $query = "SELECT DISTINCT request.request_id, brief,
+		last_activity, lookup_desc AS status_desc, severity_code
+		FROM request, request_interested, lookup_code AS status 
 		WHERE request.request_id=request_interested.request_id
 		AND status.source_table='request' 
 		AND status.source_field='status_code' 
+		AND status.lookup_code=request.last_status
 		AND request_interested.user_no=$user_no
     		AND request.active 
 		AND request.last_status~*'[AILNRQA]' 
-		ORDER BY request.severity_code DESC LIMIT 50 ";
+		ORDER BY request.severity_code DESC LIMIT 20 ";
 
     $result = pg_Exec( $wrms_db, $query );
+    if ( !$result ) {
+      error_log( "wrms wap/inc/getRequests.php query error: $query", 0);
+    }
 
     for ( $i=0; $i < pg_NumRows($result); $i++ ) {
       $thisrequest = pg_Fetch_Object( $result, $i );

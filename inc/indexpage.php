@@ -25,9 +25,10 @@ one of the recently modified requests from the list below.</H4>
     $query .= "AND request.active AND request.last_status~*'[AILNRQA]' ";
     $query .= "ORDER BY last_activity DESC LIMIT 20 ";
   }
-  error_log( "indexpage query: $query", 0);
+  error_log( "wrms indexpage query: $query", 0);
   $result = pg_Exec( $wrms_db, $query );
   if ( ! $result ) {
+    error_log( "wrms indexpage error: $query", 0);
     $error_loc = "indexpage.php";
     $error_qry = "$query";
     include("inc/error.php");

@@ -29,6 +29,8 @@
     }
   }
   else {
+    $flipped_columns = array_flip($columns);
+
     $search_query .= "SELECT request.request_id, brief, usr.fullname, usr.email, request_on, status.lookup_desc AS status_desc, last_activity, detailed ";
     $search_query .= ", request_type.lookup_desc AS request_type_desc, lower(usr.fullname) AS lfull, lower(brief) AS lbrief ";
     $search_query .= ", to_char( request.last_activity, 'FMdd Mon yyyy') AS last_change ";
@@ -36,6 +38,9 @@
     //provides extra fields that are needed to create a Brief (editable) report
     $search_query .= ", request.active, last_status ";
     $search_query .= ", creator.email AS by_email, creator.fullname AS by_fullname, lower(creator.fullname) AS lby_fullname ";
+    if ( isset($flipped_columns['request_tags']) ) {
+      $search_query .= ", request_tags(request.request_id) ";
+    }
     $search_query .= "FROM ";
     if ( intval("$interested_in") > 0 ) $search_query .= "request_interested, ";
     if ( intval("$allocated_to") > 0 ) $search_query .= "request_allocated, ";
@@ -87,10 +92,35 @@
       for ( $i=0; $i < $taglist_count ; $i++ ) {
         $tag_id = intval($tag_list[$i]);
         if ( $tag_id > 0 ) {
-          $lb_count += strlen(str_replace(" ", "", $tag_lb[$i]));
-          $rb_count += strlen(str_replace(" ", "", $tag_rb[$i]));
+          if ( $i == 0 )
+            $boolean = "";
+          else {
+            switch ( $tag_and[$i] ) {
+              case 'AND':
+              case 'OR':
+              case 'AND NOT':
+              case 'OR NOT':
+                $boolean = $tag_and[$i];
+                break;
+
+              case 'ANDNOT':
+                $boolean = 'AND NOT';
+                break;
+              case 'ORNOT':
+                $boolean = 'OR NOT';
+                break;
+              default:
+                $boolean = "AND";
+            }
+          }
+          $lb = ereg_replace('[^(]','',$tag_lb[$i] );
+          $rb = ereg_replace('[^)]','',$tag_rb[$i] );
+//          $lb_count += strlen(str_replace(" ", "", $tag_lb[$i]));
+//          $rb_count += strlen(str_replace(" ", "", $tag_rb[$i]));
+          $lb_count += strlen($lb);
+          $rb_count += strlen($rb);
           $taglist_subquery .= sprintf("%s %s EXISTS( SELECT 1 FROM request_tag WHERE request_id=request.request_id AND tag_id=%d) %s ",
-                                         ($i>0?$tag_and[$i]:''), $tag_lb[$i], $tag_id, $tag_rb[$i]);
+                                         $boolean, $lb, $tag_id, $rb);
         }
       }
       if ( $taglist_subquery != "" ) {

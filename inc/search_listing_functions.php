@@ -161,6 +161,7 @@ function header_row() {
           "brief"       => "lbrief",
           "status"      => "status_desc",
           "type"        => "request_type_desc",
+          "tags"        => "request_tags",
           "last_change" => "request.last_activity"
    );
 
@@ -190,6 +191,9 @@ function show_column_value( $column_name, $row ) {
     case "lby_fullname":
     case "request_by":
       echo "<td class=sml nowrap><a href=\"mailto:$row->by_email\">$row->by_fullname</a></td>\n";
+      break;
+    case "request_tags":
+      echo "<td class=\"sml\">$row->request_tags</td>\n";
       break;
     case "request_on":
       echo "<td class=sml align=center>$row->date_requested</td>\n";

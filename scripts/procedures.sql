@@ -193,3 +193,88 @@ CREATE or REPLACE FUNCTION active_org_requests ( int4 ) RETURNS int4 AS '
       AND request.active;
 ' LANGUAGE 'sql';
 
+CREATE or REPLACE FUNCTION check_wrms_revision( INT, INT, INT ) RETURNS BOOLEAN AS '
+   DECLARE
+      major ALIAS FOR $1;
+      minor ALIAS FOR $2;
+      patch ALIAS FOR $3;
+      matching INT;
+   BEGIN
+      SELECT COUNT(*) INTO matching FROM wrms_revision
+                      WHERE schema_major = major AND schema_minor = minor AND schema_patch = patch;
+      IF matching != 1 THEN
+        RAISE EXCEPTION ''Database has not been upgraded to %.%.%'', major, minor, patch;
+        RETURN FALSE;
+      END IF;
+      SELECT COUNT(*) INTO matching FROM wrms_revision
+             WHERE (schema_major = major AND schema_minor = minor AND schema_patch > patch)
+                OR (schema_major = major AND schema_minor > minor)
+                OR (schema_major > major)
+             ;
+      IF matching >= 1 THEN
+        RAISE EXCEPTION ''Database revisions after %.%.% have already been applied.'', major, minor, patch;
+        RETURN FALSE;
+      END IF;
+      RETURN TRUE;
+   END;
+' LANGUAGE 'plpgsql';
+
+CREATE or REPLACE FUNCTION new_wrms_revision( INT, INT, INT, TEXT ) RETURNS BOOLEAN AS '
+   DECLARE
+      major ALIAS FOR $1;
+      minor ALIAS FOR $2;
+      patch ALIAS FOR $3;
+      blurb ALIAS FOR $4;
+      new_id INT;
+   BEGIN
+      SELECT MAX(schema_id) + 1 INTO new_id FROM wrms_revision;
+      IF NOT FOUND THEN
+        RAISE EXCEPTION ''Database has no release history!'';
+        RETURN FALSE;
+      END IF;
+      INSERT INTO wrms_revision (schema_id, schema_major, schema_minor, schema_patch, schema_name)
+                    VALUES( new_id, major, minor, patch, blurb );
+      RETURN TRUE;
+   END;
+' LANGUAGE 'plpgsql';
+
+-- Set a user as having a particular system-related role
+CREATE or REPLACE FUNCTION set_system_role (int4, text, text ) RETURNS int4 AS '
+   DECLARE
+      u_no ALIAS FOR $1;
+      sys_code ALIAS FOR $2;
+      new_role ALIAS FOR $3;
+      curr_val TEXT;
+   BEGIN
+      SELECT role INTO curr_val FROM system_usr
+                      WHERE user_no = u_no AND system_code = sys_code;
+      IF FOUND THEN
+        IF curr_val = new_role THEN
+          RETURN u_no;
+        ELSE
+          UPDATE system_usr SET role = new_role
+                      WHERE user_no = u_no AND system_code = sys_code;
+        END IF;
+      ELSE
+        INSERT INTO system_usr (user_no, system_code, role)
+                         VALUES( u_no, sys_code, new_role );
+      END IF;
+      RETURN u_no;
+   END;
+' LANGUAGE 'plpgsql';
+
+CREATE or REPLACE FUNCTION request_tags( INT ) RETURNS TEXT AS '
+   DECLARE
+      req_id ALIAS FOR $1;
+      taglist TEXT DEFAULT '''';
+      thistag RECORD;
+   BEGIN
+     FOR thistag IN SELECT tag_description FROM request_tag NATURAL JOIN organisation_tag WHERE request_id = req_id LOOP
+       IF taglist != '''' THEN
+         taglist = taglist || '', '';
+       END IF;
+       taglist = taglist || thistag.tag_description;
+     END LOOP;
+     RETURN taglist;
+   END;
+' LANGUAGE 'plpgsql';

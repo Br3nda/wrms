@@ -319,10 +319,10 @@ function ExtendTagSelections() {
   }
   stanza += '<span class="srchf" style="white-space: nowrap;">';
   if ( stanza_count > 0 ) {
-    stanza += ' <select class="srchf" style=\"width: 4em\" name="tag_and['+stanza_count+']"><option value="AND">AND</option><option value="OR" checked>OR</option></select> ';
+    stanza += ' <select class="srchf" style=\"width: 6em\" name="tag_and['+stanza_count+']"><option value="AND">AND</option><option value="OR" checked>OR</option><option value="AND NOT">AND NOT</option><option value="OR NOT" checked>OR NOT</option></select> ';
   }
   else {
-    stanza += ' <div style=\"display: block; float: left; margin-top: 0.4em; height: 1.0em; width: 4.2em\"><span class="srchp">Tags:</span></div> ';
+    stanza += ' <div style=\"display: block; float: left; margin-top: 0.4em; height: 1.0em; width: 6.2em\"><span class="srchp">Tags:</span></div> ';
   }
   stanza += ' <select class="srchf" name="tag_lb['+stanza_count+']"><option value=" "> </option><option value="(">(</option><option value="((">((</option><option value="(((">(((</option></select> ';
   stanza += ' <select class="srchf" style=\"width: 12em\" name="tag_list['+stanza_count+']"></select>';

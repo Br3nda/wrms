@@ -46,6 +46,7 @@
           "request_on" => "Request On",
           "lbrief" => "Description",
           "request_type_desc" => "Type",
+          "request_tags" => "Tags",
           "status_desc" => "Status",
           "request.last_activity" => "Last Chng",
           "active" => "Active",

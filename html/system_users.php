@@ -8,25 +8,26 @@
 function write_system_roles( $roles, $system_code ) {
   global $client_messages, $session;
 
-  // Write the changes that have been submitted
-  $sql = '';
-  $delete_template = "DELETE FROM system_usr WHERE system_code = ".qpg($system_code)." AND user_no=%d;";
-  $insert_template = "INSERT INTO system_usr system_code, user_no, role) VALUES( ".qpg($system_code).", %d, %s);";
+  $users = "";
+  $role_update = "";
   foreach( $roles AS $user_no => $role_code ) {
-    $user_no = intval($user_no);
-    $sql .= sprintf( $delete_template, $user_no );
     if ( $role_code != "" ) {
-      $role_code = qpg($role_code);
-      $sql .= sprintf( $insert_template, $user_no, $role_code );
+      $user_no = intval($user_no);
+      $users .= ( "$users" == "" ? "" : "," ) . $user_no;
+      $role_update .= "SELECT set_system_role($user_no,'$system_code',". qpg($role_code).");";
     }
   }
-  if ( $sql != "" ) {
-    $q = new PgQuery( "BEGIN;$sql;COMMIT;" );
+  if ( $users == "" )
+    $sql = "DELETE FROM system_usr WHERE system_code = '$system_code';";
+  else
+    $sql = "BEGIN; DELETE FROM system_usr WHERE system_code = '$system_code' AND user_no NOT IN ( $users ); $role_update COMMIT;";
+
+    $q = new PgQuery($sql);
     if ( $q->Exec("SystemUsers::Write") )
       $client_messages[] = "System Roles updated.";
     else
       $client_messages[] = "There was a system problem writing to the database and no changes were made.";
-  }
+
 }
 
   $system_code = str_replace( "'", "", str_replace("\\", "", $system_code ) );
@@ -40,10 +41,8 @@ function write_system_roles( $roles, $system_code ) {
     exit;
   }
 
-  if ( $M != "LC" && isset($_POST['submit']) && is_array($_POST['roles']))
-    write_system_roles( $_POST['roles'], $system_code );
-  else
-    $session->Log("DBG: M=%s, submit=%s, array(roles)=%s", $M, $_POST['submit'], is_array($_POST['roles']) );
+  if ( $M != "LC" && isset($_POST['submit']) && is_array($_POST['role']))
+    write_system_roles( $_POST['role'], $system_code );
 
   require_once("top-menu-bar.php");
   include("headers.php");
@@ -63,10 +62,15 @@ function write_system_roles( $roles, $system_code ) {
 
   // Select the users that we may want to include here.
   $sql = "SELECT usr.user_no, fullname, usr.org_code, org_name, system_usr.role, ";
-  $sql .= "lookup_code AS role_code, lookup_desc AS role_desc ";
+  $sql .= "lookup_code AS role_code, lookup_desc AS role_desc, ";
+  $sql .= "internal.group_no AS internal_group, contractor.group_no AS contractor_group ";
   $sql .= "FROM usr NATURAL JOIN organisation ";
   $sql .= "LEFT JOIN system_usr ON (usr.user_no = system_usr.user_no AND system_usr.system_code = ?) ";
   $sql .= "LEFT JOIN lookup_code roles ON (source_table='system_usr' AND source_field='role' AND lookup_code=system_usr.role) ";
+  $sql .= "LEFT JOIN group_member AS internal ON (usr.user_no = internal.user_no ";
+  $sql .=                 "AND internal.group_no IN (SELECT group_no FROM ugroup WHERE group_name IN ('Admin','Support'))) ";
+  $sql .= "LEFT JOIN group_member AS contractor ON (usr.user_no = contractor.user_no ";
+  $sql .=                 "AND contractor.group_no IN (SELECT group_no FROM ugroup WHERE group_name IN ('Contractor'))) ";
   $sql .= "WHERE TRUE ";
   if ( isset( $org_code ) || $org_code == "" )
     $sql .= "AND usr.org_code=organisation.org_code ";
@@ -109,24 +113,29 @@ function write_system_roles( $roles, $system_code ) {
 TABLEHEADINGS;
 
     $line_format = <<<LINEFORMAT
-<tr class="row%1d">
+<tr class="row%1d" title="%s">
 <td class="sml"><a href="user.php?user_no=%d">%s</a></td>
 <td class="sml"><a href="org.php?org_code=%d">%s</a></td>
-<td class="sml">%s</td>
+<td class="sml" bgcolor="%s" align="center">%s</td>
 </td></tr>
 LINEFORMAT;
 
-$role_colours = array( 'A' => 'lightgreen', 'S' => 'orange', 'C' => 'lightblue', 'E' => 'pink', 'O' => 'cream' );
+$role_colours = array( 'A' => '#ff5010', 'S' => '#e03000', 'C' => '#60a000',
+                       'E' => '#80b020', 'O' => '#d0e070', 'V' => '#f0ff80' );
 
     $options = array_merge($roles, array("title" => "Select the role this person has in relation to this system"));
-    $fld_format = '<span style="background-color: %s;">&nbsp; %s &nbsp;</span>';
+    $fld_format = '<span style="background-color: %s;">&nbsp; &nbsp; %s &nbsp; &nbsp;</span>';
     $i=0;
     while ( $row = $q->Fetch() ) {
       $search_record->role[$row->user_no] = $row->role;
-      error_log( "DBG: $row->user_no=$row->role  => ".$search_record->role[$row->user_no]." => ".$search_record->record->role[$row->user_no]);
       $html = sprintf($fld_format, $role_colours["$row->role"],
                                      $ef->DataEntryField( "", "select", "role[$row->user_no]", $options ) );
-      printf( $line_format, $i++%2, $row->user_no, $row->fullname, $row->org_code, $row->org_name, $html );
+      $colour = '#e8ffe0';
+      $type   = "This is a client";
+      if ( $row->internal_group > 0 )        { $colour = '#ffe8e0'; $type = "This is an internal person"; }
+      else if ( $row->contractor_group > 0 ) { $colour = '#e0e8ff'; $type = "This is an external support person"; }
+      printf( $line_format, $i++%2, $type, $row->user_no, $row->fullname, $row->org_code, $row->org_name,
+                            $colour, $html );
     }
     echo "</table>\n";
 

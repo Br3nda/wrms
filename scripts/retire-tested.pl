@@ -8,7 +8,7 @@
 $retire_days = 60;
 $base_url = "http://wrms.cat-it.co.nz";
 $mailprog = "sendmail -t";
-$mailprog = "pretendmail";
+# $mailprog = "pretendmail";
 
 
 use Pg;

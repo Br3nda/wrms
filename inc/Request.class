@@ -801,7 +801,7 @@ class Request {
       $html .= $ef->BreakLine("Work Allocated To");
     if ( $q->rows ) {
       $html .= '<tr><th class="prompt">&nbsp;</th><td class="entry" style="vertical-align: middle;">'."\n";
-      $line_format = '<a href="/usr.php?user_no=%d">%s</a>';
+      $line_format = '<a href="/user.php?user_no=%d">%s</a>';
       if ( $ef->editmode ) {
         $line_format .= '<a href="/wr.php?request_id=%d&action=deallocate&user_no=%d&edit=1" title="Deallocate %s from this request"><img src="'.$GLOBALS['images'].'/delete.png" border="none"></a>';
       }
@@ -1000,7 +1000,7 @@ class Request {
       $html .= $ef->BreakLine("Interested Users");
     if ( $q->rows ) {
       $html .= '<tr><th class="prompt">&nbsp;</th><td class="entry" style="vertical-align: middle;">'."\n";
-      $line_format = '<a href="/usr.php?user_no=%d">%s</a>';
+      $line_format = '<a href="/user.php?user_no=%d">%s</a>';
       if ( $ef->editmode ) {
         $line_format .= '<a href="/wr.php?request_id=%d&action=unsubscribe&user_no=%d&edit=1" title="Unsubscribe %s from this request"><img src="'.$GLOBALS['images'].'/delete.png" border="none"></a>';
       }

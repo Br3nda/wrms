@@ -39,7 +39,7 @@
 
         echo "<td align=center>&nbsp;$thissession->session_id&nbsp;</td>\n";
 
-        echo "<td>&nbsp;<a href=\"usr.php?user_no=$thissession->user_no\">$thissession->full_name";
+        echo "<td>&nbsp;<a href=\"user.php?user_no=$thissession->user_no\">$thissession->full_name";
         if ( "$thissession->full_name" == "" ) echo "$thissession->username";
         echo "</a>&nbsp;</td>\n";
 

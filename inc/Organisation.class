@@ -383,7 +383,7 @@ class Organisation {
 
   function Write( $ef ) {
     global $client_messages;
-    error_log("$system_name: vpw: DBG: Writing organisation form details to database");
+    error_log("$system_name: Org::Write: DBG: Writing organisation form details to database");
     $client_messages[] = "Writing organisation details to database.";
 
     $db_errors = false;
@@ -404,6 +404,13 @@ class Organisation {
         $row = $qry->Fetch(true);    // Fetch results as array
         $this->org_code = $row[0];
       }
+
+      // If the organisation is inactive, ensure all users are also inactive
+      if ( $_POST['active'] == 'f' ) {
+        $qry = new PgQuery("UPDATE usr SET status = 'I' WHERE org_code = $this->org_code;" );
+        $qry->Exec("Org::Write");
+      }
+
       $systems = "";
       while( isset($_POST['applies']) && is_array($_POST['applies']) && list($k,$v) = each($_POST['applies']) ) {
         if ( $v ) {

@@ -17,7 +17,7 @@ function request_menus(&$tmnu, $wr) {
   if ( $wr->system_code != "" )
     $tmnu->AddOption("System","/system.php?system_code=$wr->system_code&request_id=$wr->request_id","View the details for this system");
   if ( $wr->user_no > 0 )
-    $tmnu->AddOption("User","/usr.php?user_no=$wr->user_no&request_id=$wr->request_id","View the details for the requesting user");
+    $tmnu->AddOption("User","/user.php?user_no=$wr->user_no&request_id=$wr->request_id","View the details for the requesting user");
 }
 
 function user_menus(&$tmnu,$user) {

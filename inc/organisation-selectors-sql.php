@@ -19,7 +19,11 @@ function SqlSelectOrganisations( $org_code = 0 ) {
       $sql .= "JOIN usr u ON (u.org_code = organisation.org_code AND u.user_no = $session->user_no) ";
     }
   }
-  $sql .= "WHERE organisation.active AND abbreviation !~ '^ *$' ";
+  $sql .= "WHERE (organisation.active ";
+  if ( $session->AllowedTo("Admin") || $session->AllowedTo("Support") ) {
+    $sql .= "OR organisation.org_code = $org_code ";
+  }
+  $sql .= ") AND abbreviation !~ '^ *$' ";
   $sql .= "AND EXISTS(SELECT work_system.system_code FROM org_system JOIN work_system ON (org_system.system_code = work_system.system_code) WHERE org_system.org_code = organisation.org_code AND work_system.active) ";
   $sql .= "ORDER BY lower(org_name)";
 

@@ -28,7 +28,7 @@ function sql_from_post( $type, $tablename, $where, $fprefix = "" ) {
   $vlst = "";
   foreach( $fields as $fn => $typ ) {
     $fn = $fprefix . $fn;
-    error_log( "$sysname DBG: $fn => $typ (".$_POST[$fn].")", 0);
+    error_log( "$sysname: _POST: DBG: $fn => $typ (".$_POST[$fn].")", 0);
     if ( !isset($_POST[$fn]) ) continue;
     $value = str_replace( "'", "''", str_replace("\\", "\\\\", $_POST[$fn]));
     if ( $fn == "password" ) {

@@ -169,6 +169,7 @@ Calendar.prototype.getMonthlyCalendarCode = function() {
 Calendar.prototype.show = function() {
 	var vCode = "";
 	
+	this.gWinCal.focus();
 	this.gWinCal.document.open();
 
 	// Setup the page...

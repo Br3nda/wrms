@@ -21,7 +21,29 @@
   if ( !isset($from_date) ) $from_date = "";
   if ( !isset($to_date) ) $to_date = "";
   if ( !isset($where_clause) ) $where_clause = "";
-  if ( !isset($columns) ) $columns = "";
+
+  // If they didn't provide a $columns, we use a default.
+  if ( !isset($columns) || $columns == "" || $columns == array() ) {
+    $columns = array("request_id","lfull","request_on","lbrief","status_desc","request_type_desc","request.last_activity");
+    if ( "$format" == "edit" )  //adds in the Active field header for the Brief (editable) report
+      array_push( $columns, "active");
+  }
+  elseif ( ! is_array($columns) )
+    $columns = explode( ',', $columns );
+
+  // Internal column names (some have 'nice' alternatives defined in header_row() )
+  // The order of these defines the ordering when columns are chosen
+  $available_columns = array(
+          "request_id" => "WR&nbsp;#",
+          "lby_fullname" => "Created By",
+          "lfull" => "Request For",
+          "request_on" => "Request On",
+          "lbrief" => "Description",
+          "request_type_desc" => "Type",
+          "status_desc" => "Status",
+          "request.last_activity" => "Last Chng",
+          "active" => "Active",
+   );
 
 //Uses a URL variable format = edit in order to indicate that the report should be in the Brief (editable) format
 
@@ -176,32 +198,27 @@
      }
   }
 
-unset( $col_array );
 function header_row() {
-  global $format, $columns, $col_array;
+  global $format, $columns, $available_columns;
 
-  $available_columns = array( "request_id" => "WR&nbsp;#",
-          "lfull" => "Request For",
-          "request_on" => "Request On",
-          "lbrief" => "Description",
-          "status_desc" => "Status",
-          "request_type_desc" => "Type",
-          "request.last_activity" => "Last Chng",
-          "active" => "Active",
-          "" => "",
+   // We want to use nice column names, but sometimes we have to
+   // sort by something else (e.g. case insensitive)
+   $nice_names = array(
+          "request_for" => "lfull",
+          "request_by"  => "lby_fullname",
+          "brief"       => "lbrief",
+          "status"      => "status_desc",
+          "type"        => "request_type_desc",
+          "last_change" => "request.last_activity"
    );
 
-  // If they didn't provide a $columns, we use a default.
-  if ( $columns == "" ) {
-    $columns = "request_id,lfull,request_on,lbrief,status_desc,request_type_desc,request.last_activity";
-    if ( "$format" == "edit" )  //adds in the Active field header for the Brief (editable) report
-      $columns .= ",active";
-  }
-
   echo "<tr>\n";
-  $col_array = explode( ',', $columns );
-  while( list($k,$v) = each( $col_array ) ) {
-    column_header($available_columns[$v], $v);
+  reset($columns);
+  while( list($k,$v) = each( $columns ) ) {
+    $real_name = $v;
+    if ( isset($nice_names[$v]) ) $real_name = $nice_names[$v];
+    error_log("DBG: columns[$k] = $v - \"$real_name\"");
+    column_header($available_columns[$real_name], $real_name);
   }
   echo "</tr>";
 }
@@ -216,16 +233,23 @@ function show_column_value( $column_name, $row ) {
         echo "<td class=sml align=center><a href=\"request.php?request_id=$row->request_id\">$row->request_id</a></td>\n";
       break;
     case "lfull":
+    case "request_for":
       echo "<td class=sml nowrap><a href=\"mailto:$row->email\">$row->fullname</a></td>\n";
+      break;
+    case "lby_fullname":
+    case "request_by":
+      echo "<td class=sml nowrap><a href=\"mailto:$row->by_email\">$row->by_fullname</a></td>\n";
       break;
     case "request_on":
       echo "<td class=sml align=center>$row->date_requested</td>\n";
       break;
     case "lbrief":
+    case "description":
       echo "<td class=sml><a href=\"request.php?request_id=$row->request_id\">$row->brief";
       if ( "$row->brief" == "" ) echo substr( $row->detailed, 0, 50) . "...";
       echo "</a></td>\n";
       break;
+    case "status":
     case "status_desc":
       if ( "$format" == "edit" && $status_edit ) {
         //tests to see if report should provide editable status fields where appropriate
@@ -239,9 +263,11 @@ function show_column_value( $column_name, $row ) {
         echo "<td class=sml>&nbsp;".str_replace(' ', '&nbsp;',$row->status_desc)."&nbsp;</td>\n";
       }
       break;
+    case "type":
     case "request_type_desc":
       echo "<td class=sml>&nbsp;" . str_replace( " ", "&nbsp;", $row->request_type_desc) . "&nbsp;</td>\n";
       break;
+    case "last_change":
     case "request.last_activity":
       echo "<td class=sml align=center>" . str_replace( " ", "&nbsp;", $row->last_change) . "</td>\n";
       break;
@@ -261,11 +287,11 @@ function show_column_value( $column_name, $row ) {
 }
 
 function data_row( $row, $rc ) {
-  global $col_array;
+  global $columns;
 
   printf( "<tr class=row%1d>\n", $rc % 2);
-  reset($col_array);
-  while( list($k,$v) = each( $col_array ) ) {
+  reset($columns);
+  while( list($k,$v) = each( $columns ) ) {
     show_column_value($v,$row);
   }
   echo "</tr>\n";
@@ -317,6 +343,7 @@ function data_row( $row, $rc ) {
   if ( "$qry" != "" ) $header_cell .= "&qry=$qry";
   if ( "$style" != "" ) $header_cell .= "&style=$style";
   if ( "$format" != "" ) $header_cell .= "&format=$format";
+  if ( isset($choose_columns) && $choose_columns ) $header_cell .= "&choose_columns=1";
   $header_cell .= "\">%s";      // %s for the Cell heading
   $header_cell .= "%s</a></th>";    // %s For the image
 
@@ -345,13 +372,15 @@ if ( ! is_member_of('Request') || ((isset($error_msg) || isset($error_qry)) && "
 }
 else {
   if ( !isset( $style ) || ($style != "plain" && $style != "stripped") ) {
-    echo "<form name=\"search\" Action=\"$PHP_SELF";
-    if ( "$org_code$qs" != "" ) {
-      echo "?";
-      if ( "$org_code" != "" ) echo "org_code=$org_code" . ( "$qs" == "" ? "" : "&");
-      if ( "$qs" != "" ) echo "qs=$qs";
+    $form_url_parameters = array();
+    if ( isset($org_code) && intval($org_code) > 0 )  array_push( $form_url_parameters, "org_code=$org_code");
+    if ( isset($qs) && "$qs" != "" )                  array_push( $form_url_parameters, "qs=$qs");
+    if ( isset($choose_columns) && $choose_columns )  array_push( $form_url_parameters, "choose_columns=1");
+    $form_url = "$PHP_SELF";
+    for( $i=0; $i < count($form_url_parameters) && $i < 20; $i++ ) {
+      $form_url .= ( $i == 0 ? '?' : '&' ) . $form_url_parameters[$i] ;
     }
-    echo "\" Method=\"POST\">";
+    echo "<form name=\"search\" action=\"$form_url\" Method=\"POST\">";
     echo "</h3>\n";
 
     include("system-list.php");
@@ -429,18 +458,41 @@ else {
       $nrows = pg_NumRows($rid);
       for ( $i=0; $i<$nrows; $i++ ) {
         $status = pg_Fetch_Object( $rid, $i );
-        echo "<input type=checkbox name=incstat[$status->lookup_code]";
-        if ( !isset( $incstat) || $incstat[$status->lookup_code] <> "" ) echo " checked";
-        echo " value=1>" . str_replace( " ", "&nbsp;", $status->lookup_desc) . " &nbsp; ";
-        if ( $i == intval(($nrows + 1) / 2) ) echo "&nbsp;<br>";
+        echo "<label for=\"incstat[$status->lookup_code]\" style=\"white-space: nowrap\"><input type=\"checkbox\" id=\"incstat[$status->lookup_code]\" name=\"incstat[$status->lookup_code]\"";
+        if ( !isset( $incstat) || !isset($incstat[$status->lookup_code]) || $incstat[$status->lookup_code] <> "" ) echo " checked";
+        echo " value=1>" . str_replace( " ", "&nbsp;", $status->lookup_desc) . "</label> &nbsp; \n";
+//        if ( $i == intval(($nrows + 1) / 3) ) echo "&nbsp;<br>";
       }
       echo "<input type=checkbox name=inactive";
-      if ( isset($inactive) ) echo " checked";
+      if ( $inactive != "" ) echo " checked";
       echo " value=1>Inactive";
       echo "</td>\n";
     }
     echo "<td valign=middle class=smb align=center><input type=submit value=\"RUN QUERY\" alt=go name=submit class=\"submit\"></td>\n";
     echo "</tr></table>\n</td></tr>\n";
+
+    if ( isset($choose_columns) && $choose_columns ) {
+      echo "<tr><td>\n";
+      echo "<table border=0 cellspacing=0 cellpadding=0 align=left>\n";
+      echo "<tr valign=middle>\n";
+      echo "<td valign=middle align=right class=smb>Columns:</td><td class=sml valign=top>";
+      // echo "<select name=\"columns[]\" multiple size=\"6\">\n";
+      reset($available_columns);
+      $cols_set = array_flip($columns);
+      $i=0;
+      while( list($k,$v) = each( $available_columns ) ) {
+        // echo "<option value=\"$k\"";
+        // if ( isset($columns[$k]) ) echo " selected";
+        // echo ">$v</option>\n";;
+        echo "<label for=\"columns[$i]\" style=\"white-space: nowrap\"><input type=\"checkbox\" id=\"columns[$i]\" name=\"columns[$i]\"";
+        if ( isset($cols_set[$k]) ) echo " checked";
+        echo " value=\"$k\">" . str_replace( " ", "&nbsp;", $v) . "</label> &nbsp; \n";
+        $i++;
+      }
+      // echo "</select>\n";
+      echo "</td>\n";
+      echo "</tr></table>\n</td></tr>\n";
+    }
 
 
     if ( is_member_of('Admin') ) {
@@ -486,26 +538,28 @@ else {
     }
     else {
 
-      $query .= "SELECT request.request_id, brief, fullname, email, request_on, status.lookup_desc AS status_desc, last_activity, detailed ";
-      $query .= ", request_type.lookup_desc AS request_type_desc, lower(fullname) AS lfull, lower(brief) AS lbrief ";
+      $query .= "SELECT request.request_id, brief, usr.fullname, usr.email, request_on, status.lookup_desc AS status_desc, last_activity, detailed ";
+      $query .= ", request_type.lookup_desc AS request_type_desc, lower(usr.fullname) AS lfull, lower(brief) AS lbrief ";
       $query .= ", to_char( request.last_activity, 'FMdd Mon yyyy') AS last_change ";
       $query .= ", to_char( request.request_on, 'FMdd Mon yyyy') AS date_requested";
       //provides extra fields that are needed to create a Brief (editable) report
       $query .= ", active, last_status ";
+      $query .= ", creator.email AS by_email, creator.fullname AS by_fullname, lower(creator.fullname) AS lby_fullname ";
       $query .= "FROM ";
       if ( intval("$interested_in") > 0 ) $query .= "request_interested, ";
       if ( intval("$allocated_to") > 0 ) $query .= "request_allocated, ";
       $query .= "request, usr, lookup_code AS status ";
       $query .= ", lookup_code AS request_type";
+      $query .= ", usr AS creator";
 
-      $query .= " WHERE request.requester_id=usr.user_no ";
+      $query .= " WHERE request.requester_id=usr.user_no AND request.entered_by=creator.user_no ";
       $query .= " AND request_type.source_table='request' AND request_type.source_field='request_type' AND request.request_type = request_type.lookup_code";
       if ( "$inactive" == "" )        $query .= " AND active ";
       if ( ! is_member_of('Admin', 'Support' ) ) {
-        $query .= " AND org_code = '$session->org_code' ";
+        $query .= " AND usr.org_code = '$session->org_code' ";
       }
       else if ( isset($org_code) && intval($org_code) > 0 )
-        $query .= " AND org_code='$org_code' ";
+        $query .= " AND usr.org_code='$org_code' ";
 
       if ( intval("$user_no") > 0 )
         $query .= " AND requester_id = " . intval($user_no);

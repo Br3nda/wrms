@@ -459,7 +459,7 @@ else {
       for ( $i=0; $i<$nrows; $i++ ) {
         $status = pg_Fetch_Object( $rid, $i );
         echo "<label for=\"incstat[$status->lookup_code]\" style=\"white-space: nowrap\"><input type=\"checkbox\" id=\"incstat[$status->lookup_code]\" name=\"incstat[$status->lookup_code]\"";
-        if ( !isset( $incstat) || !isset($incstat[$status->lookup_code]) || $incstat[$status->lookup_code] <> "" ) echo " checked";
+        if ( !isset( $incstat) || isset($incstat[$status->lookup_code]) ) echo " checked";
         echo " value=1>" . str_replace( " ", "&nbsp;", $status->lookup_desc) . "</label> &nbsp; \n";
 //        if ( $i == intval(($nrows + 1) / 3) ) echo "&nbsp;<br>";
       }

@@ -559,7 +559,7 @@ function dates_equal( $date1, $date2 ) {
             . stripslashes($new_note) . "\n\n";
 
     $msg .= "\nFull details of the request, with all changes and notes, can be reviewed and changed at:\n"
-         .  "    https://$HTTP_HOST$base_url/request.php?request_id=$request_id\n";
+         .  "    $external_base_url/request.php?request_id=$request_id\n";
 
     $other = "From: $system_name <$admin_email>\n";
     $other .= "Reply-To: $session->fullname <$session->email>\n";

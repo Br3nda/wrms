@@ -7,8 +7,12 @@ $basefont = "verdana,sans-serif";
 $system_name = "Catalyst WRMS";
 $sysabbr = "wrms";
 
+// Only admin/support can see the ranking report.
+$rank_report_anyone = 0;
+
 $base_dns = "http://$HTTP_HOST";
 $base_url = "";
+$external_base_url = $base_dns;
 $base_dir = $DOCUMENT_ROOT;
 $module = "base";
 $images = "images";

@@ -1,6 +1,6 @@
 <!DOCTYPE webproject>
 <webproject>
-  <project usePreviewPrefix="0" preview="http://mywrms/" type="Local" previewPrefix="file:file%3A" newfiles="php" name="WRMS" encoding="iso 8859-1" >
+  <project usePreviewPrefix="0" preview="http://mywrms/" previewPrefix="file:file%3A" type="Local" newfiles="php" name="WRMS" encoding="iso 8859-1" >
     <upload/>
     <author>Andrew McMillan</author>
     <email>wrms@catalyst.net.nz</email>
@@ -31,7 +31,7 @@
     <item url="scripts/dump-db.sh" uploadstatus="0" />
     <item url="scripts/finish-load.sql" uploadstatus="0" />
     <item url="scripts/get-latest.sh" uploadstatus="0" />
-    <item modified_time="1110618009" url="scripts/procedures.sql" uploadstatus="0" />
+    <item modified_time="1111137715" url="scripts/procedures.sql" uploadstatus="0" />
     <item url="scripts/recreate-wrms.sh" uploadstatus="0" />
     <item url="scripts/retire-tested.pl" uploadstatus="0" />
     <item modified_time="1108629935" url="html/attachment.php" uploadstatus="0" />
@@ -49,16 +49,13 @@
     <item url="inc/sidebarright.php" uploadstatus="0" />
     <item url="inc/error.php" uploadstatus="0" />
     <item url="inc/help-action.php" uploadstatus="0" />
-    <item modified_time="1084361492" url="inc/getusr.php" uploadstatus="0" />
-    <item modified_time="1109550690" url="inc/options.php" uploadstatus="0" />
     <item modified_time="1111083229" url="inc/PgQuery.php" uploadstatus="0" />
-    <item url="inc/request-form.php" uploadstatus="0" />
     <item url="inc/lookhead.php" uploadstatus="0" />
     <item url="inc/.cvsignore" uploadstatus="0" />
     <item url="inc/looklist.php" uploadstatus="0" />
     <item url="inc/code-list.php" uploadstatus="0" />
     <item modified_time="1065686593" url="inc/login-page.php" uploadstatus="0" />
-    <item url="inc/getrequest.php" uploadstatus="0" />
+    <item modified_time="1085052613" url="inc/getrequest.php" uploadstatus="0" />
     <item modified_time="996396481" url="inc/tidy.php" uploadstatus="0" />
     <item modified_time="1111088722" url="inc/orglist-form.php" uploadstatus="0" />
     <item url="inc/system-list.php" uploadstatus="0" />
@@ -125,7 +122,7 @@
     <item url="inc/FormHandler.php" uploadstatus="0" />
     <item modified_time="1109840677" url="inc/MenuClass.php" uploadstatus="0" />
     <item modified_time="1110615118" url="inc/Session.php" uploadstatus="0" />
-    <item modified_time="1111087515" url="inc/Request.class" uploadstatus="0" />
+    <item modified_time="1111132786" url="inc/Request.class" uploadstatus="0" />
     <item modified_time="1109926749" url="html/main.css" uploadstatus="0" />
     <item url="inc/Theme.php" uploadstatus="0" />
     <item modified_time="1111023780" url="html/js/request.js" uploadstatus="0" />
@@ -230,10 +227,10 @@
     <item modified_time="1111088548" url="inc/indexextsupport.php" uploadstatus="1" />
     <item modified_time="1108354656" url="scripts/conversion-200501.sql" uploadstatus="1" />
     <item modified_time="1110347564" url="html/wrsearch.php" uploadstatus="1" />
-    <item modified_time="1111052197" url="inc/search_listing_functions.php" uploadstatus="1" />
+    <item modified_time="1111441198" url="inc/search_listing_functions.php" uploadstatus="1" />
     <item modified_time="1110326698" url="inc/search_form.php" uploadstatus="1" />
     <item modified_time="1110355126" url="inc/search_build_query.php" uploadstatus="1" />
-    <item modified_time="1110260380" url="inc/search_list_results.php" uploadstatus="1" />
+    <item modified_time="1111134931" url="inc/search_list_results.php" uploadstatus="1" />
     <item modified_time="1110441690" url="html/js/wrsearch.js" uploadstatus="1" />
     <item modified_time="1108684245" url="inc/attachment_type-form.php" uploadstatus="1" />
     <item modified_time="1110315618" url="html/user.php" uploadstatus="1" />
@@ -255,6 +252,8 @@
     <item url="scripts/patches/patch-1.99.6.sql" uploadstatus="1" />
     <projectview name="request" >
       <viewitem url="inc/Request.class" />
+      <viewitem url="inc/getrequest.php" />
+      <viewitem url="inc/search_listing_functions.php" />
     </projectview>
     <treestatus>
       <openfolder url="config" />

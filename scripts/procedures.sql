@@ -238,28 +238,62 @@ CREATE or REPLACE FUNCTION new_wrms_revision( INT, INT, INT, TEXT ) RETURNS BOOL
    END;
 ' LANGUAGE 'plpgsql';
 
--- Set a user as having a particular system-related role
-CREATE or REPLACE FUNCTION set_system_role (int4, text, text ) RETURNS int4 AS '
+-- Set a request to a new(?) status
+CREATE or REPLACE FUNCTION set_request_status(int4, int4, text ) RETURNS text AS '
    DECLARE
-      u_no ALIAS FOR $1;
-      sys_code ALIAS FOR $2;
-      new_role ALIAS FOR $3;
+      r_no ALIAS FOR $1;
+      changed_by ALIAS FOR $2;
+      new_status ALIAS FOR $3;
       curr_val TEXT;
    BEGIN
-      SELECT role INTO curr_val FROM system_usr
-                      WHERE user_no = u_no AND system_code = sys_code;
+      SELECT last_status INTO curr_val FROM request WHERE request_id = r_no;
       IF FOUND THEN
-        IF curr_val = new_role THEN
-          RETURN u_no;
+        IF curr_val = new_status THEN
+          RETURN curr_val;
         ELSE
-          UPDATE system_usr SET role = new_role
-                      WHERE user_no = u_no AND system_code = sys_code;
+          UPDATE request SET last_status = new_status, last_activity = current_timestamp
+                         WHERE request_id = r_no;
+          INSERT INTO request_status (request_id, status_on, status_by_id, status_code)
+                           VALUES( r_no, current_timestamp, changed_by, new_status);
         END IF;
       ELSE
-        INSERT INTO system_usr (user_no, system_code, role)
-                         VALUES( u_no, sys_code, new_role );
+        RAISE EXCEPTION ''No such request "%"'', r_no;
       END IF;
-      RETURN u_no;
+      RETURN new_status;
+   END;
+' LANGUAGE 'plpgsql';
+
+-- Set a request to a new(?) status
+CREATE or REPLACE FUNCTION set_request_status(int4, int4, text, boolean ) RETURNS text AS '
+   DECLARE
+      r_no ALIAS FOR $1;
+      changed_by ALIAS FOR $2;
+      new_status ALIAS FOR $3;
+      new_active ALIAS FOR $4;
+      curr_val TEXT;
+      curr_active BOOLEAN;
+   BEGIN
+      IF new_active IS NULL THEN
+        RETURN set_request_status( r_no, changed_by, new_status );
+      END IF;
+      SELECT last_status, active INTO curr_val, curr_active FROM request WHERE request_id = r_no;
+      IF FOUND THEN
+        IF curr_val = new_status THEN
+          IF new_active != curr_active THEN
+            UPDATE request SET active = new_active, last_activity = current_timestamp
+                           WHERE request_id = r_no;
+          END IF;
+          RETURN curr_val;
+        ELSE
+          UPDATE request SET last_status = new_status, active = new_active, last_activity = current_timestamp
+                          WHERE request_id = r_no;
+          INSERT INTO request_status (request_id, status_on, status_by_id, status_code)
+                           VALUES( r_no, current_timestamp, changed_by, new_status);
+        END IF;
+      ELSE
+        RAISE EXCEPTION ''No such request "%"'', r_no;
+      END IF;
+      RETURN new_status;
    END;
 ' LANGUAGE 'plpgsql';
 

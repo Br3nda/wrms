@@ -244,8 +244,9 @@ class PgQuery
   {
     $result = '';
 
-    if ( $this->Exec($location) )
-    {
+    // The query may already have been executed and we may be
+    if ( $this->rows > 0 || $this->Exec($location) ) {
+      $this->rownum = -1;
       while( $row = $this->Fetch(true) )
       {
         $selected = ( ( $row[0] == $current || $row[1] == $current ) ? ' selected="selected"' : '' );

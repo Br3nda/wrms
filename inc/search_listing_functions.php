@@ -1,155 +1,35 @@
 <?php
-//------------------------------------------------------
-// function RequestEditPermissions()
-// This function is used to determine the editing permissions for the status and active
-// fields of a request based on the particular request in question and the user that is logged in
-// This function returns an array of two boolean values
-// the first boolean value in the array is a flag for the edit permission
-// of the status field of a request
-// the second boolean value in the array is a flag for the edit permission
-// of the active field of a request
-//------------------------------------------------------
-  function RequestEditPermissions($request_id)
-  {
-     //  This code was written by Simon and gets marked 3/10 - could do better.
-     global $session, $dbconn;
-     $plain = FALSE;
-
-     include("getrequest.php");
-
-     return array($statusable, $editable);
-  }
 
 //-----------------------------------------------------------
 // function Process_Brief_editable_Requests()
 // This function is used to process the returned changes (if any)
-// from the Brief (editable) report. All editable request lines in the
-// list are returned with their editable fields values whether or
-// not they have been changed. All changed editable field values are written
-// back into the database
+// from the Brief (editable) report.
 //------------------------------------------------------------
-  function Process_Brief_editable_Requests()
-  {
-     global $dbconn, $EditableRequests, $session, $ChangedRequests_count, $because;
+function Process_Brief_editable_Requests()
+{
+    global $session, $debuggroups, $client_messages, $active_flag, $request_status ;
 
-     if ( !isset($EditableRequests) )
-        return;
+    $sql = "BEGIN; ";
+    foreach( $request_status AS $request_id => $new_status ) {
+      if ( isset($active_flag) ) {
+        $request_active = ($active_flag[$request_id] == 'on' ? 'TRUE' : 'FALSE');
+        $session->Log("DBG: request_id=%d, new_status=%s, active=%s, submitted_active=%s",
+                         $request_id, $new_status, $request_active, $active_flag[$request_id]);
+        $sql .= "SELECT set_request_status(".qpg($request_id).",".qpg($session->user_no).",".qpg($new_status).", $request_active); ";
+      }
+      else {
+        // Or if we are just changing the status, and the active/inactive choice is not available to this user
+        $sql .= "SELECT set_request_status(".qpg($request_id).",".qpg($session->user_no).",".qpg($new_status)."); ";
+      }
+    }
 
-     $count = count($EditableRequests);
+    $q = new PgQuery($sql." COMMIT;");
+    $q->Exec('WRSrch::ProcBriefEditable');
+}
 
-     for ( $i = 0 ; $i < $count ; $i++ ) //Loop through and process each requested in the returned array $EditableRequests
-     {
-        //$ReturnedRequestId - contains the request id of the current request to update
-        //$ReturnedRequestStatus - if set stores the status value of the current request to be updated to, if unset then indicates that the current request status is not allowed to be edited by the logged in user or its value hasn't been changed
-        //$ReturnedRequestActivePermit - if TRUE then indicates that the current request active field is allowed to be edited by the logged in user, if FALSE it indicates that the current request active field is not allowed to be edited by the logged in user or that the active field value hasn't been changed
-        //$ReturnedRequestActive - if 1 then means the current request active field should be updated to 't', if 0 then means the current request active field should be updated to 'f'
-        //Note that the value for $ReturnedRequestActive is not valid unless $ReturnedRequestActivePermit is TRUE.
-        //Note that for status and active values returned in the $EditableRequests array that are no change from the original values
-        //the $ReturnedRequestStatus is made unset and the $ReturnedRequestActivePermit is made FALSE in order to prevent duplicate records written into the
-        //request_history and request_status tables
-
-        $ReturnedRequestId = $EditableRequests[$i][0];
-
-        //Retrieve current request status and active field values from the database
-        $query = "SELECT last_status, active FROM request WHERE request_id = $ReturnedRequestId;";
-        $rid = awm_pgexec( $dbconn, $query, "requestlist", TRUE, 7 );
-        if ( !$rid || pg_numrows($rid) > 1 || pg_numrows($rid) == 0 )
-        {
-           $because .= "<P>Request $ReturnedRequestId: Error updating request! - query 1</P>\n";
-           continue;
-        }
-
-        $CurrentRequest = pg_fetch_object($rid, 0);
-
-        if ( isset($EditableRequests[$i][1]) )
-        {
-           //Check that returned status value is different to the status value stored in the request record
-
-           //Unset $ReturnedRequestStatus if there has been no change made to the status
-           if ( $CurrentRequest->last_status == $EditableRequests[$i][1] )
-              unset($ReturnedRequestStatus);
-           else
-              $ReturnedRequestStatus = $EditableRequests[$i][1];
-        }
-        else if ( isset($ReturnedRequestStatus) )
-           unset($ReturnedRequestStatus);
-
-        if ( isset($EditableRequests[$i][2]) && $EditableRequests[$i][2] == "active_edit" )
-        {
-           //Permission on active checkbox
-
-           if ( isset($EditableRequests[$i][3]) )
-              $ReturnedRequestActive = $EditableRequests[$i][3];
-           else
-              $ReturnedRequestActive = 0;
-
-           //Set $ReturnedRequestActviePermit to TRUE if a change has been made otherwise set to false
-           if ( ($CurrentRequest->active == 't' && $ReturnedRequestActive == 0) || ( $CurrentRequest->active == 'f' && $ReturnedRequestActive == 1 ) )
-              $ReturnedRequestActivePermit = TRUE;
-           else
-              $ReturnedRequestActivePermit = FALSE;
-        }
-        else
-        {
-           //No permission on active checkbox
-           $ReturnedRequestActivePermit = FALSE;
-        }
-
-        if ( !isset($ReturnedRequestStatus) && !$ReturnedRequestActivePermit )
-        {
-           continue;
-        }
-
-        //Begin SQL Transaction for the updating of each request
-        awm_pgexec( $dbconn, "BEGIN;", "requestlist" );
-
-        /* take a snapshot of the current request record and store in request_history*/
-
-        $query = "INSERT INTO request_history (SELECT * FROM request WHERE request.request_id = $ReturnedRequestId);";
-
-        $rid = awm_pgexec( $dbconn, $query, "requestlist", TRUE, 7 );
-        if ( ! $rid ) {
-           $because .= "<P>Request $ReturnedRequestId: Error updating request! - query 2</P>\n";
-           continue;
-        }
-
-        //update request record in request - status field and/or active field
-
-        $query = "UPDATE request SET ";
-        if ( isset($ReturnedRequestStatus ) )
-           $query .= " last_status = '$ReturnedRequestStatus', ";
-        if ( $ReturnedRequestActivePermit )
-           $query .= " active = '$ReturnedRequestActive', ";
-        $query .= " last_activity = 'now' ";
-        $query .= "WHERE request.request_id = $ReturnedRequestId; ";
-
-        $rid = awm_pgexec( $dbconn, $query, "requestlist", TRUE, 7 );
-        if ( ! $rid ) {
-           $because .= "<P>Request $ReturnedRequestId: Error updating request! - query 3</P>\n";
-           continue;
-        }
-
-
-        //update the request_status table with the new status for that request if permitted
-        if ( isset($ReturnedRequestStatus) )
-        {
-           $query = "INSERT INTO request_status (request_id, status_by, status_on, status_code, status_by_id)";
-           $query .= "VALUES( $ReturnedRequestId, '$session->username', 'now', '$ReturnedRequestStatus', $session->user_no);";
-
-           $rid = awm_pgexec( $dbconn, $query, "requestlist", TRUE, 7 );
-           if ( ! $rid ) {
-              $because .= "<P>Request $ReturnedRequestId: Error updating request! - query 4</P>\n";
-              continue;
-           }
-
-        }
-
-        awm_pgexec( $dbconn, "COMMIT;", "requestlist" );
-
-        $ChangedRequests_count++;
-     }
-  }
-
+//------------------------------------------------------------
+//
+//------------------------------------------------------------
 function header_row() {
   global $format, $columns, $available_columns;
 
@@ -175,14 +55,13 @@ function header_row() {
   echo "</tr>";
 }
 
+//------------------------------------------------------------
+//------------------------------------------------------------
 function show_column_value( $column_name, $row ) {
-  global $format, $status_edit, $active_edit, $EditableRequests_count;
+  global $format, $status_query;
   switch( $column_name ) {
     case "request_id":
-      if ( "$format" == "edit" )  //used to control whether or not a request id hidden variable is also added which builds up the 'id' column in the EditableRequests array for the Brief (editable) report
-        echo "<td class=sml align=center>" . ( ($status_edit || $active_edit ) ? "<input type=hidden name=\"EditableRequests[$EditableRequests_count][0]\" value=\"$row->request_id\">" : "" ) . "<a href=\"/wr.php?request_id=$row->request_id\">$row->request_id</a></td>\n";
-      else
-        echo "<td class=sml align=center><a href=\"/wr.php?request_id=$row->request_id\">$row->request_id</a></td>\n";
+      echo "<td class=sml align=center><a href=\"/wr.php?request_id=$row->request_id\">$row->request_id</a></td>\n";
       break;
     case "lfull":
     case "request_for":
@@ -206,12 +85,10 @@ function show_column_value( $column_name, $row ) {
       break;
     case "status":
     case "status_desc":
-      if ( "$format" == "edit" && $status_edit ) {
-        //tests to see if report should provide editable status fields where appropriate
-        //tests to see if the logged in user is able to edit the status field for this request record
+      if ( "$format" == "edit" && $row->editable ) {
         //provide a drop down to allow editing of the status code for that request
-        $status_list   = get_code_list( "request", "status_code", "$row->last_status" );
-        echo "<td class=sml><select class=sml name=\"EditableRequests[$EditableRequests_count][1]\">$status_list</select></td>\n";
+        $status_list = $status_query->BuildOptionList($row->last_status, "show_column_value");
+        echo "<td class=sml><select class=sml name=\"request_status[$row->request_id]\">$status_list</select></td>\n";
       }
       else {
         //otherwise output plain text of the current request status
@@ -227,12 +104,12 @@ function show_column_value( $column_name, $row ) {
       echo "<td class=sml align=center>" . str_replace( " ", "&nbsp;", $row->last_change) . "</td>\n";
       break;
     case "active":
-      if ( "$format" == "edit" && ( $active_edit || $status_edit) ) {
+      if ( "$format" == "edit" && $row->editable ) {
         //adds in the Active field for the Brief (editable) reports
-        if ( $active_edit ) //tests to see if the logged in user is able to edit the active field for this request
-          echo "<td class=sml align=center><input type=\"hidden\" name=\"EditableRequests[$EditableRequests_count][2]\" value=\"active_edit\"><input type=checkbox name=\"EditableRequests[$EditableRequests_count][3]\" value=\"1\" " . ( $row->active == 't' ? "CHECKED" : "" ) . "></td>\n";
-        else if ( $status_edit )
-          echo "<td class=sml align=center><input type=\"hidden\" name=\"EditableRequests[$EditableRequests_count][2]\" value=\"active_read\">" . ( $row->active == 't' ? "Active" : "Inactive" ) . "</td>\n";
+        $checked = ( $row->active == 't' ? " CHECKED" : "" );
+        echo <<<EOHTML
+<td class="sml" align="center"><input type="checkbox" name="active_flag[$row->request_id]"$checked></td>
+EOHTML;
       }
       else {
         echo "<td class=sml align=center>" . ( $row->active == 't' ? "Active" : "Inactive" ) . "</td>\n";
@@ -241,6 +118,8 @@ function show_column_value( $column_name, $row ) {
   }
 }
 
+//------------------------------------------------------------
+//------------------------------------------------------------
 function data_row( $row, $rc ) {
   global $columns;
 
@@ -253,7 +132,9 @@ function data_row( $row, $rc ) {
 }
 
 
+//------------------------------------------------------------
 //Builds up and outputs the HTML for a linked column header on the request list
+//------------------------------------------------------------
 function column_header( $ftext, $fname ) {
   global $rlsort, $rlseq, $header_cell, $images;
   $fseq = "";
@@ -266,15 +147,17 @@ function column_header( $ftext, $fname ) {
 }
 
 
+//------------------------------------------------------------
 ///////////////////////////////////////////////////////////
 // And this is not a function now
 ///////////////////////////////////////////////////////////
+//------------------------------------------------------------
 
-  if ( "$format" == "edit" && isset($submitBriefEditable) ) // If changes have been returned from Brief (editable) then function is called update the database with the changes
-  {
-     $ChangedRequests_count = 0;
-     $because ="";
-     Process_Brief_editable_Requests();
+  if ( "$format" == "edit" && isset($submitBriefEditable) ) {
+    // If changes have been returned from Brief (editable) then function is called update the database with the changes
+    $session->Log("DBG: format=%s, submitBriefEditable=%s", $format, $submitBriefEditable );
+    $ChangedRequests_count = 0;
+    Process_Brief_editable_Requests();
   }
 
   if ( $system_code == "." ) $system_code = "";
@@ -319,4 +202,7 @@ function column_header( $ftext, $fname ) {
   if ( isset($choose_columns) && $choose_columns ) $header_cell .= "&choose_columns=1";
   $header_cell .= "\">%s";      // %s for the Cell heading
   $header_cell .= "%s</a></th>";    // %s For the image
+
+  $status_query = new PgQuery( "SELECT lookup_code, lookup_desc FROM lookup_code WHERE source_table = 'request' AND source_field = 'status_code' ORDER BY source_table, source_field, lookup_seq, lookup_code;");
+  $status_query->Exec("search_listing_functions");
 ?>

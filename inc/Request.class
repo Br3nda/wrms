@@ -1329,6 +1329,7 @@ class Request {
     $db_errors = false;
     $save_detailed_description = $_POST['detailed'];
     $_POST['detailed'] = htmlspecialchars($save_detailed_description);
+    $_POST['last_activity'] = date('Y-m-d H:M:S');
     $sql = sql_from_post( $this->chtype, "request", "WHERE request_id='$this->request_id'");
     $_POST['detailed'] = $save_detailed_description;
     $qry = new PgQuery($sql);
@@ -1581,6 +1582,9 @@ EOX
     $hfmt = "<p>%s</p>\n";
     error_log( "$sysabbr: DBG: Detecting e-mail changes for '$this->chtype' change" );
     if ( $this->brief != "" && "$this->brief" != $_POST['brief'] ) {
+      $session->Log("DBG: Old brief: $this->brief" );
+      $session->Log("DBG: New brief: ".$_POST['brief'] );
+      $session->Log("DBG: description has changed on W/R $this-request_id" );
       $this->mail_message_data[]['html'] = sprintf($hfmt, "New description: $_POST[brief]<br />(was: $this->brief)");
       $this->mail_message_data[]['text'] = sprintf($tfmt, "New description: $_POST[brief]\n   (was: $this->brief)");
       $this->send_an_email = true;
@@ -1598,6 +1602,9 @@ EOX
     $current  = simplify_string($this->detailed);
     $detail_changed = ( $previous != $current );
     if ( $this->chtype == "update" && $detail_changed ) {
+      $session->Log("DBG: description has changed on W/R $this->request_id" );
+      $fh = fopen("/tmp/previous"); fwrite( $fh, $previous ); $fclose($fh);
+      $fh = fopen("/tmp/current"); fwrite( $fh, $current ); $fclose($fh);
       $this->mail_message_data[]['text']
             = "Previous Description:\n"
             . "=====================\n"

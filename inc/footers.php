@@ -37,10 +37,10 @@ if ( is_object ( $settings ) && $settings->is_modified() ) {
 
   $config_data_string = qpg($settings->to_save());
   $query = "UPDATE session SET session_config=$config_data_string ";
-  $query .= "WHERE session_id=$session->session_id; ";
+  $query .= "WHERE session_id=$session->session_id ";
   $query .= "AND session_config != $config_data_string; ";
   if ( $session->user_no > 0 ) {
-    $query .= "UPDATE usr SET config_data=$config_data_string WHERE user_no=$session->user_no; ";
+    $query .= "UPDATE usr SET config_data=$config_data_string WHERE user_no=$session->user_no ";
     $query .= "AND config_data != $config_data_string; ";
   }
 

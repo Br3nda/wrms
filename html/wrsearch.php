@@ -32,7 +32,10 @@
 
   // If they didn't provide a $columns, we use a default.
   if ( !isset($columns) || $columns == "" || $columns == array() ) {
-    $columns = array("request_id","lfull","request_on","lbrief","status_desc","request_type_desc","request.last_activity");
+    if ( $format == "edit" )
+      $columns = array("request_id","lfull","request_on","lbrief","status_desc","active","request_type_desc","request.last_activity");
+    else
+      $columns = array("request_id","lfull","request_on","lbrief","status_desc","request_type_desc","request.last_activity");
   }
   elseif ( ! is_array($columns) )
     $columns = explode( ',', $columns );

@@ -36,9 +36,6 @@
     }
   }
 
-  if ( "$format" == "edit" && "$because" != "")
-    echo $because;
-
   if ( "$format" == "edit" ) //encloses any Brief (editable) reports in a form tag to enable submit form functionality
     printf ("<form action=\"$this_page\" method=\"post\">\n", "stripped", "edit");
 
@@ -70,17 +67,10 @@
     while ( $thisrequest = $qry->Fetch() ) {
 
       if ( "$format" == "edit" ) {
-        //We set some flags if the user is editing things on the listing
-        // - $status_edit flags whether or not the logged in user has permissions to edit the status for the current request to be listed
-        // - $active_edit flags whether or not the logged in user has permissions to edit the active field for the current request to be listed
 
-        list($status_edit, $active_edit) = RequestEditPermissions($thisrequest->request_id); //Calls function to find out and return the editing permissions for the current request
-
-        if ( $i == 0 )  //if statement to initialise counter to be used as the
-          $EditableRequests_count = 0; // position no in the EditableRequests array that is returned when
-          //a Brief (editable) report is submitted back
-          //with one or more editable requests in its list
-
+        $thisrequest->editable = ( ($session->AllowedTo("Support") || $session->AllowedTo("Admin"))
+                || ( $this->org_code == $session->org_code && strpos("`SACEO",$session->system_roles[$this->system_code] ) )
+                || ( $session->AllowedTo("Contractor") && strpos("`SA",$session->system_roles[$this->system_code] ) ) ) ;
       }
 
       if ( $show_details ) header_row();
@@ -161,8 +151,6 @@
         echo "<tr class=row3>\n<td colspan=7>&nbsp;</td></tr>\n";
 
       $i++;
-      if ( (isset($status_edit) && $status_edit) || (isset($active_edit) && $active_edit ) ) //Maintains the $EditableRequests_count counter
-       $EditableRequests_count++;
     }
   }
 
@@ -171,14 +159,14 @@
     printf( "<tr class=row%1d>\n<th align=left colspan=4>Grand Total</th>\n<th align=right>%9.2f &nbsp; </th><th>&nbsp;</th><th align=right>%9.2f &nbsp; </th>\n</tr>\n", $i % 2, $grand_qty_total, $grand_total);
 
   if ( "$format" == "edit" ) {
-    if ( $EditableRequests_count == 0 ) {
-      echo "<tr><td align=\"center\" colspan=\"8\"><br>You do not have permission to edit any of the requests in this report.<br>&nbsp;</td></tr>";
-    }
-    else {
+//    if ( $EditableRequests_count == 0 ) {
+//      echo "<tr><td align=\"center\" colspan=\"8\"><br>You do not have permission to edit any of the requests in this report.<br>&nbsp;</td></tr>";
+//    }
+//    else {
       echo "<tr><td align=\"left\" colspan=\"4\"><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type=reset class=\"submit\" value=\"Reset Attributes\"><br>&nbsp;</td><td align=\"right\" colspan=\"4\"><br><input type=submit value=\"Apply Changes\" name=\"submitBriefEditable\" class=\"submit\">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>&nbsp;<td></tr>";
       if ( isset($ChangedRequests_count) )
         echo "<tr><td align=\"center\" colspan=\"8\"><br>" . ($ChangedRequests_count == 0 ? "No" : "$ChangedRequests_count" ) . " request". ( ($ChangedRequests_count > 1 || $ChangedRequests_count == 0) ? "s" : "" ) . " updated.<br>&nbsp;</td></tr>";
-    }
+//    }
   }
 
   echo "</table>\n";

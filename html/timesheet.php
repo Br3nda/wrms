@@ -103,6 +103,9 @@ function build_time_list( $name, $from, $current, $delta ) {
   $result = awm_pgexec( $dbconn, $query, 'timesheet' );
   if ( $result && pg_NumRows($result) ) {
 
+    // Construct timesheet entries from all of our existing work data for the week
+    // Entries before the start of the day, or after the end of the day are forced within
+    // the work period.
     for( $i = 0; $i < pg_NumRows($result); $i++ ) {
       $ts = pg_Fetch_Object( $result, $i );
       $our_dow = ($ts->dow + 6) % 7;
@@ -114,19 +117,25 @@ function build_time_list( $name, $from, $current, $delta ) {
         if ( "$ts->work_units" == "hours" )  $duration = $ts->work_quantity * 60;
       }
       if ( $duration == 0 ) continue;
-      // Force times within this person's day...
-      if ( $start_tod < $sod ) {
-        $start_tod = $sod;
-        $finish_tod = $sod + $duration;
-      }
-      elseif ( $finish_tod > $eod ) {
+
+      // Force time before end of this person's day...
+      if ( $finish_tod > $eod ) {
         $finish_tod = $eod;
         $start_tod = $eod - $duration;
       }
 
-      for ( $j = 0, $base = intval($start_tod / $period_minutes) * $period_minutes; $j < $duration; $j += $period_minutes ) {
-        $tm[$our_dow][sprintf("m%d", $base + $j)] = "$ts->request_id/$ts->work_description" . ("$ts->entry_details" == "$ts->request_id" ? "" : "@|@$sow" );
-        // echo "<p>\$tm[$our_dow][" . sprintf("m%d", $base + $j) . "] = $ts->request_id/$ts->work_description" . ("$ts->entry_details" == "$ts->request_id" ? "" : "@|@$sow" );
+      // Normalise that to always start on a period boundary...
+      $start_tod = $sod + $period_minutes * intval(( $start_tod - $sod ) / $period_minutes ) ;
+
+      // Force time later than start of person's day
+      if ( $start_tod < $sod ) {
+        $start_tod = $sod;
+        $finish_tod = $sod + $duration;
+      }
+
+      for ( $j = 0; $j < $duration; $j += $period_minutes ) {
+        $tm[$our_dow][sprintf("m%d", $start_tod + $j)] = "$ts->request_id/$ts->work_description" . ("$ts->entry_details" == "$ts->request_id" ? "" : "@|@$sow" );
+        // echo "<p>\$tm[$our_dow][" . sprintf("m%d", $start_tod + $j) . "] = $ts->request_id/$ts->work_description" . ("$ts->entry_details" == "$ts->request_id" ? "" : "@|@$sow" );
       }
     }
   }

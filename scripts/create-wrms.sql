@@ -392,7 +392,7 @@ GRANT INSERT, UPDATE, SELECT ON
   session, session_session_id_seq,
   work_system,
   usr, usr_user_no_seq, usr_setting,
-  org_usr, organisation, organisation_org_code_seq,
+  organisation, organisation_org_code_seq,
   help, help_hit,
   infonode, infonode_node_id_seq, wu, wu_vote, nodetrack
   TO general;

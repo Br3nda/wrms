@@ -120,8 +120,29 @@ function ValidNumber( num_value ) {
   if ( ! num_value.value.match( number_rx ) ) {
     alert("That is not a plain number!", "title" );
     num_value.focus();
-    return false;
+//    return false;
   }
+}
+
+function CheckNumber(objField,min,max)
+{
+  CheckNum = parseFloat(objField.value)
+  if (isNaN(CheckNum)) {
+    alert("That is not a number")
+    objField.focus();
+    return objField.value;
+  }
+  else {
+    if (CheckNum > min && CheckNum < max)
+      return CheckNum;
+    else {
+      alert("This field must be greater than " + min + " and less than " + max)
+      objField.focus();
+      return CheckNum
+    }
+  }
+  // Never reached...
+  return CheckNum;
 }
 
 function CheckRequestForm() {
@@ -137,13 +158,19 @@ function CheckRequestForm() {
       return false;
     }
   }
-  if ( document.forms.form.quote_brief != "" ) {
+  if ( document.forms.form.brief.value == "" ) {
+    alert("All requests should have a brief description!" );
+    document.forms.form.brief.focus();
+    return false;
+  }
+  if ( document.forms.form.quote_brief.value != "" ) {
     if ( document.forms.form.quote_amount.value == "" ) {
       alert("If you enter a quote, you must enter an amount!" );
+      document.forms.form.quote_amount.focus();
       return false;
     }
     if ( ! document.forms.form.quote_amount.value.match( number_rx ) ) {
-      alert("The quote amount should be a plain number!" );
+      alert("The quoted amount should be a plain number!" );
       document.forms.form.quote_amount.focus();
       return false;
     }

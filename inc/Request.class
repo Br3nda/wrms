@@ -104,6 +104,8 @@ class Request {
    }
 
 
+   /////////////////////////////////////////////////////////////
+   /////////////////////////////////////////////////////////////
    function RenderDetails( $ef ) {
      global $edit, $session, $bigboxcols, $bigboxrows;
      $html = "";
@@ -182,6 +184,9 @@ class Request {
      return $html;
    }
 
+
+   /////////////////////////////////////////////////////////////
+   /////////////////////////////////////////////////////////////
    function RenderAttachments( $ef ) {
      global $session;
      $html = "";
@@ -229,6 +234,9 @@ class Request {
      return $html;
    }
 
+
+   /////////////////////////////////////////////////////////////
+   /////////////////////////////////////////////////////////////
    function RenderQuotations( $ef ) {
      global $session;
      $html = "";
@@ -257,15 +265,15 @@ class Request {
        $line_format .= '<td class="entry" style="white-space: nowrap;">%s</td>';
        $line_format .= '<td class="entry">%s</td>';
        $line_format .= '<td class="entry" style="white-space: nowrap;">%s %s</td></tr>'."\n";
-       $detail_format = '<tr class="row%d"><td class="entry" colspan="5">%s xxxxx</td></tr>'."\n";
+       $detail_format = '<tr class="row%d"><td class="entry">&nbsp;</td><td class="entry" colspan="4">%s</td></tr>'."\n";
        while( $row = $q->Fetch() ) {
          $html .= sprintf( $line_format,
                     ($q->rownum % 2), $row->quote_type_desc, $row->quote_by, $row->quoted_on, $row->quote_brief,
                     $row->quote_amount, $row->quote_units
                   );
-         if ( trim("$row->quote_detail") != "" ) {
+         if ( trim("$row->quote_details") != "" ) {
            $html .= sprintf( $detail_format,
-                    ($q->rownum % 2), $row->quote_detail
+                    ($q->rownum % 2), $row->quote_details
                   );
          }
        }
@@ -289,7 +297,7 @@ class Request {
        $html .= '<th class="prompt">Amount</th><td class="entry">';
        $html .= $ef->DataEntryField( "", "number", "quote_amount",
                  array("title" => "Enter the amount of the quote",
-                       "size" => 10, "onblur" => "return ValidNumber(document.forms.form.quote_amount);" ) );
+                       "size" => 10, "onblur" => "this.value=CheckNumber(this,0,999999999)" ) );
        $html .= '</td>';
 
        $html .= '<td class="entry">';
@@ -302,7 +310,7 @@ class Request {
 
        // Enter the description
        $html .= '<tr><th class="prompt">Description</th><td class="entry" colspan="5">';
-       $html .= $ef->DataEntryField( "", "textarea", "att_brief",
+       $html .= $ef->DataEntryField( "", "textarea", "quote_details",
                  array("title" => "Enter a detailed description for the quote.", "cols" => 70, "rows" => 4 ) );
        $html .= '</td>';
 
@@ -311,12 +319,111 @@ class Request {
      return $html;
    }
 
+
+   /////////////////////////////////////////////////////////////
+   /////////////////////////////////////////////////////////////
    function RenderRelations( $ef ) {
      global $session;
      $html = "";
-     $html .= $ef->BreakLine("Related Requests");
+     $header_done = false;
+     $sql = "SELECT parent.*, request_request.*, parent.request_id AS parent_id, ";
+     $sql .= "lsd.lookup_desc AS last_status_desc, llt.lookup_desc AS link_type_desc ";
+     $sql .= "FROM request_request ";
+     $sql .= "JOIN request parent ON (request_request.request_id = parent.request_id) ";
+     $sql .= "JOIN request child ON (request_request.to_request_id = child.request_id) ";
+     $sql .= "JOIN lookup_code lsd ON (lsd.source_table = 'request' AND lsd.source_field = 'status_code' AND lsd.lookup_code = parent.last_status) ";
+     $sql .= "JOIN lookup_code llt ON (llt.source_table = 'request_request' AND llt.source_field = 'link_type' AND llt.lookup_code = request_request.link_type) ";
+     $sql .= "WHERE request_request.to_request_id = ? ";
+     $sql .= "ORDER BY request_request.request_id, request_request.to_request_id ";
+     # Select the records
+     $q = new PgQuery($sql, $this->request_id);
+     $q->Exec('WR::Relations');
+     if ( $ef->editmode || $q->rows ) {
+       $html .= $ef->BreakLine("Related Requests");
+       $header_done = true;
+     }
+     if ( $q->rows ) {
+       $html .= '<tr><td colspan="2"><table width="100%">'."\n";
+       $html .= '<tr><th class="pcol">Parent</th>';
+       $html .= '<th class="pcol">Brief</th>';
+       $html .= '<th class="pcol">Status</th>';
+       $html .= '<th class="pcol">Link</th>';
+       $html .= '<th class="pcol">This W/R</th></tr>'."\n";
+       $line_format = '<tr class="row%d"><td class="entry" width="5%%"><a href="/wr.php?request_id=%d">%s</a></td>';
+       $line_format .= '<td class="entry"><a href="/wr.php?request_id=%d">%s</a></td>';
+       $line_format .= '<td class="entry">%s</td>';
+       $line_format .= '<td class="entry">%s</td>';
+       $line_format .= '<td class="entry">%s</td></tr>'."\n";
+       while( $row = $q->Fetch() ) {
+         if ( trim($row->brief) == '' ) $row->brief = substr($row->detailed,0,50) . "...";
+         $html .= sprintf( $line_format,
+                    ($q->rownum % 2), $row->parent_id, $row->parent_id, $row->parent_id, $row->brief, $row->last_status_desc, $row->link_type_desc,
+                    $this->request_id
+                  );
+       }
+       $html .= '</table></td></tr>'."\n";
+     }
+
+     $sql = "SELECT child.*, request_request.*, child.request_id AS child_id, ";
+     $sql .= "lsd.lookup_desc AS last_status_desc, llt.lookup_desc AS link_type_desc ";
+     $sql .= "FROM request_request ";
+     $sql .= "JOIN request parent ON (request_request.request_id = parent.request_id) ";
+     $sql .= "JOIN request child ON (request_request.to_request_id = child.request_id) ";
+     $sql .= "JOIN lookup_code lsd ON (lsd.source_table = 'request' AND lsd.source_field = 'status_code' AND lsd.lookup_code = parent.last_status) ";
+     $sql .= "JOIN lookup_code llt ON (llt.source_table = 'request_request' AND llt.source_field = 'link_type' AND llt.lookup_code = request_request.link_type) ";
+     $sql .= "WHERE request_request.request_id = ? ";
+     $sql .= "ORDER BY request_request.request_id, request_request.to_request_id ";
+     # Select the records
+     $q = new PgQuery($sql, $this->request_id);
+     $q->Exec('WR::Relations');
+     if ( ! $header_done && ($ef->editmode || $q->rows) ) {
+       $html .= $ef->BreakLine("Related Requests");
+       $header_done = true;
+     }
+     if ( $q->rows ) {
+       $html .= '<tr><td colspan="2"><table width="100%">'."\n";
+       $html .= '<tr><th class="pcol" style="white-space: nowrap;">This W/R</th>';
+       $html .= '<th class="pcol">Link</th>';
+       $html .= '<th class="pcol">Child</th>';
+       $html .= '<th class="pcol">Brief</th>';
+       $html .= '<th class="pcol">Status</th></tr>'."\n";
+       $line_format = '<tr class="row%d"><td class="entry" width="5%%">%s</td>';
+       $line_format .= '<td class="entry">%s</td>';
+       $line_format .= '<td class="entry"><a href="/wr.php?request_id=%d">%s</a></td>';
+       $line_format .= '<td class="entry"><a href="/wr.php?request_id=%d">%s</a></td>';
+       $line_format .= '<td class="entry">%s</td></tr>'."\n";
+       while( $row = $q->Fetch() ) {
+         if ( trim($row->brief) == '' ) $row->brief = substr($row->detailed,0,50) . "...";
+         $html .= sprintf( $line_format,
+                    ($q->rownum % 2), $this->request_id, $row->link_type_desc,
+                    $row->child_id, $row->child_id, $row->child_id, $row->brief, $row->last_status_desc
+                  );
+       }
+       $html .= '</table></td></tr>'."\n";
+     }
+
+     if ( $ef->editmode ) {
+       $html .= '<tr><td colspan="2"><table><tr>'."\n";
+
+       $html .= '<th class="prompt">From W/R</th><td class="entry">';
+       $html .= $ef->DataEntryField( "", "integer", "parent_request_id",
+                 array("title" => "Enter the W/R# of the parent request", "size" => 8,
+                       "onblur" => "this.value=CheckNumber(this,0,99999999)" ) );
+       $html .= '</td>';
+
+       $html .= '<th class="prompt">Link Type</th><td class="entry">';
+       $html .= $ef->DataEntryField( "", "lookup", "link_type",
+                 array("_type" => "request_request|link_type", "style" => "width: 12em;",
+                       "title" => "The way the parent request links to this one" ) );
+       $html .= '</td>';
+
+       $html .= '</tr></table></td></tr>'."\n";
+     }
      return $html;
    }
+
+   /////////////////////////////////////////////////////////////
+   /////////////////////////////////////////////////////////////
    function RenderAllocations( $ef ) {
      global $session;
      $html = "";
@@ -324,6 +431,8 @@ class Request {
      return $html;
    }
 
+   /////////////////////////////////////////////////////////////
+   /////////////////////////////////////////////////////////////
    function RenderTimesheets( $ef ) {
      global $session;
      $html = "";
@@ -331,6 +440,8 @@ class Request {
      return $html;
    }
 
+   /////////////////////////////////////////////////////////////
+   /////////////////////////////////////////////////////////////
    function RenderInterests( $ef ) {
      global $session;
      $html = "";
@@ -338,6 +449,8 @@ class Request {
      return $html;
    }
 
+   /////////////////////////////////////////////////////////////
+   /////////////////////////////////////////////////////////////
    function RenderNotes( $ef ) {
      global $session;
      $html = "";
@@ -345,6 +458,8 @@ class Request {
      return $html;
    }
 
+   /////////////////////////////////////////////////////////////
+   /////////////////////////////////////////////////////////////
    function RenderStatuses( $ef ) {
      global $session;
      $html = "";
@@ -352,6 +467,11 @@ class Request {
      return $html;
    }
 
+   /////////////////////////////////////////////////////////////
+   // This is called prior to writing the record to perform any
+   // cross-field (or other) validations.  If it returns false
+   // then the record will not be written
+   /////////////////////////////////////////////////////////////
    function Validate( $ef ) {
      global $client_messages;
      error_log("$system_name: vpw: ERROR: Not validating request");
@@ -359,6 +479,13 @@ class Request {
      return true;
    }
 
+
+   /////////////////////////////////////////////////////////////
+   // This is the main routine to actually write the record.  In
+   // the work request case we actually call a lot of other
+   // functions (roughly corresponding to the different Render
+   // ones used for displaying the form.
+   /////////////////////////////////////////////////////////////
    function Write( $ef ) {
      global $client_messages;
      error_log("$system_name: vpw: Writing request details to database");
@@ -368,7 +495,7 @@ class Request {
      $sql = sql_from_post( $_POST['submit'], "request", "WHERE request_id='$this->request_id'");
      $qry = new PgQuery($sql);
      if ( !$qry->Exec("WR::Write") ) {
-       $client_messages[] = "ERROR: $qry->errorstring";
+       $client_messages[] = "$qry->errorstring";
        $db_errors = true;
      }
      else {
@@ -386,9 +513,17 @@ class Request {
        $db_errors = ! $this->AttachFile('att_filename',$_POST['att_brief']);
      }
 
+     if ( !$db_errors && trim($_POST['quote_brief']) != "" ) {
+       $db_errors = ! $this->AddQuote();
+     }
+
+     if ( !$db_errors && intval(trim($_POST['parent_request_id'])) > 0 ) {
+       $db_errors = ! $this->AddParent();
+     }
+
      $qry = new PgQuery( ( $db_errors ? "ROLLBACK;" : "COMMIT;") );  $qry->Exec("WR::Write");
      if ( $db_errors ) {
-       $client_messages[] = "ERROR: Database problem writing request.";
+       $client_messages[] = "ERROR: Database problem  - Request not written.";
      }
      else {
        $client_messages[] = "Request details written.";
@@ -396,13 +531,15 @@ class Request {
      return true;
    }
 
+   /////////////////////////////////////////////////////////////
+   /////////////////////////////////////////////////////////////
    function AttachFile( $fname, $description ) {
      global $session, $client_messages;
      error_log( "$sysabbr Request::AttachFile: DBG: Adding attachment: " . $_FILES[$fname]['name'], 0);
      $sql = "SELECT nextval('request_attachment_attachment_id_seq') AS id ;";
      $qry = new PgQuery( $sql );
      if ( ! $qry->Exec('WR::AttachFile') ) {
-       $client_messages[] = "ERROR: $qry->errorstring";
+       $client_messages[] = "$qry->errorstring";
        return false;
      }
 
@@ -419,12 +556,56 @@ class Request {
      $qry = new PgQuery( $sql, $attachment_id, $this->request_id, $session->user_no,
                        $description, $description, $att_name, $file_type);
      if ( ! $qry->Exec('WR::AttachFile') ) {
-       $client_messages[] = "ERROR: $qry->errorstring";
+       $client_messages[] = "$qry->errorstring";
        return false;
      }
 
      chmod( "attachments/$attachment_id", 0644 );
      $client_messages[] = "File attachment \"$att_name\" added to this request</h3>";
+     return true;
+   }
+
+   /////////////////////////////////////////////////////////////
+   /////////////////////////////////////////////////////////////
+   function AddQuote( ) {
+     global $session, $client_messages;
+     error_log( "$sysabbr Request::AddQuote: DBG: Adding quote: " . $_POST['quote_brief'], 0);
+     $sql = "SELECT nextval('request_quote_quote_id_seq') AS id ;";
+     $qry = new PgQuery( $sql );
+     if ( ! $qry->Exec('WR::AddQuote') ) {
+       $client_messages[] = "$qry->errorstring";
+       return false;
+     }
+     $row = $qry->Fetch();
+     $id = $row->id;
+
+     $sql = "INSERT INTO request_quote ( quote_id, request_id, quote_by_id, ";
+     $sql .= "quote_brief, quote_details, quote_type, quote_amount, quote_units ) ";
+     $sql .= "VALUES( ?, ?, ?, ?, ?, ?, ?, ? );";
+     $qry = new PgQuery( $sql, $id, $this->request_id, $session->user_no,
+                         $_POST['quote_brief'], $_POST['quote_details'], $_POST['quote_type'], $_POST['quote_amount'], $_POST['quote_units'] ) ;
+     if ( ! $qry->Exec('WR::AddQuote') ) {
+       $client_messages[] = "$qry->errorstring";
+       return false;
+     }
+     $client_messages[] = "Quote added to this request</h3>";
+     return true;
+   }
+
+   /////////////////////////////////////////////////////////////
+   /////////////////////////////////////////////////////////////
+   function AddParent( ) {
+     global $session, $client_messages;
+     error_log( "$sysabbr Request::AddParent: DBG: Adding parent: " . $_POST['parent_request_id'], 0);
+
+     $sql = "INSERT INTO request_request ( request_id, to_request_id, link_type, link_data ) ";
+     $sql .= "VALUES( ?, ?, ?, ? );";
+     $qry = new PgQuery( $sql, $_POST['parent_request_id'], $this->request_id, $_POST['link_type'], $_POST['link_data'] ) ;
+     if ( ! $qry->Exec('WR::AddParent') ) {
+       $client_messages[] = "$qry->errorstring";
+       return false;
+     }
+     $client_messages[] = "W/R linked to this request</h3>";
      return true;
    }
 }

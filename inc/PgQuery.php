@@ -67,29 +67,32 @@ class PgQuery
     $argc = func_num_args();
     $qry = func_get_arg(0);
 
-    $parts = explode( '?', $qry );
-    $this->querystring = $parts[0];
-    $z = min( count($parts), $argc );
-    for( $i = 1; $i < $z; $i++ )
-    {
-      $arg = func_get_arg($i);
-      if ( !isset($arg) )
-      {
-        $this->querystring .= 'NULL';
+    if ( 1 < $argc ) {
+      $parts = explode( '?', $qry );
+      $this->querystring = $parts[0];
+      $z = min( count($parts), $argc );
+      for( $i = 1; $i < $z; $i++ ) {
+        $arg = func_get_arg($i);
+        if ( !isset($arg) ) {
+          $this->querystring .= 'NULL';
+        }
+        elseif ( is_array($arg) && $arg['plain'] != '' ) {
+          // We abuse this, but people should access it through the PgQuery::plain($v) function
+          $this->querystring .= $arg['plain'];
+        }
+        else {
+          $this->querystring .= $this->quote($arg);
+        }
+        $this->querystring .= $parts[$i];
       }
-      elseif ( is_array($arg) && $arg['plain'] != '' )
-      {
-        // We abuse this, but people should access it through the PgQuery::plain($v) function
-        $this->querystring .= $arg['plain'];
-      }
-      else
-      {
-        $this->querystring .= $this->quote($arg);
-      }
-      $this->querystring .= $parts[$i];
+      if ( isset($parts[$z]) ) $this->querystring .= $parts[$z];
+    }
+    else {
+      // If we are only called with a single argument, we do
+      // nothing special with any question marks.
+      $this->querystring = $qry;
     }
 
-    if ( isset($parts[$z]) ) $this->querystring .= $parts[$z];
     return $this;
   }
 

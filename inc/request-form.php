@@ -59,7 +59,7 @@ requests of your systems, or to enter details for new requests.</P><?php
 </TR>
 </TABLE>
 
-<TABLE width=100%>
+<TABLE width=100% cellspacing=0 border=0>
 <TR><TD CLASS=h3 COLSPAN=3 ALIGN=RIGHT><FONT SIZE=+1><B>Request details</B></FONT></TD></TR>
 <TR>
 <?php
@@ -204,7 +204,6 @@ requests of your systems, or to enter details for new requests.</P><?php
       }
       echo "</TABLE>";
     }
-  }  // isset(request)
 ?>
 
 <?php /***** Quote Details */
@@ -244,26 +243,25 @@ requests of your systems, or to enter details for new requests.</P><?php
     }
   }  // if quotable
 
-  if ( isset( $request ) ) {
-    /***** Allocated People */
-    /* People who have been allocated to the request - again, only if there are any.  */
-    $query = "SELECT person.perorg_name AS fullname, org.perorg_sort_key AS org_code ";
-    $query .= "FROM perorg_request, awm_perorg AS person, awm_perorg AS org ";
-    $query .= "WHERE request_id = '$request->request_id' ";
-    $query .= "AND perorg_request.perorg_id = person.perorg_id ";
-    $query .= "AND perorg_request.perreq_role = 'ALLOC' ";
-    $query .= "AND org.perorg_id = awm_get_rel_parent(perorg_request.perorg_id, 'Employer') ";
-    $allocq = pg_Exec( $wrms_db, $query);
-    $rows = pg_NumRows($allocq);
-    if ( $rows > 0 ) {
-      echo "&nbsp;<BR CLEAR=ALL><H2>Work Allocated To</H2><P ALIGN=\"LEFT\">";
-      for( $i=0; $i<$rows; $i++ ) {
-        $alloc = pg_Fetch_Object( $allocq, $i );
-        if ( $i > 0 ) echo ", ";
-        echo "$alloc->fullname ($alloc->org_code)";
-      }
-      echo "</P>";
+  /***** Allocated People */
+  /* People who have been allocated to the request - again, only if there are any.  */
+  $query = "SELECT person.perorg_name AS fullname, org.perorg_sort_key AS org_code ";
+  $query .= "FROM perorg_request, awm_perorg AS person, awm_perorg AS org ";
+  $query .= "WHERE request_id = '$request->request_id' ";
+  $query .= "AND perorg_request.perorg_id = person.perorg_id ";
+  $query .= "AND perorg_request.perreq_role = 'ALLOC' ";
+  $query .= "AND org.perorg_id = awm_get_rel_parent(perorg_request.perorg_id, 'Employer') ";
+  $allocq = pg_Exec( $wrms_db, $query);
+  $rows = pg_NumRows($allocq);
+  if ( $rows > 0 ) {
+    echo "&nbsp;<BR CLEAR=ALL><H2>Work Allocated To</H2><P ALIGN=\"LEFT\">";
+    for( $i=0; $i<$rows; $i++ ) {
+      $alloc = pg_Fetch_Object( $allocq, $i );
+      if ( $i > 0 ) echo ", ";
+      echo "$alloc->fullname ($alloc->org_code)";
     }
+    echo "</P>";
+  }
 ?>
 
 
@@ -408,7 +406,7 @@ requests of your systems, or to enter details for new requests.</P><?php
 <INPUT TYPE=submit VALUE="Update Request" NAME=submit></B></FONT></TD></TR>
 <?php
   }  // if ! plain
-}  // isset($request) (in allocated people!)
+}  // isset($request) (way up there with the update details!)
 ?>
 </TABLE>
 

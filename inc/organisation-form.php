@@ -1,11 +1,15 @@
 <?php
-  include("$base_dir/inc/code-list.php");
-  $system_codes = get_code_list( "request", "system_code" );
-  $courses = get_code_list( "request", "course_code" );
-  $training = get_code_list( "request", "training_code" );
+  if ( isset($org_code) && $org_code > 0 ) {
 
-  include("$base_dir/inc/system-list.php");
-  $system_codes = get_system_list("ECRS", "$request->system_code");
+    $query = "SELECT * FROM organisation WHERE org_code='$org_code' ";
+    $rid = pg_Exec( $wrms_db, $query);
+    if ( ! $rid ) {
+      $error_loc = "organisation-form.php";
+      $error_qry = "$query";
+      include("inc/error.php");
+    }
+    $org = pg_Fetch_Object( $rid, 0 );
+  }
 ?>
 <P class=helptext>Use this form to maintain organisations who may have requests associated
 with them.</P>
@@ -16,7 +20,15 @@ with them.</P>
 <TR><TD COLSPAN=2>&nbsp;</TD></TR>
 <TR><TD class=h3 COLSPAN=2 ALIGN=RIGHT><FONT SIZE=+1><B>Organisation Details</B></FONT></TD></TR>
 
-<TR><TH ALIGN=RIGHT>Export type:</TH><TD CLASS=mand><SELECT NAME=freport><?php echo $reports; ?></SELECT></TD></TR>
+<?php if ( isset($org) )
+  echo "<TR><TH ALIGN=RIGHT>Org Code:</TH><TD>$org->org_code</TD></TR>";
+?>
+<TR><TH ALIGN=RIGHT>Name:</TH>
+<TD><input type=text size=50 maxlen=50 name=org_name value="<?php echo "$org->org_name"; ?>"></TD></TR>
+<TR><TH ALIGN=RIGHT>Debtor #:</TH>
+<TD><input type=text name=debtor_no value="<?php echo "$org->debtor_no"; ?>"></TD></TR>
+<TR><TH ALIGN=RIGHT>Active:</TH>
+<TD><input type=checkbox value="t" name=active<?php if ( "$org->active" == "t" ) echo " checked"; ?>></TD></TR>
 
 <TR><TD class=mand COLSPAN=2 ALIGN=CENTER><FONT SIZE=+1><B><INPUT TYPE=submit VALUE="Submit" NAME=submit></B></FONT></TD></TR>
 

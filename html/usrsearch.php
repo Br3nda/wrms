@@ -23,15 +23,19 @@
 </form>  
 
 <?php
-  if ( "$search_for" != "" ) {
+  if ( "$search_for$org_code" != "" ) {
     echo "<table border=\"0\" align=center><tr>\n";
     echo "<th>User&nbsp;ID</th><th>Full Name</th>";
     echo "<th>Organisation</th><th>Email</th><th>Updated</th></tr>";
 
-    $query = "SELECT * FROM usr, organisation WHERE (fullname ~* '$search_for' ";
-    $query .= " OR username ~* '$search_for' ";
-    $query .= " OR email ~* '$search_for' )";
-    $query .= " AND usr.org_code=organisation.org_code ";
+    $query = "SELECT * FROM usr, organisation WHERE usr.org_code=organisation.org_code ";
+    if ( "$search_for" != "" ) {
+      $query .= " AND (fullname ~* '$search_for' ";
+      $query .= " OR username ~* '$search_for' ";
+      $query .= " OR email ~* '$search_for' )";
+    }
+    if ( isset( $org_code ) ) 
+      $query .= " AND usr.org_code='$org_code' ";
     $query .= " ORDER BY username ";
 //    $query .= " LIMIT 100 ";
     $result = pg_Exec( $wrms_db, $query );

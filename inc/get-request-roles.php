@@ -7,7 +7,9 @@
   if ( isset($request) && $request->requester_id == $session->user_no ) $author = TRUE;
 
   /* Has the person been allocated this request? */
-  $query = "SELECT * FROM request_allocated WHERE request_allocated.allocated_to_id= $session->user_no";
+  $query = "SELECT * FROM request_allocated WHERE request_allocated.allocated_to_id= $session->user_no ";
+  if ( isset($request) )
+    $query .= "AND request_id = $request->request_id ";
   $rid = awm_pgexec( $wrms_db, $query);
   if ( ! $rid ) {
     $error_loc = "get-request-roles.php";

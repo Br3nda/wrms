@@ -10,6 +10,8 @@ function request_menus(&$tmnu, $wr) {
     $tmnu->AddOption("WR#$wr->request_id","/wr.php?request_id=$wr->request_id","View the details for this work request");
     if ( $wr->AllowedTo('update') )
       $tmnu->AddOption("Edit","/wr.php?edit=1&request_id=$wr->request_id","Edit the details for this work request");
+    if ( $wr->AllowedTo('create') )
+      $tmnu->AddOption("New Related","/wr.php?parent_request_id=$wr->request_id","Create a new work request related to this one.");
   }
 
   if ( $wr->org_code > 0 )
@@ -78,6 +80,28 @@ function attachment_type_menus(&$tmnu,$att) {
   $tmnu->AddOption("List","/form.php?form=attachment_type","List the existing attachment types");
 }
 
+function request_id_menus(&$tmnu, $request_id) {
+  global $session, $org_code, $system_code;
+  if ( intval("$request_id") == 0 ) return;
+  $request_id = intval($request_id);
+
+
+  error_log("DBG: request_menus - $request_id - $org_code - $system_code");
+  if ( $request_id > 0 ) {
+    $tmnu->AddOption("WR#$request_id","/wr.php?request_id=$request_id","View the details for this work request");
+    $tmnu->AddOption("Edit Request","/wr.php?edit=1&request_id=$request_id","Edit the details for this work request");
+  }
+
+  if ( $org_code > 0 ) {
+    $tmnu->AddOption("Organisation","/org.php?org_code=$org_code&request_id=$request_id","View the details for this organisation");
+    $tmnu->AddOption("Edit Organisation","/org.php?edit=1&org_code=$org_code","Edit the details for this organisation");
+  }
+  if ( $system_code != "" ) {
+    $tmnu->AddOption("System","/system.php?system_code=$system_code&request_id=$request_id","View the details for this system");
+    $tmnu->AddOption("Edit System","/system.php?edit=1&system_code=$system_code","Edit the details for this system");
+  }
+}
+
 function org_code_menus(&$tmnu,$org_code) {
   global $session;
   if ( intval("$org_code") == 0 ) return;
@@ -127,6 +151,7 @@ function user_no_menus(&$tmnu,$user_no) {
 
 
 if ( strstr($REQUEST_URI,"/wr.php") )                   request_menus($tmnu,$wr);
+elseif ( isset($request_id) && $request_id > 0 )        request_id_menus($tmnu,$request_id);
 elseif ( strstr($REQUEST_URI,"/org.php") )              organisation_menus($tmnu,$org);
 elseif ( strstr($REQUEST_URI,"/system.php") )           system_menus($tmnu,$ws);
 elseif ( strstr($REQUEST_URI,"/attachment_type.php") )  attachment_type_menus($tmnu,$att);

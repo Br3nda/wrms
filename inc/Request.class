@@ -773,6 +773,8 @@ class Request {
       $html .= '<tr><th class="prompt">From W/R</th><td><table><tr>'."\n";
 
       $html .= '<td class="entry">';
+      if ( $this->new_record && $_GET['parent_request_id'] > 0 )
+        $this->parent_request_id = intval($_GET['parent_request_id']);
       $html .= $ef->DataEntryField( "", "integer", "parent_request_id",
                 array("title" => "Enter the W/R# of the parent request", "size" => 8,
                       "onblur" => "this.value=CheckNumber(this,0,99999999)" ) );
@@ -783,6 +785,7 @@ class Request {
                 array("_type" => "request_request|link_type", "style" => "width: 12em;",
                       "title" => "The way the parent request links to this one" ) );
       $html .= '</td>';
+      $html .= '<th class="prompt">this request</th>';
 
       $html .= '</tr></table></td></tr>'."\n";
     }

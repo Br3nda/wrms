@@ -328,31 +328,43 @@
   if ( $rows > 0  || (($allocated_to || $sysmgr) && !$plain) ) {
 ?>
 <?php echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=7>&nbsp;</TD></TR><TR>$hdcell"; ?>
-<TD CLASS=h3 COLSPAN=6 ALIGN=RIGHT<?php echo " bgcolor=$colors[8]"; ?>><FONT SIZE=+1 color=<?php echo $colors[1]; ?>><B>Work Done</B></FONT></TD></TR>
+<TD CLASS=h3 COLSPAN=7 ALIGN=RIGHT<?php echo " bgcolor=$colors[8]"; ?>><FONT SIZE=+1 color=<?php echo $colors[1]; ?>><B>Work Done</B></FONT></TD></TR>
  <TR VALIGN=TOP>
    <th>&nbsp;</th>
    <TH ALIGN=LEFT class=cols>Done By</TH>
    <TH class=cols>Done On</TH>
    <TH class=cols>Quantity</TH>
    <TH class=cols>Rate</TH>
+   <TH class=cols>Cost</TH>
    <TH class=cols>Description</TH>
    <TH class=cols>&nbsp;</TH>
  </TR>
 <?php
+    $total_cost = 0;
     for( $i=0; $i<$rows; $i++ ) {
       $work = pg_Fetch_Object( $workq, $i );
+      $tmp = $work->work_rate * $work->work_quantity;
+      $total_cost += $tmp; 
 
       if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
       else echo "<tr bgcolor=$colors[7]>";
       echo "<th>&nbsp;</th><TD>" . str_replace(" ", "&nbsp;", $work->fullname) . "</TD>\n";
       echo "<TD align=center>" . substr( nice_date($work->work_on), 7) . "</TD>\n";
-      echo "<TD ALIGN=RIGHT>$work->work_quantity&nbsp;$work->work_units &nbsp; &nbsp; </TD>\n";
-      echo "<TD ALIGN=RIGHT>$work->work_rate &nbsp; &nbsp; </TD>\n";
+      echo "<TD ALIGN=RIGHT>$work->work_quantity&nbsp;$work->work_units &nbsp;</TD>\n";
+      echo "<TD ALIGN=RIGHT>$work->work_rate &nbsp;&nbsp;&nbsp;</TD>\n";
+      echo "<TD ALIGN=RIGHT>$tmp &nbsp;</TD>\n";
       echo "<TD>$work->work_description</TD>\n";
       echo "<TD ALIGN=RIGHT nowrap><font size=-2><A CLASS=r HREF=\"request.php?submit=deltime";
       echo "&request_id=$request_id&timesheet_id=$work->timesheet_id\">";
       echo "DEL</a></font>";
     }
+    echo "</tr>";
+    if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
+    else echo "<tr bgcolor=$colors[7]>";
+    echo "<TH>&nbsp;</TH><td COLSPAN=3 align=left><b>Total</b></td><td colspan=2 align=right>
+	  \$$total_cost &nbsp;</td><td COLSPAN=2></td>
+	</tr>";
+    $i++;
 
     if ( ($allocated_to || $sysmgr) && ! $plain ) {
       if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]";
@@ -372,7 +384,7 @@
       echo "<td align=center><input name=new_work_quantity size=6 type=text value=\"$old_work_quantity\"><br>\n";
       echo "<select name=new_work_units>$quote_units</select></TD>\n";
       echo "<td><input name=new_work_rate size=5 type=text value=\"$old_work_rate\"><br>($ per unit)</TD>\n";
-      echo "<td colspan=2><textarea name=new_work_details rows=3 cols=30 wrap=soft>$old_work_details</textarea></TD></TR>\n";
+      echo "<td colspan=3><textarea name=new_work_details rows=3 cols=30 wrap=soft>$old_work_details</textarea></TD></TR>\n";
     }
     echo "</TABLE>\n";
 

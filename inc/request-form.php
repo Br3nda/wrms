@@ -14,6 +14,7 @@
     $sla_urgencies = get_code_list( "request", "sla_response", "$request->request_sla_code" );
     $urgencies = get_code_list( "request", "urgency", "$request->urgency" );
     $importances = get_code_list( "request", "importance", "$request->importance" );
+    $attach_types = get_code_list( "request", "attach_type", "" );
 
     if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] || $roles['wrms']['Manage']  ) {
       if ( $roles['wrms']['Admin'] || $roles['wrms']['Support']  ) {
@@ -57,7 +58,7 @@
   }
   echo "Request details</td></TR>\n";
 
-  if ( !$is_request ) {
+  if ( !$is_request  ) {
     if ( $roles[wrms][Admin] || $roles[wrms][Support] || $roles[wrms][Manage] ) {
       echo "<tr><th class=rows align=right>User:</th>";
       echo "<td colspan=2 valign=middle align=left><select class=sml name=\"new_user_no\">$user_list</select>\n";
@@ -226,41 +227,53 @@
 
   echo "</table>\n";
 
-  //---------------- Update Details */
-  if ( isset( $request ) ) {
-    $query = "SELECT * FROM request_update, system_update WHERE request_update.request_id = $request->request_id AND request_update.update_id = system_update.update_id ORDER BY request_update.update_id DESC";
-    $updateq = awm_pgexec( $wrms_db, $query);
+  //---------------- Attachment Details */
+  if ( isset( $request ) || $roles[wrms][Admin] || $roles[wrms][Support] ) {
+    $query = "SELECT * FROM request_attachment WHERE request_attachment.request_id = $request->request_id ";
+    $query .= "ORDER BY request_attachment.attachment_id;";
+    $updateq = awm_pgexec( $wrms_db, $query, 'request_form');
     $rows = pg_NumRows($updateq);
+    echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=5>&nbsp;</TD></TR><TR>$hdcell";
+    echo "<td class=h3 colspan=4 align=right>File Attachments</td></tr>\n";
+    echo "<tr>\n";
+    echo "<th class=cols>Filename</th>\n";
+    echo "<th class=cols>Type</th>\n";
+    echo "<th class=cols>Display / X <i>x</i> Y</th>\n";
+    echo "<th class=cols>Description</th>\n";
+    echo "</tr>\n";
     if ( $rows > 0 ) {
-?>
-<?php echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=6>&nbsp;</TD></TR><TR>$hdcell"; ?>
-<TD CLASS=h3 COLSPAN=5 ALIGN=RIGHT>Program Update Details</TD></TR>
-<TR><th>&nbsp;</th>
- <TH class=cols>ID</TH>
- <TH class=cols>Done By</TH>
- <TH class=cols>Done On</TH>
- <TH class=cols>Description</TH>
- <TH class=cols>&nbsp;</TH>
-</TR>
-<?php
+
       for( $i=0; $i<$rows; $i++ ) {
-        $update = pg_Fetch_Object( $updateq, $i );
+        $attachment = pg_Fetch_Object( $updateq, $i );
 
         printf("<tr class=row%1d>", ($i % 2) );
-        echo "<th>&nbsp;</TH>\n";
-        echo "<td class=h2 VALIGN=TOP ALIGN=CENTER ROWSPAN=2>$update->update_id</td>\n";
-        echo "<td>$update->update_by</TD>\n";
-        echo "<td>" . nice_date($update->update_on) . "</TD>\n";
-        echo "<td>$update->update_brief</td>";
-        echo "<td><A HREF=\"$update->file_url\">Download</A></TD>\n";
+        echo "<td><a href=/attachment.php/$attachment->att_filename?id=$attachment->attachment_id target=_new>$attachment->att_filename</a></td>\n";
+        echo "<td>$attachment->att_type</td>\n";
+        echo "<td>" . nice_date($attachment->attached_on) . "</TD>\n";
+        echo "<td>$attachment->att_brief</td>";
         echo "</tr>\n";
-        if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
-        else echo "<tr bgcolor=$colors[7]>";
-        echo "<TH>&nbsp;</TH><TD COLSPAN=4>";
-        echo html_format( $update->update_description) . "</TD></tr>";
+        if ( $attachment->att_inline == "t" ) {
+          printf("<tr class=row%1d>", ($i % 2) );
+          echo "<td colspan=4>";
+          echo "<iframe width=$attachment->att_width height=$attachment->att_height src=/attachment.php/$attachment->att_filename?id=$attachment->attachment_id>\n";
+          echo "<a href=/attachment.php/$attachment->att_filename?id=$attachment->attachment_id target=_new>View Attachment</a>\n";
+          echo "</iframe>\n";
+          echo "</td></tr>";
+        }
       }
-      echo "</TABLE>";
     }
+    printf("<tr class=row%1d>", ($i % 2) );
+    echo "<td><input class=sml name=new_attachment_file size=20 type=file></td>\n";
+    echo "<td><select class=sml name=new_attachment_type>$attach_types</select></td>\n";
+    if ( $roles[wrms][Admin] || $roles[wrms][Support] ) {
+      echo "<td nowrap><label>Show inline<input name=new_attach_inline type=checkbox value=1></label><input name=new_attach_x size=3 type=text>x<input name=new_attach_y size=3 type=text></td>";
+      echo "<td>";
+    }
+    else {
+      echo "<td colspan=2>";
+    }
+    echo "<input class=sml size=30 name=new_attach_brief type=text></td></tr>\n";
+    echo "</table>";
 
 
   /***** Quote Details */
@@ -337,7 +350,7 @@
   $query .= "ORDER BY request_allocated.allocated_on ";
   $allocq = awm_pgexec( $wrms_db, $query);
   $rows = pg_NumRows($allocq);
-  if ( $rows > 0 || (! $plain && (($roles['wrms']['Admin'] || $roles['wrms']['Support'] ))) ) {
+  if ( isset( $request ) && ( $rows > 0 || (! $plain && (($roles['wrms']['Admin'] || $roles['wrms']['Support'] )))) ) {
     echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=3>&nbsp;</TD></TR>\n";
     echo "<TR>$hdcell<TD CLASS=h3 COLSPAN=2 ALIGN=RIGHT>Work Allocated To</TD></TR>\n";
     echo "<TR VALIGN=TOP><td>";
@@ -440,10 +453,10 @@
   $query .= "AND organisation.org_code = usr.org_code ";
   $peopleq = awm_pgexec( $wrms_db, $query);
   $rows = pg_NumRows($peopleq);
-  if ( $rows > 0 ) {
     echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=3>&nbsp;</TD></TR>\n";
     echo "<TR>$hdcell<TD CLASS=h3 COLSPAN=2 align=right>Interested Users</TD></TR>\n";
     echo "<TR VALIGN=TOP>\n<td>";
+  if ( $rows > 0 ) {
     for( $i=0; $i<$rows; $i++ ) {
       $interested = pg_Fetch_Object( $peopleq, $i );
       if ( $i > 0 ) echo ", ";
@@ -452,6 +465,7 @@
       echo "$interested->fullname ($interested->abbreviation)\n";
       if ( ($allocated_to || $sysmgr) && ! $plain )
         echo "</a>\n";
+    }
     }
 
     if ( $plain )
@@ -473,7 +487,6 @@
       }
       else
         echo "<a class=r href=\"request.php?submit=$action&request_id=$request_id\">$tell</a>";
-    }
     echo "</TD>\n</TR></TABLE>\n";
   }
 ?>

@@ -69,239 +69,19 @@ function dates_equal( $date1, $date2 ) {
     return;
   }
 
+  ////////////////////////////////////////////////////////////
+  // Things that apply whether this is new or an existing request
+  ////////////////////////////////////////////////////////////
+  $note_added = ($new_note != "");
+  $quote_added = ($new_quote_brief != "") && ($new_quote_amount != "");
+  $work_added = ($new_work_on != "") && ($new_work_quantity != "") && ($new_work_details != "") && ($new_work_rate != "") ;
+  $interest_added = isset($new_interest) && ($new_interest != "" );
+  $allocation_added = isset($new_allocation) && ($new_allocation != "" );
+  $attachment_added = isset($HTTP_POST_FILES['new_attachment_file']['name']) && ($HTTP_POST_FILES['new_attachment_file']['name'] != "" );
+
   /* scope a transaction to the whole change */
   awm_pgexec( $wrms_db, "BEGIN;", "req-action" );
-  if ( isset( $request ) ) {
-    /////////////////////////////////////
-    // Update an existing request
-    /////////////////////////////////////
-    $chtype = "change";
-    $requsr = $session;
-
-    // Have to be pedantic here - the translation from database -> variable is basic.
-//    error_log( "$sysabbr request-action1: Active: $request->active, New: $new_active", 0);
-    if ( isset($new_active) && $new_active <> "TRUE" ) $new_active = "FALSE";
-    if ( strtolower( substr( $request->active, 0, 1)) == "t" )
-      $request->active = "TRUE";
-    else
-      $request->active = "FALSE";
-
-    $note_added = ($new_note != "");
-    $quote_added = ($new_quote_brief != "") && ($new_quote_amount != "");
-    $work_added = ($new_work_on != "") && ($new_work_quantity != "") && ($new_work_details != "") && ($new_work_rate != "") ;
-    $status_changed = isset($new_status) && ($request->last_status != $new_status );
-    $interest_added = isset($new_interest) && ($new_interest != "" );
-    $allocation_added = isset($new_allocation) && ($new_allocation != "" );
-    $eta_changed = !dates_equal($request->eta, $new_eta);
-    $brief_changed = (isset($new_brief) && trim($request->brief) != trim($new_brief));
-    $requested_by_changed = !dates_equal($request->requested_by_date, $new_requested_by_date);
-    $agreed_changed = !dates_equal($request->agreed_due_date, $new_agreed_due_date);
-    $changes =  $brief_changed
-             || (isset($new_detail) && $request->detailed != $new_detail)
-             || (isset($new_type) && $request->request_type != $new_type )
-             || (isset($new_severity) && $request->severity_code != $new_severity )
-             || (isset($new_urgency) && $request->urgency != $new_urgency )
-             || (isset($new_sla_code) && $request->request_sla_code != $new_sla_code )
-             || (isset($new_importance) && $request->importance != $new_importance )
-             || (isset($new_system_code) && $request->system_code != $new_system_code )
-             || (isset($new_active) && $request->active != $new_active )
-             || $eta_changed || $status_changed || $note_added || $quote_added || $allocation_added ;
-    $send_some_mail = $changes;
-    $changes = $changes || $work_added || $interest_added;
-    error_log( "$sysabbr request-action: $changes---"
-             . $brief_changed . "-"
-             . (isset($new_detail) && $request->detailed != $new_detail) . "+"
-             . (isset($new_type) && $request->request_type != $new_type ) . "-"
-             . (isset($new_severity) && $request->severity_code != $new_severity ) . "+"
-             . (isset($new_urgency) && $request->urgency != $new_urgency ) . "-"
-             . (isset($new_sla_code) && $request->request_sla_code != $new_sla_code ) . "*"
-             . "$requested_by_changed+$agreed_changed-"
-             . (isset($new_importance) && $request->importance != $new_importance ) . "+"
-             . (isset($new_system_code) && $request->system_code != $new_system_code ) . "-"
-             . (isset($new_active) && $request->active != $new_active ) . "+  also  -"
-             . "$eta_changed+$status_changed-$note_added+"
-             . "$quote_added-$work_added+$interest_added-$allocation_added+"
-             . "---", 0) ;
-
-    if ( ! $changes ) {
-      $because = "";
-      $chtype = "";
-      return;
-    }
-
-    /* take a snapshot of the current record */
-    $query = "INSERT INTO request_history SELECT * FROM request WHERE request.request_id = '$request_id'";
-    $rid = awm_pgexec( $wrms_db, $query, "req-action" );
-    if ( ! $rid ) {
-      $because .= "<H3>Snapshot Failed!</H3>\n";
-      $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
-      $because .= "<P>The failed query was:</P><TT>$query</TT>";
-      awm_pgexec( $wrms_db, "ROLLBACK;" );
-      return;
-    }
-
-    if ( $statusable && $status_changed ) {
-      // Changed Status Stuff
-      $query = "INSERT INTO request_status (request_id, status_by, status_on, status_code, status_by_id) ";
-      $query .= "VALUES( $request_id, '$session->username', 'now', '$new_status', $session->user_no)";
-      $rid = awm_pgexec( $wrms_db, $query, "req-action" );
-      if ( ! $rid ) {
-        $errmsg = pg_ErrorMessage( $wrms_db );
-        $because .= "<H3>&nbsp;Status Change Failed!</H3>\n";
-        $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
-        $because .= "<P>The failed query was:</P><TT>$query</TT>";
-        awm_pgexec( $wrms_db, "ROLLBACK;" );
-        return;
-      }
-      if ( eregi( "[fhc]", "$new_status") )
-        $new_active = "FALSE";
-      else
-        $new_active = "TRUE";
-    }
-//    error_log( "$sysabbr request-action2: Active: $request->active, New: $new_active (statusable: $statusable, status_changed: $status_changed", 0);
-
-    $query = "UPDATE request SET";
-   if ( $brief_changed )
-      $query .= " brief = '" . tidy($new_brief) . "',";
-    if ( isset($new_detail) && $request->detailed != $new_detail )
-      $query .= " detailed = '" . tidy( $new_detail ) . "',";
-    if ( isset($new_eta) && ($sysmgr || $allocated_to) && $eta_changed ) $query .= " eta = '$new_eta',";
-    if ( isset($new_active) && $request->active != $new_active )
-      $query .= " active = $new_active,";
-    if ( $status_changed )
-      $query .= " last_status = '$new_status',";
-    if ( isset($new_type) && $request->request_type != $new_type )
-      $query .= " request_type = $new_type,";
-    if (isset($new_sla_code) && $request->request_sla_code != $new_sla_code ) {
-      $sla_split = explode('|', $new_sla_code, 2);
-      $sla_type = strtoupper( $sla_split[1] );
-      $query .= " sla_response_time = '" . intval($sla_split[0]) . " hours', ";
-      if ( ereg( "[BEO]", $sla_type ) ) $query .= " sla_response_type = '$sla_type',";
-    }
-    if ( "$new_requested_by_date" <> "" && ($sysmgr || $allocated_to) && $requested_by_changed )
-      $query .= " requested_by_date = '$new_requested_by_date',";
-    if ( "$new_agreed_due_date" <> "" && ($sysmgr || $allocated_to) && $agreed_changed )
-      $query .= " agreed_due_date = '$new_agreed_due_date',";
-    if ( isset($new_urgency) && $request->urgency != $new_urgency )
-      $query .= " urgency = $new_urgency,";
-    if ( isset($new_importance) && $request->importance != $new_importance )
-      $query .= " importance = $new_importance,";
-    if ( isset($new_system_code) && $request->system_code != $new_system_code )
-      $query .= " system_code = '$new_system_code',";
-    $query .= " last_activity = 'now' ";
-    $query .= "WHERE request.request_id = '$request_id'; ";
-    $rid = awm_pgexec( $wrms_db, $query, "req-action", true, 7 );
-    if ( ! $rid ) {
-//      $because .= "<H3>&nbsp;Update Request Failed!</H3>\n";
-//      $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
-//      $because .="<P>The failed query was:</P><TT>$query</TT>";
-//      awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
-      return;
-    }
-    else
-      error_log( "$sysabbr request-action Q: $query", 0);
-
-
-    if ( $quote_added ) {
-      $query = "SELECT NEXTVAL('request_quote_quote_id_seq');";
-      $rid = awm_pgexec( $wrms_db, $query, "req-action", true, 7 );
-      if ( ! $rid ) {
-//        $errmsg = pg_ErrorMessage( $wrms_db );
-//        $because .= "<H3>Failed to get new quote ID!</H3>\n";
-//        $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
-//        $because .= "<P>The failed query was:</P><TT>$query</TT>";
-//        awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
-        return;
-      }
-      $new_quote_id = pg_Result( $rid, 0, 0);
-
-      $new_quote_details = tidy( $new_quote_details );
-      $new_quote_brief = tidy( $new_quote_brief );
-
-      $query = "INSERT INTO request_quote (quote_id, quoted_by, quote_brief, quote_details, quote_type, quote_amount, quote_units, request_id, quote_by_id) ";
-      $query .= "VALUES( $new_quote_id, '$session->username', '$new_quote_brief', '$new_quote_details', '$new_quote_type', '$new_quote_amount', '$new_quote_unit', $request_id, $session->user_no )";
-      $rid = awm_pgexec( $wrms_db, $query, "req-action" );
-      if ( ! $rid ) {
-        $because .= "<H3>New Quote Failed!</H3>\n";
-        $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
-        $because .= "<P>The failed query was:</P><TT>$query</TT>";
-        awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
-        return;
-      }
-
-    }
-
-    if ( $work_added ) {
-      /* non-null timesheet was entered */
-      $new_work_details = tidy( $new_work_details );
-//      $query = "DELETE FROM request_timesheet WHERE request_id=$request_id AND work_on='$new_work_on'; ";
-      $query = "INSERT INTO request_timesheet (request_id,  work_on, work_quantity, work_units, work_rate, work_by_id, work_by, work_description ) ";
-      $query .= "VALUES( $request_id, '$new_work_on', '$new_work_quantity', '$new_work_units', '$new_work_rate', $session->user_no, '$session->username', '$new_work_details')";
-      $rid = awm_pgexec( $wrms_db, $query, "req-action" );
-      if ( ! $rid ) {
-        $errmsg = pg_ErrorMessage( $wrms_db );
-        $because .= "<H3>New Timesheet Failed!</H3>\n";
-        $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
-        $because .= "<P>The failed query was:</P><TT>$query</TT>";
-        awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
-        return;
-      }
-    }
-
-    if ( $interest_added ) {
-      /* new user was added as interested */
-      $query = "SELECT set_interested( $new_interest, $request_id ); ";
-      $rid = awm_pgexec( $wrms_db, $query, "req-action" );
-      if ( $rid ) $because .= "<h3>User $new_interest has been added to this request</h3>";
-    }
-
-    if ( $allocation_added ) {
-      /* new user was added as allocated */
-      $query = "SELECT set_interested( $new_allocation, $request_id ); ";
-      $rid = awm_pgexec( $wrms_db, $query, "req-action" );
-      $query = "SELECT set_allocated( $new_allocation, $request_id ) AS alloc_to, * FROM usr WHERE usr.user_no=$new_allocation; ";
-      $rid = awm_pgexec( $wrms_db, $query, "req-action" );
-      if ( $rid ) {
-        $alloc = pg_Fetch_Object( $rid, 0);
-        $because .= "<h3>$alloc->fullname (user #$new_allocation) has been allocated to work on this request</h3>";
-      }
-    }
-
-    if ( $note_added ) {
-      /* non-null note was entered */
-      $insert_note = $new_note;
-      if ( intval("$convert_html") > 0 ) $insert_note = htmlspecialchars($insert_note);
-      $insert_note = tidy($insert_note);
-      $query = "INSERT INTO request_note (request_id, note_by, note_by_id, note_on, note_detail) ";
-      $query .= "VALUES( $request_id, '$session->username', $session->user_no, 'now', '$insert_note')";
-      $rid = awm_pgexec( $wrms_db, $query, "req-action", true );
-      if ( ! $rid ) return;
-    }
-
-    $because .= "<h2>Request number $request_id modified.</h2><p>";
-
-    if ( $statusable && $status_changed )
-      $because .= "<br>Request status has been changed.\n";
-
-//    error_log( "$sysabbr request-action3: Active: $request->active, New: $new_active (statusable: $statusable, status_changed: $status_changed", 0);
-    if ( isset($new_active) && $request->active != $new_active ) {
-      $because .= "<br>Request has been ";
-      if ( $new_active == "TRUE" ) $because .= "re-"; else $because .= "de-";
-      $because .= "activated\n";
-    }
-
-    if ( $work_added )
-      $because .= "<br>Timesheet added to request.\n";
-
-    if ( $quote_added )
-      $because .= "<br>Quote $new_quote_id added to request.\n";
-
-    if ( $note_added )
-      $because .= "<br>Notes added to request.\n";
-
-    $previous = $request;
-  }
-  else {
+  if ( !isset( $request ) ) {
     /////////////////////////////////////
     // Create a new request
     /////////////////////////////////////
@@ -429,10 +209,267 @@ function dates_equal( $date1, $date2 ) {
     $because .= "<H2>Your request number for enquiries is $request_id.</H2>";
     $send_some_mail = TRUE;
   }
+  else {
+    /////////////////////////////////////
+    // Update an existing request
+    /////////////////////////////////////
+    $chtype = "change";
+    $requsr = $session;
+
+    // Have to be pedantic here - the translation from database -> variable is basic.
+    // error_log( "$sysabbr request-action1: Active: $request->active, New: $new_active", 0);
+    if ( isset($new_active) && $new_active <> "TRUE" ) $new_active = "FALSE";
+    if ( strtolower( substr( $request->active, 0, 1)) == "t" )
+      $request->active = "TRUE";
+    else
+      $request->active = "FALSE";
+
+    $status_changed = isset($new_status) && ($request->last_status != $new_status );
+    $eta_changed = !dates_equal($request->eta, $new_eta);
+    $brief_changed = (isset($new_brief) && trim($request->brief) != trim($new_brief));
+    $requested_by_changed = !dates_equal($request->requested_by_date, $new_requested_by_date);
+    $agreed_changed = !dates_equal($request->agreed_due_date, $new_agreed_due_date);
+    $changes =  $brief_changed
+             || (isset($new_detail) && $request->detailed != $new_detail)
+             || (isset($new_type) && $request->request_type != $new_type )
+             || (isset($new_severity) && $request->severity_code != $new_severity )
+             || (isset($new_urgency) && $request->urgency != $new_urgency )
+             || (isset($new_sla_code) && $request->request_sla_code != $new_sla_code )
+             || (isset($new_importance) && $request->importance != $new_importance )
+             || (isset($new_system_code) && $request->system_code != $new_system_code )
+             || (isset($new_active) && $request->active != $new_active )
+             || $eta_changed || $status_changed || $note_added || $quote_added || $allocation_added || $attachment_added ;
+    $send_some_mail = $changes;
+    $changes = $changes || $work_added || $interest_added;
+    error_log( "$sysabbr request-action: $changes---"
+             . $brief_changed . "-"
+             . (isset($new_detail) && $request->detailed != $new_detail) . "+"
+             . (isset($new_type) && $request->request_type != $new_type ) . "-"
+             . (isset($new_severity) && $request->severity_code != $new_severity ) . "+"
+             . (isset($new_urgency) && $request->urgency != $new_urgency ) . "-"
+             . (isset($new_sla_code) && $request->request_sla_code != $new_sla_code ) . "*"
+             . "$requested_by_changed+$agreed_changed-"
+             . (isset($new_importance) && $request->importance != $new_importance ) . "+"
+             . (isset($new_system_code) && $request->system_code != $new_system_code ) . "-"
+             . (isset($new_active) && $request->active != $new_active ) . "+  also  -"
+             . "$eta_changed+$status_changed-$note_added+"
+             . "$quote_added-$work_added+$interest_added-$allocation_added+$attachment_added"
+             . "---", 0) ;
+
+    if ( ! $changes ) {
+      $because = "";
+      $chtype = "";
+      return;
+    }
+
+    /* take a snapshot of the current record */
+    $query = "INSERT INTO request_history SELECT * FROM request WHERE request.request_id = '$request_id'";
+    $rid = awm_pgexec( $wrms_db, $query, "req-action" );
+    if ( ! $rid ) {
+      $because .= "<H3>Snapshot Failed!</H3>\n";
+      $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
+      $because .= "<P>The failed query was:</P><TT>$query</TT>";
+      awm_pgexec( $wrms_db, "ROLLBACK;" );
+      return;
+    }
+
+    if ( $statusable && $status_changed ) {
+      // Changed Status Stuff
+      $query = "INSERT INTO request_status (request_id, status_by, status_on, status_code, status_by_id) ";
+      $query .= "VALUES( $request_id, '$session->username', 'now', '$new_status', $session->user_no)";
+      $rid = awm_pgexec( $wrms_db, $query, "req-action" );
+      if ( ! $rid ) {
+        $errmsg = pg_ErrorMessage( $wrms_db );
+        $because .= "<H3>&nbsp;Status Change Failed!</H3>\n";
+        $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
+        $because .= "<P>The failed query was:</P><TT>$query</TT>";
+        awm_pgexec( $wrms_db, "ROLLBACK;" );
+        return;
+      }
+      if ( eregi( "[fhc]", "$new_status") )
+        $new_active = "FALSE";
+      else
+        $new_active = "TRUE";
+    }
+//    error_log( "$sysabbr request-action2: Active: $request->active, New: $new_active (statusable: $statusable, status_changed: $status_changed", 0);
+
+    $query = "UPDATE request SET";
+   if ( $brief_changed )
+      $query .= " brief = '" . tidy($new_brief) . "',";
+    if ( isset($new_detail) && $request->detailed != $new_detail )
+      $query .= " detailed = '" . tidy( $new_detail ) . "',";
+    if ( isset($new_eta) && ($sysmgr || $allocated_to) && $eta_changed ) $query .= " eta = '$new_eta',";
+    if ( isset($new_active) && $request->active != $new_active )
+      $query .= " active = $new_active,";
+    if ( $status_changed )
+      $query .= " last_status = '$new_status',";
+    if ( isset($new_type) && $request->request_type != $new_type )
+      $query .= " request_type = $new_type,";
+    if (isset($new_sla_code) && $request->request_sla_code != $new_sla_code ) {
+      $sla_split = explode('|', $new_sla_code, 2);
+      $sla_type = strtoupper( $sla_split[1] );
+      $query .= " sla_response_time = '" . intval($sla_split[0]) . " hours', ";
+      if ( ereg( "[BEO]", $sla_type ) ) $query .= " sla_response_type = '$sla_type',";
+    }
+    if ( "$new_requested_by_date" <> "" && ($sysmgr || $allocated_to) && $requested_by_changed )
+      $query .= " requested_by_date = '$new_requested_by_date',";
+    if ( "$new_agreed_due_date" <> "" && ($sysmgr || $allocated_to) && $agreed_changed )
+      $query .= " agreed_due_date = '$new_agreed_due_date',";
+    if ( isset($new_urgency) && $request->urgency != $new_urgency )
+      $query .= " urgency = $new_urgency,";
+    if ( isset($new_importance) && $request->importance != $new_importance )
+      $query .= " importance = $new_importance,";
+    if ( isset($new_system_code) && $request->system_code != $new_system_code )
+      $query .= " system_code = '$new_system_code',";
+    $query .= " last_activity = 'now' ";
+    $query .= "WHERE request.request_id = '$request_id'; ";
+    $rid = awm_pgexec( $wrms_db, $query, "req-action", true, 7 );
+    if ( ! $rid ) {
+//      $because .= "<H3>&nbsp;Update Request Failed!</H3>\n";
+//      $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
+//      $because .="<P>The failed query was:</P><TT>$query</TT>";
+//      awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
+      return;
+    }
+    else
+      error_log( "$sysabbr request-action Q: $query", 0);
+  }
+
+    if ( $quote_added ) {
+      $query = "SELECT NEXTVAL('request_quote_quote_id_seq');";
+      $rid = awm_pgexec( $wrms_db, $query, "req-action", true, 7 );
+      if ( ! $rid ) {
+//        $errmsg = pg_ErrorMessage( $wrms_db );
+//        $because .= "<H3>Failed to get new quote ID!</H3>\n";
+//        $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
+//        $because .= "<P>The failed query was:</P><TT>$query</TT>";
+//        awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
+        return;
+      }
+      $new_quote_id = pg_Result( $rid, 0, 0);
+
+      $new_quote_details = tidy( $new_quote_details );
+      $new_quote_brief = tidy( $new_quote_brief );
+
+      $query = "INSERT INTO request_quote (quote_id, quoted_by, quote_brief, quote_details, quote_type, quote_amount, quote_units, request_id, quote_by_id) ";
+      $query .= "VALUES( $new_quote_id, '$session->username', '$new_quote_brief', '$new_quote_details', '$new_quote_type', '$new_quote_amount', '$new_quote_unit', $request_id, $session->user_no )";
+      $rid = awm_pgexec( $wrms_db, $query, "req-action" );
+      if ( ! $rid ) {
+        $because .= "<H3>New Quote Failed!</H3>\n";
+        $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
+        $because .= "<P>The failed query was:</P><TT>$query</TT>";
+        awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
+        return;
+      }
+
+    }
+
+    if ( $attachment_added ) {
+      $debuglevel = 5;
+      error_log( "Adding attachment: " . $HTTP_POST_FILES['new_attachment_file']['name'], 0);
+      $query = "SELECT nextval('request_attac_attachment_id_seq');";
+      $rid = awm_pgexec( $wrms_db, $query, "req-action" );
+      if ( ! $rid ) {
+        awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
+        return;
+      }
+      $attachment_id =pg_Result( $rid, 0, 0);
+      $att_name = tidy($HTTP_POST_FILES['new_attachment_file']['name']);
+      $new_attach_full = $new_attach_brief;
+      $new_attach_x = intval($new_attach_x);
+      $new_attach_y = intval($new_attach_y);
+      $attach_id = pg_Result( $rid, 0, 0);
+      $query = "INSERT INTO request_attachment ( attachment_id, request_id,  attached_by, att_brief, att_description, att_filename, att_type";
+      if ( isset($new_attach_inline) ) $query .= ", att_inline";
+      $query .= ", att_width, att_height ) ";
+      $query .= "VALUES( $attachment_id, $request_id, $session->user_no, '$new_attach_brief', '$new_attach_full', '$att_name', '$new_attachment_type'";
+      if ( isset($new_attach_inline) )
+        $query .= ", " . (intval("$new_attach_inline") > 0 ? "TRUE" : "FALSE");
+      $query .= ", $new_attach_x, $new_attach_y )";
+      $rid = awm_pgexec( $wrms_db, $query, "req-action" );
+      if ( ! $rid ) {
+        $because .= "<H3>New Attachment Failed!</H3>\n";
+        $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
+        $because .= "<P>The failed query was:</P><TT>$query</TT>";
+        awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
+        return;
+      }
+      move_uploaded_file($HTTP_POST_FILES['new_attachment_file']['tmp_name'], "attachments/$attachment_id");
+    }
+
+    if ( $work_added ) {
+      /* non-null timesheet was entered */
+      $new_work_details = tidy( $new_work_details );
+//      $query = "DELETE FROM request_timesheet WHERE request_id=$request_id AND work_on='$new_work_on'; ";
+      $query = "INSERT INTO request_timesheet (request_id,  work_on, work_quantity, work_units, work_rate, work_by_id, work_by, work_description ) ";
+      $query .= "VALUES( $request_id, '$new_work_on', '$new_work_quantity', '$new_work_units', '$new_work_rate', $session->user_no, '$session->username', '$new_work_details')";
+      $rid = awm_pgexec( $wrms_db, $query, "req-action" );
+      if ( ! $rid ) {
+        $errmsg = pg_ErrorMessage( $wrms_db );
+        $because .= "<H3>New Timesheet Failed!</H3>\n";
+        $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
+        $because .= "<P>The failed query was:</P><TT>$query</TT>";
+        awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
+        return;
+      }
+    }
+
+    if ( $interest_added ) {
+      /* new user was added as interested */
+      $query = "SELECT set_interested( $new_interest, $request_id ); ";
+      $rid = awm_pgexec( $wrms_db, $query, "req-action" );
+      if ( $rid ) $because .= "<h3>User $new_interest has been added to this request</h3>";
+    }
+
+    if ( $allocation_added ) {
+      /* new user was added as allocated */
+      $query = "SELECT set_interested( $new_allocation, $request_id ); ";
+      $rid = awm_pgexec( $wrms_db, $query, "req-action" );
+      $query = "SELECT set_allocated( $new_allocation, $request_id ) AS alloc_to, * FROM usr WHERE usr.user_no=$new_allocation; ";
+      $rid = awm_pgexec( $wrms_db, $query, "req-action" );
+      if ( $rid ) {
+        $alloc = pg_Fetch_Object( $rid, 0);
+        $because .= "<h3>$alloc->fullname (user #$new_allocation) has been allocated to work on this request</h3>";
+      }
+    }
+
+    if ( $note_added ) {
+      /* non-null note was entered */
+      $insert_note = $new_note;
+      if ( intval("$convert_html") > 0 ) $insert_note = htmlspecialchars($insert_note);
+      $insert_note = tidy($insert_note);
+      $query = "INSERT INTO request_note (request_id, note_by, note_by_id, note_on, note_detail) ";
+      $query .= "VALUES( $request_id, '$session->username', $session->user_no, 'now', '$insert_note')";
+      $rid = awm_pgexec( $wrms_db, $query, "req-action", true );
+      if ( ! $rid ) return;
+    }
+
+    $because .= "<h2>Request number $request_id modified.</h2><p>";
+
+    if ( $statusable && $status_changed )
+      $because .= "<br>Request status has been changed.\n";
+
+//    error_log( "$sysabbr request-action3: Active: $request->active, New: $new_active (statusable: $statusable, status_changed: $status_changed", 0);
+    if ( isset($new_active) && $request->active != $new_active ) {
+      $because .= "<br>Request has been ";
+      if ( $new_active == "TRUE" ) $because .= "re-"; else $because .= "de-";
+      $because .= "activated\n";
+    }
+
+    if ( $work_added )
+      $because .= "<br>Timesheet added to request.\n";
+
+    if ( $quote_added )
+      $because .= "<br>Quote $new_quote_id added to request.\n";
+
+    if ( $note_added )
+      $because .= "<br>Notes added to request.\n";
+
+    $previous = $request;
 
 
   // Looks like we made it through that transaction then...
-  awm_pgexec( $wrms_db, "END;", "req-action" );
+  awm_pgexec( $wrms_db, "COMMIT;", "req-action" );
 
   ////////////////////////////////////////////////////////
   // Assignment of work request happens to new or old jobs

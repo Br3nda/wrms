@@ -230,33 +230,26 @@ GRANT INSERT,SELECT ON request_history TO PUBLIC;
 CREATE INDEX xpk_request_history ON request_history ( request_id, modified_on );
 
 ---------------------------------------------------------------
--- Should replace this with a more generic 'associated file'
--- mechanism at some point in the future...
+-- Generic 'associated file' mechanism
 ---------------------------------------------------------------
-CREATE TABLE system_update (
-  update_id SERIAL PRIMARY KEY,
-  update_on TIMESTAMP DEFAULT TEXT 'now',
-  update_by_id INT4,
-  update_by TEXT,
-  update_brief TEXT,
-  update_description TEXT,
-  file_url TEXT,
-  system_code TEXT
-) ;
-CREATE INDEX xak1_system_update ON system_update ( system_code, update_id );
-GRANT INSERT,UPDATE,SELECT ON system_update, system_update_update_id_seq TO general;
-
-CREATE FUNCTION max_update() RETURNS INT4 AS 'SELECT max(update_id) FROM system_update' LANGUAGE 'sql';
-
-
-CREATE TABLE request_update (
+CREATE TABLE request_attachment (
+  attachment_id SERIAL PRIMARY KEY,
   request_id INT4,
-  update_id INT4,
-	PRIMARY KEY ( request_id, update_id )
-);
--- CREATE INDEX xpk_request_update ON request_update ( request_id );
-CREATE INDEX xak1_request_update ON request_update ( update_id );
-GRANT INSERT,UPDATE,SELECT ON request_update TO general;
+  attached_on TIMESTAMP DEFAULT TEXT 'now',
+  attached_by INT4,
+  att_brief TEXT,
+  att_description TEXT,
+  att_filename TEXT,
+  att_type TEXT,
+  att_inline BOOLEAN DEFAULT FALSE,
+  att_width INT4,
+  att_height INT4
+) ;
+CREATE INDEX request_attachment_skey ON request_attachment ( request_id );
+GRANT INSERT,UPDATE,SELECT ON request_attachment, request_attac_attachment_id_seq TO general;
+
+CREATE FUNCTION max_attachment() RETURNS INT4 AS 'SELECT max(attachment_id) FROM request_attachment' LANGUAGE 'sql';
+
 
 
 

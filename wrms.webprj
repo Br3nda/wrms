@@ -112,5 +112,6 @@
   <item url="html/inc/help-action.php" />
   <item url="html/inc/help-valid.php" />
   <item url="html/mockup/wrms.htm" />
+  <item url="html/attachment.php" />
  </project>
 </webproject>

@@ -68,7 +68,7 @@
   }
   echo "</td>\n";
   if ( is_member_of('Admin') ) {
-    echo "<td align=right><form action=usr.php method=post>";
+    echo "<td align=right><form action=\"usr.php\" method=\"post\" autocomplete=\"off\">";
     echo "<input type=hidden name=user_no value=$user_no>";
     echo "<input type=hidden name=M value=delete>";
     echo "<input type=submit value=\"Delete This User\" name=submit class=submit></form></td>\n";

@@ -119,7 +119,7 @@ class AttachmentType {
 
      if ( isset($_POST) ) {
        $valid = true;
-       $_POST['type_code'] = strtolower(trim($_POST['type_code'] ));
+       $_POST['type_code'] = strtoupper(trim($_POST['type_code'] ));
        $_POST['seq'] = intval("$_POST[seq]");
 
        if ( $_POST['type_code'] == "" ) {

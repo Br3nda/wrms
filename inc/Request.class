@@ -1456,7 +1456,7 @@ EOX
    // Attach a file to the W/R
    /////////////////////////////////////////////////////////////
    function AttachFile( $fname, $description ) {
-     global $session, $client_messages;
+     global $session, $client_messages, $attachment_dir;
      error_log( "$sysabbr Request::AttachFile: DBG: Adding attachment: " . $_FILES[$fname]['name'], 0);
      $sql = "SELECT nextval('request_attachment_attachment_id_seq') AS id ;";
      $qry = new PgQuery( $sql );
@@ -1467,10 +1467,11 @@ EOX
 
      $row = $qry->Fetch();
      $attachment_id = $row->id;
-     move_uploaded_file($_FILES[$fname]['tmp_name'], "attachments/$attachment_id");
+     if ( !isset($attachment_dir) ) $attachment_dir = "attachments";
+     move_uploaded_file($_FILES[$fname]['tmp_name'], "$attachment_dir/$attachment_id");
      $att_name = tidy($_FILES[$fname]['name']);
 
-     $file_type = guess_file_type( $att_name, "attachments/$attachment_id" );
+     $file_type = guess_file_type( $att_name, "$attachment_dir/$attachment_id" );
 
      $sql = "INSERT INTO request_attachment ( attachment_id, request_id, attached_by, ";
      $sql .= "att_brief, att_description, att_filename, att_type ) ";
@@ -1482,7 +1483,7 @@ EOX
        return false;
      }
 
-     chmod( "attachments/$attachment_id", 0644 );
+     chmod( "$attachment_dir/$attachment_id", 0644 );
      $client_messages[] = "File attachment \"$att_name\" added to this request</h3>";
      $this->mail_message_data[]['html'] = "<h4>File attachment &quot;<a href=\"".$GLOBALS['base_dns']."/attachment.php/".htmlspecialchars($att_name)."?id=".$attachment_id."\">".htmlspecialchars($att_name)."</a>&quot; was added.</h4>\n";
      $this->mail_message_data[]['text'] = " * File attachment \"$att_name\" was added.\n";

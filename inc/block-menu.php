@@ -74,8 +74,9 @@
   }
 
   if ( is_member_of('Admin') ) {
-    echo "<br><img class=blocksep src=\"/$images/menuBreak.gif\" width=\"130\" height=\"9\"><br>\n &nbsp;<a href=$base_url/lookups.php class=block>Lookup&nbsp;Codes</a>";
-    echo "<br>\n &nbsp;<a href=$base_url/form.php?form=sessionlist class=block>Sessions</a>";
+    echo "<br><img class=blocksep src=\"/$images/menuBreak.gif\" width=\"130\" height=\"9\"><br>\n &nbsp;<a href=\"$base_url/lookups.php\" class=block>Lookup&nbsp;Codes</a>";
+    echo "<br>\n &nbsp;<a href=\"$base_url/form.php?form=attachment_type\" class=block>Attachment&nbsp;Types</a>";
+    echo "<br>\n &nbsp;<a href=\"$base_url/form.php?form=sessionlist\" class=block>Sessions</a>";
   }
 
   echo "</td></tr>\n";

@@ -503,7 +503,7 @@ function dates_equal( $date1, $date2 ) {
       $msg .= "          (was: $previous->brief)\n";
     }
 
-    $msg .= "Type:         $request->request_type\n"
+    $msg .= "Type:         $request->request_type_desc\n"
           . "Importance:   $request->importance_desc\n"
           . "Urgency:      $request->urgency_desc\n";
 

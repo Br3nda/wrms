@@ -39,9 +39,10 @@ elseif ( strstr($REQUEST_URI,"/system.php") || (isset($system_code) && $system_c
   }
 }
 elseif ( strstr($REQUEST_URI,"/attachment_type.php") || (isset($type_code) && $type_code != '') ) {
-  $tmnu->AddOption("View Attachment Type","/attachment_type.php?type_code=$type_code","View the details for this Attachment Type");
-  $tmnu->AddOption("Edit Attachment Type","/attachment_type.php?edit=1&type_code=$type_code","Edit the details for this Attachment Type");
-  $tmnu->AddOption("New Attachment Type","/attachment_type.php","Create a new Attachment Type");
+  $tmnu->AddOption("$type_code","/attachment_type.php?type_code=$type_code","View the details for this Attachment Type");
+  $tmnu->AddOption("Edit","/attachment_type.php?edit=1&type_code=$type_code","Edit the details for this Attachment Type");
+  $tmnu->AddOption("New","/attachment_type.php","Create a new Attachment Type");
+  $tmnu->AddOption("List","/form.php?form=attachment_type","List the existing attachment types");
 }
 elseif ( strstr($REQUEST_URI,"/usr.php") || (isset($user_no) && $user_no != '') ) {
   $tmnu->AddOption("User","/usr.php?user_no=$user_no","View the details for this user");

@@ -20,7 +20,7 @@ var alloc_sel;
 var subsc_sel;
 var orgtag_sel;
 
-var xmlhttp;
+var xmlhttp=false;
 /*@cc_on @*/
 /*@if (@_jscript_version >= 5)
 // JScript gives us Conditional compilation, we can cope with old IE versions.
@@ -34,13 +34,9 @@ var xmlhttp;
    xmlhttp = false;
   }
  }
-@else
- xmlhttp = false;
 @end @*/
-if (!xmlhttp && typeof XMLHttpRequest!=undefined) {
+if (!xmlhttp && typeof XMLHttpRequest!='undefined') {
   xmlhttp = new XMLHttpRequest();
-} else {
-  xmlhttp = false;
 }
 
 function CleanSelectOptions( sel ) {

@@ -13,6 +13,7 @@
       $query .= " WHERE group_member.user_no=$user_no ";
       $query .= " AND group_member.group_no=ugroup.group_no";
       $result = awm_pgexec( $dbconn, $query, "getusr" );
+      $UserRole = array();
       if ( $result ) {
         // Build array of group requestships
         for ( $i=0; $i < pg_NumRows($result); $i++ ) {
@@ -26,6 +27,7 @@
       $query .= " WHERE user_no=$user_no ";
       $query .= " ORDER BY role, system_code ";
       $result = awm_pgexec( $dbconn, $query, "getusr" );
+      $UserCat = array();
       if ( $result ) {
         // Build array of user system data
         for ( $i=0; $i < pg_NumRows($result); $i++ ) {

@@ -554,13 +554,13 @@ function dates_equal( $date1, $date2 ) {
       $msg .= "Work Allocated:    $work->fullname has been allocated to work on this request.\n";
 
 
-    if ( $chtype == "change" && $request->detailed != $previous->detailed ) {
+    if ( $chtype == "change" && $detail_changed ) {
       $msg .= "\nPrevious Description:\n"
             . "====================\n"
             . stripslashes($previous->detailed) . "\n\n";
     }
 
-    if ( $chtype == "create" || ( $chtype == "change" && $request->detailed != $previous->detailed ) )
+    if ( $chtype == "create" || ( $chtype == "change" && $detail_changed ) )
       $msg .= "\nDetailed Description:\n"
             . "====================\n"
             . stripslashes($request->detailed) . "\n\n";

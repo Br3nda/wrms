@@ -11,7 +11,7 @@
     }
     $org_code = pg_Result( $rid, 0, 0);
     $query = "INSERT INTO organisation ( org_code, debtor_no, org_name, work_rate, active )";
-    $query .= " VALUES( $org_code, $debtor_no, '$org_name', '$work_rate', '$active' );";
+    $query .= " VALUES( $org_code, '$debtor_no', '$org_name', '$work_rate', '$active' );";
   }
   else {
     $query .= "UPDATE organisation ";

@@ -7,7 +7,7 @@
   awm_pgexec( $dbconn, $query, "help", true, 5 );
 
   $query = "SELECT * FROM help WHERE topic = '" . tidy($topic) . "' ";
-  if ( isset($seq) ) $query .= "AND seq = " . intval($seq) . " ";
+  if ( isset($seq) && $action == "edit" ) $query .= "AND seq = " . intval($seq) . " ";
   $query .= "ORDER BY topic, seq;";
   $rid = awm_pgexec( $dbconn, $query, "help");
   if ( !$rid ) {
@@ -65,16 +65,30 @@
     }
     else {
       // Many results so display a table of contents
-      echo "<h1>Select Your Help Topic</h1>\n";
+      if ( isset($show_all) )
+        echo "<h1>Detailed Help</h1>\n";
+      else
+        echo "<h1>Select Your Help Topic</h1>\n";
       echo "<ol type=\"1\">";
       for( $i = 0; $i < $rows; $i ++ ) {
         $help = pg_Fetch_Object($rid,$i);
-        echo "<li><a href=\"/help.php?h=" . htmlspecialchars($help->topic) . "&seq=$help->seq\">$help->title</a></li>\n";
+        if ( (isset($seq) && $help->seq == $seq) || isset($show_all) ) {
+          echo "<li><b><big>$help->title</big></b></li>\n";
+          echo "$help->content\n";
+          if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
+            echo "<p align=right><a href=\"/help.php?action=edit&h=" . htmlspecialchars($help->topic) . "&seq=$help->seq\">edit this help text</a></p>\n";
+//            echo " &nbsp;| &nbsp;<a href=\"/help.php?action=add&h=" . htmlspecialchars($help->topic) . "\">add new help text</a>\n";
+          }
+        }
+        else
+          echo "<li><a href=\"/help.php?h=" . htmlspecialchars($help->topic) . "&seq=$help->seq\">$help->title</a></li>\n";
       }
       echo "</ol>";
       if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
-        echo "<p><br><a href=\"/help.php?action=add&h=" . htmlspecialchars($topic) . "\">add new help text</a>\n";
+        echo "<p align=right><a href=\"/help.php?action=add&h=" . htmlspecialchars($topic) . "\">add new help text</a>\n";
       }
+      if ( !isset($show_all) )
+        echo "<p align=right><a href=\"$REQUEST_URI&show_all=1\">show all</a>\n";
     }
   }
 ?>

@@ -78,13 +78,12 @@
     $requsr = $session;
 
     // Have to be pedantic here - the translation from database -> variable is basic.
-    if ( $debuglevel >= 1 ) echo "<p>Active: $request->active, New: $new_active</p>";
+//    error_log( "$sysabbr request-action1: Active: $request->active, New: $new_active", 0);
     if ( isset($new_active) && $new_active <> "TRUE" ) $new_active = "FALSE";
     if ( strtolower( substr( $request->active, 0, 1)) == "t" )
       $request->active = "TRUE";
-    else {
+    else
       $request->active = "FALSE";
-    }
 
     $note_added = ($new_note != "");
     $quote_added = ($new_quote_brief != "") && ($new_quote_amount != "");
@@ -105,8 +104,8 @@
              || $eta_changed || $status_changed || $note_added || $quote_added || $allocation_added ;
     $send_some_mail = $changes;
     $changes = $changes || $work_added || $interest_added;
-    if ( $debuglevel >= 1 ) {
-      echo "<p>---" . (isset($new_brief) && $request->brief != $new_brief) . "-"
+    error_log( "$sysabbr request-action: $changes---"
+             . (isset($new_brief) && $request->brief != $new_brief) . "-"
              . (isset($new_detail) && $request->detailed != $new_detail) . "+"
              . (isset($new_type) && $request->request_type != $new_type ) . "-"
              . (isset($new_severity) && $request->severity_code != $new_severity ) . "+"
@@ -114,12 +113,10 @@
              . (isset($new_importance) && $request->importance != $new_importance ) . "+"
              . (isset($new_system_code) && $request->system_code != $new_system_code ) . "-"
              . (isset($new_active) && $request->active != $new_active ) . "+  also  -"
-             . $eta_changed . "+" . $status_changed . "-" . $note_added . "+"
-             . $quote_added . "-" . $work_added . "+" . $interest_added . "-" . $allocation_added . "+"
-             . "---$request->request_type != $new_type</p>" ;
+             . "$eta_changed+$status_changed-$note_added+"
+             . "$quote_added-$work_added+$interest_added-$allocation_added+"
+             . "---", 0) ;
 
-      echo "<p>-$request->active|$new_active-</p>";
-    }
     if ( ! $changes ) {
       $because = "";
       $chtype = "";
@@ -155,6 +152,7 @@
       else
         $new_active = "TRUE";
     }
+//    error_log( "$sysabbr request-action2: Active: $request->active, New: $new_active (statusable: $statusable, status_changed: $status_changed", 0);
 
     $query = "UPDATE request SET";
     if ( isset($new_brief) && $request->brief != $new_brief )
@@ -184,9 +182,9 @@
       pg_exec( $wrms_db, "ROLLBACK;" );
       return;
     }
-    else if ( $debuglevel > 0 ) {
-      $because .="<P>The query was:</P><TT>$query</TT>";
-    }
+    else
+      error_log( "$sysabbr request-action Q: $query", 0);
+
 
     if ( $quote_added ) {
       $query = "SELECT NEXTVAL('request_quote_quote_id_seq');";
@@ -286,6 +284,7 @@
     if ( $statusable && $status_changed )
       $because .= "<br>Request status has been changed.\n";
 
+//    error_log( "$sysabbr request-action3: Active: $request->active, New: $new_active (statusable: $statusable, status_changed: $status_changed", 0);
     if ( isset($new_active) && $request->active != $new_active ) {
       $because .= "<br>Request has been ";
       if ( $new_active == "TRUE" ) $because .= "re-"; else $because .= "de-";
@@ -489,7 +488,7 @@
       $msg .= "New Status:   $new_status - " . pg_Result( $rid, 0, 0) . " (previous status was $previous->last_status - $previous->status_desc)\n";
     }
 
-    if ( $chtype == "change" && $request->active != $new_active ) {
+    if ( isset($new_active) && $request->active != $new_active ) {
       $msg .= "Request has been ";
       if ( $new_active == "TRUE" ) $msg .= "re-"; else $msg .= "de-";
       $msg .= "activated\n";

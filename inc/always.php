@@ -8,6 +8,7 @@ pg_Exec( $wrms_db, "SET DATESTYLE TO 'Postgres';");
 $admin_email = "wrmsadmin@catalyst.net.nz";
 $basefont = "verdana,sans-serif";
 $system_name = "Catalyst WRMS";
+$sysabbr = "wrms";
 
 $base_dns = "http://$HTTP_HOST";
 $base_url = "";

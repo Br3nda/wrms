@@ -16,15 +16,15 @@
       $thisrequest = pg_Fetch_Object( $result, $i );
 
       $request = "";
-      if ( isset($active) ) {
+      if ( isset($active[$id]) ) {
         error_log( "wrmswap: Should be marking $id as active=$active", 0);
-        if ( $thisrequest->wap_status != $active ) {
+        if ( $thisrequest->wap_status != $active[$id] ) {
           // Looks like we need to update things then...
           $query = "SELECT request_id, brief, detailed, severity_code, request_by, urgency, wap_status ";
           $query .= "FROM request WHERE request.request_id=$id; ";
           $result = pg_Exec( $wrms_db, $query );
 
-          $query = "UPDATE request SET wap_status=$active WHERE request_id=$id; ";
+          $query = "UPDATE request SET wap_status=" . $active[$id] . " WHERE request_id=$id; ";
           $result = pg_Exec( $wrms_db, $query );
         }
       }
@@ -41,8 +41,8 @@
 
       // Have to put '$id' onto the name of the fieldset otherwise the value gets cached!
       $request .= "<p align=\"center\">
-<fieldset title=\"Status$id\">
-Status: <select name=\"active\" ivalue=\"$thisrequest->wap_status\">
+<fieldset title=\"Status\">
+Status: <select name=\"active[$id]\" ivalue=\"$thisrequest->wap_status\">
 <option value=\"0\">Inactive</option>
 <option value=\"1\">Active</option>
 <option value=\"2\">Complete</option>

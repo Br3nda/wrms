@@ -6,7 +6,7 @@
   echo '<script language="JavaScript" src="js/date-picker.js"></script>' . "\n";
 
   // Style sheet
-  $style_sheets = false;
+  $style_sheets = true;
   if ( $style_sheets ) {
     if ( $agent == "moz4" )
       echo '<link rel="stylesheet" type="text/css" href="/wrmsmoz4.css">' . "\n";
@@ -68,7 +68,7 @@ h3, th.h3, th.cols, th.rows  {font: bold $fontsizes[1] $fonts[0], sans-serif; co
   include("inc/menuhead.php");
 
   // The left hand sidebar.
-  echo "<table border=\"0\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" height=\"100%\"><tr>\n";
+  echo "<table border=\"0\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\"><tr>\n";
   echo "<td width=\"10%\" bgcolor=\"$colors[blockback]\" valign=\"top\">";
   if ( "$error_qry" == "" ) {
     include("inc/sidebarleft.php");

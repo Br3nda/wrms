@@ -47,6 +47,8 @@ update request
 alter table saved_queries add column maxresults int;
 alter table saved_queries add column rlsort text;
 alter table saved_queries add column rlseq text;
+update saved_queries set maxresults=100;
+vacuum full saved_queries;
 
 -- Change the indexes on request to be partial (where active)
 drop index xak0_request;
@@ -59,4 +61,5 @@ create index xak1_request on request ( active, severity_code, request_by ) where
 create index xak2_request on request ( active, request_by ) where active ;
 create index xak3_request on request ( active, last_status ) where active ;
 vacuum full verbose analyze request;
-
+reindex table request force;
+vacuum full pg_statistic;

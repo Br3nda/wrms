@@ -74,8 +74,8 @@ function build_time_list( $name, $from, $current, $delta ) {
   echo "<tr>\n";
   echo "<th>Week Starting:</th><td>$week_list</td>\n";
   echo "<th>Periods:</th><td>$period_list</td>\n";
-  echo "<th>From:</th><td>" . build_time_list('sod', 360, $sod, $period_minutes) . "</td>\n";
-  echo "<th>To:</th><td>" . build_time_list('eod', 840, $eod, $period_minutes) . "</td>\n";
+  echo "<th>From:</th><td>" . build_time_list('sod', 360, $sod, 30) . "</td>\n";
+  echo "<th>To:</th><td>" . build_time_list('eod', $sod + 240, $eod, max($period_minutes / 4, 30)) . "</td>\n";
   echo "</tr>\n";
   echo "</table>\n</form>\n";
 

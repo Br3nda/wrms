@@ -444,7 +444,7 @@ else {
           $query .= $k ;
         }
         $query .= "]') ";
-        error_log( "1-> $query", 0);
+        error_log( "wrms requestlist: DBG: 1-> $query", 0);
         if ( eregi("save", "$submit") && "$savelist" != "" ) {
           $savelist = tidy($savelist);
           $qquery = tidy($query);

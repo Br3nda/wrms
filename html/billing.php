@@ -75,7 +75,7 @@
     if ( isset($system_code) || isset($request_type)) {
 
 	$query  = "SELECT";
-	$query .= "  r.request_id                         AS id" ;
+	$query .= "  r.request_id                         AS \"id\"" ;
 	$query .= ", r.system_code                        AS system" ;
 	$query .= ", SUBSTR(r.brief,1,40)                 AS \"request brief\"";
 	$query .= ", lc.lookup_desc                       AS \"request type\"";
@@ -133,7 +133,7 @@
 
 	$result = awm_pgexec( $dbconn, $query, "billing", false, 7 );
 
-	echo "$query <table><tr>";
+	echo "<table border=0><tr>";
 
         // Create column headers for selected fields.
 
@@ -143,19 +143,7 @@
 	
         // Add request_timesheet work types to list of select fields.
 
-	echo "<th class=cols>work amount</th><th class=cols>units</th<th class=cols>inv no</th></tr>\n";
-/*
-	$wt_query = "SELECT DISTINCT work_units FROM request_timesheet";
-	$wt_result = awm_pgexec( $dbconn, $wt_query, "billing");
-
- 	for ( $i=0; $i < pg_NumRows($wt_result); $i++ ) {
-		$wt_row = pg_fetch_row( $wt_result, $i );
-    		echo "<th class=cols>" . $wt_row[0] . "</th>";
-	}
-
-	echo "</tr>\n";
-
-*/
+	echo "<th class=cols>work amount</th><th class=cols>units</th<th class=cols>inv no</th><th class=cols>linked id</th><th class=cols>link type</th><th class=cols>work amount</th><th class=cols>units</th><th class=cols>inv no</th></tr>\n";
 
 	// Print result rows.
 
@@ -164,57 +152,63 @@
 		$row = pg_fetch_array( $result, $i );
 
 		// Print work totals for first instance on any WR
-		    if ($row["id"] <> $prev_id) {
-			$w_query = "SELECT sum(rt.work_quantity) AS quantity, rt.work_units AS units, rt.charged_details AS \"inv no\" ";
-			$w_query .= " FROM request_timesheet rt WHERE rt.request_id = " . $row["id"] . " GROUP BY rt.work_units, rt.charged_details";
+		if ($row["id"] <> $prev_id) {
+		  // work on this WR
+		  $w_query  = "SELECT sum(rt.work_quantity) AS quantity, rt.work_units AS units, rt.charged_details AS \"inv no\"";
+		  $w_query .= " FROM request_timesheet rt WHERE rt.request_id = " . $row["id"] ;
+		  $w_query .= " GROUP BY rt.work_units, rt.charged_details";		  
+		  $w_result = awm_pgexec( $dbconn, $w_query, "billing.work", false, 7 );
 
-			$w_result = awm_pgexec( $dbconn, $w_query, "billing.work", false, 7 );
-/*
-			$w_query = "SELECT SUM(rt.work_quantity) FROM request_timesheet rt WHERE rt.request_id = " . $row["id"] . " AND rt.work_units = '$wt_row[0]'";
-			
-			$w_query = "SELECT SUM(rt.work_quantity) FROM request_timesheet rt WHERE rt.request_id = " . $row["id"] . " AND rt.work_units = '$wt_row[0]'";
+		  // work on linked WRs
+		  $lw_query  = "SELECT rr.to_request_id, rr.link_type, sum(rt.work_quantity) AS quantity, rt.work_units AS units, rt.charged_details AS \"inv no\"";
+                  $lw_query .= " FROM request_request rr ";
+      		  $lw_query .= " LEFT OUTER JOIN request_timesheet rt ON rt.request_id = rr.to_request_id ";
+		  $lw_query .= " WHERE rr.request_id = " . $row["id"] ;
+		  $lw_query .= " GROUP BY rr.to_request_id, rr.link_type, rt.work_units, rt.charged_details";
+		  $lw_result = awm_pgexec( $dbconn, $lw_query, "billing.linkedwork", false, 7 );
 
-                        // Get sum for each work type.
+		  $prev_id = $row["id"] ;
+		}
 
-			for ( $j=0; $j < pg_NumRows($wt_result); $j++ ) {
-			    $wt_row = pg_fetch_row( $wt_result, $j );
-
-			    $w_query = "SELECT SUM(rt.work_quantity) FROM request_timesheet rt WHERE rt.request_id = " . $row["id"] . " AND rt.work_units = '$wt_row[0]'";
-			    $w_result = awm_pgexec( $dbconn, $w_query, "billing.work", false, 7 );
-			    $w_row = pg_fetch_row( $w_result);
-			    echo "<td class=sml>" . $w_row[0] . "</td>";
-			}
-
-			// $w_query .= "SELECT SUM(rt.work_quantity) FROM request_timesheet rt WHERE rt.request_id = " . $row["id"] . " AND rt.work_units = '$wt_row[0]'";
-			    */
-		
-			$prev_id = $row["id"] ;
-		    }
+		$max_res = max(pg_numrows($w_result),pg_numrows($lw_result));
 
 		for ($j = 0; $j < pg_numfields($result) ; $j++) {
 			echo "<td class=sml";
-			if (pg_numrows($w_result) > 1) echo " rowspan=" . pg_numrows($w_result) ;
+			if ($max_res > 1) echo " rowspan=" . $max_res ;
 			echo ">";
 			if ($j == 0) echo "<a href=request.php?request_id=" . $row["id"] . ">";
 			echo  $row[$j] ;
 		        if ($j == 0) echo "</a>";
 			echo "</td>";
 		}
-			
-		if (pg_numrows($w_result) > 0) {
-		    for ($j = 0; $j < pg_numrows($w_result); $j++) {
-			$w_row = pg_fetch_row( $w_result);
-			for ($k = 0; $k < pg_numfields($w_result) ; $k++) {
-			    echo "<td class=sml>$w_row[$k]</td>";
-			}
 
-			echo "</tr>";
-			printf( "<tr class=row%1d>", $i % 2);
+                if ($max_res == 0) echo "<td class=sml></td><td class=sml></td><td class=sml></td><td class=sml></td><td class=sml></td><td class=sml></td><td class=sml></td><td class=sml></td></tr>\n";
+		else for ($j = 0; $j < $max_res; $j++) {
+		  if ($j < pg_numrows($w_result)) { 
+		    $w_row = pg_fetch_row($w_result);
+
+		    for ($k = 0; $k < pg_numfields($w_result) ; $k++) {
+		      echo "<td class=sml>$w_row[$k]</td>";
 		    }
+		  }
+		  else echo "<td class=sml></td><td class=sml></td><td class=sml></td>";		  
+		  
+		  if ($j < pg_numrows($lw_result)) {
+		    $lw_row = pg_fetch_row($lw_result);
+
+		    for ($k = 0; $k < pg_numfields($lw_result) ; $k++) {
+		      echo "<td class=sml>";
+		      if ($k == 0) echo "<a href=request.php?request_id=" . $lw_row[$k] . ">";
+                      echo  $lw_row[$k] ;
+                      if ($k == 0) echo "</a>";
+         	      echo "</td>";
+		    }
+		  }
+		  
+                  else echo "<td class=sml></td><td class=sml></td><td class=sml></td><td class=sml></td><td class=sml></td>"; 
+		  echo "</tr>\n";
+		  if ($j < $max_res) printf( "<tr class=row%1d>", $i % 2);
 		}
-
-
-    		echo "</tr>\n";
 	}
 
 	echo "</table>";

@@ -1,9 +1,9 @@
 <?php
-echo "<H3>$system_name</H3>\n";
+echo "<p><font color=$colors[link1]>$system_name &gt;&gt;&gt;</font>\n";
 if ( $logged_on ) { ?>
 
-<H4>Please select an action from the menus at the top of the page, or select
-one of the recently modified requests from the list below.</H4>
+Please select an action from the menus at the top of the page, or select
+one of the recently modified requests from the list below.<br></p>
 <?php
   $query = "SELECT DISTINCT request.request_id, brief, fullname, email, last_activity, lookup_desc AS status_desc, request.system_code ";
   if ( $roles['wrms']['Admin'] || $roles['wrms']['Support']  ) {
@@ -35,18 +35,22 @@ one of the recently modified requests from the list below.</H4>
   }
   $result = awm_pgexec( $wrms_db, $query, 'indexpage', 7 );
   if ( $result ) {
-    echo "<table border=0 align=center cellspacing=0 cellpadding=2><tr>\n";
-    echo "<th class=cols>WR&nbsp;#</th><th class=cols>Requested By</th>";
-    echo "<th class=cols>Description</th><th class=cols>Status</th><th class=cols>Last&nbsp;Activity</th></tr>\n";
+    echo "<table border=0 align=center cellspacing=1 cellpadding=1><tr class=cols>\n";
+    echo "<th class=cols>WR&nbsp;#</th>";
+    echo "<th class=cols>Requested By</th>";
+    echo "<th class=cols>Description</th>";
+    echo "<th class=cols>Status</th>";
+    echo "<th class=cols>Last&nbsp;Activity</th>";
+    echo "</tr>\n";
+    echo "<tr class=row0 height=5><td colspan=5></td></tr>\n";
     for ( $i=0; $i < pg_NumRows($result); $i++ ) {
       $thisrequest = pg_Fetch_Object( $result, $i );
 
-      if( ($i % 2) == 0 ) echo "<tr bgcolor=$colors[6]>";
-      else echo "<tr bgcolor=$colors[7]>";
+      echo "<tr class=row" . ($i % 2) . ">";
 
-      echo "<td class=sml align=center><a href=\"request.php?request_id=$thisrequest->request_id\">$thisrequest->request_id</a></td>\n";
-      echo "<td class=sml nowrap><a href=\"mailto:$thisrequest->email\">$thisrequest->fullname</a></td>\n";
-      echo "<td class=sml><a href=\"request.php?request_id=$thisrequest->request_id\">$thisrequest->brief";
+      echo "<td class=sml align=center><a class=row0 href=\"request.php?request_id=$thisrequest->request_id\">$thisrequest->request_id</a></td>\n";
+      echo "<td class=sml nowrap><a class=row0 href=\"mailto:$thisrequest->email\">$thisrequest->fullname</a></td>\n";
+      echo "<td class=sml><a class=row0 href=\"request.php?request_id=$thisrequest->request_id\">$thisrequest->brief";
       if ( "$thisrequest->brief" == "" ) echo "-- no description --";
       echo "</a></td>\n";
       echo "<td class=sml>$thisrequest->status_desc</td>\n";

@@ -5,7 +5,7 @@
   $query .= " ORDER BY lookup_seq;";
   $result = awm_pgexec( $wrms_db, $query, "lookhead");
   if ( $result && pg_NumRows($result) > 0 ) {
-    echo "<tr><td bgcolor=$colors[6] class=menu><font size=1>\n";
+    echo "<tr><td>\n";
     for ( $i=0; $i < pg_NumRows($result); $i++) {
       $codes = pg_Fetch_Object( $result, $i );
       list( $s_table, $s_field ) = explode( "|", "$codes->lookup_code" );
@@ -13,7 +13,7 @@
       printf( "<a class=submit href=\"lookups.php?table=$s_table&field=$s_field\">%s$codes->lookup_desc%s</a>\n",
                        ("$table$field" == "$s_table$s_field" ? "<b>*" : ""), ("$table$field" == "$s_table$s_field" ? "*</b>" : "") );
     }
-    echo "</font></td></tr>\n";
+    echo "</td></tr>\n";
   }
 
 ?>

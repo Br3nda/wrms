@@ -33,6 +33,8 @@
           $UserCat[$sys->system_code] = $sys->role;
         }
       }
+
+      $usr->settings = new Setting( $usr->config_data );
     }
   }
 ?>

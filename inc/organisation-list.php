@@ -17,10 +17,10 @@ function get_organisation_list( $current="", $maxwidth=50 ) {
     $rows = pg_NumRows( $rid );
     for ( $i=0; $i < $rows; $i++ ) {
       $org_code = pg_Fetch_Object( $rid, $i );
-      $org_code_list .= "<OPTION VALUE=\"$org_code->org_code\"";
+      $org_code_list .= "<option value=\"$org_code->org_code\"";
       if ( "$org_code->org_code" == "$current" ) $org_code_list .= " SELECTED";
       $our_name = substr( "$org_code->abbreviation - $org_code->org_name", 0, $maxwidth);
-      $org_code_list .= ">$our_name";
+      $org_code_list .= ">$our_name</option>\n";
     }
   }
 

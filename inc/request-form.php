@@ -213,7 +213,7 @@
   echo "<tr><th class=rows align=right valign=top><br>Details:</th>\n";
   echo "<td colspan=2>";
   if ( $editable )
-    echo "<textarea name=\"new_detail\" rows=12 cols=60  wrap=\"SOFT\">$request->detailed</textarea>";
+    echo "<textarea class=sml name=\"new_detail\" rows=12 cols=60  wrap=\"SOFT\">$request->detailed</textarea>";
   else
     echo html_format($request->detailed);
   echo "</td></tr>\n";
@@ -234,7 +234,7 @@
     if ( $rows > 0 ) {
 ?>
 <?php echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=6>&nbsp;</TD></TR><TR>$hdcell"; ?>
-<TD CLASS=h3 COLSPAN=5 ALIGN=RIGHT<?php echo " bgcolor=$colors[8]"; ?>><FONT SIZE=+1 color=<?php echo $colors[1]; ?>><B>Program Update Details</B></FONT></TD></TR>
+<TD CLASS=h3 COLSPAN=5 ALIGN=RIGHT>Program Update Details</TD></TR>
 <TR><th>&nbsp;</th>
  <TH class=cols>ID</TH>
  <TH class=cols>Done By</TH>
@@ -248,7 +248,7 @@
 
         printf("<tr class=row%1d>", ($i % 2) );
         echo "<th>&nbsp;</TH>\n";
-        echo "<td class=h2 VALIGN=TOP ALIGN=CENTER ROWSPAN=2><FONT SIZE=+2>$update->update_id</FONT></td>\n";
+        echo "<td class=h2 VALIGN=TOP ALIGN=CENTER ROWSPAN=2>$update->update_id</td>\n";
         echo "<td>$update->update_by</TD>\n";
         echo "<td>" . nice_date($update->update_on) . "</TD>\n";
         echo "<td>$update->update_brief</td>";
@@ -275,7 +275,7 @@
     $rows = pg_NumRows($quoteq);
     if ( $rows > 0 || (($allocated_to || $sysmgr) && !$plain) ) {
       echo "$tbldef><tr><td class=sml colspan=6>&nbsp;</td></tr><tr>$hdcell";
-      echo "<td class=h3 colspan=6 align=right bgcolor=$colors[8]><font size=+1 color=$colors[1]><b>Quotations</b></font></td></tr>\n";
+      echo "<td class=h3 colspan=6 align=right>Quotations</td></tr>\n";
 
       echo "<TR>";
       if ( $rows > 0 ) echo "<th class=smb>Quote</th><th class=smb>Done By</th><th class=smb>";
@@ -310,7 +310,7 @@
         echo "<TD ALIGN=LEFT><select class=sml name=new_quote_unit>$quote_units</select></TD></tr>\n";
         if ( $i % 2 == 0 ) echo "<tr bgcolor=$colors[row1]>";
         else echo "<tr bgcolor=$colors[row2]>";
-        echo "<TD COLSPAN=6><textarea name=new_quote_details rows=4 cols=60 wrap=soft></textarea></TD></TR>\n";
+        echo "<TD COLSPAN=6><textarea class=sml name=new_quote_details rows=4 cols=60 wrap=soft></textarea></TD></TR>\n";
       }
       echo "</TABLE>";
     }
@@ -339,7 +339,7 @@
   $rows = pg_NumRows($allocq);
   if ( $rows > 0 || (! $plain && (($roles['wrms']['Admin'] || $roles['wrms']['Support'] ))) ) {
     echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=3>&nbsp;</TD></TR>\n";
-    echo "<TR>$hdcell<TD CLASS=h3 COLSPAN=2 ALIGN=RIGHT bgcolor=$colors[8]><FONT SIZE=+1 color=$colors[1]><B>Work Allocated To</B></FONT></TD></TR>\n";
+    echo "<TR>$hdcell<TD CLASS=h3 COLSPAN=2 ALIGN=RIGHT>Work Allocated To</TD></TR>\n";
     echo "<TR VALIGN=TOP><td>";
     for( $i=0; $i<$rows; $i++ ) {
       $alloc = pg_Fetch_Object( $allocq, $i );
@@ -355,9 +355,7 @@
     if ( $plain || !($roles['wrms']['Admin'] || $roles['wrms']['Support'] ) )
       echo "</TD>\n<TD>&nbsp;";  // Or we could correct the cellspan above for this case...
     else {
-      echo "</TD>\n<TD ALIGN=RIGHT nowrap><font size=-2>";
-      echo "Add:&nbsp;<select class=sml name=\"new_allocation\">$support_list</SELECT>\n";
-      echo "</font>";
+      echo "</TD>\n<td align=right nowrap>Add:&nbsp;<select class=sml name=\"new_allocation\">$support_list</SELECT>\n";
     }
     echo "</TD></TR></TABLE>\n";
   }
@@ -374,7 +372,7 @@
   if ( $rows > 0  || (($allocated_to || $sysmgr) && !$plain) ) {
 ?>
 <?php echo "$tbldef>\n<tr><td class=sml colspan=7>&nbsp;</td></tr><tr>$hdcell"; ?>
-<td class=h3 colspan=7 align=right<?php echo " bgcolor=$colors[8]"; ?>><FONT SIZE=+1 color=<?php echo $colors[1]; ?>><B>Work Done</B></FONT></TD></TR>
+<td class=h3 colspan=7 align=right>Work Done</TD></TR>
  <tr valign=top>
    <th class=smb>Done By</th>
    <th class=smb>Done On</th>
@@ -398,9 +396,9 @@
       echo "<td align=right nowrap>$tmp&nbsp;</td>\n";
       echo "<td>$work->work_description</td>\n";
       if ( "$style" != "plain" && ($roles['wrms']['Admin'] || $roles['wrms']['Support'] ) ) {
-        echo "<td align=right nowrap><font size=-2><a class=submit href=\"request.php?submit=deltime";
+        echo "<td align=right nowrap><a class=submit href=\"request.php?submit=deltime";
         echo "&request_id=$request_id&timesheet_id=$work->timesheet_id\">";
-        echo "DEL</a></font></td>";
+        echo "DEL</a></td>";
       }
       echo "</tr>";
     }
@@ -427,7 +425,7 @@
       echo "<td align=center><input name=new_work_quantity size=6 type=text value=\"$old_work_quantity\"><br>\n";
       echo "<select class=sml name=new_work_units>$quote_units</select></TD>\n";
       echo "<td><input name=new_work_rate size=5 type=text value=\"$old_work_rate\"><br>($ per unit)</TD>\n";
-      echo "<td colspan=3><textarea name=new_work_details rows=3 cols=30 wrap=soft>$old_work_details</textarea></TD></TR>\n";
+      echo "<td colspan=3><textarea class=sml name=new_work_details rows=3 cols=30 wrap=soft>$old_work_details</textarea></TD></TR>\n";
     }
     echo "</TABLE>\n";
 
@@ -444,7 +442,7 @@
   $rows = pg_NumRows($peopleq);
   if ( $rows > 0 ) {
     echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=3>&nbsp;</TD></TR>\n";
-    echo "<TR>$hdcell<TD CLASS=h3 COLSPAN=2 ALIGN=RIGHT bgcolor=$colors[8]><FONT SIZE=+1 color=$colors[1]><B>Interested Users</B></FONT></TD></TR>\n";
+    echo "<TR>$hdcell<TD CLASS=h3 COLSPAN=2 align=right>Interested Users</TD></TR>\n";
     echo "<TR VALIGN=TOP>\n<td>";
     for( $i=0; $i<$rows; $i++ ) {
       $interested = pg_Fetch_Object( $peopleq, $i );
@@ -469,13 +467,12 @@
         $action = "register";
       }
 
-      echo "</TD>\n<TD ALIGN=RIGHT nowrap><font size=-2>";
+      echo "</TD>\n<TD ALIGN=RIGHT nowrap>";
       if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] || $roles['wrms']['Manage']  ) {
         echo "Add:&nbsp;<select class=sml name=\"new_interest\">$user_list</SELECT>\n";
       }
       else
         echo "<a class=r href=\"request.php?submit=$action&request_id=$request_id\">$tell</a>";
-      echo "</font>";
     }
     echo "</TD>\n</TR></TABLE>\n";
   }
@@ -491,7 +488,7 @@
 ?>
 
 <?php echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=4>&nbsp;</TD></TR><TR>$hdcell"; ?>
-<TD CLASS=h3 COLSPAN=3 ALIGN=RIGHT<?php echo " bgcolor=$colors[8]"; ?>><FONT SIZE=+1 color=<?php echo $colors[1]; ?>><B>Associated Notes</B></FONT></TD></TR>
+<TD CLASS=h3 COLSPAN=3 align=right>Associated Notes</TD></TR>
 <TR VALIGN=TOP>
   <TH ALIGN=LEFT class=cols>Noted&nbsp;By</TH>
   <TH class=cols>Noted On</TH>
@@ -520,7 +517,7 @@
   if ( $rows > 0 ) {
     echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=4>&nbsp;</TD></TR><TR>$hdcell";
 ?>
-<td class=h3 colspan=3 align=right<?php echo " bgcolor=$colors[8]"; ?>><font size=+1 color=<?php echo $colors[1]; ?>><B>Changes in Status</B></FONT></TD></TR>
+<td class=h3 colspan=3 align=right>Changes in Status</TD></TR>
 <tr valign=top>
   <th class=smb width="15%" align=left>Changed By</th>
   <th class=smb width="25%" align=left>Changed On</th>
@@ -538,10 +535,10 @@
   if ( ! $plain ) {
 
     echo "$tbldef>\n<tr><td class=sml colspan=4>&nbsp;</td></tr>\n<tr>$hdcell";
-    echo "<td class=h3 colspan=4 align=right bgcolor=$colors[8]><font size=+1 color=$colors[1]><b>";
+    echo "<td class=h3 colspan=4 align=right>";
     /**** only update status & eta if they are administrator */
     if ( $statusable ) echo "Change Status or ";
-    echo "Add Notes</b></font></td></tr>\n";
+    echo "Add Notes</td></tr>\n";
     if ( $statusable ) {
       echo "<tr>";
       echo "<th class=rows align=right>New Status:</th>";
@@ -561,7 +558,7 @@
 <tr valign=top>
   <th class=rows align=right>New Note:<div class=sml align="left"><br>
 <label><input type="checkbox" name="convert_html" value="1">Process<br>HTML as Text</label></div></TH>
-  <td align=left colspan=3><textarea name="new_note" rows=8 cols=60  wrap="SOFT"></textarea></TD>
+  <td align=left colspan=3><textarea class=sml name="new_note" rows=8 cols=60  wrap="SOFT"></textarea></TD>
 </tr>
 </table>
 <?php

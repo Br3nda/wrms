@@ -97,7 +97,7 @@
         if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
           echo "<a class=submit href=\"requestlist.php?allocated_to=$thisusr->user_no\">Allocated</a>\n";
 //          echo "<a class=submit href=\"requestlist.php?interested=$thisusr->user_no\">Interested</a>\n";
-          echo "<a class=submit href=\"form.php?user_no=$thisusr->user_no&form=timelist\">Work</a>\n";
+          echo "<a class=submit href=\"form.php?user_no=$thisusr->user_no&form=timelist&uncharged=1\">Work</a>\n";
         }
         echo "</td></tr>\n";
       }

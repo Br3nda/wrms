@@ -26,24 +26,18 @@ $base_dir = "/var/www/wrms.catalyst.net.nz";
 $module = "base";
 $images = "images";
 $colors = array(
-	0 => "#d0c8a8", // primary background
-	"bg1" => "#f0f0c8", // primary background
-	1 =>  "#ffffff", // secondary background (behind menus)
-	"bg2" =>  "#ffffff", // secondary background (behind menus)
-	2 =>  "#302080", // text on primary background
-	"fg1" =>  "#302080", // text on primary background
-	3 =>  "#802050", // text on secondary background
-	3 =>  "#802050", // text on secondary background
-	4 =>  "#5e486f", // text on links
-	"fg2" =>  "#5e486f", // text on links
-	5 =>  "#886c50", // tertiary background, column headings
-	"bg3" =>  "#886c50", // tertiary background, column headings
-	"fg3" =>  "#f0fff0", // tertiary background, column headings
-	6 =>  "#e4ddc2", // dark rows in listings
-	"row0" =>  "#e4ddc2", // dark rows in listings
-	7 =>  "#f4f0dc", // light rows in listings
-	"row1" =>  "#f4f0dc", // light rows in listings
-	8 =>  "#583818", // Form headings
+	"bg1" => "#ffffff", // primary background
+	"fg1" =>  "#000000", // text on primary background
+	"link1" =>  "#660000", // Links on row0/row1
+	"bg2" =>  "#660000", // secondary background (behind menus)
+	"fg2" =>  "#ffffff", // text on links
+	"bg3" =>  "#000000", // tertiary background
+	"fg3" =>  "#ffffff", // tertiary foreground
+	"hv1" =>  "#660000", // text on hover
+	"hv2" =>  "#f0ff4c", // other text on hover
+	"row0" =>  "#ffffff", // dark rows in listings
+	"row1" =>  "#faf8ef", // light rows in listings
+	"link2" =>  "#333333", // Links on row0/row1
 	8 =>  "#583818", // Form headings
 	9 =>  "#ccbea1", // Mandatory forms
 	9 =>  "#ccbea1", // Mandatory forms
@@ -51,12 +45,12 @@ $colors = array(
 	10 =>  "#50a070", // whatever!
 
 // Parts of a text block (default colors - some blocks might code around this
-		"blockfront" => "white",
-		"blockback" => "#90775a",
-		"blockbg2" => "#8767c0",
-		"blocktitle" => "#875630",
+		"blockfront" => "black",
+		"blockback" => "white",
+		"blockbg2" => "white",
+		"blocktitle" => "white",
 		"blocksides" => "#ffffff",
-		"blockextra" => "#bb8855"
+		"blockextra" => "#660000"
 );
 
 $fonts = array( "tahoma",		// primary font
@@ -129,7 +123,7 @@ class Setting {
   }
 
   function to_save() {
-    return serialize( $this->parameters );
+    return str_replace( "'", "''", str_replace( "\\", "\\\\", serialize( $this->parameters ) ));
   }
 }
 
@@ -179,7 +173,7 @@ function awm_pgexec( $myconn, $query, $location="", $abort_on_fail=false, $mydbg
   else if ( $debuglevel > 2  || $mydbg > 2 ) {
     error_log( "$sysabbr $locn QT: $taken for: " . substr( $query, 0,200), 0);
   }
-  else if ( $taken > 20 ) {
+  else if ( $taken > 5 ) {
     error_log( "$sysabbr $locn SQ: $taken for: $query", 0);
   }
 
@@ -205,7 +199,7 @@ function block_open(  $bgcolor="", $border_color="") {
   if ( $border_color == "" ) $border_color=$colors["blocksides"];
   echo "<table cellpadding=\"1\" cellspacing=\"0\" border=\"0\" width=\"100%\" bgcolor=\"$border_color\" style=\" margin: 0 1px;\">\n";
   echo "<tr><td>\n";
-  echo "<table width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" bgcolor=\"$bgcolor\">\n";
+  echo "<table width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" bgcolor=\"$bgcolor\">\n<br><br>";
 }
 
 //-----------------------------------------

@@ -111,5 +111,6 @@
   <item url="scripts/usr-to-awm_usr.sql" />
   <item url="html/inc/help-action.php" />
   <item url="html/inc/help-valid.php" />
+  <item url="html/mockup/wrms.htm" />
  </project>
 </webproject>

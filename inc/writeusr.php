@@ -12,7 +12,7 @@
     // Get the user number ...
     if ( "$M" == "add" ) {
       $query = "SELECT NEXTVAL( 'usr_user_no_seq' );";
-      $result = awm_pgexec( $wrms_db, $query );
+      $result = awm_pgexec( $wrms_db, $query, "writeusr" );
       if ( !$result || !pg_NumRows($result)  ) {
         $query = "ABORT TRANSACTION;";
         $result = awm_pgexec( $wrms_db, $query );
@@ -24,26 +24,30 @@
 
     // OK, so if we have a valid user number...
     if ( isset($user_no) && $user_no > 0 ) {
-      $UserEMail    = tidy(strtolower("$UserEMail"));
+      $UserEmail    = tidy(strtolower("$UserEmail"));
       $UserName     = tidy("$UserName");
       $UserFullName = tidy("$UserFullName");
       $UserPhone    = tidy("$UserPhone");
       $UserPassword = tidy("$UserPassword");
-      $UserFax      = tidy("$UserFax");
-      $UserPager    = tidy("$UserPager");
+      $UserMobile   = tidy("$UserMobile");
+      $UserNotifications   = tidy("$UserNotifications");
+      $usr->settings->set('fontsize', "$UserFontsize");
+
 //      error_log( "status=$UserStatus==" . isset($UserStatus), 0);
       $UserStatus  = ( !isset($UserStatus) || "$UserStatus" == "A" ? "A" : "I" );
       if ( ! ($roles['wrms']['Admin'] || $roles['wrms']['Support']) && $M == "add" ) {
         $UserOrganisation = $session->org_code;
       }
       if ( "$M" == "add" ) {
-        $query = "INSERT INTO usr ( user_no, username, email, fullname, org_code, phone, fax, pager, ";
+        $query = "INSERT INTO usr ( user_no, username, email, fullname, org_code, phone, mobile, ";
         $query .= " mail_style, status, last_update";
         if ( $UserPassword <> "      " ) $query .= ", password";
+        if ( is_object ( $usr->settings ) ) $query .= ", config_data";
         $query .= ")  VALUES(";
         $query .= "$user_no, LOWER('$UserName'), '$UserEmail', '$UserFullName', '$UserOrganisation', ";
-        $query .= " '$UserPhone', '$UserFax', '$UserPager', '$UserMail', '$UserStatus', 'now' ";
+        $query .= " '$UserPhone', '$UserMobile', '$UserNotifications', '$UserStatus', 'now' ";
         if ( $UserPassword <> "      " ) $query .= ", '$UserPassword' ";
+        if ( is_object ( $usr->settings ) ) $query .= ", '" . $usr->settings->to_save() . "'";
 	    $query .= " ) ";
       }
       else {
@@ -53,12 +57,14 @@
         }
         else
           $query .= " organisation='$session->org_code', ";
-        $query .= " phone='$UserPhone', fax='$UserFax', ";
-        $query .= " pager='$UserPager', ";
+        $query .= " phone='$UserPhone', mobile='$UserMobile', ";
+        $query .= " mail_style='$UserNotifications', ";
         if ( "$UserName" <> "" ) $query .= " username=LOWER('$UserName'), ";
-        $query .= " mail_style='$UserMail', status='$UserStatus', last_update='now'";
+        $query .= " status='$UserStatus', last_update='now'";
         if ( $UserPassword <> "      " ) $query .= ", password='$UserPassword'";
+        if ( is_object ( $usr->settings ) ) $query .= ", config_data='" . $usr->settings->to_save() . "'";
         $query .= " WHERE user_no='$user_no' ";
+        if ( $session->user_no == $usr->user_no ) $settings = $usr->settings;
       }
       $result = awm_pgexec( $wrms_db, $query, "writeusr", 4 );
       if ( ! $result ) $because .= "<p>$query</p>";
@@ -70,7 +76,7 @@
       // Roles
       if ( isset($NewUserRole) && is_array($NewUserRole) ) {
         $query = "DELETE FROM group_member WHERE user_no=$user_no;";
-        $result = awm_pgexec( $wrms_db, $query );
+        $result = awm_pgexec( $wrms_db, $query, "writeusr" );
         if ( ! $result ) $because .= "<p>$query</p>";
         while ( is_array($NewUserRole) && list($k1, $val) = each($NewUserRole)) {
 //          echo "<p>Roles: $k1, $val</p>";

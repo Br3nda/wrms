@@ -128,7 +128,7 @@ function nice_time( $in_time ) {
           printf("<input type=hidden name=\"chg_request[$timesheet->timesheet_id]\" value=\"%s\">", htmlspecialchars($timesheet->request_id));
           printf("<input type=hidden name=\"chg_requester[$timesheet->timesheet_id]\" value=\"%s\">", htmlspecialchars($timesheet->requester_name));
           echo "</td>\n";
-          echo "<td class=smb valign=top><label for=\"$timesheet->timesheet_id\" class=smb>Charged</label>&nbsp;</td>\n";
+          echo "<td class=smb valign=top><label for=\"$timesheet->timesheet_id\" class=smb>OK to Charge</label>&nbsp;</td>\n";
           echo "<td class=smb align=right>&nbsp;Invoice:</td>\n";
           echo "<td class=sml><font size=2><input type=text size=6 name=\"chg_inv[$timesheet->timesheet_id]\" value=\"\"></font>&nbsp;</td>\n";
           echo "<td class=smb align=right>&nbsp;Amount:</td>\n";

@@ -12,6 +12,16 @@
     echo "</tr></table>\n";
   }
 //  phpinfo();
+?>
+<table width="100%" border="0" cellspacing="0" cellpadding="0" height="16" background="images/WRMSbottomTile.gif">
+  <tr>
+    <td width="41%" height="10" valign="top"><img src="images/WRMSbottom.gif" width="473" height="16">
+    </td>
+    <td width="37%" height="10">&nbsp;</td>
+    <td width="22%" align="right" height="10" valign="top"><img src="images/WRMSbottom1.gif" width="155" height="16"></td>
+  </tr>
+</table>
+<?php
   echo "</body>\n</html>";
 
 if ( is_object ( $settings ) ) {

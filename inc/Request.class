@@ -1360,8 +1360,9 @@ class Request {
           $db_errors = ! $this->AddNote();
         }
 
-        if ( !$db_errors && isset($_POST['status_code'])
-                && ($_POST['status_code'] != $this->last_status || "create" == $this->chtype ) ) {
+        if ( !$db_errors &&
+               ((isset($_POST['status_code']) && $_POST['status_code'] != $this->last_status)
+                  || "create" == $this->chtype) ) {
           $db_errors = ! $this->NewStatusCode();
         }
 
@@ -2040,7 +2041,7 @@ EOX
   function NewStatusCode( ) {
     global $session, $client_messages;
 
-    if ( $this->last_status != $_POST['status_code'] ) {
+    if ( "create" == $this->chtype || $this->last_status != $_POST['status_code'] ) {
       error_log( "$sysabbr Request::NewStatusCode: DBG: Status changed from '$this->last_status' to '" . $_POST['status_code']."'", 0);
 
       $sql = "INSERT INTO request_status ( request_id, status_on, status_by_id, status_code ) ";
@@ -2055,9 +2056,11 @@ EOX
       $q->Exec("WR::NewStatusCode"); $old_status = $q->Fetch();
       $q = new PgQuery($sql, $_POST['status_code']);
       $q->Exec("WR::NewStatusCode"); $new_status = $q->Fetch();
-      $client_messages[] = "Status changed from '$old_status->lookup_desc' to '".$new_status->lookup_desc."'";
-      $this->mail_message_data[]['html'] = "<h4>The status was changed from &quot;{$old_status->lookup_desc}&quot; to &quot;" . $new_status->lookup_desc . "&quot;</h4>\n";
-      $this->mail_message_data[]['text'] = " * The status was changed from \"{$old_status->lookup_desc}\" to \"" . $new_status->lookup_desc . "\"\n";
+      if ( "create" != $this->chtype ) {
+        $client_messages[] = "Status changed from '$old_status->lookup_desc' to '".$new_status->lookup_desc."'";
+        $this->mail_message_data[]['html'] = "<h4>The status was changed from &quot;{$old_status->lookup_desc}&quot; to &quot;" . $new_status->lookup_desc . "&quot;</h4>\n";
+        $this->mail_message_data[]['text'] = " * The status was changed from \"{$old_status->lookup_desc}\" to \"" . $new_status->lookup_desc . "\"\n";
+      }
     }
 
     $_POST['last_status'] = $_POST['status_code'];

@@ -1,31 +1,27 @@
 <?php
 function guess_file_type( $name, $actual_file ) {
 
+  global $session;
+
   $type = "";
   $extension = strtolower( preg_replace( "/^.*\./", "", $name ) );
 
   // Some common attachment types are hard-coded so we don't hit the db
   switch ( $extension ) {
-    case "doc":
-    case "xls":
-    case "xml":
-    case "html":
-    case "sxw":
-    case "sxc":
-    case "pdf":
-    case "jpeg":
-    case "png":
-    case "gif":
-    case "txt":
-    case "mpp":
-    case "zip":
-    case "jar":
-    case "tgz":
-      $type = $extension;
+    case "xml":    case "html":   case "pdf":
+    case "jpeg":   case "png":    case "bmp":
+    case "gif":    case "txt":    case "mpp":
+    case "zip":    case "jar":    case "tgz":
+    case "ico":    case "svg":    case "planner":
+      $type = strtoupper($extension);
       break;
 
-    case "jpg":       $type = "jpeg";      break;
-    case "htm":       $type = "html";      break;
+    case "doc":       $type = "MSWORD";    break;
+    case "xls":       $type = "MSEXCEL";   break;
+    case "sxw":       $type = "OOWRITER";  break;
+    case "sxc":       $type = "OOCALC";    break;
+    case "jpg":       $type = "JPEG";      break;
+    case "htm":       $type = "HTML";      break;
 
     default:
       $sql = "SELECT type_code FROM attachment_type WHERE ? ~* pattern ORDER BY seq; ";
@@ -37,7 +33,7 @@ function guess_file_type( $name, $actual_file ) {
       break;
   }
 
-  error_log( "$GLOBALS[sysabbr] guess_file_type: DBG: File '$name' with extension '$extension' is type '$type'");
+  $session->Log( "guess_file_type: DBG: File '$name' with extension '$extension' is type '$type'");
 
   return $type;
 }

@@ -20,7 +20,6 @@
   $settings->set('rlseq', $rlseq);
 
   if ( isset($org_code) ) $org_code = intval($org_code);
-  if ( isset($org_code) ) $org_code = intval($org_code);
 
   // Build up the column header cell, with %s gaps for the sort, sequence and sequence image
   $header_cell = "<th class=cols><a class=cols href=\"$PHP_SELF?rlsort=%s&rlseq=%s";

@@ -9,7 +9,7 @@
       $amount = doubleval( $chg_amt[$k] );
       $invoice = $chg_inv[$k];
       $query .= "UPDATE request_timesheet SET";
-      if ( $amount <> 0 ) {
+      if ( $amount <> 0 || eregi( "^w((/o)|(rite))", $invoice) ) {
         $query .= " work_charged='$v',";
         $query .= " charged_by_id=$session->user_no,";
         $query .= " charged_details='$invoice', ";
@@ -25,7 +25,6 @@
     }
     $because .= "</TABLE>\n";
 
-    $because .= "\n<TT>$query</TT>";
     $rid = awm_pgexec( $wrms_db, $query );
 
     $msg = "<HEAD>\n<TITLE>Timesheets Charged</TITLE>\n</HEAD>\n";

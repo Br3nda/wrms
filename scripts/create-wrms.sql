@@ -349,6 +349,7 @@ GRANT ALL ON org_usr TO andrew;
 CREATE TABLE saved_queries (
     user_no INT4,
     query_name TEXT,
+    query_type TEXT,
     query_sql TEXT,
     query_params TEXT,
     PRIMARY KEY (user_no, query_name)

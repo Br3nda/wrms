@@ -426,7 +426,12 @@ function dates_equal( $date1, $date2 ) {
 
     if ( $attachment_added ) {
       error_log( "$sysabbr request-action: DBG: Adding attachment: " . $HTTP_POST_FILES['new_attachment_file']['name'], 0);
-      $query = "SELECT nextval('request_attachment_attachment_id_seq');";
+      if ( $pg_version == 7.2 ) {
+        $query = "SELECT nextval('request_attac_attachment_id_seq');";
+      }
+      else {
+        $query = "SELECT nextval('request_attachment_attachment_id_seq');";
+      }
       $rid = awm_pgexec( $dbconn, $query, "req-action" );
       if ( ! $rid ) {
         awm_pgexec( $dbconn, "ROLLBACK;", "req-action" );

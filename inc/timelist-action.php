@@ -15,10 +15,12 @@
       $query .= " charged_amount=$amount";
       $query .= " WHERE timesheet_id=$k;";
     }
+    if ( "$query" == "" ) return;
     $because .= "</TABLE>";
 
     $because .= "<TT>$query</TT>";
     $rid = pg_Exec( $wrms_db, $query );
+    if ( ! $rid ) error_log( "wrms: Query Error: $query", 0);
 
     $msg = "<HEAD><TITLE>Timesheets Charged</TITLE></HEAD><BODY BGCOLOR=#E7FFE7><H2>Timesheets Charged**</H2>$because</BODY></HTML>";
     $msg = "<!doctype html public \"-//w3c//dtd html 4.0 transitional//en\"><HTML>$msg";

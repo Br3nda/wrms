@@ -12,7 +12,7 @@ $left_panel = true;
 
 $base_dns = "http://$HTTP_HOST";
 $base_url = "";
-$base_dir = "/var/www/wrms.catalyst.net.nz";
+$base_dir = "/home/wrms/wrms/html";
 $module = "base";
 $images = "images";
 $colors = array(

@@ -24,9 +24,7 @@ else {
 $show = 0;
 $new = isset($edit) && intval($edit) && !isset($id);
 
-error_log("$M != "LC" && Allowed=".$wr->AllowedTo("update")." && _POST[submit]=".isset($_POST['submit']);
-
-if ( $M != "LC" && $wr->AllowedTo("update") && isset($_POST['submit']) ) {
+if ( $M != "LC" && $wr->AllowedTo(($wr->new_record?"create":"update")) && isset($_POST['submit']) ) {
   if ( $wr->Validate($wrf) ) {
     $wr->Write($wrf);
     $wr = new Request($request_id);

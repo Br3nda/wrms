@@ -1859,7 +1859,7 @@ EOX
     $sql .= "AND NOT EXISTS( SELECT 1 FROM request_interested WHERE request_id = $this->request_id ";
     $sql .=                  "AND request_interested.user_no = usr.user_no) ";
     $sql .= "AND usr.org_code IN ( $this->org_code, $session->org_code ); ";
-    if ( $this->chtype = 'create' ) {
+    if ( $this->chtype == 'create' ) {
       $sql .= "INSERT INTO request_interested ( request_id, user_no, username ) ";
       $sql .= "SELECT $this->request_id, u.user_no, username ";
       $sql .= "FROM system_usr s ";

@@ -207,6 +207,37 @@ class PgQuery
   }
 
   //////////////////////////////////////////////////
+  //   FetchBackwards from the result resource    //
+  //////////////////////////////////////////////////
+  function FetchBackwards($as_array = false)
+  {
+    global $debuggroups;
+
+    if ( isset($debuggroups["$this->location"]) && $debuggroups["$this->location"] > 2 ) {
+      log_error( $this->location, "FetchBackwards", "$this->result Rows: $this->rows, Rownum: $this->rownum");
+    }
+    if ( ! $this->result ) return false;
+    if ( ($this->rownum - 1) == -1 ) return false;
+    if ( $this->rownum == -1 ) $this->rownum = $this->rows;
+
+    $this->rownum--;
+
+    if ( isset($debuggroups["$this->location"]) && $debuggroups["$this->location"] > 1 ) {
+      log_error( $this->location, "Fetch", "Fetching row $this->rownum" );
+    }
+    if ( $as_array )
+    {
+      $this->object = pg_fetch_array($this->result, $this->rownum);
+    }
+    else
+    {
+      $this->object = pg_fetch_object($this->result, $this->rownum);
+    }
+
+    return $this->object;
+  }
+
+  //////////////////////////////////////////////////
   //   Build an option list from the query        //
   //////////////////////////////////////////////////
   function BuildOptionList( $current = '', $location = 'options' )

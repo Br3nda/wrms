@@ -832,9 +832,20 @@ class Request {
    $mail->IsSMTP();
    $mail->From = 'wrms@catalyst.net.nz';
    $mail->FromName = 'Catalyst IT WRMS';
+   $mail->Subject = 'Work request ' . $this->request_id . ' updated';
 
-   $body = 'You are recieving this message because an update has occured to a work request at Catalyst IT.';
-   $textbody = "You are recieving this message because an update has occured to a work request at Catalyst IT.";
+   $body = 'You are receiving this message because an update has occured to a work request at Catalyst IT.<br /><ul>';
+   $textbody = "You are receiving this message because an update has occured to a work request at Catalyst IT.\n\n";
+
+   foreach ( $this->mail_message_data as $thing )
+   {
+     $body .= $thing['html'];
+     $textbody .= $thing['text'];
+   }
+
+   $body .= '</ul><br />Have a nice day :)<br />Catalyst WRMS';
+   $textbody .= "\nHave a nice day :)\nCatalyst WRMS";
+
    // Build rest of body here from $this->mail_message_data
    $mail->Body = $body;
    $mail->AltBody = $textbody;
@@ -850,12 +861,7 @@ class Request {
    if ( !$mail->Send() )
    {
     // Put here error message
-    echo 'got here2';
    }
-
-   $result = mail('nigel@catalyst.net.nz', 'tester', 'testing...');
-   if ( !$result ) die ('mail error');
-
 
        // Since we wrote it all successfully, clear the $_POST array
        // so that the posted data isn't all re-used in the form fields,
@@ -867,26 +873,25 @@ class Request {
 
    function GetRecipients ()
    {
+      $query = "SELECT email, fullname FROM usr, request_interested ";
+      $query .= "WHERE request_interested.user_no = usr.user_no ";
+      $query .=  " AND request_interested.request_id = {$this->request_id}";
+      $query .=  " AND usr.status != 'I' ";
+      $query .= "UNION ";
+      $query .= "SELECT email, fullname FROM usr, request_allocated ";
+      $query .= "WHERE request_allocated.allocated_to_id = usr.user_no ";
+      $query .=  " AND request_allocated.request_id = {$this->request_id}";
+      $query .=  " AND usr.status != 'I' ";
 
-  $query = "SELECT email, fullname FROM usr, request_interested ";
-  $query .= "WHERE request_interested.user_no = usr.user_no ";
-  $query .=  " AND request_interested.request_id = {$this->request_id}";
-  $query .=  " AND usr.status != 'I' ";
-  $query .= "UNION ";
-  $query .= "SELECT email, fullname FROM usr, request_allocated ";
-  $query .= "WHERE request_allocated.allocated_to_id = usr.user_no ";
-  $query .=  " AND request_allocated.request_id = {$this->request_id}";
-  $query .=  " AND usr.status != 'I' ";
+      $peopleq = new PgQuery($query);
+      $peopleq->Exec("notify-eml");
+      $to = array();
 
-  $peopleq = new PgQuery($query);
-  $peopleq->Exec("notify-eml");
-  $to = array();
-
-  while ( $row = $peopleq->Fetch() )
-  {
-    $to[$row->email] = $row->fullname;
-  }
-  return $to;
+      while ( $row = $peopleq->Fetch() )
+      {
+        $to[$row->email] = $row->fullname;
+      }
+      return $to;
    }
 
    /////////////////////////////////////////////////////////////
@@ -920,8 +925,8 @@ class Request {
 
      chmod( "attachments/$attachment_id", 0644 );
      $client_messages[] = "File attachment \"$att_name\" added to this request</h3>";
-     $this->mail_message_data[]['html'] = "File attachment &quot;" . htmlspecialchars($att_name) . "&quot; was added.<br />\n";
-     $this->mail_message_data[]['text'] = "File attachment \"$att_name\" was added.\n";
+     $this->mail_message_data[]['html'] = "<li>File attachment &quot;" . htmlspecialchars($att_name) . "&quot; was added.</li>\n";
+     $this->mail_message_data[]['text'] = " * File attachment \"$att_name\" was added.\n";
      return true;
    }
 
@@ -949,8 +954,8 @@ class Request {
        return false;
      }
      $client_messages[] = "Quote added to this request";
-     $this->mail_message_data[]['html'] = "A quote was added.<br />\n";
-     $this->mail_message_data[]['text'] = "A quote was added.\n";
+     $this->mail_message_data[]['html'] = "<li>A quote was added.<br /><span style=\"font-size: 90%\">" . $_POST['quote_brief'] . "</span></li>\n";
+     $this->mail_message_data[]['text'] = " * A quote was added.\n     " . $_POST['quote_brief'] . "\n";
 
      return true;
    }
@@ -979,8 +984,8 @@ class Request {
        return false;
      }
      $client_messages[] = "Work added to this request";
-     $this->mail_message_data[]['html'] = "Work to do was added.<br />\n";
-     $this->mail_message_data[]['text'] = "Work to do was added.\n";
+     $this->mail_message_data[]['html'] = "<li>Work was added.<br /><span style=\"font-size: 90%\">" . $_POST['work_description'] . "</span></li>\n";
+     $this->mail_message_data[]['text'] = " * Work to do was added.\n     " . $_POST['work_description'] . "\n";
 
      return true;
    }
@@ -999,8 +1004,8 @@ class Request {
        return false;
      }
      $client_messages[] = "W/R linked to this request";
-     $this->mail_message_data[]['html'] = "W/R was linked to this request<br />\n";
-     $this->mail_message_data[]['text'] = "W/R was linked to this request.\n";
+     $this->mail_message_data[]['html'] = "<li>W/R " . $_POST['parent_request_id'] . " was linked to this request</li>\n";
+     $this->mail_message_data[]['text'] = " * W/R " . $_POST['parent_request_id'] . " was linked to this request.\n";
 
      return true;
    }
@@ -1024,8 +1029,8 @@ class Request {
        return false;
      }
      $client_messages[] = sprintf("Request allocated to %d people.", count($_POST['new_allocations']));
-     $this->mail_message_data[]['html'] = "The request was allocated to " . count($_POST['new_allocations']) . " people.<br />\n";
-     $this->mail_message_data[]['text'] = "The request was allocated to " . count($_POST['new_allocations']) . " people.\n";
+     $this->mail_message_data[]['html'] = "<li>The request was allocated to " . count($_POST['new_allocations']) . " people.</li>\n";
+     $this->mail_message_data[]['text'] = " * The request was allocated to " . count($_POST['new_allocations']) . " people.\n";
 
      return true;
    }
@@ -1049,8 +1054,8 @@ class Request {
        return false;
      }
      $client_messages[] = sprintf("Request subscription added for %d people.", count($_POST['new_subscriptions']));
-     $this->mail_message_data[]['html'] = "Request subscription was added for " . count($_POST['new_subscriptions']) . " people.<br />\n";
-     $this->mail_message_data[]['text'] = "Request subscription was added for " . count($_POST['new_subscriptions']) . " people.\n";
+     $this->mail_message_data[]['html'] = "<li>Request subscription was added for " . count($_POST['new_subscriptions']) . " people.</li>\n";
+     $this->mail_message_data[]['text'] = " * Request subscription was added for " . count($_POST['new_subscriptions']) . " people.\n";
 
      return true;
    }
@@ -1069,8 +1074,8 @@ class Request {
        return false;
      }
      $client_messages[] = "Status changed from '$this->last_status' to '".$_POST['status_code']."'";
-     $this->mail_message_data[]['html'] = "The status was changed from &quot;{$this->last_status}&quot; to " . $_POST['status_code'] . "<br />\n";
-     $this->mail_message_data[]['text'] = "The status was changed from \"{$this->last_status}\" to " . $_POST['status_code'] . "\n";
+     $this->mail_message_data[]['html'] = "<li>The status was changed from &quot;{$this->last_status}&quot; to &quot;" . $_POST['status_code'] . "&quot;</li>\n";
+     $this->mail_message_data[]['text'] = " * The status was changed from \"{$this->last_status}\" to \"" . $_POST['status_code'] . "\"\n";
 
      $_POST['last_status'] = $_POST['status_code'];
      return true;
@@ -1095,8 +1100,8 @@ class Request {
        return false;
      }
      $client_messages[] = "Note added to request";
-     $this->mail_message_data[]['html'] = "A note was added.<br />\n";
-     $this->mail_message_data[]['text'] = "A note was added.\n";
+     $this->mail_message_data[]['html'] = "<li>A note was added:<br /><span style=\"font-size: 90%\">$note_detail</span></li>\n";
+     $this->mail_message_data[]['text'] = " * A note was added:\n     $note_detail\n";
 
      return true;
    }

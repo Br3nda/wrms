@@ -293,7 +293,7 @@ class Request {
 
    function AttachFile( $fname, $description ) {
      error_log( "$sysabbr Request::AttachFile: DBG: Adding attachment: " . $_FILES[$fname]['name'], 0);
-     $sql = "SELECT nextval('request_attac_attachment_id_seq') AS id ;";
+     $sql = "SELECT nextval('request_attachment_attachment_id_seq') AS id ;";
      $qry = new PgQuery( $sql );
      if ( ! $qry->PgExec('R-AttachFile') ) return;
 

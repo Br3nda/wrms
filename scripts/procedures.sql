@@ -1,4 +1,4 @@
--- Set auser as interested in a request
+-- Set a user as interested in a request
 DROP FUNCTION set_interested (int4, int4);
 CREATE FUNCTION set_interested (int4, int4) RETURNS int4 AS '
    DECLARE
@@ -93,3 +93,60 @@ CREATE FUNCTION help_hit( INT4, TEXT ) RETURNS INT4 AS '
   END;
 ' LANGUAGE 'plpgsql';
 
+
+DROP FUNCTION cast_vote (int4, int4, int4, text);
+CREATE FUNCTION cast_vote (int4, int4, int4, text) RETURNS int4 AS '
+    DECLARE
+      n_id ALIAS FOR $1;
+      w_u_id ALIAS FOR $2;
+      v_u_id ALIAS FOR $3;
+      vote ALIAS FOR $4;
+      plus_votes INT4;
+      minus_votes INT4;
+      this_vote INT4;
+    BEGIN
+      -- Should really set something up in a codes table defining these values.
+      IF vote = ''-'' THEN
+        this_vote = -1;
+      ELSE
+        IF vote = ''C'' THEN
+          this_vote = 5;
+        ELSE
+          IF vote = ''K'' THEN
+            this_vote = -5;
+          ELSE
+            this_vote = 1;
+          END IF;
+        END IF;
+      END IF;
+      INSERT INTO wu_vote( node_id, wu_by, vote_by, vote_amount, flag)
+              VALUES( n_id, w_u_id, v_u_id, this_vote, vote );
+
+      SELECT SUM( vote_amount ) INTO plus_votes FROM wu_vote
+              WHERE node_id = n_id AND wu_by = w_u_id AND vote_amount > 0;
+      UPDATE wu SET votes_plus = plus_votes WHERE node_id = n_id AND wu_by = w_u_id;
+
+      SELECT SUM( vote_amount ) INTO minus_votes FROM wu_vote
+              WHERE node_id = n_id AND wu_by = w_u_id AND vote_amount < 0;
+      UPDATE wu SET votes_minus = minus_votes WHERE node_id = n_id AND wu_by = w_u_id;
+
+      RETURN plus_votes + minus_votes;
+    END;
+' LANGUAGE 'plpgsql';
+
+DROP FUNCTION user_votes (int4, int4, int4 );
+CREATE FUNCTION user_votes (int4, int4, int4 ) RETURNS int4 AS '
+    DECLARE
+      n_id ALIAS FOR $1;
+      w_u_id ALIAS FOR $2;
+      v_u_id ALIAS FOR $3;
+      RETURN plus_votes + minus_votes;
+    BEGIN
+      SELECT vote_amount INTO votes FROM wu_vote
+              WHERE node_id = n_id AND wu_by = w_u_id AND vote_by = v_u_id LIMIT 1;
+      IF NOT FOUND THEN
+        votes = 0;
+      END IF;
+      RETURN votes;
+    END;
+' LANGUAGE 'plpgsql';

@@ -380,9 +380,9 @@ GRANT ALL ON help TO andrew;
 CREATE TABLE infonode (
     node_id SERIAL PRIMARY KEY,
     nodename TEXT,
-    created_on TIMESTAMP,
+    created_on TIMESTAMP DEFAULT 'now',
     created_by INT4,
-    node_type INT4
+    node_type INT4 DEFAULT 0
 );
 CREATE INDEX infonode_skey1 ON infonode (created_by, created_on);
 CREATE INDEX infonode_skey2 ON infonode (created_on);
@@ -392,7 +392,10 @@ GRANT ALL ON infonode, infonode_node_id_seq TO andrew;
 CREATE TABLE wu (
     node_id INT4,
     wu_by INT4,
-    wu_on TIMESTAMP,
+    wu_on TIMESTAMP DEFAULT 'now',
+    votes_plus INT4 DEFAULT 0,
+    votes_minus INT4 DEFAULT 0,
+    flags TEXT DEFAULT '',
     content LZTEXT,
     PRIMARY KEY (node_id, wu_by)
 );
@@ -400,5 +403,28 @@ CREATE INDEX wu_skey1 ON wu (wu_by, wu_on);
 CREATE INDEX wu_skey2 ON wu (wu_on);
 GRANT SELECT,INSERT,UPDATE ON wu TO PUBLIC;
 GRANT ALL ON wu TO andrew;
+
+CREATE TABLE wu_vote (
+    node_id INT4,
+    wu_by INT4,
+    vote_by INT4,
+    vote_amount INT4,
+    flag CHAR,
+    vote_on TIMESTAMP DEFAULT 'now',
+    PRIMARY KEY ( node_id, wu_by, vote_by )
+);
+GRANT SELECT,INSERT,UPDATE ON wu_vote TO PUBLIC;
+GRANT ALL ON wu_vote TO andrew;
+
+CREATE TABLE nodetrack (
+    node_from INT4,
+    node_to INT4,
+    no_times INT4,
+    PRIMARY KEY (node_from, node_to)
+);
+CREATE INDEX nodetrack_skey1 ON nodetrack(node_from, node_to);
+GRANT SELECT,INSERT,UPDATE ON nodetrack TO PUBLIC;
+GRANT ALL ON nodetrack TO andrew;
+
 
 \i procedures.sql

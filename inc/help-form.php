@@ -47,7 +47,7 @@
         echo "<tr><th>Topic</th><td>$topic</td></tr>\n";
         echo "<tr><th>Sequence</th><td><input type=text size=5 value=\"$help->seq\" name=\"new[seq]\"></td></tr>\n";
         echo "<tr><th>Title</th><td><input type=text size=50 value=\"" . htmlspecialchars($help->title) . "\" name=\"new[title]\"></td></tr>\n";
-        echo "<tr><th>Content</th><td><textarea cols=70 rows=30 name=\"new[content]\">" . htmlspecialchars($help->content) . "</textarea></td></tr>\n";
+        echo "<tr><td colspan=2><textarea cols=70 rows=30 name=\"new[content]\">" . htmlspecialchars($help->content) . "</textarea></td></tr>\n";
         echo "<tr><td colspan=2 align=center><input type=submit size=50 value=\"$submitlabel\" name=submit></td></tr>\n";
         echo "</table>\n";
         echo "</form>\n";
@@ -81,7 +81,7 @@
           }
         }
         else
-          echo "<li><a href=\"/help.php?h=" . htmlspecialchars($help->topic) . "&seq=$help->seq\">$help->title</a></li>\n";
+          echo link_writeups("<li><a href=\"/help.php?h=" . htmlspecialchars($help->topic) . "&seq=$help->seq\">$help->title</a></li>\n");
       }
       echo "</ol>";
       if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {

@@ -36,7 +36,7 @@ $colors = array(
 	"hv1" =>  "#660000", // text on hover
 	"hv2" =>  "#f0ff4c", // other text on hover
 	"row0" =>  "#ffffff", // dark rows in listings
-	"row1" =>  "#faf8ef", // light rows in listings
+	"row1" =>  "#f0ece8", // light rows in listings
 	"link2" =>  "#333333", // Links on row0/row1
 	8 =>  "#583818", // Form headings
 	9 =>  "#ccbea1", // Mandatory forms
@@ -240,10 +240,11 @@ function tidy( $instr ) {
 }
 
 function link_writeups( $instr ) {
-  global $logged_on;
+  global $logged_on, $current_node;
+  if ( isset($current_node) ) $last_node = "&last=$current_node";
   if ( !$logged_on ) return $instr;
-  $instr = ereg_replace("\[([^]|]+)\|([^]|]+)\]", "<a href=\"/wu.php?wu=\\1\">\\2</a>", $instr);
-  $instr = ereg_replace("\[([^]|]+)\]", "<a href=\"/wu.php?wu=\\1\">\\1</a>", $instr);
+  $instr = ereg_replace("\[([^]|]+)\|([^]|]+)\]", "<a class=wu href=\"/wu.php?wu=\\1$last_node\">\\2</a>", $instr);
+  $instr = ereg_replace("\[([^]|]+)\]", "<a class=wu href=\"/wu.php?wu=\\1$last_node\">\\1</a>", $instr);
 //  $instr = ereg_replace("\[([a-zA-Z0-9]+)\]", "<a href=\"/wu.php?wu=\\1\">\\1</a>", $instr);
   return $instr;
 }

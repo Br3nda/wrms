@@ -48,9 +48,9 @@ one of the recently modified requests from the list below.<br></p>
 
       echo "<tr class=row" . ($i % 2) . ">";
 
-      echo "<td class=sml align=center><a class=row0 href=\"request.php?request_id=$thisrequest->request_id\">$thisrequest->request_id</a></td>\n";
-      echo "<td class=sml nowrap><a class=row0 href=\"mailto:$thisrequest->email\">$thisrequest->fullname</a></td>\n";
-      echo "<td class=sml><a class=row0 href=\"request.php?request_id=$thisrequest->request_id\">$thisrequest->brief";
+      echo "<td class=sml align=center><a href=\"request.php?request_id=$thisrequest->request_id\">$thisrequest->request_id</a></td>\n";
+      echo "<td class=sml nowrap><a href=\"mailto:$thisrequest->email\">$thisrequest->fullname</a></td>\n";
+      echo "<td class=sml><a href=\"request.php?request_id=$thisrequest->request_id\">$thisrequest->brief";
       if ( "$thisrequest->brief" == "" ) echo "-- no description --";
       echo "</a></td>\n";
       echo "<td class=sml>$thisrequest->status_desc</td>\n";

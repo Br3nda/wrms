@@ -52,6 +52,8 @@ th.h3, td.h3  {font: bold $fontsizes[3] $fonts[0], sans-serif; color: $colors[fg
     }
     else {
       echo ".menu $linkstyle font: small-caps bold $fontsizes[1] $fonts[1]; background: $colors[bg3]; color: $colors[fg3]; padding: 0px 1px 1px; margin: 0px 1px; }\n";
+      echo "A.wu:hover { text-decoration: underline; color: #44cc44; }\n";
+      echo "A.wu { text-decoration: underline; color: #cc4444; }\n";
       echo "A.block:hover, A.blockhead:hover { color: $colors[hv1]; }\n";
       echo "A:hover { color: $colors[hv1];  }\n";
       echo ".bmenu $linkstyle font: small-caps bold $fontsizes[1] $fonts[1]; background: $colors[bg3]; color: $colors[fg3]; padding: 0px 1px 1px; margin: 0px 1px; }

@@ -9,12 +9,20 @@ $debuglevel = 7;
       $query .= ", $key = '" . tidy($value) . "' ";
     }
     $query = substr( $query, 2);
-    $query = "UPDATE wu SET $query WHERE node_id = '" . tidy($node_id) . "' AND wu_by = $session->user_no; ";
+    $query = "UPDATE wu SET $query WHERE node_id = $node_id AND wu_by = $session->user_no; ";
   }
   else {
     $fields = "";
     $values = "";
     if ( !isset($node_id) || $node_id == 0 ) {
+      $query = "SELECT nextval('infonode_node_id_seq');";
+      $rid = awm_pgexec( $wrms_db, $query, "wu-action", false );
+      if ( $rid ) {
+        $node_id = pg_Result( $rid, 0, 0);
+        $query = "INSERT INTO infonode (node_id, nodename, created_by) ";
+        $query .= "VALUES( $node_id, '" . tidy($nodename) . "', $session->user_no );";
+        $rid = awm_pgexec( $wrms_db, $query, "wu-action", false );
+      }
     }
 
     $new['node_id'] = $node_id;

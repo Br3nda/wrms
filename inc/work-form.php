@@ -233,7 +233,7 @@ function nice_time( $in_time ) {
       echo             '<td align="middle"><input TYPE="Image" src="images/up.gif" alt="Sort Ascending" BORDER="0" name="sort_asc[request_timesheet.work_description]" ></td>';
       echo           '</tr>';
       echo           '<tr>';
-      echo             '<td><input TYPE="Image" src="images/hide.gif" alt="Hide Work Description" BORDER="1" name="hide[request_timesheet.work_description]" ></td>';
+      echo             '<td><input TYPE="Image" src="images/hide.gif" alt="Hide Work Description" BORDER="0" name="hide[request_timesheet.work_description]" ></td>';
       echo             '<td>Work Description</td>';
       echo           '</tr>';
       echo           '<tr>';

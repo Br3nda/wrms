@@ -66,6 +66,7 @@ CREATE TABLE request (
   request_on DATETIME DEFAULT TEXT 'now',
   active BOOL DEFAULT TRUE,
   last_status CHAR DEFAULT 'N',
+	wap_status INT2,
 	urgency INT2,
 	importance INT2,
   severity_code INT2,

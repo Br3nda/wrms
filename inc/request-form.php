@@ -289,13 +289,17 @@
   /***** Quote Details */
   /* we only show quote details if it is 'quotable' (i.e. requestor, administrator or catalyst owner) */
   if ( $quotable ) {
-    $query = "SELECT *, get_lookup_desc('request_quote','quote_type', request_quote.quote_type) AS type_desc ";
-    $query .= "FROM request_quote, usr ";
-    $query .= "WHERE request_quote.request_id = $request->request_id ";
-    $query .= "AND request_quote.quote_by_id = usr.user_no ";
-    $query .= " ORDER BY request_quote.quote_id";
-    $quoteq = awm_pgexec( $wrms_db, $query);
-    $rows = pg_NumRows($quoteq);
+    if ( isset($request) ) {
+      $query = "SELECT *, get_lookup_desc('request_quote','quote_type', request_quote.quote_type) AS type_desc ";
+      $query .= "FROM request_quote, usr ";
+      $query .= "WHERE request_quote.request_id = $request->request_id ";
+      $query .= "AND request_quote.quote_by_id = usr.user_no ";
+      $query .= " ORDER BY request_quote.quote_id";
+      $quoteq = awm_pgexec( $wrms_db, $query);
+      $rows = pg_NumRows($quoteq);
+    }
+    else
+      $rows = 0;
     if ( $rows > 0 || (($allocated_to || $sysmgr) && !$plain) ) {
       echo "$tbldef><tr><td class=sml colspan=6>&nbsp;</td></tr><tr>$hdcell";
       echo "<td class=h3 colspan=6 align=right>Quotations</td></tr>\n";
@@ -325,18 +329,18 @@
         echo "<TD COLSPAN=6>";
         echo html_format($quote->quote_details) . "</A></TD></TR>\n";
       }
-      if ( ($allocated_to || $sysmgr) && ! $plain ) {
-        printf("<tr class=row%1d>", ($i % 2) );
-        echo "<TD colspan=3><input name=new_quote_brief size=35 type=text></TD>\n";
-        echo "<TD><select class=sml name=new_quote_type>$quote_types</select></TD>\n";
-        echo "<TD ALIGN=RIGHT><input name=new_quote_amount size=10 type=text></td>";
-        echo "<TD ALIGN=LEFT><select class=sml name=new_quote_unit>$quote_units</select></TD></tr>\n";
-        if ( $i % 2 == 0 ) echo "<tr bgcolor=$colors[row1]>";
-        else echo "<tr bgcolor=$colors[row2]>";
-        echo "<TD COLSPAN=6><textarea class=sml name=new_quote_details rows=4 cols=60 wrap=soft></textarea></TD></TR>\n";
-      }
-      echo "</TABLE>";
     }
+    if ( ($allocated_to || $sysmgr) && ! $plain ) {
+      printf("<tr class=row%1d>", ($i % 2) );
+      echo "<TD colspan=3><input name=new_quote_brief size=35 type=text></TD>\n";
+      echo "<TD><select class=sml name=new_quote_type>$quote_types</select></TD>\n";
+      echo "<TD ALIGN=RIGHT><input name=new_quote_amount size=10 type=text></td>";
+      echo "<TD ALIGN=LEFT><select class=sml name=new_quote_unit>$quote_units</select></TD></tr>\n";
+      if ( $i % 2 == 0 ) echo "<tr bgcolor=$colors[row1]>";
+      else echo "<tr bgcolor=$colors[row2]>";
+      echo "<TD COLSPAN=6><textarea class=sml name=new_quote_details rows=4 cols=60 wrap=soft></textarea></TD></TR>\n";
+    }
+    echo "</TABLE>";
   }  // if quotable
 
   if ( !$plain && ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] || $roles['wrms']['Manage'] ) ) {

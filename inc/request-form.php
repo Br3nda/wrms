@@ -6,6 +6,7 @@
   $is_request = isset( $request );
   $use_sla = ( $is_request && $request->current_sla == 't' && $request->sla_response_time > 0 ) || (!$is_request && $session->current_sla == 't') ;
   $use_sla = ( $is_request && $request->current_sla == 't' ) || (!$is_request && ($session->current_sla == 't' || $roles['wrms']['Admin'] || $roles['wrms']['Support']) ) ;
+  $attach_types = get_code_list( "request", "attach_type", "" );
 
   if ( $editable ) {
     /* if it's editable then we'll need severity and request_type lists for drop-downs */
@@ -14,7 +15,6 @@
     $sla_urgencies = get_code_list( "request", "sla_response", "$request->request_sla_code" );
     $urgencies = get_code_list( "request", "urgency", "$request->urgency" );
     $importances = get_code_list( "request", "importance", "$request->importance" );
-    $attach_types = get_code_list( "request", "attach_type", "" );
 
     if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] || $roles['wrms']['Manage']  ) {
       if ( $roles['wrms']['Admin'] || $roles['wrms']['Support']  ) {

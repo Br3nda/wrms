@@ -217,7 +217,6 @@ function header_row() {
   while( list($k,$v) = each( $columns ) ) {
     $real_name = $v;
     if ( isset($nice_names[$v]) ) $real_name = $nice_names[$v];
-    error_log("DBG: columns[$k] = $v - \"$real_name\"");
     column_header($available_columns[$real_name], $real_name);
   }
   echo "</tr>";
@@ -360,7 +359,7 @@ function column_header( $ftext, $fname ) {
 }
 
   if ( "$qry" != "" && "$action" == "delete" ) {
-    $query = "DELETE FROM saved_queries WHERE user_no = '$session->user_no' AND LOWER(query_name) = LOWER('$qry');";
+    $query = "DELETE FROM saved_queries WHERE user_no = '$session->user_no' AND LOWER(query_name) = LOWER('".tidy($qry)."');";
     $result = awm_pgexec( $dbconn, $query, "requestlist", false, 7);
     unset($qry);
   }
@@ -529,8 +528,7 @@ else {
   // if ( "$qry$search_for$org_code$system_code" != "" ) {
     $query = "";
     if ( isset($qry) && "$qry" != "" ) {
-      $qry = tidy($qry);
-      $qquery = "SELECT * FROM saved_queries WHERE user_no = '$session->user_no' AND query_name = '$qry';";
+      $qquery = "SELECT * FROM saved_queries WHERE user_no = '$session->user_no' AND query_name = '".tidy($qry)."';";
       $result = awm_pgexec( $dbconn, $qquery, "requestlist", false, 7);
       $thisquery = pg_Fetch_Object( $result, 0 );
       $query = $thisquery->query_sql ;
@@ -601,7 +599,6 @@ else {
           $query .= $k ;
         }
         $query .= "]') ";
-        error_log( "wrms requestlist: DBG: 1-> $query", 0);
         if ( eregi("save", "$submit") && "$savelist" != "" ) {
           $saved_sort = "";
           $saved_seq  = "";
@@ -810,7 +807,6 @@ $query";
     if ( "$style" != "stripped" )
     {
       echo "<br clear=all><hr>\n<table cellpadding=5 cellspacing=5 align=right><tr><td>Rerun as report: </td>\n<td>\n";
-      error_log( "wrms: DBG: $this_page" );
       printf( "<a href=\"$this_page\" target=_new>Brief</a>\n", "stripped", "brief");
       printf( " &nbsp;|&nbsp; <a href=\"$this_page&maxresults=5000\">All Rows</a>\n", $style, $format);
       if ( is_member_of('Admin', 'Support') ) {
@@ -827,7 +823,7 @@ $query";
         printf( " &nbsp;|&nbsp; <a href=\"$this_page\" target=_new>Brief (editable)</a>\n", "stripped", "edit");  //uses the format = edit setting in this link for the Brief (editable) report
       }
       if ( "$qry" != "" ) {
-        echo "</td><td>|&nbsp; &nbsp; or <a href=\"$PHP_SELF?qs=complex&qry=$uqry&action=delete\" class=sbutton>Delete</a> it\n";
+        echo "</td><td>|&nbsp; &nbsp; or <a href=\"$PHP_SELF?qs=complex&qry=".urlencode($qry)."&action=delete\" class=sbutton>Delete</a> it\n";
       }
       echo "</td></tr></table>\n";
     }

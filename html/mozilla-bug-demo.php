@@ -1,6 +1,5 @@
 <?php
   include("inc/always.php");
-  include("inc/options.php");
 
   $title = "Demonstrate Mozilla Bug(s) with form styling";
   include("inc/starthead.php");

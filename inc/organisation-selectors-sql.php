@@ -8,14 +8,7 @@ function SqlSelectOrganisations( $org_code = 0 ) {
   $sql = "SELECT organisation.org_code, organisation.org_name || ' (' || organisation.abbreviation || ')' AS org_name ";
   $sql .= "FROM organisation ";
   if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) ) {
-    if ( $session->AllowedTo("Contractor") ) {
-      $sql .= "JOIN org_system USING (org_code) ";
-      $sql .= "JOIN work_system USING (system_code) ";
-      $sql .= "JOIN system_usr ON (work_system.system_code = system_usr.system_code ";
-      $sql .= "AND system_usr.user_no = $session->user_no ";
-      $sql .= "AND system_usr.role = 'S') ";
-    }
-    else {
+    if ( !$session->AllowedTo("Contractor") ) {
       $sql .= "JOIN usr u ON (u.org_code = organisation.org_code AND u.user_no = $session->user_no) ";
     }
   }
@@ -25,6 +18,13 @@ function SqlSelectOrganisations( $org_code = 0 ) {
   }
   $sql .= ") AND abbreviation !~ '^ *$' ";
   $sql .= "AND EXISTS(SELECT work_system.system_code FROM org_system JOIN work_system ON (org_system.system_code = work_system.system_code) WHERE org_system.org_code = organisation.org_code AND work_system.active) ";
+  if ( $session->AllowedTo("Contractor") && ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) ) {
+    $sql .= "AND EXISTS (SELECT 1 FROM org_system ";
+    $sql .= "JOIN system_usr USING (system_code) ";
+    $sql .= "WHERE system_usr.role IN ('A','S') ";
+    $sql .= "AND system_usr.user_no = $session->user_no ";
+    $sql .= "AND org_system.org_code = organisation.org_code) ";
+  }
   $sql .= "ORDER BY lower(org_name)";
 
   return $sql;
@@ -44,19 +44,18 @@ function SqlSelectRequesters( $org_code = 0 ) {
 
   $sql = "SELECT usr.user_no, fullname || ' (' || abbreviation || ')' AS name, lower(fullname) ";
   $sql .= "FROM usr ";
-  if ( $session->AllowedTo("Contractor") ) {
-    $sql .= "JOIN system_usr ON (system_usr.role = 'S' AND system_usr.user_no=$session->user_no) ";
-    $sql .= "JOIN work_system USING (system_code) ";
-    $sql .= "JOIN system_usr su ON (work_system.system_code=su.system_code AND usr.user_no=su.user_no) ";
-    $sql .= "JOIN org_system ON (work_system.system_code=org_system.system_code) ";
-    $sql .= "JOIN organisation ON (organisation.org_code = org_system.org_code AND usr.org_code = organisation.org_code) ";
-  }
-  else {
-    $sql .= "JOIN organisation USING (org_code) ";
-  }
+  $sql .= "JOIN organisation USING (org_code) ";
   $sql .= "WHERE status != 'I' ";
-  if ( $org_code != 0 && ($session->AllowedTo("Admin") || $session->AllowedTo("Support")  || $session->AllowedTo("Contractor")) )
+  if ( $org_code != 0 && ($session->AllowedTo("Admin") || $session->AllowedTo("Support")  || $session->AllowedTo("Contractor")) ) {
     $sql .= "AND organisation.org_code = $org_code ";
+    if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support")) ) {
+    $sql .= "AND EXISTS (SELECT 1 FROM org_system ";
+    $sql .= "JOIN system_usr USING (system_code) ";
+    $sql .= "WHERE system_usr.role IN ('A','S') ";
+    $sql .= "AND system_usr.user_no = $session->user_no ";
+    $sql .= "AND org_system.org_code = organisation.org_code) ";
+    }
+  }
   else if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") || $session->AllowedTo("Contractor") ) )
     $sql .= "AND organisation.org_code = $session->org_code ";
   $sql .= " ORDER BY 3";

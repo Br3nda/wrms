@@ -1220,10 +1220,12 @@ class Request {
   /////////////////////////////////////////////////////////////
   function Validate( $ef ) {
     global $client_messages, $session;
-    error_log("$system_name: WR::Validate: WARNING: Not validating request");
-//    $client_messages[] = "WARNING: Not validating request details yet.";
+    $session->Log("DBG: WR::Validate: Validating request");
 
     $this->chtype = strtolower($_POST['submit']);
+
+    // We do some special sanitisation of the system_code
+    $_POST['system_code'] = str_replace("'","",str_replace("\\", "", $_POST['system_code'] ));
 
     if ( ! $this->_CheckNewRequester() ) return false;
 
@@ -1233,12 +1235,16 @@ class Request {
 
     // If we validated OK, make sure the request.last_status is synced with any submitted status.
     $_POST['last_status'] = $_POST['status_code'];
+
+    $session->Log("DBG: WR::Validate: Passed for $this->chtype by $session->username ($session->user_no)");
     return true;
   }
 
 
-  function _CheckNewRequester( $ef ) {
+  function _CheckNewRequester() {
     global $client_messages, $session;
+
+    $new_system_code = $_POST['system_code'];
 
     // Some simple decisions
     if ( $this->chtype == 'update' && $_POST['requester_id'] == $this->requester_id ) return true;
@@ -1248,7 +1254,7 @@ class Request {
     $sql .= "FROM usr JOIN org_system ON ( usr.org_code = org_system.org_code ) ";
     $sql .= "JOIN system_usr ON ( usr.user_no = system_usr.user_no AND org_system.system_code = system_usr.system_code ) ";
     $sql .= "WHERE org_system.system_code = ? AND usr.user_no = ? AND system_usr.role IN ('A', 'S', 'C', 'E', 'O'); ";
-    $q = new PgQuery( $sql, $_POST['system_code'], $_POST['requester_id'] );
+    $q = new PgQuery( $sql, $new_system_code, $_POST['requester_id'] );
     if ( !$q->Exec("WR::CheckNewOrgCode") ) {
       $client_messages[] = "There was a database error - please contact support.";
       return false;
@@ -1266,7 +1272,8 @@ class Request {
       return false;
     }
     // Must be a contractor at this point
-    if ( strpos("`SA",$session->system_roles[$this->system_code] ) == false ) {
+    if ( strpos("`SA",$session->system_roles[$new_system_code] ) == false ) {
+      $session->Log("DBG: system role is not (S or A) for $session->username($session->user_no), $new_system_code - " . $session->system_roles[$new_system_code] );
       $client_messages[] = "You may not assign requests to that organisation for that system.";
       return false;
     }
@@ -1275,7 +1282,7 @@ class Request {
     // Have to resort to SQL at this point...
     $sql = 'SELECT 1 FROM org_system JOIN system_usr USING (system_code) ';
     $sql .= 'WHERE org_system.system_code = ? AND org_code = ? AND user_no = ? LIMIT 1;';
-    $q = new PgQuery( $sql, $_POST['system_code'], $requester->org_code, $session->user_no );
+    $q = new PgQuery( $sql, $new_system_code, $requester->org_code, $session->user_no );
     if ( !$q->Exec("WR::CheckNewOrgCode") ) {
       $client_messages[] = "There was a database error - please contact support.";
       return false;
@@ -1284,6 +1291,8 @@ class Request {
       $client_messages[] = "You may not assign requests to that organisation.";
       return false;
     }
+    $session->Log("DBG: $session->user_no may assign $new_system_code requests to Organisation $requester->org_code ");
+    return true;
   }
 
 

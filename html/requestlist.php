@@ -67,13 +67,14 @@
   }
 ?>
 </table>
-</form>  
+</form>
 
 <?php
   } // if  not plain style
 
   if ( "$search_for$org_code$system_code " != "" ) {
-    $query = "SELECT DISTINCT ON (request_id) request_id, brief, fullname, email, lookup_desc AS status_desc, last_activity FROM request, usr, lookup_code AS status ";
+    $query = "SELECT request_id, brief, fullname, email, lookup_desc AS status_desc, last_activity ";
+    $query .= "FROM request, usr, lookup_code AS status ";
 
     $query .= " WHERE request.request_by=usr.username ";
     if ( "$inactive" == "" )        $query .= " AND active ";

@@ -398,7 +398,6 @@
     $admin_options .= "&nbsp;|&nbsp;<A HREF=\"$wrms_home/new-assignment.php3?request_id=$request_id\">Assign to</A>";
     $admin_options .= "&nbsp;|&nbsp;<A HREF=\"$wrms_home/new-timesheet.php3?request_id=$request_id\">Add time</A>";
     $user_options = "&nbsp;|&nbsp;<A HREF=\"modify-request.php3?request_id=$request_id&style=plain\">Printer Friendly</A>";
-edi
     include("$homedir/apms-footer.php3");
   } /* of 'if plain' */
- ?>
+?>

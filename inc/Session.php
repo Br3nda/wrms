@@ -21,7 +21,7 @@ if ( !isset($session) ) {
     if ( $debuggroups['Login'] )
       $session->Log( "DBG: User $username - $session->fullname ($session->user_no) login status is $session->logged_in" );
   }
-  else if ( isset($lsid) && $lsid != "" ) {
+  else if ( !isset($sid) && isset($lsid) && $lsid != "" ) {
     // Validate long-term session details
     $session->LSIDLogin( $lsid );
     if ( $debuggroups['Login'] )

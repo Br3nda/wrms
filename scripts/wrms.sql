@@ -108,6 +108,16 @@ CREATE TABLE group_member (
 CREATE UNIQUE INDEX group_member_sk1 ON group_member ( user_no, group_no );
 
 
+CREATE TABLE attachment_type (
+   type_code TEXT PRIMARY KEY,
+   type_desc TEXT,
+   seq INT4,
+   mime_type TEXT,
+   pattern TEXT,
+   mime_pattern TEXT
+);
+
+
 CREATE TABLE request (
   request_id SERIAL PRIMARY KEY,
   request_on TIMESTAMP DEFAULT current_timestamp,
@@ -126,11 +136,10 @@ CREATE TABLE request (
   sla_response_type CHAR DEFAULT 'O',
   requested_by_date TIMESTAMP,
   agreed_due_date TIMESTAMP,
-  request_by TEXT,
   brief TEXT,
   detailed TEXT,
   system_code TEXT,
-  entered_by INT4
+  entered_by INT4 REFERENCES usr ( user_no )
 ) ;
 CREATE INDEX request_sk1 ON request ( requester_id ) WHERE active = TRUE;
 CREATE INDEX request_sk2 ON request ( last_status ) WHERE active = TRUE;
@@ -222,7 +231,7 @@ CREATE TABLE request_attachment (
   att_brief TEXT,
   att_description TEXT,
   att_filename TEXT,
-  att_type TEXT,
+  att_type TEXT REFERENCES attachment_type ( type_code ),
   att_inline BOOLEAN DEFAULT FALSE,
   att_width INT4,
   att_height INT4
@@ -243,8 +252,8 @@ CREATE INDEX request_request_sk1 ON request_request ( to_request_id );
 
 -- And the instances associated with each request
 CREATE TABLE request_action (
-   request_id INT4 REFERENCES request,
-   action_id INT4 REFERENCES organisation_action,
+   request_id INT4 REFERENCES request (request_id ),
+   action_id INT4 REFERENCES organisation_action ( action_id ),
    completed_on TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp,
    updated_by_id INT4 REFERENCES usr( user_no ),
    PRIMARY KEY ( request_id, action_id )
@@ -288,16 +297,6 @@ CREATE TABLE lookup_code (
 );
 CREATE INDEX lookup_code_key ON lookup_code ( source_table, source_field, lookup_seq, lookup_code );
 CREATE UNIQUE INDEX lookup_code_ak1 ON lookup_code ( source_table, source_field, lookup_code );
-
-
-CREATE TABLE attachment_type (
-   type_code TEXT PRIMARY KEY,
-   type_desc TEXT,
-   seq INT4,
-   mime_type TEXT,
-   pattern TEXT,
-   mime_pattern TEXT
-);
 
 
 CREATE TABLE session (

@@ -37,22 +37,19 @@ ALTER TABLE usr DROP COLUMN linked_user;
 ALTER TABLE usr ADD COLUMN enabled_new BOOLEAN;
 UPDATE usr SET enabled_new = (enabled > 0) ;
 ALTER TABLE usr DROP COLUMN enabled;
-ALTER TABLE usr ALTER COLUMN enabled_new RENAME TO enabled;
-ALTER TABLE usr ALTER COLUMN enabled DEFAULT TRUE;
+ALTER TABLE usr RENAME enabled_new TO enabled;
+ALTER TABLE usr ALTER COLUMN enabled SET DEFAULT TRUE;
 ALTER TABLE usr DROP COLUMN organisation;
 
 ALTER TABLE ugroup DROP COLUMN module_name;
 
 ALTER TABLE work_system DROP COLUMN support_user_no;
-ALTER TABLE work_system DROP COLUMN notify_user;
+ALTER TABLE work_system DROP COLUMN notify_usr;
 
 ALTER TABLE org_system DROP COLUMN admin_user_no;
 ALTER TABLE org_system DROP COLUMN support_user_no;
 
-ALTER TABLE usr_setting ADD COLUMN user_no INT4;
-UPDATE usr_setting SET user_no = SELECT usr.user_no FROM usr WHERE lower(usr.username) = lower(usr_setting.username);
-ALTER TABLE usr_setting DROP COLUMN username;
-ALTER TABLE usr_setting ALTER COLUMN enabled_new RENAME TO enabled;
+DROP TABLE usr_setting;
 
 ALTER TABLE request DROP COLUMN request_by;
 ALTER TABLE request_history DROP COLUMN request_by;

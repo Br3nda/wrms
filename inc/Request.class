@@ -105,7 +105,10 @@ class Request {
              $this->{$k} = $v;
            }
            if ( strpos( "ASEC", strtoupper($this->system_usr_role))
-                || $this->requester_id == $session->user_no ) {
+                || $this->requester_id == $session->user_no
+                || $session->AllowedTo('Admin')
+                || $session->AllowedTo('Support')
+                 ) {
              $tmnu->AddOption("Edit","/wr.php?edit=1&request_id=$this->request_id","Edit the details for this work request");
            }
 

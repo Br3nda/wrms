@@ -526,8 +526,13 @@ SCRIPT;
       }
       if ( $systems == "" )
         $sql = "DELETE FROM system_usr WHERE user_no = '$this->user_no';";
-      else
-        $sql = "DELETE FROM system_usr WHERE user_no = '$this->user_no' AND system_code NOT IN ( $systems ); $role_update";
+      else {
+        $sql = "DELETE FROM system_usr WHERE user_no = '$this->user_no' AND system_code NOT IN ( $systems ) ";
+        if ( ! ($session->AllowedTo('Admin') || $session->AllowedTo('Support')) ) {
+          $sql .= "AND role NOT IN ( 'A', 'S' ) ";
+        }
+        $sql .= ";" . $role_update;
+      }
       $qry = new PgQuery($sql);
       if ( !$qry->Exec("Sys::Write") ) $client_messages[] = "ERROR: $qry->errorstring";
     }

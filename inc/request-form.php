@@ -599,39 +599,44 @@
 
 
   /***** Linked Work Requests */
-  $link_wr_query  = "SELECT ";
-  $link_wr_query .= "rr.request_id    AS parent_request_id, ";
-  $link_wr_query .= "r.brief          AS parent_brief, ";
-  $link_wr_query .= "lcs.lookup_desc  AS parent_status, ";
-  $link_wr_query .= "lc.lookup_desc   AS parent_link_desc, ";
-  $link_wr_query .= "null             AS child_link_desc, ";
-  $link_wr_query .= "null             AS child_request_id, ";
-  $link_wr_query .= "null             AS child_brief, ";
-  $link_wr_query .= "null             AS child_status ";
-  $link_wr_query .= "FROM request_request rr ";
-  $link_wr_query .= "JOIN request r USING (request_id) ";
-  $link_wr_query .= "JOIN lookup_code lc ON lc.source_table = 'request_request' AND lc.source_field = 'link_type' AND lc.lookup_code = rr.link_type ";
-  $link_wr_query .= "JOIN lookup_code lcs ON lcs.source_table = 'request' AND lcs.source_field = 'status_code' AND lcs.lookup_code = r.last_status ";
-  $link_wr_query .= "WHERE rr.to_request_id = '$request->request_id' ";
+  if ( $is_request ) {
+    $link_wr_query  = "SELECT ";
+    $link_wr_query .= "rr.request_id    AS parent_request_id, ";
+    $link_wr_query .= "r.brief          AS parent_brief, ";
+    $link_wr_query .= "lcs.lookup_desc  AS parent_status, ";
+    $link_wr_query .= "lc.lookup_desc   AS parent_link_desc, ";
+    $link_wr_query .= "null             AS child_link_desc, ";
+    $link_wr_query .= "null             AS child_request_id, ";
+    $link_wr_query .= "null             AS child_brief, ";
+    $link_wr_query .= "null             AS child_status ";
+    $link_wr_query .= "FROM request_request rr ";
+    $link_wr_query .= "JOIN request r USING (request_id) ";
+    $link_wr_query .= "JOIN lookup_code lc ON lc.source_table = 'request_request' AND lc.source_field = 'link_type' AND lc.lookup_code = rr.link_type ";
+    $link_wr_query .= "JOIN lookup_code lcs ON lcs.source_table = 'request' AND lcs.source_field = 'status_code' AND lcs.lookup_code = r.last_status ";
+    $link_wr_query .= "WHERE rr.to_request_id = '$request->request_id' ";
 
-  $link_wr_query .= "UNION SELECT ";
-  $link_wr_query .= "null             AS parent_request_id, ";
-  $link_wr_query .= "null             AS parent_brief, ";
-  $link_wr_query .= "null             AS parent_status, ";
-  $link_wr_query .= "null             AS parent_link_desc, ";
-  $link_wr_query .= "lc.lookup_desc   AS child_link_desc, ";
-  $link_wr_query .= "rr.to_request_id AS child_request_id, ";
-  $link_wr_query .= "r.brief          AS child_brief, ";
-  $link_wr_query .= "lcs.lookup_desc  AS child_status ";
-  $link_wr_query .= "FROM request_request rr ";
-  $link_wr_query .= "JOIN request r ON r.request_id = rr.to_request_id ";
-  $link_wr_query .= "JOIN lookup_code lc ON lc.source_table = 'request_request' AND lc.source_field = 'link_type' AND lc.lookup_code = rr.link_type ";
-  $link_wr_query .= "JOIN lookup_code lcs ON lcs.source_table = 'request' AND lcs.source_field = 'status_code' AND lcs.lookup_code = r.last_status ";
-  $link_wr_query .= "WHERE rr.request_id = '$request->request_id' ";
+    $link_wr_query .= "UNION SELECT ";
+    $link_wr_query .= "null             AS parent_request_id, ";
+    $link_wr_query .= "null             AS parent_brief, ";
+    $link_wr_query .= "null             AS parent_status, ";
+    $link_wr_query .= "null             AS parent_link_desc, ";
+    $link_wr_query .= "lc.lookup_desc   AS child_link_desc, ";
+    $link_wr_query .= "rr.to_request_id AS child_request_id, ";
+    $link_wr_query .= "r.brief          AS child_brief, ";
+    $link_wr_query .= "lcs.lookup_desc  AS child_status ";
+    $link_wr_query .= "FROM request_request rr ";
+    $link_wr_query .= "JOIN request r ON r.request_id = rr.to_request_id ";
+    $link_wr_query .= "JOIN lookup_code lc ON lc.source_table = 'request_request' AND lc.source_field = 'link_type' AND lc.lookup_code = rr.link_type ";
+    $link_wr_query .= "JOIN lookup_code lcs ON lcs.source_table = 'request' AND lcs.source_field = 'status_code' AND lcs.lookup_code = r.last_status ";
+    $link_wr_query .= "WHERE rr.request_id = '$request->request_id' ";
 
-  $link_wr_result = awm_pgexec( $dbconn, $link_wr_query );
+    $link_wr_result = awm_pgexec( $dbconn, $link_wr_query );
 
-  $rows = pg_NumRows($link_wr_result);
+    $rows = pg_NumRows($link_wr_result);
+  }
+  else
+    $rows = 0;
+
   if ( $rows > 0 ) {
     echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=7>&nbsp;</TD></TR>\n";
     echo "<TR>$hdcell<TD CLASS=h3 COLSPAN=7 align=right>Linked Work Requests</TD></TR>\n";
@@ -661,10 +666,15 @@
 
 
   /***** Notes */
-  $noteq = "SELECT * FROM request_note WHERE request_note.request_id = '$request->request_id' ";
-  $noteq .= "ORDER BY note_on ";
-  $note_res = awm_pgexec( $dbconn, $noteq );
-  $rows = pg_NumRows($note_res);
+  if ( $is_request ) {
+    $noteq = "SELECT * FROM request_note WHERE request_note.request_id = '$request->request_id' ";
+    $noteq .= "ORDER BY note_on ";
+    $note_res = awm_pgexec( $dbconn, $noteq );
+    $rows = pg_NumRows($note_res);
+  }
+  else
+    $rows = 0;
+
   if ( $rows > 0 ) {
     echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=4>&nbsp;</TD></TR><TR>$hdcell";
 
@@ -689,13 +699,18 @@
 
 
   /***** Status Changes */
-  $statq = "SELECT * FROM request_status, lookup_code AS status, usr ";
-  $statq .= " WHERE request_status.request_id = '$request->request_id' AND request_status.status_code = status.lookup_code ";
-  $statq .= " AND status.source_table='request' AND status.source_field='status_code' ";
-  $statq .= " AND usr.user_no=request_status.status_by_id ";
-  $statq .= " ORDER BY status_on ";
-  $stat_res = awm_pgexec( $dbconn, $statq);
-  $rows = pg_NumRows($stat_res);
+  if ( $is_request ) {
+    $statq = "SELECT * FROM request_status, lookup_code AS status, usr ";
+    $statq .= " WHERE request_status.request_id = '$request->request_id' AND request_status.status_code = status.lookup_code ";
+    $statq .= " AND status.source_table='request' AND status.source_field='status_code' ";
+    $statq .= " AND usr.user_no=request_status.status_by_id ";
+    $statq .= " ORDER BY status_on ";
+    $stat_res = awm_pgexec( $dbconn, $statq);
+    $rows = pg_NumRows($stat_res);
+  }
+  else
+    $rows = 0;
+
   if ( $rows > 0 ) {
     echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=4>&nbsp;</TD></TR><TR>$hdcell";
 

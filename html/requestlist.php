@@ -486,7 +486,7 @@ $query";
 
     if ( "$style" != "stripped" || ("$style" == "stripped" && "$format" == "edit")) {
       $this_page = "$PHP_SELF?style=%s&format=%s";
-      if ( isset($qry) ) $uqry = urlencode($qry);
+      if ( isset($qry) ) $uqry = str_replace('%','%%',urlencode($qry));
       if ( "$qry" != "" ) $this_page .= "&qry=$uqry";
       if ( "$search_for" != "" ) $this_page .= "&search_for=" . urlencode($search_for);
       if ( "$org_code" != "" ) $this_page .= "&org_code=$org_code";
@@ -683,6 +683,7 @@ $query";
     if ( "$style" != "stripped" )
     {
       echo "<br clear=all><hr>\n<table cellpadding=5 cellspacing=5 align=right><tr><td>Rerun as report: </td>\n<td>\n";
+      error_log( "wrms: DBG: $this_page" );
       printf( "<a href=\"$this_page\" target=_new>Brief</a>\n", "stripped", "brief");
       printf( " &nbsp;|&nbsp; <a href=\"$this_page&maxresults=5000\">All Rows</a>\n", $style, $format);
       if ( is_member_of('Admin', 'Support') ) {

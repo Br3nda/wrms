@@ -9,3 +9,5 @@ for TABLE in `psql -qt -d $DATABASE -c "SELECT relname from pg_class where relki
   pg_dump -a -n -D -d $DATABASE -t $TABLE >$DUMPDIR/t-$TABLE.sql
 done
 
+# Remove the request_words table which is built on load
+rm $DUMPDIR/t-request_words.sql

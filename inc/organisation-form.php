@@ -2,6 +2,7 @@
   if ( !isset($org_code) ) $org_code = $session->org_code;
   if ( "$org_code" == "new" ) unset($org_code);
   if ( isset($org_code) && $org_code > 0 ) {
+    if ( ! ($roles['wrms']['Admin'] || $roles['wrms']['Support'] ) )  $org_code = $session->org_code;
 
     $query = "SELECT * FROM organisation WHERE org_code='$org_code' ";
     $rid = awm_pgexec( $wrms_db, $query);
@@ -70,6 +71,7 @@ with them.</P><?php
 <TD><input type=text size=50 maxlen=50 name=org_name value="<?php echo "$org->org_name"; ?>"></TD></TR>
 <TR><TH ALIGN=RIGHT>Abbreviation:</TH>
 <TD><input type=text size=10 maxlen=10 name=abbreviation value="<?php echo "$org->abbreviation"; ?>"></TD></TR>
+<?php  if ( $roles['wrms']['Admin'] ) { ?>
 <TR><TH ALIGN=RIGHT>Active:</TH>
 <TD><input type=checkbox value="t" name=active<?php if ( "$org->active" != "f" ) echo " checked"; ?>></TD></TR>
 <TR><TH ALIGN=RIGHT>Debtor #:</TH>
@@ -78,6 +80,7 @@ with them.</P><?php
 <TD><input type=text size=5 name=work_rate value="<?php echo "$org->work_rate"; ?>"></TD></TR>
 
 <?php
+  } // if admin
   if ( $roles[wrms][Admin] && pg_NumRows($sys_res) > 0 ) {
     // This displays checkboxes to select the organisations systems.
     echo "\n<tr><th align=right valign=top>&nbsp;<BR>Systems:</th>\n";

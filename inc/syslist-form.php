@@ -52,8 +52,8 @@
 
         printf("<tr class=row%1d>", $i % 2);
 
-        echo "<td class=sml>&nbsp;<a href=\"form.php?form=system&system_code=$thissystem->system_code\">$thissystem->system_code</a>&nbsp;</td>\n";
-        echo "<td class=sml>&nbsp;<a href=\"form.php?form=system&system_code=$thissystem->system_code\">$thissystem->system_desc";
+        echo "<td class=sml>&nbsp;<a href=\"system.php?system_code=$thissystem->system_code\">$thissystem->system_code</a>&nbsp;</td>\n";
+        echo "<td class=sml>&nbsp;<a href=\"system.php?system_code=$thissystem->system_code\">$thissystem->system_desc";
         if ( "$thissystem->system_desc" == "" ) echo "-- no description --";
         echo "</a>&nbsp;</td>\n";
         echo "<td class=sml><a class=submit href=\"requestlist.php?system_code=$thissystem->system_code\">Requests</a>\n";

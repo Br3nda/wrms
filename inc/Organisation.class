@@ -175,6 +175,7 @@ class Organisation {
      $sql = "SELECT * ";
      if ( $ef->editmode && ($session->AllowedTo('Admin') || $session->AllowedTo('Support')) ) {
        $sql .= "FROM organisation_tag ";
+       $sql .= "WHERE org_system.org_code = ".intval($org_code);
      }
      elseif ( $session->AllowedTo('Admin') || $session->AllowedTo('Support') ) {
        $sql .= "FROM organisation_tag ";

@@ -1,6 +1,7 @@
 <?php
-  if ( "$style" != "clean" ) {
-    echo "</td></tr></table>\n</td>\n";
+  echo "</td></tr></table>\n";
+  if ( $left_panel ) {
+    echo "</td>\n";
 
     if ( $right_panel ) {
       echo "<td width=\"10%\" bgcolor=\"$colors[bg1]\" valign=top>\n";
@@ -25,9 +26,6 @@ if ( is_object ( $settings ) ) {
     $query .= "UPDATE usr SET config_data='" . $settings->to_save() . "' WHERE user_no=$session->user_no; ";
 
   $result = awm_pgexec( $dbconn, $query );
-  if ( !$result ) {
-    error_log( "$sysabbr footers QF: $query", 0);
-  }
 }
 
 

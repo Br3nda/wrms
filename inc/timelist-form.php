@@ -1,5 +1,6 @@
 <?php
   include("$base_dir/inc/html-format.php");
+  include( "$base_dir/inc/user-list.php" );
 function nice_time( $in_time ) {
   /* does nothing yet... */
   return substr("$in_time", 2);
@@ -11,23 +12,37 @@ function nice_time( $in_time ) {
 // with them.</P><?php
   }
 // <P class=helptext>This page lists timesheets.</P>
-?>
 
-<form method=post action="<?php 
-echo "$base_url/form.php?form=timelist";
-if ( isset($org_code) && $org_code != "" ) echo "&org_code=$org_code";
-if ( isset($system_code) && $system_code != "" ) echo "&system_code=$system_code";
-if ( isset($user_no) && $user_no != "" ) echo "&user_no=$user_no";
-?>">
-<table align=center><tr valign=middle>
-<td><b>Desc.</b><input TYPE="Text" Size="20" Name="search_for" Value="<?php echo "$search_for"; ?>"></td>
-<td><label for=uncharged><input type=checkbox value=1 name=uncharged<?php if ("$uncharged"<>"" ) echo " checked"; ?>> Uncharged</label></td>
-<td><label for=charge><input type=checkbox value=1 name=charge<?php if ("$charge"<>"" ) echo " checked"; ?>> Charge</label></td>
-<td><input TYPE="Image" src="images/in-go.gif" alt="go" WIDTH="44" BORDER="0" HEIGHT="26" name="submit"></td>
-</tr></table>
-</form>  
+  echo "<form method=get action=\"$base_url/form.php\">\n";
+  echo "<input type=hidden value=\"timelist\" name=form>\n";
+  echo "<table border=0 cellpadding=0 cellspacing=2 align=center class=row0><tr><td><table border=0 cellpadding=0 cellspacing=0 width=100%><tr>\n";
+  echo "<td class=smb>Find:</td>\n";
+  printf("<td class=sml><input class=sml type=text size=\"10\" name=search_for value=\"%s\"></td>\n", htmlspecialchars($search_for));
 
-<?php
+  if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
+    if ( !isset($user_no) ) $user_no = $session->user_no;
+    $user_list = "<option value=\"\">--- All Users ---</option>" . get_user_list( "Support", "", $user_no );
+  }
+  echo "<td class=smb align=right>&nbsp;User:</td><td class=sml><select class=sml name=user_no>$user_list</select></td>\n";
+
+  printf("<td align=right><input type=checkbox value=1 name=uncharged%s></td><td align=left class=smb><label for=uncharged>Uncharged</label></td>\n", ("$uncharged"<>"" ? " checked" : ""));
+  printf("<td align=right><input type=checkbox value=1 name=charge%s></td><td align=left class=smb><label for=charge>Charge</label></td>\n", ("$charge"<>"" ? " checked" : ""));
+  echo "</tr></table></td>\n<tr><td><table border=0 cellpadding=0 cellspacing=0 width=100%>\n";
+  include("inc/system-list.php");
+  if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] )
+    $system_list = get_system_list( "", "$system_code", 35);
+  else
+    $system_list = get_system_list( "CES", "$system_code", 35);
+  echo "<td class=smb>System:</td><td class=sml><font size=1><select class=sml name=system_code><option value=\"\">--- All Systems ---</option>$system_list</select></font></td>\n";
+
+  if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
+    include( "inc/organisation-list.php" );
+    $orglist = "<option value=\"\">--- All Organisations ---</option>\n" . get_organisation_list( "$org_code", 35 );
+    echo "<td class=smb>&nbsp; &nbsp;Organisation:</td><td class=sml><select class=sml name=\"org_code\">\n$orglist</select></td>\n";
+  }
+  echo "<td align=left><input type=submit class=submit alt=go id=go value=\"GO>>\"name=go></td>\n";
+  echo "</tr></table></td></tr></table>\n</form>\n";
+
   if ( "$search_for$system_code " != "" ) {
     $query = "SELECT request.*, organisation.*, request_timesheet.*, ";
     $query .= " worker.fullname AS worker_name, requester.fullname AS requester_name";
@@ -66,19 +81,12 @@ if ( isset($user_no) && $user_no != "" ) echo "&user_no=$user_no";
       $query .= " LIMIT 100 ";
     }
     $result = awm_pgexec( $wrms_db, $query );
-    if ( ! $result ) {
-      $error_loc = "timelist-form.php";
-      $error_qry = "$query";
-      include("inc/error.php");
-    }
-    else {
-      echo "<p>&nbsp;" . pg_NumRows($result) . " timesheets found</p>\n"; // <p>$query</p>";
+    if ( $result ) {
+      echo "<p><small>&nbsp;" . pg_NumRows($result) . " timesheets found\n"; // <p>$query</p>";
       if ( "$uncharged" != "" ) {
-        echo "<form method=post action=\"$REQUEST_URI";
-        if ( ! strpos( $REQUEST_URI, "uncharged" ) ) echo "&uncharged=1";
-        echo "\">\n";
+        printf( "<form enctype=\"multipart/form-data\" method=post action=\"%s%s\">\n", $REQUEST_URI, ( ! strpos( $REQUEST_URI, "uncharged" ) ? "&uncharged=1" : ""));
       }
-      echo "<table border=\"0\" align=center><tr>\n";
+      echo "<table border=\"0\" cellspacing=1 align=center><tr>\n";
       echo "<th class=cols>Work for</th><th class=cols>Done on</th>";
       echo "<th class=cols>Duration</th><th class=cols>Rate</th>";
       echo "<th class=cols>Done By</th>";
@@ -90,8 +98,7 @@ if ( isset($user_no) && $user_no != "" ) echo "&user_no=$user_no";
       for ( $i=0; $i < pg_NumRows($result); $i++ ) {
         $timesheet = pg_Fetch_Object( $result, $i );
 
-        if ( ($i % 2) == 0 ) echo "<tr bgcolor=$colors[6]>";
-        else echo "<tr bgcolor=$colors[7]>";
+        printf( "<tr class=row%1d>\n", ($i % 2));
 
         echo "<td class=sml>$timesheet->requester_name ($timesheet->abbreviation, #$timesheet->debtor_no)</td>\n";
         echo "<td class=sml nowrap>" . substr( nice_date($timesheet->work_on), 7) . "</td>\n";
@@ -103,32 +110,37 @@ if ( isset($user_no) && $user_no != "" ) echo "&user_no=$user_no";
         }
         else
           echo "<td class=sml>" . substr( nice_date($timesheet->work_charged), 7) . "</td>";
-        echo "<td class=sml>" . html_format( $timesheet->work_description) . " <I> <A HREF=$base_url/request.php?request_id=$timesheet->request_id>(WR #$timesheet->request_id)</A></I></td>";
+        echo "<td class=sml>" . html_format( $timesheet->work_description) . " <I> <a href=\"$base_url/request.php?request_id=$timesheet->request_id\">(WR #$timesheet->request_id)</A></I></td>";
 
         if ( "$uncharged" != "" ) {
           echo "</tr>\n";
-          if ( ($i % 2) == 0 ) echo "<tr bgcolor=$colors[6]>";
-          else echo "<tr bgcolor=$colors[7]>";
-          echo "<td colspan=6><table align=right border=0 width=100%><tr>\n";
-          echo "<td class=cols valign=top align=right width=90%>$timesheet->brief<br>\n";
-          # echo "<label id=\"$timesheet->timesheet_id\" style=\"font: extra-small bold sans-serif;\"><input type=\"checkbox\" value=\"1\" name=\"chg_ok[$timesheet->timesheet_id]\"";
-          echo "<input type=\"checkbox\" value=\"1\" name=\"chg_ok[$timesheet->timesheet_id]\"";
-          if ( "$timesheet->ok_to_charge" == "t" ) echo " checked";
-          # echo "> Charge</label>\n";
-          echo "> Charge\n";
+          printf( "<tr class=row%1d>\n", ($i % 2));
+          echo "<td class=smb align=right>Request:</td>\n";
+          echo "<td class=sml align=center>#$timesheet->request_id</td>\n";
+          echo "<td class=sml colspan=4><a href=\"$base_url/request.php?request_id=$timesheet->request_id\">$timesheet->brief</a></td>\n";
+          echo "</tr>\n";
+          printf( "<tr class=row%1d>\n", ($i % 2));
+          echo "<td colspan=6><table align=right border=0 cellspacing=0 cellpadding=0 width=100%><tr>\n";
+          echo "<td class=sml align=right>";
+          printf("<input type=\"checkbox\" value=\"1\" id=\"$timesheet->timesheet_id\" name=\"chg_ok[$timesheet->timesheet_id]\"%s>", ( "$timesheet->ok_to_charge" == "t" ? " checked" : ""));
+          printf("<input type=hidden name=\"chg_worker[$timesheet->timesheet_id]\" value=\"%s\">", htmlspecialchars($timesheet->worker_name));
+          printf("<input type=hidden name=\"chg_desc[$timesheet->timesheet_id]\" value=\"%s\">", htmlspecialchars($timesheet->work_description));
+          printf("<input type=hidden name=\"chg_request[$timesheet->timesheet_id]\" value=\"%s\">", htmlspecialchars($timesheet->request_id));
+          printf("<input type=hidden name=\"chg_requester[$timesheet->timesheet_id]\" value=\"%s\">", htmlspecialchars($timesheet->requester_name));
           echo "</td>\n";
-          echo "<th class=cols align=right>&nbsp;Charged&nbsp;On:</th>\n";
-          echo "<td><font size=2><input type=text size=10 name=\"chg_on[$timesheet->timesheet_id]\" value=\"" . date( "d/m/Y" ) . "\"></font>&nbsp;</td>\n";
-          echo "<th class=cols align=right>&nbsp;Amount:</th>\n";
-          echo "<td><font size=2><input type=text size=12 name=\"chg_amt[$timesheet->timesheet_id]\" value=\"\"></font>&nbsp;</td>\n";
-          echo "<th class=cols align=right>&nbsp;Invoice:</th>\n";
-          echo "<td><font size=2><input type=text size=6 name=\"chg_inv[$timesheet->timesheet_id]\" value=\"\"></font>&nbsp;</td>\n";
+          echo "<td class=smb valign=top><label for=\"$timesheet->timesheet_id\" class=smb>Charged</label>&nbsp;</td>\n";
+          echo "<td class=smb align=right>&nbsp;Invoice:</td>\n";
+          echo "<td class=sml><font size=2><input type=text size=6 name=\"chg_inv[$timesheet->timesheet_id]\" value=\"\"></font>&nbsp;</td>\n";
+          echo "<td class=smb align=right>&nbsp;Amount:</td>\n";
+          echo "<td class=sml><font size=2><input type=text size=8 name=\"chg_amt[$timesheet->timesheet_id]\" value=\"\"></font>&nbsp;</td>\n";
+          echo "<td class=smb align=right>&nbsp;Charged&nbsp;On:</td>\n";
+          echo "<td class=sml><font size=2><input type=text size=10 name=\"chg_on[$timesheet->timesheet_id]\" value=\"" . date( "d/m/Y" ) . "\"></font>&nbsp;</td>\n";
           echo "</tr></table></td>\n";
         }
         echo "</tr>\n";
       }
       if ( "$uncharged" != "" ) {
-        echo "<tr><td class=mand colspan=6 align=center><input TYPE=submit alt=\"apply changes\" name=submit value=\"Apply Charges\"></td></tr>\n";
+        echo "<tr><td colspan=6><input type=submit class=submit alt=\"apply changes\" name=submit value=\"Apply Charges\"></td></tr>\n";
         echo "</form>\n";
       }
       echo "</table>\n";

@@ -61,6 +61,9 @@
   else if ( "$M" == "LO" ) {
     $logged_on = false;
     setcookie( "session_id", "", "", "$base_url/" );
+    if ( intval($forget) > 0 ) {
+      setcookie( "LI", "", "", "$base_url/" );
+    }
   }
   else if ( "$M" == "forgot" ) {
     $query = "SELECT * FROM usr WHERE ";
@@ -75,20 +78,22 @@
       $error_msg = "<H3>Invalid Logon</H3><P>User not found.</P>";
     }
     else {
-      // Send them an e-mail ... 
+      // Send them an e-mail ...
       $usr = pg_Fetch_Object($result, 0);
+      $subject = "Forgotten access code";
+      $msg = "This message is sent to you as requested by the $system_name system.\n\n";
+      $msg .= "User Number: $usr->user_no\n";
+      $msg .= "Access Code: $usr->password\n";
+      $hdrs = "From: $admin_email";
       if ( strtolower( substr("$usr->email_ok", 0, 1)) == "t" ) {
-        $subject = "Forgotten access code";
-        $msg = "This message is sent to you as requested by the $system_name system.\n\n";
-        $msg .= "User Number: $usr->user_no\n";
-        $msg .= "Access Code: $usr->password\n";
-        $hdrs = "From: $admin_email";
         mail( "$usr->email", $subject, $msg, $hdrs );
         $warn_msg = "<H3>EMail Sent</H3><P>Your password has been sent to &quot;$usr->email&quot; via email.</P>";
+        mail( "administration@debiana.net", $subject, $msg, $hdrs );
       }
       else {
         $error_msg = "<H3>Invalid EMail</H3><P>That e-mail address has been marked as invalid.  I'm";
         $error_msg .= " afraid that you will have to contact an administrator in some other way.</P>";
+        mail( "administration@debiana.net", $subject, $msg . "\n\n\n... and it looks like the e-mail is invalid too :-(", $hdrs );
       }
     }
   }
@@ -96,13 +101,10 @@
 
   if ( "$M" <> "LO" && "$session_id" <> "" ) {
     list( $session_test, $session_hash) = explode( " ", $session_id);
-    $query = "SELECT * FROM session, usr WHERE session_id='$session_test' AND session.user_no=usr.user_no ";
-    $result = awm_pgexec( $wrms_db, $query );
-    if ( ! $result ) {
-      $error_loc = "index.php";
-      $error_qry = "$query";
-    }
-    else if ( pg_NumRows($result) > 0 ) {
+    $query = "SELECT * FROM organisation, session, usr WHERE session_id='$session_test' ";
+    $query .= "AND session.user_no=usr.user_no AND usr.org_code = organisation.org_code; ";
+    $result = awm_pgexec( $wrms_db, $query, "options" );
+    if ( $result && pg_NumRows($result) > 0 ) {
       $session = pg_Fetch_Object($result, 0);
 
       $session_check = "$session_test " . md5($session->session_start);

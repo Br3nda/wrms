@@ -2,6 +2,7 @@
   include("inc/always.php");
   include("inc/options.php");
   $right_panel = false;
+  $title = "Catalyst's Work Request Management System";
   include("inc/headers.php");
 
   if ( "$error_loc$error_msg$warn_msg" <> "" ) {

@@ -25,14 +25,14 @@ function edit_line() {
   echo "<input type=hidden name=action value=";
   if ( "$action" == "edit" ) echo "update"; else echo "insert";
   echo "><input type=hidden name=old_lookup_code value=\"$lookup_code\">\n";
-  echo "<td align=center nowrap><input Type=Text Name=lookup_seq Size=5 MAXLENGTH=10 Value=\"$lookup_seq\"></td>\n";
-  echo "<td align=left><input Type=Text Name=lookup_code Size=8 MAXLENGTH=30 Value=\"$lookup_code\"></td>\n";
+  echo "<td align=center nowrap class=sml><input class=sml Type=Text Name=lookup_seq Size=5 MAXLENGTH=10 Value=\"$lookup_seq\"></td>\n";
+  echo "<td align=left class=sml><input class=sml type=text name=lookup_code size=8 MAXLENGTH=30 Value=\"$lookup_code\"></td>\n";
   if ( $maxdesc > 70 )
-    echo "<td align=left><textarea name=lookup_desc rows=5 cols=60 wrap>$lookup_desc</textarea></td>\n";
+    echo "<td align=left class=sml><textarea name=lookup_desc rows=5 cols=60 wrap>$lookup_desc</textarea></td>\n";
   else
-    echo "<td align=left><input Type=Text Name=lookup_desc Size=18 Value=\"$lookup_desc\"></td>\n";
-  echo "<td align=left><input Type=Text Name=lookup_misc Size=18 Value=\"$lookup_misc\"></td>\n";
-  echo "<td align=center><input type=submit value=\"";
+    echo "<td align=left class=sml><input class=sml Type=Text Name=lookup_desc Size=16 Value=\"$lookup_desc\"></td>\n";
+  echo "<td align=left class=sml><input class=sml Type=Text Name=lookup_misc Size=12 Value=\"$lookup_misc\"></td>\n";
+  echo "<td align=center><input class=submit type=submit value=\"";
   if ( "$action" == "edit" ) echo "Update"; else echo "Add";
   echo "\" name=submit></td>\n";
   echo "</form>";
@@ -49,22 +49,20 @@ function edit_line() {
       $lookup = pg_Fetch_Object( $result, $i );
 
       // Note these tags aren't terminated until below...
-      if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]";
-      else echo "<tr bgcolor=$colors[7]";
+      printf("<tr class=row%1d%s>\n", $i % 2, ( "$action" == "edit" && "$lookup_code" == "$lookup->lookup_code" ? " valign=top" : "") );
 
       $maxdesc = max( $maxdesc, strlen($lookup->lookup_desc) );
       if ( "$action" == "edit" && "$lookup_code" == "$lookup->lookup_code" ) {
-        echo " valign=top>";
         edit_line();
       }
       else {
-        echo ">\n<td>$lookup->lookup_seq&nbsp;</td>";
-        echo "<td>$lookup->lookup_code&nbsp;</td>";
-        echo "<td>$lookup->lookup_desc&nbsp;</td>";
-        echo "<td>$lookup->lookup_misc&nbsp;</td>\n";
-        echo "<td align=center class=menu><font size=1>\n";
-        echo "<a class=r href=\"$look_href&lookup_code=" . rawurlencode($lookup->lookup_code) . "&action=edit\">Edit</a> \n";
-        echo "<a class=r href=\"$look_href&lookup_code=" . rawurlencode($lookup->lookup_code) . "&action=delete\">Delete</a>";
+        echo "<td class=sml>$lookup->lookup_seq&nbsp;</td>";
+        echo "<td class=sml>$lookup->lookup_code&nbsp;</td>";
+        echo "<td class=sml>$lookup->lookup_desc&nbsp;</td>";
+        echo "<td class=sml>$lookup->lookup_misc&nbsp;</td>\n";
+        echo "<td align=center class=sml><font size=1>\n";
+        echo "<a class=submit href=\"$look_href&lookup_code=" . rawurlencode($lookup->lookup_code) . "&action=edit\">Edit</a> \n";
+        echo "<a class=submit href=\"$look_href&lookup_code=" . rawurlencode($lookup->lookup_code) . "&action=delete\">Delete</a>";
         echo "</font></td>";
       }
       echo "</tr>\n";

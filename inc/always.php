@@ -18,15 +18,16 @@ $admin_email = "wrmsadmin@catalyst.net.nz";
 $basefont = "verdana,sans-serif";
 $system_name = "Catalyst WRMS";
 $sysabbr = "wrms";
+$left_panel = true;
 
 $base_dns = "http://$HTTP_HOST";
 $base_url = "";
 $base_dir = "/var/www/wrms.catalyst.net.nz";
 $module = "base";
 $images = "images";
-$colors = array( 
-	0 => "#ccbea1", // primary background
-	"bg1" => "#ccbea1", // primary background
+$colors = array(
+	0 => "#d0c8a8", // primary background
+	"bg1" => "#f0f0c8", // primary background
 	1 =>  "#ffffff", // secondary background (behind menus)
 	"bg2" =>  "#ffffff", // secondary background (behind menus)
 	2 =>  "#302080", // text on primary background
@@ -39,9 +40,9 @@ $colors = array(
 	"bg3" =>  "#886c50", // tertiary background, column headings
 	"fg3" =>  "#f0fff0", // tertiary background, column headings
 	6 =>  "#e4ddc2", // dark rows in listings
-	"row1" =>  "#e4ddc2", // dark rows in listings
+	"row0" =>  "#e4ddc2", // dark rows in listings
 	7 =>  "#f4f0dc", // light rows in listings
-	"row2" =>  "#f4f0dc", // light rows in listings
+	"row1" =>  "#f4f0dc", // light rows in listings
 	8 =>  "#583818", // Form headings
 	8 =>  "#583818", // Form headings
 	9 =>  "#ccbea1", // Mandatory forms
@@ -51,9 +52,9 @@ $colors = array(
 
 // Parts of a text block (default colors - some blocks might code around this
 		"blockfront" => "white",
-		"blockback" => "#a78660",
+		"blockback" => "#90775a",
 		"blockbg2" => "#8767c0",
-		"blocktitle" => "#876640",
+		"blocktitle" => "#875630",
 		"blocksides" => "#ffffff",
 		"blockextra" => "#bb8855"
 );
@@ -62,6 +63,7 @@ $fonts = array( "tahoma",		// primary font
 		"verdana",	// secondary font
 		"help"	=> "times",		// help text
 		"quote"	=> "times new roman, times, serif", // quotes in messages
+		"narrow"	=> "arial narrow, helvetica narrow, times new roman, times", // quotes in messages
 		"fixed"	=> "courier, fixed",	// monospace font
 		"block"	=> "tahoma"); 	// block font
 
@@ -201,7 +203,7 @@ function block_open(  $bgcolor="", $border_color="") {
   global $colors;
   if ( $bgcolor == "" ) $bgcolor=$colors["blockback"];
   if ( $border_color == "" ) $border_color=$colors["blocksides"];
-  echo "<table cellpadding=\"1\" cellspacing=\"0\" border=\"0\" width=\"100%\" bgcolor=\"$border_color\">\n";
+  echo "<table cellpadding=\"1\" cellspacing=\"0\" border=\"0\" width=\"100%\" bgcolor=\"$border_color\" style=\" margin: 0 1px;\">\n";
   echo "<tr><td>\n";
   echo "<table width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" bgcolor=\"$bgcolor\">\n";
 }
@@ -229,5 +231,18 @@ function block_close() {
   echo "</table>\n";
 }
 
+// Very useful function for stripping MS-isms and other things out of the code
+function tidy( $instr ) {
+  $instr = str_replace( chr(145), "'", $instr);
+  $instr = str_replace( chr(146), "'", $instr);
+  $instr = str_replace( chr(147), '"', $instr);
+  $instr = str_replace( chr(148), '"', $instr);
+  $instr = str_replace( chr(150), '&#8212;', $instr);
+  $instr = str_replace( chr(169), '&copy;', $instr);
+  $instr = str_replace( chr(175), '&reg;', $instr);
+  $instr = str_replace( "'", "''", $instr);
+  $instr = str_replace( "\\", "\\\\", $instr);
+  return $instr ;
+}
 
 ?>

@@ -1,5 +1,8 @@
 <?php
-  include("$base_dir/inc/tidy.php");
+function dates_equal( $date1, $date2 ) {
+  if ( "$date1" == "$date2" ) return true;
+  return strtotime( "$date1" ) == strtotime( "$date2" );
+}
 
   if ( "$submit" == "register" ) {
     $query = "INSERT INTO request_interested (request_id, username, user_no ) VALUES( $request_id, '$session->username', $session->user_no); ";
@@ -89,13 +92,15 @@
     $status_changed = isset($new_status) && ($request->last_status != $new_status );
     $interest_added = isset($new_interest) && ($new_interest != "" );
     $allocation_added = isset($new_allocation) && ($new_allocation != "" );
-    $old_eta = substr( nice_date($request->eta), 7);
-    $eta_changed = (("$old_eta" != "$new_eta") && ( "$new_eta" != ""));
+    $eta_changed = !dates_equal($request->eta, $new_eta);
+    $requested_by_changed = !dates_equal($request->requested_by_date, $new_requested_by_date);
+    $agreed_changed = !dates_equal($request->agreed_due_date, $new_agreed_due_date);
     $changes =  (isset($new_brief) && $request->brief != $new_brief)
              || (isset($new_detail) && $request->detailed != $new_detail)
              || (isset($new_type) && $request->request_type != $new_type )
              || (isset($new_severity) && $request->severity_code != $new_severity )
              || (isset($new_urgency) && $request->urgency != $new_urgency )
+             || (isset($new_sla_code) && $request->request_sla_code != $new_sla_code )
              || (isset($new_importance) && $request->importance != $new_importance )
              || (isset($new_system_code) && $request->system_code != $new_system_code )
              || (isset($new_active) && $request->active != $new_active )
@@ -108,6 +113,8 @@
              . (isset($new_type) && $request->request_type != $new_type ) . "-"
              . (isset($new_severity) && $request->severity_code != $new_severity ) . "+"
              . (isset($new_urgency) && $request->urgency != $new_urgency ) . "-"
+             . (isset($new_sla_code) && $request->request_sla_code != $new_sla_code ) . "*"
+             . "$requested_by_changed+$agreed_changed-"
              . (isset($new_importance) && $request->importance != $new_importance ) . "+"
              . (isset($new_system_code) && $request->system_code != $new_system_code ) . "-"
              . (isset($new_active) && $request->active != $new_active ) . "+  also  -"
@@ -164,6 +171,14 @@
       $query .= " last_status = '$new_status',";
     if ( isset($new_type) && $request->request_type != $new_type )
       $query .= " request_type = $new_type,";
+    if (isset($new_sla_code) && $request->request_sla_code != $new_sla_code ) {
+      $sla_split = explode('|', $new_sla_code, 2);
+      $query .= " sla_response_time = '$sla_split[0] hours', sla_response_type = '$sla_split[1]',";
+    }
+    if ( "$new_requested_by_date" <> "" && ($sysmgr || $allocated_to) && $requested_by_changed )
+      $query .= " requested_by_date = '$new_requested_by_date',";
+    if ( "$new_agreed_due_date" <> "" && ($sysmgr || $allocated_to) && $agreed_changed )
+      $query .= " agreed_due_date = '$new_agreed_due_date',";
     if ( isset($new_urgency) && $request->urgency != $new_urgency )
       $query .= " urgency = $new_urgency,";
     if ( isset($new_importance) && $request->importance != $new_importance )
@@ -172,12 +187,12 @@
       $query .= " system_code = '$new_system_code',";
     $query .= " last_activity = 'now' ";
     $query .= "WHERE request.request_id = '$request_id'; ";
-    $rid = awm_pgexec( $wrms_db, $query, "req-action" );
+    $rid = awm_pgexec( $wrms_db, $query, "req-action", true, 7 );
     if ( ! $rid ) {
-      $because .= "<H3>&nbsp;Update Request Failed!</H3>\n";
-      $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
-      $because .="<P>The failed query was:</P><TT>$query</TT>";
-      awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
+//      $because .= "<H3>&nbsp;Update Request Failed!</H3>\n";
+//      $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
+//      $because .="<P>The failed query was:</P><TT>$query</TT>";
+//      awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
       return;
     }
     else
@@ -186,13 +201,13 @@
 
     if ( $quote_added ) {
       $query = "SELECT NEXTVAL('request_quote_quote_id_seq');";
-      $rid = awm_pgexec( $wrms_db, $query, "req-action" );
+      $rid = awm_pgexec( $wrms_db, $query, "req-action", true, 7 );
       if ( ! $rid ) {
-        $errmsg = pg_ErrorMessage( $wrms_db );
-        $because .= "<H3>Failed to get new quote ID!</H3>\n";
-        $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
-        $because .= "<P>The failed query was:</P><TT>$query</TT>";
-        awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
+//        $errmsg = pg_ErrorMessage( $wrms_db );
+//        $because .= "<H3>Failed to get new quote ID!</H3>\n";
+//        $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
+//        $because .= "<P>The failed query was:</P><TT>$query</TT>";
+//        awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
         return;
       }
       $new_quote_id = pg_Result( $rid, 0, 0);
@@ -306,21 +321,27 @@
     else
       $requsr = $session;
 
-    $query = "INSERT INTO request (request_id, request_by, brief, detailed, active, last_status, urgency, importance, system_code, request_type, requester_id, last_activity) ";
-    $query .= "VALUES( $request_id, '$requsr->username', '" . tidy($new_brief) . "','" . tidy($new_detail) . "', TRUE, 'N', $new_urgency, $new_importance, '$new_system_code' , '$new_type', $requsr->user_no, 'now' )";
-    $rid = awm_pgexec( $wrms_db, $query, "req-action" );
-    if ( ! $rid ) {
-      $because .= "<P>The failed query was:</P><TT>$query</TT>";
-      awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
-      return;
-    }
+    $sla_split = explode('|', $new_sla_code, 2);
+    $query = "INSERT INTO request (request_id, request_by, brief, detailed, active, last_status, urgency, importance, ";
+    $query .= "system_code, request_type, requester_id, last_activity, sla_response_time, sla_response_type";
+    if ( "$new_requested_by_date" <> "" ) $query .= ", requested_by_date";
+    if ( "$new_agreed_due_date" <> "" ) $query .= ", agreed_due_date";
+    $query .= ") ";
+    $query .= "VALUES( $request_id, '$requsr->username', '" . tidy($new_brief) . "','" . tidy($new_detail) . "', ";
+    $query .= "TRUE, 'N', $new_urgency, $new_importance, '$new_system_code' , '$new_type', $requsr->user_no, 'now', ";
+    $query .= "'$sla_split[0] hours', '$sla_split[1]' ";
+    if ( "$new_requested_by_date" <> "" ) $query .= ", '$new_requested_by_date'";
+    if ( "$new_agreed_due_date" <> "" ) $query .= ", '$new_agreed_due_date'";
+    $query .= ")";
+    $rid = awm_pgexec( $wrms_db, $query, "req-action", true, 7 );
+    if ( ! $rid ) return;
 
     $query = "INSERT INTO request_status (request_id, status_by, status_on, status_code, status_by_id) ";
     $query .= "VALUES( $request_id, '$session->username', 'now', 'N', $session->user_no)";
-    $rid = awm_pgexec( $wrms_db, $query, "req-action" );
+    $rid = awm_pgexec( $wrms_db, $query, "req-action", true, 7 );
     if ( ! $rid ) {
-      $because .= "<P>The failed query was:</P><TT>$query</TT>";
-      awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
+//      $because .= "<P>The failed query was:</P><TT>$query</TT>";
+//      awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
       return;
     }
 
@@ -328,12 +349,12 @@
     if ( $in_notify ) {
       $query = "INSERT INTO request_interested (request_id, username, user_no ) ";
       $query .= " VALUES( $request_id, '$requsr->username', $requsr->user_no); ";
-      $rid = awm_pgexec( $wrms_db, $query, "req-action" );
+      $rid = awm_pgexec( $wrms_db, $query, "req-action", true, 7 );
       if ( ! $rid ) {
-        $because .= "<H3>&nbsp;Submit Interest Failed!</H3>\n";
-        $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
-        $because .= "<P>The failed query was:</P><TT>$query</TT>";
-        awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
+//        $because .= "<H3>&nbsp;Submit Interest Failed!</H3>\n";
+//        $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
+//        $because .= "<P>The failed query was:</P><TT>$query</TT>";
+//        awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
         return;
       }
     }
@@ -342,10 +363,10 @@
     $query .= "WHERE system_usr.system_code = '$new_system_code' ";
     $query .= "AND system_usr.role = 'S' " ;
     $query .= "AND system_usr.user_no = usr.user_no " ;
-    $rid = awm_pgexec( $wrms_db, $query, "req-action");
+    $rid = awm_pgexec( $wrms_db, $query, "req-action", true, 7);
     if ( ! $rid  ) {
-      $because .= "<P>Query failed:</P><P>$query</P>";
-      awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
+//      $because .= "<P>Query failed:</P><P>$query</P>";
+//      awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
       return;
     }
     else if (!pg_NumRows($rid) )
@@ -356,12 +377,12 @@
 
         if ( !$in_notify || strcmp( $sys_notify->user_no, $requsr->user_no) ) {
           $query = "SELECT set_interested( $sys_notify->user_no, $request_id ); ";
-          $rrid = awm_pgexec( $wrms_db, $query, "req-action" );
+          $rrid = awm_pgexec( $wrms_db, $query, "req-action", true, 7 );
           if ( ! $rrid ) {
-            $because .= "<H3>System Manager Interest Failed!</H3>\n";
-            $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
-            $because .= "<P>The failed query was:</P><TT>$query</TT>";
-            awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
+//            $because .= "<H3>System Manager Interest Failed!</H3>\n";
+//            $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
+//            $because .= "<P>The failed query was:</P><TT>$query</TT>";
+//            awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
             return;
           }
         }
@@ -373,10 +394,10 @@
     $query .= "AND system_usr.role = 'C' " ;
     $query .= "AND system_usr.user_no = usr.user_no " ;
     $query .= "AND usr.org_code=$requsr->org_code; " ;
-    $rid = awm_pgexec( $wrms_db, $query, "req-action");
+    $rid = awm_pgexec( $wrms_db, $query, "req-action", true, 7);
     if ( ! $rid  ) {
-      $because .= "<P>Query failed:</P><P>$query</P>";
-      awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
+//      $because .= "<P>Query failed:</P><P>$query</P>";
+//      awm_pgexec( $wrms_db, "ROLLBACK;", "req-action" );
       return;
     }
     else if (!pg_NumRows($rid) )

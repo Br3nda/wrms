@@ -8,6 +8,17 @@
   if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
     // OK, they can do anything :-)
   }
+  else if ( $roles['wrms']['Manage'] ) {
+    if ( "$M" == "add" )
+      $because .= "You may not create organisations.\n";
+    else {
+      $org_code = $session->org_code;
+      unset($active);
+      unset($current_sla);
+      unset($debtor_no);
+      unset($work_rate);
+    }
+  }
   else
     $because .= "You may not maintain this organisation.\n";
 

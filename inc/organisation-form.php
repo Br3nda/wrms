@@ -20,24 +20,12 @@
     if ( "$error_qry" == "" ) {
       $query = "SELECT * FROM work_system";
       $sys_res = awm_pgexec( $wrms_db, $query );
-      if ( ! $sys_res ) {
-        $error_loc = "inc/organisation-form.php";
-        $error_qry = "$query";
-        include( "inc/error.php" );
-        exit;
-      }
     }
   }
 
   $query = "SELECT system_code FROM org_system WHERE org_code='$org_code' ";
   $result = awm_pgexec( $wrms_db, $query );
-  if ( ! $result ) {
-    $error_loc = "inc/organisation-form.php";
-    $error_qry = "$query";
-    include( "inc/error.php" );
-    exit;
-  }
-  else if ( pg_NumRows($result) > 0 ) {
+  if ( $result && pg_NumRows($result) > 0 ) {
     $OrgSystem = array();
     for( $i=0; $i<pg_NumRows($result); $i++) {
       $sys = pg_Result( $result, $i, 0 );
@@ -45,12 +33,7 @@
     }
   }
 
-  if ( "$because" != "" )
-    echo $because;
-  else if ( ! $plain ) {
-    ?><P class=helptext>Use this form to maintain organisations who may have requests associated
-with them.</P><?php
-  }
+  if ( "$because" != "" ) echo $because;
 ?>
 <FORM METHOD=POST ACTION="form.php?form=<?php echo "$form"; ?>" ENCTYPE="multipart/form-data">
 <?php
@@ -71,9 +54,11 @@ with them.</P><?php
 <TD><input type=text size=50 maxlen=50 name=org_name value="<?php echo "$org->org_name"; ?>"></TD></TR>
 <TR><TH ALIGN=RIGHT>Abbreviation:</TH>
 <TD><input type=text size=10 maxlen=10 name=abbreviation value="<?php echo "$org->abbreviation"; ?>"></TD></TR>
-<?php  if ( $roles['wrms']['Admin'] ) { ?>
+<?php  if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) { ?>
 <TR><TH ALIGN=RIGHT>Active:</TH>
 <TD><input type=checkbox value="t" name=active<?php if ( "$org->active" != "f" ) echo " checked"; ?>></TD></TR>
+<TR><TH ALIGN=RIGHT>Current SLA:</TH>
+<TD><input type=checkbox value="t" name=current_sla<?php if ( "$org->current_sla" == "t" ) echo " checked"; ?>></TD></TR>
 <TR><TH ALIGN=RIGHT>Debtor #:</TH>
 <TD><input type=text size=5 name=debtor_no value="<?php echo "$org->debtor_no"; ?>"></TD></TR>
 <TR><TH ALIGN=RIGHT>Hourly&nbsp;Rate:</TH>
@@ -81,7 +66,7 @@ with them.</P><?php
 
 <?php
   } // if admin
-  if ( $roles[wrms][Admin] && pg_NumRows($sys_res) > 0 ) {
+  if ( ($roles['wrms']['Admin'] || $roles['wrms']['Support']) && $sys_res && pg_NumRows($sys_res) > 0 ) {
     // This displays checkboxes to select the organisations systems.
     echo "\n<tr><th align=right valign=top>&nbsp;<BR>Systems:</th>\n";
     echo "<td><table border=0 cellspacing=0 cellpadding=2><tr>\n";

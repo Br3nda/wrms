@@ -66,7 +66,7 @@
     echo "<td align=right><form action=usr.php method=post>";
     echo "<input type=hidden name=user_no value=$user_no>";
     echo "<input type=hidden name=M value=delete>";
-    echo "<font size=1 weight=bold><input type=submit value=\"Delete This User\" name=submit style=\"color: navy; padding: 0pt; margin: 0pt;\"></font></form></td>\n";
+    echo "<font size=1 weight=bold><input type=submit value=\"Delete This User\" name=submit class=submit></font></form></td>\n";
   }
   echo "</tr></table>\n";
   echo "<form action=usr.php method=post>";
@@ -77,7 +77,7 @@
 ?>
 
 <?php echo "$tbldef><TR><TD CLASS=sml COLSPAN=2>&nbsp;</TD></TR><TR>$hdcell"; ?>
-<TD CLASS=h3 ALIGN=RIGHT colspan=2<?php echo " bgcolor=$colors[8]"; ?>><FONT SIZE=+1 color=<?php echo $colors[1]; ?>><B>User Details</B></FONT></TD></TR>
+<TD CLASS=h3 ALIGN=RIGHT colspan=2>User Details</TD></TR>
 <TR bgcolor=<?php echo $colors[6]; ?>>
 	<th align=right class=rows>Login ID</TH>
 	<TD><font Size=2><?php echo "$user_no"; ?>&nbsp;</font></td>
@@ -122,7 +122,7 @@ if (isset($user_no) && $user_no > 0 ) echo "      ";
     $org_code_list = get_organisation_list( "$usr->org_code" );
     echo "<tr bgcolor=$colors[6]>\n";
     echo "<th align=right class=rows>Organisation</th>\n";
-    echo "<td><font Size=\"2\"><select name=UserOrganisation>$org_code_list</select>\n";
+    echo "<td><font Size=\"2\"><select class=sml name=UserOrganisation>$org_code_list</select>\n";
     echo "</tr>\n";
   }
 
@@ -174,7 +174,7 @@ if (isset($user_no) && $user_no > 0 ) echo "      ";
     else
       $code = "";
     if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] || $roles['wrms']['Manage'] ) {
-      echo "<select name=\"NewUserCat[$sys->system_code]\">\n";
+      echo "<select class=sml style=\"width: 150px;\" name=\"NewUserCat[$sys->system_code]\">\n";
 
       echo "<option value=\"\"";
       if ( "$code" == "" && ($roles['wrms']['Admin'] || $roles['wrms']['Support']) ) echo " selected";
@@ -221,7 +221,7 @@ if (isset($user_no) && $user_no > 0 ) echo "      ";
   echo "</table>\n";
 
   echo "$tbldef>\n<tr><td align=center class=mand>";
-  echo "<B><INPUT TYPE=\"submit\" NAME=\"submit\" VALUE=\"";
+  echo "<B><input type=\"submit\" class=submit name=\"submit\" VALUE=\"";
   if ( isset($user_no) && $user_no > 0 )
     echo " Apply Changes ";
   else

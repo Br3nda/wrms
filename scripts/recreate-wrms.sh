@@ -11,7 +11,7 @@ echo " Creating new database..."
 createdb $DATABASE
 
 echo " Creating database structures..."
-psql -q -f create-wrms.sql -d $DATABASE 2>&1 | grep -v "will create implicit "
+psql -q -f create-wrms.sql -d $DATABASE 2>&1 | grep -v "will create implicit " | grep -v "RemoveFunction"
 
 echo " Loading database tables... "
 cd dump

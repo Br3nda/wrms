@@ -17,7 +17,7 @@
         $because .= "<tr>\n<td align=center>$k</td>\n";
         $because .= "<td>$v</td>\n";
         $because .= "<td align=center>$invoice</td>\n";
-        $because .= "<td align=right>" . sprintf( "%.2f", $amount) . "</td>\n";
+        $because .= "<td align=right>" . sprintf( "%.2f", $amount) . "&nbsp;</td>\n";
         $because .= "</tr>\n";
       }
       $query .= " ok_to_charge=$charge_ok ";

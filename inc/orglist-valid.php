@@ -20,7 +20,7 @@
   else if ( $system_code_roles["$fsystem_code"] == "H" || $system_code_roles["$fsystem_code"] == "M" ) {
     // That's OK - this is their home system_code, or maintenance is enabled
   }
-  else
+  else {
     $because .= "You may only maintain requests from your system_code\n";
   }
 

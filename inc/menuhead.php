@@ -1,6 +1,6 @@
 <div align=center>
 <?php
-  echo "<table width=\"100%\" border=\"0\" bgcolor=\"$colors[1]\" cellspacing=\"0\" cellpadding=\"0\">\n";
+  echo "<table width=\"100%\" border=\"0\" bgcolor=\"$colors[bg1]\" cellspacing=\"0\" cellpadding=\"0\">\n";
   echo "<tr><td class=menu><a href=\"$base_url/index.php\"><img src=\"$base_url/images/wrms.gif\" border=\"0\" alt=\"$system_name\" WIDTH=\"200\" HEIGHT=\"25\"></a></td>\n";
 /*
   echo "<td class=menu><font SIZE=1 COLOR=$colors[3]>\n";

@@ -12,6 +12,7 @@
     }
 
     $title = "$system_name - Maintain Request";
+    $left_panel = ("$style" != "plain");
     include("$base_dir/inc/headers.php");
     include("$base_dir/inc/request-head.php");
 

@@ -92,3 +92,4 @@ CREATE FUNCTION help_hit( INT4, TEXT ) RETURNS INT4 AS '
     RETURN out_times;
   END;
 ' LANGUAGE 'plpgsql';
+

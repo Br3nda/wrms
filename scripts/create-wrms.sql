@@ -3,28 +3,28 @@ CREATE TABLE usr (
     validated INT2 DEFAULT 0,
     enabled INT2 DEFAULT 1,
     access_level INT4 DEFAULT 10,
-    last_accessed DATETIME,
+    last_accessed TIMESTAMP,
     linked_user INT4,
     username TEXT NOT NULL UNIQUE,
     password TEXT,
     email TEXT,
     fullname TEXT,
-    joined DATETIME DEFAULT TEXT 'now',
-    last_update DATETIME,
+    joined TIMESTAMP DEFAULT TEXT 'now',
+    last_update TIMESTAMP,
     status CHAR,
     help BOOL,
     phone TEXT,
     fax TEXT,
-		pager TEXT,
+    pager TEXT,
     org_code INT4,
-		email_ok BOOL DEFAULT TRUE,
-		pager_ok BOOL DEFAULT TRUE,
-		phone_ok BOOL DEFAULT TRUE,
-		fax_ok   BOOL DEFAULT TRUE,
+    email_ok BOOL DEFAULT TRUE,
+    pager_ok BOOL DEFAULT TRUE,
+    phone_ok BOOL DEFAULT TRUE,
+    fax_ok   BOOL DEFAULT TRUE,
     organisation TEXT,
     mail_style CHAR,
     config_data TEXT,
-		note CHAR );
+    note CHAR );
 GRANT SELECT,INSERT,UPDATE ON usr TO PUBLIC;
 GRANT ALL ON usr TO andrew;
 CREATE FUNCTION max_usr() RETURNS INT4 AS 'SELECT max(user_no) FROM usr' LANGUAGE 'sql';
@@ -50,12 +50,13 @@ CREATE FUNCTION get_usr_setting(TEXT,TEXT)
 
 CREATE TABLE organisation (
   org_code SERIAL PRIMARY KEY,
-	active BOOL DEFAULT TRUE,
-	debtor_no INT4,
-	work_rate FLOAT,
+  active BOOL DEFAULT TRUE,
+  debtor_no INT4,
+  work_rate FLOAT,
   admin_user_no INT4,
   support_user_no INT4,
-	abbreviation TEXT,
+  abbreviation TEXT,
+  current_sla BOOL,
   org_name TEXT,
   admin_usr TEXT
 ) ;
@@ -67,17 +68,22 @@ GRANT SELECT,UPDATE ON organisation_org_code_seq TO general;
 
 CREATE TABLE request (
   request_id SERIAL PRIMARY KEY,
-  request_on DATETIME DEFAULT TEXT 'now',
+  request_on TIMESTAMP DEFAULT TEXT 'now',
   active BOOL DEFAULT TRUE,
   last_status CHAR DEFAULT 'N',
-	wap_status INT2 DEFAULT 0,
-	urgency INT2,
-	importance INT2,
+  wap_status INT2 DEFAULT 0,
+  sla_response_hours INT2 DEFAULT 0,
+  urgency INT2,
+  importance INT2,
   severity_code INT2,
   request_type INT2,
   requester_id INT4,
-  eta DATETIME,
-  last_activity DATETIME DEFAULT TEXT 'now',
+  eta TIMESTAMP,
+  last_activity TIMESTAMP DEFAULT TEXT 'now',
+  sla_response_time INTERVAL DEFAULT '0:00',
+  sla_response_type CHAR DEFAULT 'O',
+  requested_by_date TIMESTAMP,
+  agreed_due_date TIMESTAMP,
   request_by TEXT,
   brief TEXT,
   detailed TEXT,
@@ -92,13 +98,6 @@ GRANT INSERT,UPDATE,SELECT ON request TO general;
 GRANT SELECT,UPDATE ON request_request_id_seq TO PUBLIC;
 
 
-CREATE TABLE request_words ( string TEXT, id OID );
-CREATE FUNCTION keyword() RETURNS OPAQUE AS '/usr/lib/postgresql/lib/contrib/keyword.so' LANGUAGE 'C';
-CREATE TRIGGER request_kidx_trigger AFTER UPDATE or INSERT or DELETE ON request
-     FOR EACH ROW EXECUTE PROCEDURE keyword( request_words, detailed);
-GRANT DELETE,INSERT,UPDATE,SELECT ON request_words TO general;
-
-
 CREATE FUNCTION active_request(INT4)
     RETURNS BOOL
     AS 'SELECT active FROM request WHERE request.request_id = $1'
@@ -110,6 +109,10 @@ CREATE FUNCTION max_request()
 CREATE FUNCTION get_request_org(INT4)
     RETURNS INT4
     AS 'SELECT usr.org_code FROM request, usr WHERE request.request_id = $1 AND request.request_by = usr.username'
+    LANGUAGE 'sql';
+CREATE FUNCTION request_sla_code(INTERVAL,CHAR)
+    RETURNS TEXT
+    AS 'SELECT text( extract( ''hour'' from $1) ) || ''|'' || text($2) '
     LANGUAGE 'sql';
 
 CREATE TABLE work_system (
@@ -135,7 +138,7 @@ CREATE INDEX xak1_org_system ON org_system ( system_code, org_code );
 
 CREATE TABLE request_status (
   request_id INT4,
-  status_on DATETIME,
+  status_on TIMESTAMP,
   status_by_id INT4,
   status_by TEXT,
   status_code TEXT
@@ -146,7 +149,7 @@ GRANT INSERT,SELECT ON request_status TO PUBLIC;
 CREATE TABLE request_quote (
   quote_id SERIAL PRIMARY KEY,
   request_id INT4,
-  quoted_on DATETIME DEFAULT TEXT 'now',
+  quoted_on TIMESTAMP DEFAULT TEXT 'now',
   quote_amount FLOAT8,
   quote_by_id INT4,
   quoted_by TEXT,
@@ -164,7 +167,7 @@ CREATE FUNCTION max_quote() RETURNS INT4 AS 'SELECT max(quote_id) FROM request_q
 
 CREATE TABLE request_allocated (
   request_id INT4,
-  allocated_on DATETIME DEFAULT TEXT 'now',
+  allocated_on TIMESTAMP DEFAULT TEXT 'now',
 	allocated_to_id INT4,
   allocated_to TEXT
 );
@@ -173,7 +176,7 @@ GRANT INSERT,UPDATE,SELECT ON request_allocated TO general;
 CREATE TABLE request_timesheet (
   timesheet_id SERIAL PRIMARY KEY,
   request_id INT4,
-  work_on DATETIME,
+  work_on TIMESTAMP,
   ok_to_charge BOOL,
 	work_quantity FLOAT8,
   work_duration INTERVAL,
@@ -181,7 +184,7 @@ CREATE TABLE request_timesheet (
   work_by TEXT,
   work_description TEXT,
   work_rate FLOAT8,
-  work_charged DATETIME,
+  work_charged TIMESTAMP,
 	charged_amount FLOAT8,
 	charged_by_id INT4,
 	work_units TEXT,
@@ -195,7 +198,7 @@ CREATE FUNCTION max_timesheet() RETURNS INT4 AS 'SELECT max(timesheet_id) FROM r
 
 CREATE TABLE request_note (
   request_id INT4,
-  note_on DATETIME DEFAULT TEXT 'now',
+  note_on TIMESTAMP DEFAULT TEXT 'now',
   note_by_id INT4,
   note_by TEXT,
   note_detail TEXT,
@@ -205,7 +208,7 @@ CREATE TABLE request_note (
 GRANT INSERT,SELECT ON request_note TO PUBLIC;
 
 CREATE FUNCTION get_last_note_on(INT4)
-    RETURNS DATETIME
+    RETURNS TIMESTAMP
     AS 'SELECT max(note_on) FROM request_note WHERE request_note.request_id = $1'
     LANGUAGE 'sql';
 
@@ -230,7 +233,7 @@ GRANT INSERT,SELECT,UPDATE,DELETE ON request_request TO PUBLIC;
 
 
 CREATE TABLE request_history (
-  modified_on DATETIME DEFAULT TEXT 'now'
+  modified_on TIMESTAMP DEFAULT TEXT 'now'
 ) INHERITS (request );
 GRANT INSERT,SELECT ON request_history TO PUBLIC;
 CREATE INDEX xpk_request_history ON request_history ( request_id, modified_on );
@@ -241,7 +244,7 @@ CREATE INDEX xpk_request_history ON request_history ( request_id, modified_on );
 ---------------------------------------------------------------
 CREATE TABLE system_update (
   update_id SERIAL PRIMARY KEY,
-  update_on DATETIME DEFAULT TEXT 'now',
+  update_on TIMESTAMP DEFAULT TEXT 'now',
   update_by_id INT4,
   update_by TEXT,
   update_brief TEXT,
@@ -284,7 +287,7 @@ GRANT SELECT,INSERT,UPDATE ON lookup_code TO general;
 
 CREATE FUNCTION get_lookup_desc( TEXT, TEXT, TEXT )
     RETURNS TEXT
-    AS 'SELECT lookup_desc AS RESULT FROM lookup_code 
+    AS 'SELECT lookup_desc AS RESULT FROM lookup_code
                WHERE source_table = $1 AND source_field = $2 AND lookup_code = $3;'
     LANGUAGE 'sql';
 
@@ -335,8 +338,8 @@ CREATE TABLE session (
     session_id SERIAL,
     user_no INT4,
     help BOOL,
-    session_start DATETIME DEFAULT TEXT 'now',
-    session_end DATETIME DEFAULT TEXT 'now',
+    session_start TIMESTAMP DEFAULT TEXT 'now',
+    session_end TIMESTAMP DEFAULT TEXT 'now',
     session_config TEXT );
 GRANT SELECT,INSERT,UPDATE ON session, session_session_id_seq TO PUBLIC;
 GRANT ALL ON session, session_session_id_seq TO andrew;

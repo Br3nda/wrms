@@ -289,7 +289,7 @@
 
   /***** Allocated People */
   /* People who have been allocated to the request - again, only if there are any.  */
-  $query = "SELECT usr.fullname, organisation.abbreviation ";
+  $query = "SELECT usr.user_no, usr.fullname, organisation.abbreviation ";
   $query .= "FROM request_allocated, usr, organisation ";
   $query .= "WHERE request_id = '$request->request_id' ";
   $query .= "AND usr.user_no=request_allocated.allocated_to_id ";
@@ -304,11 +304,10 @@
     for( $i=0; $i<$rows; $i++ ) {
       $alloc = pg_Fetch_Object( $allocq, $i );
       if ( $i > 0 ) echo ", ";
-      echo "$alloc->fullname ($alloc->abbreviation)";
 
       if ( ($allocated_to || $sysmgr) && ! $plain )
-        echo "<a href=\"request.php?submit=deallocate&user_no=$interested->user_no&request_id=$request_id\">\n";
-      echo "$interested->fullname ($interested->abbreviation)\n";
+        echo "<a href=\"request.php?submit=deallocate&user_no=$alloc->user_no&request_id=$request_id\">\n";
+      echo "$alloc->fullname ($alloc->abbreviation)\n";
       if ( ($allocated_to || $sysmgr) && ! $plain )
         echo "</a>\n";
     }

@@ -28,6 +28,25 @@
     }
     return;
   }
+  else if ( "$submit" == "deallocate" ) {
+    if ( isset($user_no) && $user_no <> $session->user_no ) {
+      if ( !( $allocated_to || $sysmgr ) ) {
+        $because .= "<H3>You are not authorised to deallocate people from this request!</H3>\n";
+      }
+    }
+    else
+      $user_no = $session->user_no;
+    $query = "DELETE FROM request_allocated WHERE request_id=$request_id AND allocated_to_id=$user_no; ";
+    $rid = awm_pgexec( $wrms_db, $query, "req-action" );
+    if ( $rid ) {
+      if ( $user_no == $session->user_no )
+        $because .= "<h3>You have ";
+      else
+        $because .= "<h3>User $user_no is ";
+      $because .= "no longer allocated to this request</h3>";
+    }
+    return;
+  }
   else if ( "$submit" == "deltime" ) {
     $query = "SELECT * FROM request_timesheet WHERE timesheet_id=$timesheet_id ; ";
     $rid = awm_pgexec( $wrms_db, $query, "req-action" );

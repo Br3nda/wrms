@@ -32,9 +32,10 @@
     }
     else {
       echo "<p>" . pg_NumRows($result) . " organisations found</p>"; // <p>$query</p>";
-      echo "<table border=\"0\" align=system_code><tr>\n";
+      echo "<table border=\"0\" align=center><tr>\n";
       echo "<th>Org Code</th><th>Debtor #</th>";
-      echo "<th>Full Name</th><th>Actions</th></tr>";
+      echo "<th class=left align=left>Full Name</th>";
+      echo "<th class=center align=center>Actions</th></tr>";
 
       // Build table of organisations found
       for ( $i=0; $i < pg_NumRows($result); $i++ ) {
@@ -43,14 +44,14 @@
         if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
         else echo "<tr bgcolor=$colors[7]>";
 
-        echo "<td class=sml align=center><a href=\"form.php?form=organisation&org_code=$thisorganisation->org_code\">$thisorganisation->org_code</a></td>\n";
-        echo "<td class=sml align=right>$thisorganisation->debtor_no</td>\n";
-        echo "<td class=sml><a href=\"form.php?form=organisation&org_code=$thisorganisation->org_code\">$thisorganisation->org_name";
+        echo "<td class=sml align=center>&nbsp;<a href=\"form.php?form=organisation&org_code=$thisorganisation->org_code\">$thisorganisation->org_code</a>&nbsp;</td>\n";
+        echo "<td class=sml align=right>&nbsp;$thisorganisation->debtor_no</td>\n";
+        echo "<td class=sml>&nbsp;<a href=\"form.php?form=organisation&org_code=$thisorganisation->org_code\">$thisorganisation->org_name";
         if ( "$thisorganisation->org_name" == "" ) echo "-- no description --";
-        echo "</a></td>\n";
-        echo "<td class=sml><a href=\"requestlist.php?org_code=$thisorganisation->org_code\">Requests</a>&nbsp;\n";
-        echo "<a href=\"usrsearch.php?org_code=$thisorganisation->org_code\">Users</a>&nbsp;\n";
-        echo "<a href=\"form.php?org_code=$thisorganisation->org_code&form=syslist\">Systems</a></td>\n";
+        echo "</a>&nbsp;</td>\n";
+        echo "<td class=sml>&nbsp;<a href=\"requestlist.php?org_code=$thisorganisation->org_code\">Requests</a> &nbsp; \n";
+        echo "<a href=\"usrsearch.php?org_code=$thisorganisation->org_code\">Users</a> &nbsp; \n";
+        echo "<a href=\"form.php?org_code=$thisorganisation->org_code&form=syslist\">Systems</a>&nbsp;</td>\n";
 
         echo "</tr>\n";
       }

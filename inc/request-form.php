@@ -2,6 +2,7 @@
   include( "$base_dir/inc/code-list.php");
   include( "$base_dir/inc/notify-emails.php");
   include( "$base_dir/inc/nice-date.php");
+  include( "$base_dir/inc/html-format.php");
   $status_list   = get_code_list( "request", "status_code", "$request->last_status" );
 
   include("$base_dir/inc/system-list.php");
@@ -29,24 +30,44 @@
   else
     $tell = "Click here to receive updates to this request!";
 
+function dump_array( $arr  ) {
+  echo "<TABLE BORDER=1 WIDTH=100%><TR><TH>Key</TH><TH>Value</TH></TR>";
+  reset($arr);
+  while( list( $k, $v ) = each( $arr ) ) {
+    if ( is_array($arr["$k"]) ) {
+      echo "<TR><TD>$k</TD><TD>";
+      dump_array( $arr["$k"]  );
+      echo "</TD></TR>";
+    }
+    else
+      echo "<TR><TD>$k</TD><TD>$v</TD></TR>";
+  }
+  reset($arr);
+  echo "</TABLE>";
+}
+
+//  dump_array($request);
 ?>
-<P CLASS=helptext">Use this form to enter changes to details for the requests of your systems, or to enter 
-details for new requests.  Areas highlighted in a lighter yellow are required fields in one case or another.</P>
+
 <FORM METHOD=POST ACTION=request.php ENCTYPE="multipart/form-data">
-<TABLE WIDTH=100% cellspacing=0 border=5>
-<TR><TD ALIGN=LEFT><H2>Work Request Details</H2></TD><?php
-  echo "<TD ALIGN=RIGHT><A HREF=\"request.php?action=register&request_id=$request_id\">$tell</a></form>";
+<TABLE WIDTH=100% cellspacing=0 border=0>
+<TR><TD ALIGN=LEFT><P CLASS=helptext">Use this form to enter changes to details for the
+requests of your systems, or to enter details for new requests.</P><?php
+  if ( "$request->request_id" != "" )
+    echo "</TD><TD ALIGN=RIGHT nowrap><font size=-1><A HREF=\"request.php?action=register&request_id=$request_id\">$tell</a></font></form>";
 ?></TD>
 </TR>
 </TABLE>
 
-<TABLE border=1>
+<TABLE width=100%>
 <TR><TD CLASS=h3 COLSPAN=3 ALIGN=RIGHT><FONT SIZE=+1><B>Request details</B></FONT></TD></TR>
 <TR>
-  <TH ALIGN=RIGHT>WR #:</TH>
-  <TH ALIGN=CENTER><?php echo "$request->request_id";?></TH>
-  <TD ALIGN=LEFT>
 <?php
+  echo "<TH ALIGN=RIGHT>";
+  if ( isset($request) ) echo "WR #:"; else echo "Request:";
+  echo "</TH>\n";
+  if ( isset($request) ) echo "<TD ALIGN=CENTER><H2>$request->request_id</TH>\n";
+  echo "<TD ALIGN=LEFT>\n";
   if ( $editable ) {
     echo "<FORM ACTION=\"modify-request-done.php3\" METHOD=POST>";
     echo "<INPUT TYPE=\"hidden\" NAME=\"request_id\" VALUE=\"$request->request_id\">"; 
@@ -58,19 +79,21 @@ details for new requests.  Areas highlighted in a lighter yellow are required fi
   </TD>
 </TR>
 
-<TR>
-  <TH ALIGN=RIGHT>From:</TH>
-  <TD ALIGN=CENTER><?php echo "$request->request_by";?></TD>
-  <TD ALIGN=LEFT>&nbsp;<?php
-     echo "<B>Entered:</B> " . nice_date($request->request_on);
-     if ( strcmp( $request->eta, "") )
-       echo "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B>ETA:</B> " .  substr( nice_date($request->eta), 7);
-  ?></TD>
-</TR>
+<?php
+  if ( isset($request) ) {
+    echo "<TR><TH ALIGN=RIGHT>From:</TH>";
+    echo "<TD ALIGN=CENTER>$request->fullname</TD>\n";
+    echo "<TD ALIGN=LEFT>&nbsp;<B>Entered:</B> " . nice_date($request->request_on);
+    if ( strcmp( $request->eta, "") )
+      echo " &nbsp; &nbsp; &nbsp; <B>ETA:</B> " .  substr( nice_date($request->eta), 7);
+    echo "</TD></TR>\n";
+  }
+?>
 
 <TR>
   <TH ALIGN=RIGHT>Status:</TH>
-  <TD ALIGN=CENTER><?php
+<?php
+  if ( isset($request) ) echo "<TD ALIGN=CENTER>"; else echo "<TD>";
   if ( $editable ) {
     echo "<LABEL><INPUT TYPE=\"checkbox\" NAME=\"new_active\" VALUE=\"TRUE\"";
     if ( $request->active == "t" ) echo " CHECKED";
@@ -78,15 +101,19 @@ details for new requests.  Areas highlighted in a lighter yellow are required fi
   }
   else if ( $request->active ) echo "Active";
   else echo "Inactive";
- ?></TD>
-  <TD ALIGN=LEFT>&nbsp;<?php echo "$request->last_status - $request->status_desc";?></TD>
+  if ( isset($request) ) {
+    echo "</TD><TD ALIGN=LEFT>";
+    echo "&nbsp;$request->last_status - $request->status_desc";
+  }
+  echo "</TD>";
+?>
 </TR>
 
 <TR>
   <TH ALIGN=RIGHT>System:</TH>
-  <TD ALIGN=CENTER>
-<?php
-  echo "$request->system_code</TD><TD ALIGN=LEFT>";
+  <?php if ( isset($request) )
+    echo "<TD ALIGN=CENTER>$request->system_code</TD>\n";
+  echo "<TD ALIGN=LEFT>";
   if ( $editable )
     echo "&nbsp;<SELECT NAME=\"new_system_code\">$system_codes</SELECT>"; 
   else
@@ -97,9 +124,9 @@ details for new requests.  Areas highlighted in a lighter yellow are required fi
 
 <TR>
   <TH ALIGN=RIGHT>Type:</TH>
-  <TD ALIGN=CENTER>
-<?php
-  echo "$request->request_type</TD><TD ALIGN=LEFT>";
+  <?php if ( isset($request) )
+    echo "<TD ALIGN=CENTER>$request->request_type</TD>\n";
+  echo "<TD ALIGN=LEFT>";
   if ( $editable )
     echo "&nbsp;<SELECT NAME=\"new_type\">$request_types</SELECT>"; 
   else
@@ -110,9 +137,9 @@ details for new requests.  Areas highlighted in a lighter yellow are required fi
 
 <TR>
   <TH ALIGN=RIGHT>Urgency:</TH>
-  <TD ALIGN=CENTER>
-<?php
-  echo "$request->severity_code</TD><TD ALIGN=LEFT>";
+  <?php if ( isset($request) )
+    echo "<TD ALIGN=CENTER>$request->severity_code</TD>\n";
+  echo "<TD ALIGN=LEFT>";
   if ( $editable )
     echo "&nbsp;<SELECT NAME=\"new_severity\">$severities</SELECT>"; 
   else
@@ -122,7 +149,7 @@ details for new requests.  Areas highlighted in a lighter yellow are required fi
 </TR>
 
 <TR VALIGN=TOP>
-  <TH ALIGN=RIGHT>Detail:</TH>
+  <TH ALIGN=RIGHT>&nbsp;<BR>Details:</TH>
   <TD ALIGN=LEFT COLSPAN=2>
 <?php
   if ( $editable )
@@ -137,7 +164,12 @@ details for new requests.  Areas highlighted in a lighter yellow are required fi
   if ( $editable ) {
     /* of course, if it's editable we need to have an update button don't we, so here it is!  */
     echo "<TR><TD COLSPAN=3 ALIGN=CENTER CLASS=mand>";
-    echo "<B><INPUT TYPE=\"submit\" NAME=\"submit\" VALUE=\" Apply Changes \"></B></TD></TR></FORM>";
+    echo "<B><INPUT TYPE=\"submit\" NAME=\"submit\" VALUE=\"";
+    if ( isset($request) )
+      echo " Apply Changes ";
+    else
+      echo " Enter Request ";
+    echo "\"></B></TD></TR></FORM>";
   }
 ?>
 
@@ -151,9 +183,10 @@ details for new requests.  Areas highlighted in a lighter yellow are required fi
     $rows = pg_NumRows($updateq);
     if ( $rows > 0 ) {
 ?>
- &nbsp;<BR CLEAR=ALL><H2>Update Details</H2>
- <TABLE BORDER=1 ALIGN=CENTER WIDTH=100%>
- <TR><TH>ID</TH><TH>Done By</TH><TH>Done On</TH><TH>Description</TH><TH></TH></TR>
+ <TABLE BORDER=0 ALIGN=CENTER WIDTH=100%>
+ <TR><TD CLASS=sml COLSPAN=5>&nbsp;</TD></TR>
+ <TR><TD CLASS=h3 COLSPAN=5 ALIGN=RIGHT><FONT SIZE=+1><B>Program Update Details</B></FONT></TD></TR>
+ <TR><TH>ID</TH><TH>Done By</TH><TH>Done On</TH><TH>Description</TH><TH>&nbsp;</TH></TR>
 <?php
       for( $i=0; $i<$rows; $i++ ) {
         $update = pg_Fetch_Object( $updateq, $i );
@@ -171,7 +204,7 @@ details for new requests.  Areas highlighted in a lighter yellow are required fi
       }
       echo "</TABLE>";
     }
-  }
+  }  // isset(request)
 ?>
 
 <?php /***** Quote Details */
@@ -209,7 +242,7 @@ details for new requests.  Areas highlighted in a lighter yellow are required fi
 
       echo "</TABLE>";
     }
-  }
+  }  // if quotable
 
   if ( isset( $request ) ) {
     /***** Allocated People */
@@ -257,12 +290,12 @@ details for new requests.  Areas highlighted in a lighter yellow are required fi
       for( $i=0; $i<$rows; $i++ ) {
         $work = pg_Fetch_Object( $workq, $i );
 
-        echo "<TR><TD>$work->perorg_name</TD>";
-        echo "<TD>" . nice_date($work->work_on) . "</TD>";
-        echo "<TD ALIGN=RIGHT>" . sprintf( "%.2f", round(($work->seconds / 900) + 0.4 ) / 4) . "&nbsp;</TD>";
-        echo "<TD>$work->work_description</TD></TR>";
+        echo "<TR><TD>$work->perorg_name</TD>\n";
+        echo "<TD>" . nice_date($work->work_on) . "</TD>\n";
+        echo "<TD ALIGN=RIGHT>" . sprintf( "%.2f", round(($work->seconds / 900) + 0.4 ) / 4) . "&nbsp;</TD>\n";
+        echo "<TD>$work->work_description</TD></TR>\n";
       }
-      echo "</TABLE>";
+      echo "</TABLE>\n";
     }  // if rows>0
 ?>
 
@@ -278,13 +311,13 @@ details for new requests.  Areas highlighted in a lighter yellow are required fi
   $peopleq = pg_Exec( $wrms_db, $query);
   $rows = pg_NumRows($peopleq);
   if ( $rows > 0 ) {
-    echo "&nbsp;<BR CLEAR=ALL><H2>Other Interested Users</H2><P ALIGN=\"LEFT\">";
+    echo "&nbsp;<BR CLEAR=ALL><H2>Other Interested Users</H2><P ALIGN=\"LEFT\">\n";
     for( $i=0; $i<$rows; $i++ ) {
       $interested = pg_Fetch_Object( $peopleq, $i );
       if ( $i > 0 ) echo ", ";
-      echo "$interested->fullname ($interested->org_code)";
+      echo "$interested->fullname ($interested->org_code)\n";
     }
-    echo "</P>";
+    echo "</P>\n";
   }
 ?>
 
@@ -305,12 +338,12 @@ details for new requests.  Areas highlighted in a lighter yellow are required fi
 <?php /*** the actual details of notes */
     for( $i=0; $i<$rows; $i++ ) {
       $request_note = pg_Fetch_Object( $noteq, $i );
-      echo "<TR VALIGN=TOP><TD>$request_note->note_by</TD> <TD>";
+      echo "<TR VALIGN=TOP><TD>$request_note->note_by</TD><TD>";
       echo nice_date($request_note->note_on);
-      echo "</TD> <TD>" . html_format($request_note->note_detail) . "</TD></TR>";
+      echo "</TD>\n<TD>" . html_format($request_note->note_detail) . "</TD></TR>\n";
     }
-    echo "</TABLE>";
-  }
+    echo "</TABLE>\n";
+  }  // if rows > 0
 ?>
 
 <?php /***** Status Changes */
@@ -333,10 +366,10 @@ details for new requests.  Areas highlighted in a lighter yellow are required fi
 <?php /* the actual status stuff */
     for( $i=0; $i<$rows; $i++ ) {
       $request_status = pg_Fetch_Object( $stat_res, $i );
-      echo "<TR VALIGN=TOP><TD>$request_status->fullname</TD> <TD>" . nice_date($request_status->status_on) . "</TD> <TD>$request_status->status_code - $request_status->lookup_desc</TD></TR>";
+      echo "<TR VALIGN=TOP><TD>$request_status->fullname</TD>\n<TD>" . nice_date($request_status->status_on) . "</TD> <TD>$request_status->status_code - $request_status->lookup_desc</TD></TR>\n";
     }
-    echo "</TABLE>";
-  }
+    echo "</TABLE>\n";
+  }  // if rows > 0
 
   if ( ! $plain ) {
 
@@ -344,9 +377,9 @@ details for new requests.  Areas highlighted in a lighter yellow are required fi
     echo "&nbsp;<P>&nbsp;<BR CLEAR=ALL><HR>";
 
     /* only update status if administrator - anyone can add a note though */
-    echo "<H2>Update ";
-    if ( $administrator ) echo "Status or ";
-    echo "Notes</H2>";
+    echo "<H2>";
+    if ( $administrator ) echo "Change Status or ";
+    echo "Add Notes</H2>";
 
 ?>
 
@@ -354,7 +387,7 @@ details for new requests.  Areas highlighted in a lighter yellow are required fi
 <?php echo "<INPUT TYPE=\"hidden\" NAME=\"request_id\" VALUE=\"$request->request_id\">"; ?>
 <TABLE BORDER=1 ALIGN=CENTER WIDTH=100%>
 <?php /**** only update status & eta if they are administrator */
-  if ( $notable ) {
+  if ( $administrator && $notable ) {
     echo "<TR>";
     echo "<TH ALIGN=RIGHT>New Status:</TH>";
     echo "<TD ALIGN=LEFT>&nbsp;<SELECT NAME=\"new_status\">$status_list</SELECT></TD>";
@@ -365,17 +398,17 @@ details for new requests.  Areas highlighted in a lighter yellow are required fi
     if ( $sysmgr || $allocated_to ) echo "\">";
     echo "</TD></TR>\n";
   }
-}
 ?>
 
 <TR VALIGN=TOP>
   <TH ALIGN=RIGHT>New Note:</TH>
   <TD ALIGN=LEFT COLSPAN=3><TEXTAREA NAME="new_note" ROWS=10 COLS=70  WRAP="SOFT"></TEXTAREA></TD>
 </TR>
-
-<TR><TD CLASS=mand COLSPAN=4 ALIGN=CENTER><FONT SIZE=+1><B><INPUT TYPE=submit VALUE="Update Request" NAME="submit"></B></FONT></TD></TR>
+<TR><TD CLASS=mand COLSPAN=4 ALIGN=CENTER><FONT SIZE=+1><B>
+<INPUT TYPE=submit VALUE="Update Request" NAME=submit></B></FONT></TD></TR>
 <?php
-  }  // isset($request)
+  }  // if ! plain
+}  // isset($request) (in allocated people!)
 ?>
 </TABLE>
 

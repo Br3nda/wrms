@@ -49,7 +49,7 @@
     }
     else {
       echo "<p>" . pg_NumRows($result) . " requests found</p>"; // <p>$query</p>";
-      echo "<table border=\"0\" align=system_code><tr>\n";
+      echo "<table border=\"0\" align=center><tr>\n";
       echo "<th>WR &nbsp;#</th><th>Requested By</th>";
       echo "<th>Description</th><th>Status</th><th>Actions</th></tr>";
 

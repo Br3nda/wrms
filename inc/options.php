@@ -135,4 +135,10 @@
     }
     // fall through if session record not found in database
   }
+
+  if ( "$session->user_no" == "" && $SCRIPT_NAME != "/index.php") {
+    header("Location: $base_url");  /* Redirect browser to login page */
+    exit; /* Make sure that code below does not get executed when we redirect. */
+  }
+
 ?>

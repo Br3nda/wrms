@@ -18,7 +18,6 @@
 <?php
   include("inc/menuhead.php");
 
-//  echo "<p>Submit: $submit<br>M: $M<BR>Request No: $request_id</p>";
   if ( "$submit" == "Add Request" || "$submit" == "Update Request" ) {
     echo "$because";
     exit;

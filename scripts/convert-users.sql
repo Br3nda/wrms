@@ -63,6 +63,8 @@ INSERT INTO lookup_code (source_table, source_field, lookup_code, lookup_seq, lo
     VALUES('codes', 'menus', 'request|request_type', 1, 'Request&nbsp;Types');
 DROP TABLE request_type;
 
+UPDATE request SET requester_id=usr.user_no WHERE usr.username=request.request_by;
+UPDATE request_history SET requester_id=usr.user_no WHERE usr.username=request_history.request_by;
 UPDATE request_allocated SET allocated_to_id=usr.user_no WHERE usr.username=request_allocated.allocated_to;
 UPDATE request_interested SET user_no=usr.user_no WHERE usr.username=request_interested.username;
 UPDATE request_note SET note_by_id=usr.user_no WHERE usr.username=request_note.note_by;

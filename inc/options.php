@@ -2,6 +2,46 @@
   if ( !isset($maxresults) ) $maxresults = 100;
   $maxresults = intval($maxresults);
 
+function salted_md5( $instr, $salt = "" ) {
+  if ( $salt == "" ) $salt = substr( md5(rand(100000,999999)), 2, 8);
+  return ( "*$salt*" . md5($salt . $instr) );
+}
+
+function validate_password( $they_sent, $we_have ) {
+  global $system_name;
+
+  // In some cases they send us a salted md5 of the password, rather
+  // than the password itself (i.e. if it is in a cookie)
+  $pwcompare = $we_have;
+  if ( ereg('^\*(.+)\*.+$', $they_sent, $regs ) ) {
+    $pwcompare = salted_md5( $we_have, $regs[1] );
+    if ( $they_sent == $pwcompare ) return true;
+  }
+
+  // error_log( "$system_name: vpw: DBG: we_have=$we_have, pwcompare=$pwcompare, they_sent=$they_sent" );
+
+  if ( ereg('^\*\*.+$', $we_have ) ) {
+    //  The "forced" style of "**plaintext" to allow easier admin setting
+    // error_log( "$system_name: vpw: DBG: comparing=**they_sent" );
+    return ( "**$they_sent" == $pwcompare );
+  }
+
+  if ( ereg('^\*(.+)\*.+$', $we_have, $regs ) ) {
+    // A nicely salted md5sum like "*<salt>*<salted_md5>"
+    $salt = $regs[1];
+    $md5_sent = salted_md5( $they_sent, $salt ) ;
+    // error_log( "$system_name: vpw: DBG: Salt=$salt, comparing=$md5_sent" );
+    return ( $md5_sent == $pwcompare );
+  }
+
+  // Blank passwords are bad
+  if ( "" == "$we_have" || "" == "$they_sent" ) return false;
+
+  // Otherwise they just have a plain text string, which we
+  // compare directly, but case-insensitively
+  return ( $they_sent == $pwcompare || strtolower($they_sent) == strtolower($we_have) );
+}
+
   // Various changes happen on the basis of $M
   if ( isset($LI) && !isset($M) && !isset($session_id) ) {
     // Handle the login cookie
@@ -24,8 +64,7 @@
     }
     else {
       $usr = pg_Fetch_Object($result, 0);
-      if ( strtolower("$L") <> strtolower("$usr->password") && md5(strtolower("$L")) <> "$usr->password"
-              && "$L" <> md5("$usr->password") && "**$L" <> "$usr->password" ) {
+      if ( ! validate_password( $L, $usr->password ) ) {
         $error_msg = "<H3>Invalid Logon</H3><P>You have used an invalid ID or password</P>";
       }
       else {
@@ -48,9 +87,9 @@
             $session_id = "$session->session_id " . md5($session->session_start);
             setcookie( "session_id", "$session_id", 0, "$base_url/" );
             $logged_on = true;
-            if ( $remember == 1 ) {
+            if ( isset($remember) && $remember == 1 ) {
               $cookie .= strtr( $usr->username, "abcdefghijklmnopqrstuvwxyz", "nopqrstuvwxyzabcdefghijklm" ) . ";";
-              $cookie .= md5($usr->password);
+              $cookie .= salted_md5($usr->password);
               setcookie( "LI", $cookie, time() + (86400 * 1800), "$base_url/" );   // will expire in five or so years
             }
           }

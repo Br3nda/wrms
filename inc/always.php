@@ -1,5 +1,8 @@
 <?php
 $begin_processing = microtime();
+$error_loc = "";
+$error_msg = "";
+$warn_msg = "";
 
 error_log( "=============================================== $PHP_SELF" );
 include_once("../config/config.php");
@@ -124,7 +127,7 @@ function awm_pgexec( $myconn, $query, $location="", $abort_on_fail=FALSE, $mydbg
 //-----------------------------------------
 // Force inheirtance to 'off'
 //-----------------------------------------
-awm_pgexec( $dbconn, "SET SQL_Inheritance TO OFF;", "always" );
+// awm_pgexec( $dbconn, "SET SQL_Inheritance TO OFF;", "always" );
 
 //-----------------------------------------
 // Handle nicer date formatting.  Note global call to set

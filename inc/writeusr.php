@@ -48,7 +48,7 @@
         $query .= ")  VALUES(";
         $query .= "$user_no, LOWER('$UserName'), '$UserEmail', '$UserFullName', '$UserOrganisation', ";
         $query .= " '$UserPhone', '$UserMobile', '$UserNotifications', '$UserStatus', 'now' ";
-        if ( $UserPassword <> "      " ) $query .= ", '$UserPassword' ";
+        if ( $UserPassword <> "      " ) $query .= ", '" . salted_md5($UserPassword) . "' ";
         if ( is_object ( $usr->settings ) ) $query .= ", '" . $usr->settings->to_save() . "'";
 	    $query .= " ) ";
       }
@@ -63,7 +63,7 @@
         $query .= " mail_style='$UserNotifications', ";
         if ( "$UserName" <> "" ) $query .= " username=LOWER('$UserName'), ";
         $query .= " status='$UserStatus', last_update='now'";
-        if ( $UserPassword <> "      " ) $query .= ", password='$UserPassword'";
+        if ( $UserPassword <> "      " ) $query .= ", password='" . salted_md5($UserPassword) . "'";
         if ( is_object ( $usr->settings ) ) $query .= ", config_data='" . $usr->settings->to_save() . "'";
         $query .= " WHERE user_no='$user_no' ";
         if ( $session->user_no == $usr->user_no ) $settings = $usr->settings;

@@ -176,8 +176,9 @@
      }
   }
 
+  unset( $col_array );
   function header_row() {
-    global $format, $columns;
+    global $format, $columns, $col_array;
 
     $available_columns = array( "request_id" => "WR&nbsp;#",
           "lfull" => "Request For",
@@ -491,8 +492,12 @@ $query";
     $result = awm_pgexec( $dbconn, $query, "requestlist", false, 7 );
 
     if ( "$style" != "stripped" ) {
-      if ( $result && pg_NumRows($result) > 0 )
-        echo "\n<small>" . pg_NumRows($result) . " requests found</small>";
+      if ( $result && pg_NumRows($result) > 0 ) {
+        echo "\n<small>";
+        echo pg_NumRows($result) . " requests found";
+        if ( isset($qry) && $qry != "" ) echo " for <b>$qry</b>";
+        echo "</small>";
+      }
       else {
         echo "\n<p><small>No requests found</small></p>";
       }
@@ -526,7 +531,13 @@ $query";
     if ( "$format" == "edit" ) //encloses any Brief (editable) reports in a form tag to enable submit form functionality
        printf ("<form action=\"$this_page\" method=\"post\">\n", "stripped", "edit");
 
-    echo "<table border=\"0\" align=left width=100%>\n";
+    if ( $style == "stripped" ) {
+      echo "<table border=\"0\" cellspacing=\"0\" cellpadding=\"2\" width=\"100%\">\n<tr>\n";
+      echo "<th class=cols style=\"text-align: left\">$qry</th>";
+      echo "<th class=cols style=\"text-align: right\">" . pg_NumRows($result) . " requests at " . date("H:i j M y") . "</th>";
+      echo "</tr></table>\n";
+    }
+    echo "<table border=\"0\" width=\"100%\">\n";
 
     $show_notes = ($format == "ultimate" || $format == "detailed" );
     $show_details = ($format == "ultimate" || $format == "detailed" || "$format" == "activity" || "$format" == "quotes" );

@@ -4,7 +4,7 @@
 //   Connect to DB   //
 ///////////////////////
 if (!$dbconn) {
-  $dbconn = pg_Connect("dbname=pwrms user=general") or die( "Cannot connect to wrms database!" );
+  die( "Application is not connected to wrms database!" );
 }
 
 ///////////////////////////////////////////////////////////////////////

@@ -10,11 +10,12 @@
   echo "A:hover $linkstyle }\n";
   echo "A.bb:hover $linkstyle }
 P		{font: small tahoma, sans-serif; }
-P.sml		{font: x-small tahoma, sans-serif; }
-P.helptext	{font: small tahoma, sans-serif; margin: 4px 12px; }
+.helptext		{margin: 4px 12px; }
+.sml		{font-size: x-small; }
 TABLE.mgn	{margin: 2px 10px; }
 h2		{font: bold medium tahoma, sans-serif; color: $colors[2];  }
 h3		{font: bold medium tahoma, sans-serif; color: $colors[2];  }
+h4		{font: bold small tahoma, sans-serif; color: $colors[2];  }
 th		{font: bold x-small tahoma, sans-serif; color: $colors[1]; background: $colors[8]; }
 th.cols		{font: bold x-small tahoma, sans-serif; color: $colors[1]; background: $colors[5]; }
 td		{font: small tahoma, sans-serif; }

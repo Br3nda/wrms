@@ -14,7 +14,7 @@
 
     $title = "$system_name - Maintain Request";
     include("$base_dir/inc/starthead.php");
-    include("$base_dir/inc/formstyle.php");
+    include("$base_dir/inc/styledef.php");
     echo "</head>\n<body BGCOLOR=$colors[0] LEFTMARGIN=0 TOPMARGIN=0 MARGINHEIGHT=0 MARGINWIDTH=0>\n";
 
     include("$base_dir/inc/menuhead.php");

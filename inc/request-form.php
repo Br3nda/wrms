@@ -14,7 +14,8 @@
       include( "$base_dir/inc/user-list.php" );
       if ( $roles['wrms']['Admin'] || $roles['wrms']['Support']  ) {
         $user_list = get_user_list( "", "", $session->user_no );
-        $support_list = get_user_list( "S", "", $session->user_no );
+        $support_list = "<option value=\"\">--- not assigned ---</option>\n";
+        $support_list .= get_user_list( "S", "", $session->user_no );
       }
       else
         $user_list = get_user_list( "", $session->org_code, $session->user_no );
@@ -26,6 +27,9 @@
 
     include("$base_dir/inc/system-list.php");
     $system_codes = get_system_list("ASCE", "$request->system_code");
+    if ( ! isset($request) ) {
+      $system_codes = "<option value=\"UNKNOWN\">--- not assigned ---</option>\n$system_codes";
+    }
   }
 
   $hdcell = "<th width=7%><img src=images/clear.gif width=60 height=2></th>";
@@ -52,7 +56,11 @@
   if ( !isset($request) ) {
     if ( $roles[wrms][Admin] || $roles[wrms][Support] || $roles[wrms][Manage] ) {
       echo "<TR><TH ALIGN=RIGHT>User:</TH>";
-      echo "<TD colspan=2 ALIGN=LEFT><SELECT NAME=\"new_user_no\">$user_list</SELECT></td></tr>\n";
+      echo "<TD colspan=2 valign=middle ALIGN=LEFT><SELECT NAME=\"new_user_no\">$user_list</SELECT>\n";
+      if ( !isset($request) ) {
+        echo " &nbsp; <LABEL><INPUT TYPE=checkbox NAME=\"in_notify\" VALUE=1 CHECKED>&nbsp;update user on the status of this request.</LABEL></TD></TR>\n";
+      }
+      echo "</td></tr>\n";
     }
     if ( $roles[wrms][Admin] || $roles[wrms][Support] ) {
       echo "<TR><TH align=right>Assign to:</TH>";
@@ -163,7 +171,7 @@
   else
     echo html_format($request->detailed);
 
-  if ( !isset($request) ) {
+  if ( ! ($roles[wrms][Admin] || $roles[wrms][Support] || $roles[wrms][Manage] || isset($request)) ) {
     echo "<TR><TH ALIGN=RIGHT>Notify:</TH>\n";
     echo "<TD colspan=2 ALIGN=LEFT><LABEL><INPUT TYPE=checkbox NAME=\"in_notify\" VALUE=1 CHECKED>&nbsp;Keep me updated on the status of this request.</LABEL></TD></TR>\n";
   }

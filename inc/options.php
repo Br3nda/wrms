@@ -92,6 +92,7 @@
       }
     }
   }
+  $settings = "";
 
   if ( "$M" <> "LO" && "$session_id" <> "" ) {
     list( $session_test, $session_hash) = explode( " ", $session_id);
@@ -113,6 +114,7 @@
         $query .= "UPDATE usr SET last_accessed='now' WHERE user_no=$session->user_no; ";
         $result = pg_Exec( $wrms_db, $query );
         $logged_on = true;
+        $settings = new Setting( $session->config_data );
 
         $query = "SELECT * FROM group_member, ugroup WHERE group_member.group_no=ugroup.group_no ";
         $query .= " AND group_member.user_no='$session->user_no'";
@@ -155,5 +157,6 @@
     header("Location: $base_url");  /* Redirect browser to login page */
     exit; /* Make sure that code below does not get executed when we redirect. */
   }
+
 
 ?>

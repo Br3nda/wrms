@@ -12,16 +12,18 @@ CREATE TABLE usr (
     joined DATETIME DEFAULT TEXT 'now',
     last_update DATETIME,
     status CHAR,
+    help BOOL,
     phone TEXT,
     fax TEXT,
 		pager TEXT,
     org_code INT4,
-    organisation TEXT,
 		email_ok BOOL DEFAULT TRUE,
 		pager_ok BOOL DEFAULT TRUE,
 		phone_ok BOOL DEFAULT TRUE,
 		fax_ok   BOOL DEFAULT TRUE,
+    organisation TEXT,
     mail_style CHAR,
+    config_data TEXT,
 		note CHAR );
 GRANT SELECT,INSERT,UPDATE ON usr TO PUBLIC;
 GRANT ALL ON usr TO andrew;
@@ -51,6 +53,8 @@ CREATE TABLE organisation (
 	active BOOL DEFAULT TRUE,
 	debtor_no INT4,
 	work_rate FLOAT,
+  admin_user_no INT4,
+  support_user_no INT4,
 	abbreviation TEXT,
   org_name TEXT,
   admin_usr TEXT
@@ -112,6 +116,7 @@ CREATE TABLE work_system (
   system_code TEXT NOT NULL UNIQUE PRIMARY KEY,
   system_desc TEXT,
 	active BOOL,
+  support_user_no INT4,
   notify_usr TEXT
 ) ;
 GRANT SELECT ON work_system TO PUBLIC;
@@ -119,6 +124,8 @@ GRANT INSERT,UPDATE,SELECT ON work_system TO general;
 
 CREATE TABLE org_system (
   org_code INT4 NOT NULL,
+  admin_user_no INT4,
+  support_user_no INT4,
   system_code TEXT
 ) ;
 GRANT SELECT ON org_system TO PUBLIC;
@@ -327,8 +334,10 @@ GRANT ALL ON group_member TO andrew;
 CREATE TABLE session (
     session_id SERIAL,
     user_no INT4,
+    help BOOL,
     session_start DATETIME DEFAULT TEXT 'now',
-    session_end DATETIME DEFAULT TEXT 'now');
+    session_end DATETIME DEFAULT TEXT 'now',
+    session_config TEXT );
 GRANT SELECT,INSERT,UPDATE ON session TO PUBLIC;
 GRANT ALL ON session TO andrew;
 CREATE FUNCTION max_session() RETURNS INT4 AS 'SELECT max(session_id) FROM session' LANGUAGE 'sql';

@@ -10,17 +10,11 @@
   }
 
   $title = "$system_name - " . ucfirst($form);
-  include("inc/starthead.php");
-  include("inc/styledef.php");
-  echo "</head>\n";
-  echo "<BODY bgcolor=\"$colors[0]\" topmargin=\"0\" marginwidth=\"0\" marginheight=\"0\" leftmargin=\"0\">\n";
-  include("inc/menuhead.php");
+  $right_panel = false;
+  include("inc/headers.php");
 
-//  include("inc/getrequest.php");
   include("inc/$form-form.php");
+
+  include("inc/footers.php");
+
 ?>
-
-</body> 
-</html>
-
-

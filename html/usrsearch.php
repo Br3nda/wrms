@@ -3,10 +3,7 @@
   include("inc/options.php");
 
   $title = "$system_name User Search";
-  include("inc/starthead.php");
-  include("inc/styledef.php");
-  include("inc/bodydef.php");
-  include("inc/menuhead.php");
+  include("inc/headers.php");
 
   if ( ! ($roles['wrms']['Admin'] || $roles[wrms]['Support']  || $roles[wrms]['Manage']) || "$error_msg$error_qry" != "" ) {
     include( "inc/error.php" );
@@ -81,8 +78,8 @@
       for ( $i=0; $i < pg_NumRows($result); $i++ ) {
         $thisusr = pg_Fetch_Object( $result, $i );
 
-        if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>\n";
-        else echo "<tr bgcolor=$colors[7]>\n";
+        if ( $i % 2 == 0 ) echo "<tr bgcolor=$colors[row1]>\n";
+        else echo "<tr bgcolor=$colors[row2]>\n";
 
         echo "<td class=sml><a href=\"index.php?M=LC&E=$thisusr->username&L=";
         echo md5(strtolower($thisusr->password));
@@ -92,9 +89,9 @@
         echo "<td class=sml><a href=\"mailto:$thisusr->email\">$thisusr->email</a>&nbsp;</td>\n";
         if ( isset( $system_code ) )
           echo "<td class=sml>$thisusr->lookup_desc ($thisusr->role)&nbsp;</td>\n";
-        echo "<td class=sml>" . substr($thisusr->last_update, 4, 7) . substr($thisusr->last_update, 20, 4) . " " . substr($thisusr->last_update, 11, 5) . "&nbsp;</td>\n";
+        echo "<td class=sml>" . nice_date($thisusr->last_update) . "&nbsp;</td>\n";
         if ( ! isset( $system_code ) )
-          echo "<td class=sml>" . substr($thisusr->last_accessed, 4, 7) . substr($thisusr->last_accessed, 20, 4) . " " . substr($thisusr->last_accessed, 11, 5) . "&nbsp;</td>\n";
+          echo "<td class=sml>" . nice_date($thisusr->last_accessed) . "&nbsp;</td>\n";
 
         echo "<td class=menu><a class=r href=\"requestlist.php?user_no=$thisusr->user_no\">Requested</a> &nbsp; \n";
         echo "<a class=r href=\"requestlist.php?allocated_to=$thisusr->user_no\">Allocated</a> &nbsp; \n";
@@ -108,8 +105,7 @@
     }
   }
 
-} /* The end of the else ... clause waaay up there! */ ?>
-</body> 
-</html>
+} /* The end of the else ... clause waaay up there! */ 
 
-
+  include("inc/footers.php");
+?>

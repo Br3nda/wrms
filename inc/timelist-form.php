@@ -1,5 +1,4 @@
 <?php
-  include("$base_dir/inc/nice-date.php");
   include("$base_dir/inc/html-format.php");
 function nice_time( $in_time ) {
   /* does nothing yet... */

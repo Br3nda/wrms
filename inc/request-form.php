@@ -32,8 +32,8 @@
     }
   }
 
-  $hdcell = "<th width=7%><img src=images/clear.gif width=60 height=2></th>";
-  $tbldef = "<table width=100% cellspacing=0 border=0 cellpadding=2";
+  $hdcell = "";
+  $tbldef = "<table width=100% cellspacing=0 border=1 cellpadding=2";
   echo "$tbldef>\n<tr><td align=left>\n";;
   if ( "$because" != "" )
     echo $because;
@@ -51,11 +51,11 @@
     echo "<INPUT TYPE=\"hidden\" NAME=\"request_id\" VALUE=\"$request->request_id\">"; 
   }
 ?>&nbsp;</th>
-<TD CLASS=h3 ALIGN=RIGHT<?php echo " bgcolor=$colors[8]"; ?>><FONT SIZE=+1 color=<?php echo $colors[1]; ?>><B>Request details</B></FONT></TD></TR>
+<TD CLASS=h3 colspan=2 ALIGN=RIGHT<?php echo " bgcolor=$colors[8]"; ?>><FONT SIZE=+1 color=<?php echo $colors[1]; ?>><B>Request details</B></FONT></TD></TR>
 <?php
   if ( !isset($request) ) {
     if ( $roles[wrms][Admin] || $roles[wrms][Support] || $roles[wrms][Manage] ) {
-      echo "<TR><TH ALIGN=RIGHT>User:</TH>";
+      echo "<TR><th class=rows align=right>User:</TH>";
       echo "<TD colspan=2 valign=middle ALIGN=LEFT><SELECT NAME=\"new_user_no\">$user_list</SELECT>\n";
       if ( !isset($request) ) {
         echo " &nbsp; <LABEL><INPUT TYPE=checkbox NAME=\"in_notify\" VALUE=1 CHECKED>&nbsp;update user on the status of this request.</LABEL></TD></TR>\n";
@@ -69,14 +69,14 @@
     }
   }
 
-  echo "<TR><TH ALIGN=RIGHT>";
+  echo "<TR><th class=rows align=right>";
   if ( isset($request) ) echo "WR #:"; else echo "Request:";
   echo "</TH>\n";
   if ( isset($request) ) echo "<td align=center class=h2>$request->request_id</td>\n";
   echo "<td";
   if ( !isset( $request ) ) echo " colspan=2";
   if ( $editable ) {
-    echo "><INPUT TYPE=\"text\" NAME=\"new_brief\" SIZE=55 VALUE=\"";
+    echo "><INPUT TYPE=\"text\" NAME=\"new_brief\" SIZE=50 VALUE=\"";
     if ( isset($request) ) echo htmlspecialchars($request->brief);
     echo "\">"; 
   }
@@ -86,14 +86,14 @@
   echo "</TD></TR>\n";
 
   if ( isset($request) ) {
-    echo "<TR><TH ALIGN=RIGHT>From:</TH>";
+    echo "<TR><th class=rows align=right>From:</TH>";
     echo "<TD ALIGN=CENTER>$request->fullname</TD>\n";
     echo "<TD ALIGN=LEFT>&nbsp;<B>Entered:</B> " . nice_date($request->request_on);
     if ( strcmp( $request->eta, "") )
       echo " &nbsp; &nbsp; &nbsp; <B>ETA:</B> " .  substr( nice_date($request->eta), 7);
     echo "</TD></TR>\n";
 
-    echo "<TR><TH ALIGN=RIGHT VALIGN=MIDDLE>Status:</TH>\n";
+    echo "<TR><th class=rows align=right VALIGN=MIDDLE>Status:</TH>\n";
     echo "<TD ALIGN=CENTER>";
     if ( $editable ) {
       echo "<LABEL><INPUT TYPE=\"checkbox\" NAME=\"new_active\" VALUE=\"TRUE\"";
@@ -106,7 +106,7 @@
   }
 
   if ( ($editable && "$system_codes" <> "") || (! $editable && isset($request) ) ) {
-    echo "<TR><TH ALIGN=RIGHT VALIGN=MIDDLE>System:</TH>\n";
+    echo "<TR><th class=rows align=right VALIGN=MIDDLE>System:</TH>\n";
     if ( isset($request) )
       echo "<TD ALIGN=CENTER>$request->system_code</TD>\n";
     echo "<td align=left";
@@ -121,7 +121,7 @@
 </TR>
 
 <TR>
-  <TH ALIGN=RIGHT>Type:</TH>
+  <th class=rows align=right>Type:</TH>
   <?php if ( isset($request) )
     echo "<TD ALIGN=CENTER>$request->request_type</TD>\n";
   echo "<td align=left";
@@ -135,7 +135,7 @@
 </TR>
 
 <TR>
-  <TH ALIGN=RIGHT>Urgency:</TH>
+  <th class=rows align=right>Urgency:</TH>
   <?php if ( isset($request) )
     echo "<TD ALIGN=CENTER>$request->urgency</TD>\n";
   echo "<td align=left";
@@ -149,7 +149,7 @@
 </TR>
 
 <TR>
-  <TH ALIGN=RIGHT>Importance:</TH>
+  <th class=rows align=right>Importance:</TH>
   <?php if ( isset($request) )
     echo "<TD ALIGN=CENTER>$request->importance</TD>\n";
   echo "<td align=left";
@@ -163,7 +163,7 @@
 </TR>
 
 <tr valign=top>
-  <TH ALIGN=RIGHT>&nbsp;<BR>Details:</TH>
+  <th class=rows align=right>&nbsp;<BR>Details:</TH>
   <TD ALIGN=LEFT COLSPAN=2>
 <?php
   if ( $editable )
@@ -172,7 +172,7 @@
     echo html_format($request->detailed);
 
   if ( ! ($roles[wrms][Admin] || $roles[wrms][Support] || $roles[wrms][Manage] || isset($request)) ) {
-    echo "<TR><TH ALIGN=RIGHT>Notify:</TH>\n";
+    echo "<TR><th class=rows align=right>Notify:</TH>\n";
     echo "<TD colspan=2 ALIGN=LEFT><LABEL><INPUT TYPE=checkbox NAME=\"in_notify\" VALUE=1 CHECKED>&nbsp;Keep me updated on the status of this request.</LABEL></TD></TR>\n";
   }
 ?>
@@ -231,11 +231,12 @@
 ?>
 
 <?php echo "$tbldef><TR><TD CLASS=sml COLSPAN=6>&nbsp;</TD></TR><TR>$hdcell"; ?>
-<TD CLASS=h3 COLSPAN=5 ALIGN=RIGHT<?php echo " bgcolor=$colors[8]"; ?>><FONT SIZE=+1 color=<?php echo $colors[1]; ?>><B>Quotations</B></FONT></TD></TR>
+<TD CLASS=h3 COLSPAN=6 ALIGN=RIGHT<?php echo " bgcolor=$colors[8]"; ?>><FONT SIZE=+1 color=<?php echo $colors[1]; ?>><B>Quotations</B></FONT></TD></TR>
 <?php
       echo "<TR>";
-      if ( $rows > 0 ) echo "<TH>Quote</TH><TH class=cols>Done By"; else echo "<th>&nbsp;</th><th class=cols>&nbsp;";
-      echo "</TH><TH class=cols>Brief</TH>";
+      if ( $rows > 0 ) echo "<TH class=cols>Quote</TH><TH class=cols>Done By</th><th class=cols>";
+      else echo "<TH class=cols colspan=3>";
+      echo "Brief</TH>";
       if ( $rows > 0 ) echo "<TH class=cols>Done On</TH>";
       echo "<TH class=cols>Type</TH><TH class=cols>Amount</TH>";
       if ( $rows <= 0 ) echo "<TH class=cols>Units</TH>";
@@ -243,31 +244,30 @@
 
       for ( $i=0; $i < $rows; $i++ ) {
         $quote = pg_Fetch_Object( $quoteq, $i );
-        if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
-        else echo "<tr bgcolor=$colors[7]>";
-        echo "<TH ALIGN=CENTER VALIGN=TOP ROWSPAN=2><FONT SIZE=+2>$quote->quote_id</FONT></TH>\n";
+        if ( $i % 2 == 0 ) echo "<tr bgcolor=$colors[row1]>";
+        else echo "<tr bgcolor=$colors[row2]>";
+        echo "<TD ALIGN=CENTER>$quote->quote_id</TD>\n";
         echo "<TD ALIGN=CENTER>$quote->fullname</TD>\n";
         echo "<TD>$quote->quote_brief</TD>\n";
         echo "<TD ALIGN=CENTER>" . nice_date($quote->quoted_on) . "</TD>\n";
         echo "<TD ALIGN=CENTER>$quote->quote_type - $quote->type_desc</TD>\n";
         echo "<TD ALIGN=RIGHT>" . number_format($quote->quote_amount, 2) . " $quote->quote_units</TD>\n</tr>";
-        if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
-        else echo "<tr bgcolor=$colors[7]>";
-        echo "<TD COLSPAN=5>";
+
+        if ( $i % 2 == 0 ) echo "<tr bgcolor=$colors[row1]>";
+        else echo "<tr bgcolor=$colors[row2]>";
+        echo "<TD COLSPAN=6>";
         echo html_format($quote->quote_details) . "</A></TD></TR>\n";
       }
       if ( ($allocated_to || $sysmgr) && ! $plain ) {
-        if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
-        else echo "<tr bgcolor=$colors[7]>";
-        echo "<th>&nbsp;</th>\n";
-        echo "<TD colspan=2><input name=new_quote_brief size=35 type=text></TD>\n";
+        if ( $i % 2 == 0 ) echo "<tr bgcolor=$colors[row1]>";
+        else echo "<tr bgcolor=$colors[row2]>";
+        echo "<TD colspan=3><input name=new_quote_brief size=35 type=text></TD>\n";
         echo "<TD><select name=new_quote_type>$quote_types</select></TD>\n";
         echo "<TD ALIGN=RIGHT><input name=new_quote_amount size=10 type=text></td>";
         echo "<TD ALIGN=LEFT><select name=new_quote_unit>$quote_units</select></TD></tr>\n";
-        if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
-        else echo "<tr bgcolor=$colors[7]>";
-        echo "<th>&nbsp;</th>\n";
-        echo "<TD COLSPAN=5><textarea name=new_quote_details rows=4 cols=60 wrap=soft></textarea></TD></TR>\n";
+        if ( $i % 2 == 0 ) echo "<tr bgcolor=$colors[row1]>";
+        else echo "<tr bgcolor=$colors[row2]>";
+        echo "<TD COLSPAN=6><textarea name=new_quote_details rows=4 cols=60 wrap=soft></textarea></TD></TR>\n";
       }
       echo "</TABLE>";
     }
@@ -297,7 +297,7 @@
   if ( $rows > 0 || (! $plain && (($roles['wrms']['Admin'] || $roles['wrms']['Support'] ))) ) {
     echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=3>&nbsp;</TD></TR>\n";
     echo "<TR>$hdcell<TD CLASS=h3 COLSPAN=2 ALIGN=RIGHT bgcolor=$colors[8]><FONT SIZE=+1 color=$colors[1]><B>Work Allocated To</B></FONT></TD></TR>\n";
-    echo "<TR VALIGN=TOP><th>&nbsp;</th><td>";
+    echo "<TR VALIGN=TOP><td>";
     for( $i=0; $i<$rows; $i++ ) {
       $alloc = pg_Fetch_Object( $allocq, $i );
       if ( $i > 0 ) echo ", ";
@@ -330,14 +330,12 @@
 <?php echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=7>&nbsp;</TD></TR><TR>$hdcell"; ?>
 <TD CLASS=h3 COLSPAN=7 ALIGN=RIGHT<?php echo " bgcolor=$colors[8]"; ?>><FONT SIZE=+1 color=<?php echo $colors[1]; ?>><B>Work Done</B></FONT></TD></TR>
  <TR VALIGN=TOP>
-   <th>&nbsp;</th>
    <TH ALIGN=LEFT class=cols>Done By</TH>
    <TH class=cols>Done On</TH>
    <TH class=cols>Quantity</TH>
    <TH class=cols>Rate</TH>
    <TH class=cols>Cost</TH>
-   <TH class=cols>Description</TH>
-   <TH class=cols>&nbsp;</TH>
+   <TH class=cols colspan=2>Description</TH>
  </TR>
 <?php
     $total_cost = 0;
@@ -346,10 +344,10 @@
       $tmp = $work->work_rate * $work->work_quantity;
       $total_cost += $tmp; 
 
-      if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
-      else echo "<tr bgcolor=$colors[7]>";
-      echo "<th>&nbsp;</th><TD>" . str_replace(" ", "&nbsp;", $work->fullname) . "</TD>\n";
-      echo "<TD align=center>" . substr( nice_date($work->work_on), 7) . "</TD>\n";
+      if ( $i % 2 == 0 ) echo "<tr bgcolor=$colors[row1]>";
+      else echo "<tr bgcolor=$colors[row2]>";
+      echo "<TD>" . str_replace(" ", "&nbsp;", $work->fullname) . "</td>\n";
+      echo "<TD ALIGN=RIGHT>" . substr( nice_date($work->work_on), 7) . "</TD>\n";
       echo "<TD ALIGN=RIGHT>$work->work_quantity&nbsp;$work->work_units &nbsp;</TD>\n";
       echo "<TD ALIGN=RIGHT>$work->work_rate &nbsp;&nbsp;&nbsp;</TD>\n";
       echo "<TD ALIGN=RIGHT>$tmp &nbsp;</TD>\n";
@@ -359,19 +357,19 @@
       echo "DEL</a></font>";
     }
     echo "</tr>";
-    if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
-    else echo "<tr bgcolor=$colors[7]>";
-    echo "<TH>&nbsp;</TH><td COLSPAN=3 align=left><b>Total</b></td><td colspan=2 align=right>
-	  \$$total_cost &nbsp;</td><td COLSPAN=2></td>
+    if ( $i % 2 == 0 ) echo "<tr bgcolor=$colors[row1]>";
+    else echo "<tr bgcolor=$colors[row2]>";
+    echo "<td COLSPAN=3 align=left><b>Total</b></td><td colspan=2 align=right>
+	  \$$total_cost &nbsp;</td><td COLSPAN=2>&nbsp;</td>
 	</tr>";
     $i++;
 
     if ( ($allocated_to || $sysmgr) && ! $plain ) {
-      if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]";
-      else echo "<tr bgcolor=$colors[7]";
-      echo " valign=top><th>&nbsp;</th>\n";
-      echo "<td><BR>$session->fullname</td>\n";
-      echo "<TD><input name=new_work_on size=10 type=text value=\"";
+      if ( $i % 2 == 0 ) echo "<tr bgcolor=$colors[row1]";
+      else echo "<tr bgcolor=$colors[row2]";
+      echo " valign=top>\n";
+      echo "<td colspan=2>$session->fullname<br>\n";
+      echo "<input name=new_work_on size=10 type=text value=\"";
       if ( isset($old_work_on) ) {
         echo substr( nice_date($old_work_on), 7);
         $quote_units = get_code_list( "request_quote", "quote_units", "$old_work_units" );
@@ -404,7 +402,7 @@
   if ( $rows > 0 ) {
     echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=3>&nbsp;</TD></TR>\n";
     echo "<TR>$hdcell<TD CLASS=h3 COLSPAN=2 ALIGN=RIGHT bgcolor=$colors[8]><FONT SIZE=+1 color=$colors[1]><B>Interested Users</B></FONT></TD></TR>\n";
-    echo "<TR VALIGN=TOP><th nowrap>&nbsp;</th>\n<td>";
+    echo "<TR VALIGN=TOP>\n<td>";
     for( $i=0; $i<$rows; $i++ ) {
       $interested = pg_Fetch_Object( $peopleq, $i );
       if ( $i > 0 ) echo ", ";
@@ -452,7 +450,6 @@
 <?php echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=4>&nbsp;</TD></TR><TR>$hdcell"; ?>
 <TD CLASS=h3 COLSPAN=3 ALIGN=RIGHT<?php echo " bgcolor=$colors[8]"; ?>><FONT SIZE=+1 color=<?php echo $colors[1]; ?>><B>Associated Notes</B></FONT></TD></TR>
 <TR VALIGN=TOP>
-  <TH NOWRAP>&nbsp;</TH>
   <TH ALIGN=LEFT class=cols>Noted&nbsp;By</TH>
   <TH class=cols>Noted On</TH>
   <TH ALIGN=LEFT class=cols>Details</TH>
@@ -460,9 +457,8 @@
 <?php /*** the actual details of notes */
     for( $i=0; $i<$rows; $i++ ) {
       $request_note = pg_Fetch_Object( $note_res, $i );
-      if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
-      else echo "<tr bgcolor=$colors[7]>";
-      echo "<TH NOWRAP>&nbsp; &nbsp; </TH>";
+      if ( $i % 2 == 0 ) echo "<tr bgcolor=$colors[row1]>";
+      else echo "<tr bgcolor=$colors[row2]>";
       echo "<TD>$request_note->note_by</TD><TD>";
       echo nice_date($request_note->note_on);
       echo "</TD>\n<TD>" . html_format($request_note->note_detail) . "</TD></TR>\n";
@@ -484,7 +480,6 @@
 <?php echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=4>&nbsp;</TD></TR><TR>$hdcell"; ?>
 <TD CLASS=h3 COLSPAN=3 ALIGN=RIGHT<?php echo " bgcolor=$colors[8]"; ?>><FONT SIZE=+1 color=<?php echo $colors[1]; ?>><B>Changes in Status</B></FONT></TD></TR>
 <TR VALIGN=TOP>
-  <TH>&nbsp;</TH>
   <TH class=cols ALIGN=LEFT WIDTH="15%">Changed By</TH>
   <TH class=cols WIDTH="25%" ALIGN=LEFT>Changed On</TH>
   <TH class=cols WIDTH="60%" ALIGN=LEFT>Changed To</TH>
@@ -492,9 +487,8 @@
 <?php /* the actual status stuff */
     for( $i=0; $i<$rows; $i++ ) {
       $request_status = pg_Fetch_Object( $stat_res, $i );
-      if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
-      else echo "<tr bgcolor=$colors[7]>";
-      echo "<TH>&nbsp; &nbsp; &nbsp; </TH>";
+      if ( $i % 2 == 0 ) echo "<tr bgcolor=$colors[row1]>";
+      else echo "<tr bgcolor=$colors[row2]>";
       echo "<TD>$request_status->fullname</TD>\n<TD>" . nice_date($request_status->status_on) . "</TD> <TD>$request_status->status_code - $request_status->lookup_desc</TD></TR>\n";
     }
     echo "</TABLE>\n";
@@ -503,16 +497,16 @@
   if ( ! $plain ) {
 
     echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=4>&nbsp;</TD></TR>\n<TR>$hdcell";
-    echo "<TD CLASS=h3 COLSPAN=3 ALIGN=RIGHT bgcolor=$colors[8]><FONT SIZE=+1 color=$colors[1]><B>";
+    echo "<TD CLASS=h3 COLSPAN=4 ALIGN=RIGHT bgcolor=$colors[8]><FONT SIZE=+1 color=$colors[1]><B>";
     /**** only update status & eta if they are administrator */
     if ( $statusable ) echo "Change Status or ";
     echo "Add Notes</B></FONT></TD></TR>\n";
     if ( $statusable ) {
       echo "<TR>";
-      echo "<TH ALIGN=RIGHT>New Status:</TH>";
+      echo "<th class=rows align=right>New Status:</TH>";
       echo "<TD ALIGN=LEFT width=100><SELECT NAME=\"new_status\">$status_list</SELECT></TD>";
       if ( $sysmgr || $allocated_to || "$request->eta" <> "" ) {
-        echo "<TH ALIGN=RIGHT>&nbsp; ETA:</TH>";
+        echo "<th class=rows align=right>&nbsp; ETA:</TH>";
         echo "<TD ALIGN=LEFT>&nbsp;";
         if ( $sysmgr || $allocated_to ) echo "<INPUT TYPE=text NAME=\"new_eta\" SIZE=30 VALUE=\"";
         echo substr( nice_date( $request->eta ), 7);
@@ -524,7 +518,7 @@
 ?>
 
 <TR VALIGN=TOP>
-  <TH ALIGN=RIGHT>New Note:</TH>
+  <th class=rows align=right>New Note:</TH>
   <TD ALIGN=LEFT COLSPAN=3><TEXTAREA NAME="new_note" ROWS=8 COLS=60  WRAP="SOFT"></TEXTAREA></TD>
 </TR>
 </table>

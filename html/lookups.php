@@ -7,10 +7,7 @@
   }
 
   $title = "$system_name - " . ucfirst("$table") . ", " . ucfirst("$field");
-  include("inc/starthead.php");
-  include("inc/styledef.php");
-  include("inc/bodydef.php");
-  include("inc/menuhead.php");
+  include("inc/headers.php");
   include("inc/lookhead.php");
 
   if ( "$because" <> "" ) echo "$because";
@@ -28,6 +25,6 @@ resembling &quot;--- not selected ---&quot; to allow the user not entering a val
 <p class=helptext>If possible keep the &quot;code&quot; value as short as possible and avoid
 spaces. It will usually be interpreted by computers rather than people, but it will be sent
 back and forth several times for each form submitted.</p>
-</body></html>
-
-
+<?php
+  include("inc/footers.php");
+?>

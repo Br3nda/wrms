@@ -26,10 +26,7 @@
     $because = "You may only view users from your organisation";
 
   $title = "$system_name User Manager";
-  include("inc/starthead.php");
-  include("inc/styledef.php");
-  include("inc/bodydef.php");
-  include("inc/menuhead.php");
+  include("inc/headers.php");
 
   // Pre-build the list of systems
   if ( "$error_qry" == "" ) {
@@ -56,7 +53,7 @@
     }
   }
 
-  $hdcell = "<th width=7%><img src=images/clear.gif width=60 height=2></th>";
+  $hdcell = "";
   $tbldef = "<table width=100% cellspacing=0 border=0 cellpadding=2";
 
   if ( "$error_qry" != "" ) {
@@ -91,13 +88,13 @@
 ?>
 
 <?php echo "$tbldef><TR><TD CLASS=sml COLSPAN=2>&nbsp;</TD></TR><TR>$hdcell"; ?>
-<TD CLASS=h3 ALIGN=RIGHT<?php echo " bgcolor=$colors[8]"; ?>><FONT SIZE=+1 color=<?php echo $colors[1]; ?>><B>User Details</B></FONT></TD></TR>
+<TD CLASS=h3 ALIGN=RIGHT colspan=2<?php echo " bgcolor=$colors[8]"; ?>><FONT SIZE=+1 color=<?php echo $colors[1]; ?>><B>User Details</B></FONT></TD></TR>
 <TR bgcolor=<?php echo $colors[6]; ?>> 
-	<th align=right>Login ID</TH>
+	<th align=right class=rows>Login ID</TH>
 	<TD><font Size=2><?php echo "$user_no"; ?>&nbsp;</font></td>
 </tr>	 
 <tr bgcolor=<?php echo $colors[6]; ?>> 
-	<th align=right>User Name</th> 
+	<th align=right class=rows>User Name</th> 
 	<td><?php
 if ( $roles['wrms']['Admin'] || ("$usr->username" == ""))
   echo "<input Type=\"Text\" Name=\"UserName\" Size=\"15\" Value=\"";
@@ -108,22 +105,22 @@ if ( $roles['wrms']['Admin'] || ("$usr->username" == "") ) echo "\">";
 echo "</td>"; ?>
 </tr> 
 <tr bgcolor=<?php echo $colors[6]; ?>> 
-	<th align=right>Password</th> 
+	<th align=right class=rows>Password</th> 
 	<td><font Size="2"><input Type=password Name="UserPassword" Size="15" Value="<?php
 if (isset($user_no) && $user_no > 0 ) echo "      ";
 ?>"></font></td> 
 </tr> 
 <tr bgcolor=<?php echo $colors[6]; ?>> 
-	<th align=right>Email</th> 
+	<th align=right class=rows>Email</th> 
 	<td><font size=2><input Type="Text" Name="UserEmail" Size="50" Value="<?php echo "$usr->email"; ?>"></font></td> 
 </tr> 
 <tr bgcolor=<?php echo $colors[6]; ?>> 
-	<th align=right>Full Name</th>
+	<th align=right class=rows>Full Name</th>
 	<td><font Size="2"><input Type="Text" Name="UserFullName" Size="24" Value="<?php echo "$usr->fullname"; ?>"></font></td> 
 </tr> 
 <?php if ( $roles['wrms']['Admin'] ) { ?>
 <tr bgcolor=<?php echo $colors[6]; ?>> 
-	<th align=right>User Type</th> 
+	<th align=right class=rows>User Type</th> 
 	<td><font Size="2">
 	<input Type="Radio" Name="UserStatus" Value="S"<?php if ("$usr->status" == "S" ) echo " CHECKED"; ?>> System Support &nbsp; 
 	<input Type="Radio" Name="UserStatus" Value="C"<?php if ("$usr->status" == "C" ) echo " CHECKED"; ?>> Client Coordinator &nbsp;
@@ -135,13 +132,13 @@ if (isset($user_no) && $user_no > 0 ) echo "      ";
   if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
     $org_code_list = get_organisation_list( "$usr->org_code" );
     echo "<tr bgcolor=$colors[6]>\n";
-    echo "<th align=right>Organisation</th>\n";
+    echo "<th align=right class=rows>Organisation</th>\n";
     echo "<td><font Size=\"2\"><select name=UserOrganisation>$org_code_list</select>\n";
     echo "</tr>\n";
   }
 
   if ( "$user_no" > 0 ) {
-    echo "<tr bgcolor=$colors[6]>\n<th align=right>Date Joined&nbsp;</th>";
+    echo "<tr bgcolor=$colors[6]>\n<th align=right class=rows>Date Joined&nbsp;</th>";
     echo "<td VALIGN=TOP><font Size=2>";
     echo substr("$usr->joined", 0, 16);
     echo " &nbsp; &nbsp; &nbsp; &nbsp; Last Updated&nbsp; ";
@@ -151,7 +148,7 @@ if (isset($user_no) && $user_no > 0 ) echo "      ";
 
   if ( $roles[wrms][Admin] ) {
     // This displays checkboxes to select the users special roles.
-    echo "\n<tr bgcolor=$colors[6]>\n<th align=right>User Roles</th>";
+    echo "\n<tr bgcolor=$colors[6]>\n<th align=right class=rows>User Roles</th>";
     echo "<td VALIGN=TOP><font Size=2>\n<table border=0 cellspacing=0 cellpadding=3><tr>\n";
     for ( $i=0; $i <pg_NumRows($grp_res); $i++) {
       if ( $i > 0 && ($i % 3) == 0 ) echo "</tr><tr>";
@@ -173,8 +170,8 @@ if (isset($user_no) && $user_no > 0 ) echo "      ";
     // This displays all those checkboxes to select the systems the user can access.
     for ( $i=0; $i <pg_NumRows($sys_res); $i++) {
       $sys = pg_Fetch_Object( $sys_res, $i );
-      if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
-      else echo "<tr bgcolor=$colors[7]>";
+      if ( $i % 2 == 0 ) echo "<tr bgcolor=$colors[row1]>";
+      else echo "<tr bgcolor=$colors[row2]>";
       echo "$hdcell\n";
       echo "<td NOWRAP><font size=1>$sys->system_desc</td>\n";
       echo "<td NOWRAP><font size=1>\n";
@@ -236,8 +233,5 @@ if (isset($user_no) && $user_no > 0 ) echo "      ";
     echo "\"></b></td>\n</tr></table></form>";
   } // end of "else 'there was no error' way up there.
 
+  include("inc/footers.php");
 ?>
-</body> 
-</html>
-
-

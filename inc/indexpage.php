@@ -5,7 +5,6 @@ if ( $logged_on ) { ?>
 <H4>Please select an action from the menus at the top of the page, or select
 one of the recently modified requests from the list below.</H4>
 <?php
-  include( "$base_dir/inc/nice-date.php" );
   $query = "SELECT DISTINCT request.request_id, brief, fullname, email, last_activity, lookup_desc AS status_desc ";
   if ( "$session->status" == "S" ) {
     // Satisfy v7 requirement for order field in target list

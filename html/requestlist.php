@@ -5,10 +5,7 @@
   if ( isset($system_code) && $system_code == "." ) unset( $system_code );
 
   $title = "$system_name Request List";
-  include("inc/starthead.php");
-  include("inc/styledef.php");
-  include("inc/bodydef.php");
-  include("inc/menuhead.php");
+  include("inc/headers.php");
 
   if ( ! $roles['wrms']['Request'] || "$error_msg$error_qry" != "" ) {
     include( "inc/error.php" );
@@ -121,8 +118,9 @@
     }
   }
 
-} /* The end of the else ... clause waaay up there! */ ?>
-</body> 
-</html>
+} /* The end of the else ... clause waaay up there! */ 
 
+include("inc/footers.php");
+
+?>
 

@@ -1,26 +1,29 @@
 <?php
 function get_system_list( $access="", $current="", $maxwidth=50 ) {
-  global $wrms_db;
-  global $session;
+  global $dbconn;
+  global $session, $roles;
   $system_code_list = "";
 
-  $query = "SELECT DISTINCT work_system.system_code, system_desc ";
-  $query .= "FROM work_system ";
-  if ( $access <> "" ) {
-    $query .= ", system_usr";
-    $query .= " WHERE work_system.system_code=system_usr.system_code ";
+  $query = "SELECT work_system.system_code, system_desc ";
+  $query .= "FROM work_system WHERE TRUE ";
+  if ( $access <> "" && !($roles['wrms']['Admin'] || $roles['wrms']['Support']) ) {
+    $query .= " AND EXISTS (SELECT system_usr.system_code FROM system_usr WHERE system_usr.system_code=work_system.system_code";
     $query .= " AND user_no=$session->user_no ";
-    $query .= " AND role~*'[$access]'";
+    $query .= " AND role~*'[$access]') ";
   }
-  $query .= " ORDER BY system_code";
-//  if ( $access <> "" ) $query .= ", role";
-  $rid = pg_Exec( $wrms_db, $query);
-  if ( ! $rid ) {
-    echo "<p>$query";
+  if ( $current <> "" ) {
+    $query .= " OR work_system.system_code='$current'";
   }
+  $query .= " ORDER BY LOWER(system_code);";
+
+  $rid = awm_pgexec( $dbconn, $query);
+  if ( ! $rid ) return;
+
   // Alan changed > 1 to > 0 because - well it wasn't getting the first one
   // else if ( pg_NumRows($rid) > 1 ) {
-  else if ( pg_NumRows($rid) > 0 ) {
+  // AWM - Well, that logic was supposed to be handled elsewhere by forcing requests
+  // AWM - against the only possible system in that case. If there is only one choice, why offer it?
+  if ( pg_NumRows($rid) > 0 ) {
     // Build table of systems found
     $rows = pg_NumRows( $rid );
     for ( $i=0; $i < $rows; $i++ ) {

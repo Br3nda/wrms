@@ -16,8 +16,8 @@
   }
 
   echo "<br clear=all><table width=100% border=1 cellspacing=1 cellpadding=2>\n";
-  echo "<tr><th height=30>Seq</th><th>Code</th><th>Description</th>";
-  echo "<th>Miscellaneous</th><th><span style=\" font-weight: 300;\">Actions</span></td></tr>\n";
+  echo "<tr><th height=30 class=cols>Seq</th><th class=cols>Code</th><th class=cols>Description</th>";
+  echo "<th class=cols>Miscellaneous</th><th class=cols><span style=\" font-weight: 300;\">Actions</span></td></tr>\n";
 
 function edit_line() {
   global $action, $look_href, $lookup_code, $lookup_seq, $lookup_desc, $lookup_misc, $edited, $maxdesc;

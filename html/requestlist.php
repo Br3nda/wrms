@@ -242,7 +242,8 @@ else {
 
       if ( "$to_date" != "" )     $query .= " AND request.last_activity<='$to_date' ";
 
-      if ( isset( $incstat) ) {
+      if ( isset($incstat) && is_array( $incstat ) ) {
+        reset($incstat);
         $query .= " AND (request.last_status ~* '[";
         while( list( $k, $v) = each( $incstat ) ) {
           $query .= $k ;

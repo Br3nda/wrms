@@ -7,7 +7,7 @@
     while( list( $k, $v ) = each ( $chg_on ) ) {
       $amount = doubleval( $chg_amt[$k] );
       $invoice = doubleval( $chg_inv[$k] );
-      if ( "$amount" == "" ) continue;
+      if ( "$chg_amt[$k]" == "" ) continue;
       $because .= "<tr><td align=center>$k</td><td align=center>$v</td><td align=center>$invoice</td><td align=right>" . sprintf( "%10.2f", $amount) . "</td></tr>\n";
       $query .= "UPDATE request_timesheet SET";
       $query .= " work_charged='$v',";

@@ -2,13 +2,13 @@
 #
 # Recreate the WRMS database from scratch
 #
-DATABASE=wrms
+DATABASE=${1:-wrms}
 
 echo " Destroying old database..."
 dropdb $DATABASE
 echo " Creating new database..."
 createdb --encoding "SQL_ASCII" $DATABASE
-/usr/lib/postgresql/bin/createlang plpgsql wrms
+/usr/lib/postgresql/bin/createlang plpgsql ${DATABASE}
 
 echo " Creating database structures..."
 psql -q -f create-wrms.sql -d $DATABASE 2>&1 | grep -v "will create implicit " | grep -v "RemoveFunction"

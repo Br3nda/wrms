@@ -1,29 +1,36 @@
 <?php
 
   if ( $logged_on && isset( $chg_on ) && is_array( $chg_on ) && is_array( $chg_amt ) ) {
-    $because = "<TABLE BORDER=1 WIDTH=50% ALIGN=CENTER>\n";
+    $because = "<TABLE BORDER=1 WIDTH=80% ALIGN=CENTER>\n";
     $because .= "<tr><th>Timesheet</th><th>Date</th><th>Invoice</th><th align=right>Amount</th></tr>\n";
     $query = "";
     while( list( $k, $v ) = each ( $chg_on ) ) {
+      $charge_ok = ( $chg_ok[$k] == 1 ? "TRUE" : "FALSE" );
       $amount = doubleval( $chg_amt[$k] );
-      $invoice = doubleval( $chg_inv[$k] );
-      if ( "$chg_amt[$k]" == "" ) continue;
-      $because .= "<tr><td align=center>$k</td><td align=center>$v</td><td align=center>$invoice</td><td align=right>" . sprintf( "%10.2f", $amount) . "</td></tr>\n";
+      $invoice = $chg_inv[$k];
       $query .= "UPDATE request_timesheet SET";
-      $query .= " work_charged='$v',";
-      $query .= " charged_by_id=$session->user_no,";
-      $query .= " charged_details='$invoice', ";
-      $query .= " charged_amount=$amount";
-      $query .= " WHERE timesheet_id=$k;";
+      if ( $amount <> 0 ) {
+        $query .= " work_charged='$v',";
+        $query .= " charged_by_id=$session->user_no,";
+        $query .= " charged_details='$invoice', ";
+        $query .= " charged_amount=$amount, ";
+        $because .= "<tr>\n<td align=center>$k</td>\n";
+        $because .= "<td>$v</td>\n";
+        $because .= "<td align=center>$invoice</td>\n";
+        $because .= "<td align=right>" . sprintf( "%.2f", $amount) . "</td>\n";
+        $because .= "</tr>\n";
+      }
+      $query .= " ok_to_charge=$charge_ok ";
+      $query .= " WHERE timesheet_id=$k;\n";
     }
-    if ( "$query" == "" ) return;
     $because .= "</TABLE>\n";
 
-    # $because .= "<TT>$query</TT>";
+    $because .= "\n<TT>$query</TT>";
     $rid = pg_Exec( $wrms_db, $query );
-    if ( ! $rid ) error_log( "wrms: Query Error: $query", 0);
 
-    $msg = "<HEAD><TITLE>Timesheets Charged</TITLE></HEAD><BODY BGCOLOR=#E7FFE7><H2>Timesheets Charged**</H2>$because</BODY></HTML>";
+    $msg = "<HEAD>\n<TITLE>Timesheets Charged</TITLE>\n</HEAD>\n";
+    $msg .= "<BODY BGCOLOR=#E7FFE7>\n";
+    $msg .= "<H2>Timesheets Charged by $session->fullname</H2>$because\n</BODY>\n</HTML>";
     $msg = "<!doctype html public \"-//w3c//dtd html 4.0 transitional//en\"><HTML>$msg";
 
     $headers = "Content-Type: text/html; charset=us-ascii";

@@ -23,6 +23,7 @@ if ( isset($user_no) && $user_no != "" ) echo "&user_no=$user_no";
 <table align=center><tr valign=middle>
 <td><b>Desc.</b><input TYPE="Text" Size="20" Name="search_for" Value="<?php echo "$search_for"; ?>"></td>
 <td><label for=uncharged><input type=checkbox value=1 name=uncharged<?php if ("$uncharged"<>"" ) echo " checked"; ?>> Uncharged</label></td>
+<td><label for=charge><input type=checkbox value=1 name=charge<?php if ("$charge"<>"" ) echo " checked"; ?>> Charge</label></td>
 <td><input TYPE="Image" src="images/in-go.gif" alt="go" WIDTH="44" BORDER="0" HEIGHT="26" name="submit"></td>
 </tr></table>
 </form>  
@@ -56,11 +57,13 @@ if ( isset($user_no) && $user_no != "" ) echo "&user_no=$user_no";
     if ( "$before" != "" )
       $query .= " AND request_timesheet.work_on<'$before' ";
     if ( "$uncharged" != "" ) {
+      if ( "$charge" != "" )
+        $query .= " AND request_timesheet.ok_to_charge=TRUE ";
       $query .= " AND request_timesheet.work_charged IS NULL ";
       $query .= " ORDER BY org_code, work_on";
     }
     else {
-      $query .= " ORDER BY work_on DESC";
+      $query .= " ORDER BY organisation.org_code, request_timesheet.request_id, request_timesheet.work_on";
       $query .= " LIMIT 100 ";
     }
     $result = pg_Exec( $wrms_db, $query );
@@ -107,8 +110,12 @@ if ( isset($user_no) && $user_no != "" ) echo "&user_no=$user_no";
           echo "</tr>\n";
           if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
           else echo "<tr bgcolor=$colors[7]>";
-          echo "<td colspan=6><table align=right><tr>\n";
-          echo "<td class=cols valign=top align=left>$timesheet->brief</td>\n";
+          echo "<td colspan=6><table align=right border=0 width=100%><tr>\n";
+          echo "<td class=cols valign=top align=right width=90%>$timesheet->brief<br>";
+          echo "<label><input type=checkbox value=1 name=\"chg_ok[$timesheet->timesheet_id]\"";
+          if ( "$timesheet->ok_to_charge" == "t" ) echo " checked";
+          echo "> Charge</label>\n";
+          echo "</td>\n";
           echo "<th class=cols align=right>&nbsp;Charged&nbsp;On:</th>\n";
           echo "<td><font size=2><input type=text size=10 name=\"chg_on[$timesheet->timesheet_id]\" value=\"" . date( "d/m/Y" ) . "\"></font>&nbsp;</td>\n";
           echo "<th class=cols align=right>&nbsp;Amount:</th>\n";

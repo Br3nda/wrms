@@ -14,7 +14,6 @@ fi
 
 echo "Dumping to directory: ${DUMPDIR}"
 
-rm ${DUMPDIR}/*.sql
 echo "Dumping schema"
 pg_dump -s -n -d ${DATABASE} >${DUMPDIR}/schema-dump.sql
 

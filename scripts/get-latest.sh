@@ -19,7 +19,7 @@ fi
 echo "Grabbing latest version off $SITE"
 ssh $SITE "cd ~/wrms/scripts; ./dump-db.sh $DUMPDIR; cd $DUMPDIR; tar cvfz ~/wrms-tables.tgz t-*.sql"
 scp $SITE:wrms-tables.tgz ~/wrms/scripts/dump
-ssh $SITE "rm wrms-tables.tgz; cd $DUMPDIR; rm *.sql"
+ssh $SITE "rm wrms-tables.tgz; rm -r $DUMPDIR"
 pushd ~/wrms/scripts/dump
 tar xvfz wrms-tables.tgz
 pushd ~/wrms/scripts

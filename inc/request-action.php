@@ -528,8 +528,8 @@
 
      $other = "From: Catalyst Work Requests <wrms@catalyst.net.nz>\n";
      $other .= "Reply-To: $session->fullname <$session->email>\n";
-     $other .= "Errors-To: wrmsadmin@catalyst.net.nz"
-    mail( $send_to, $msub, $msg,  );
+     $other .= "Errors-To: wrmsadmin@catalyst.net.nz";
+    mail( $send_to, $msub, $msg,  $other );
   }
 ?>
 

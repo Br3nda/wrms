@@ -608,7 +608,7 @@ $query";
             printf("<td align=right>%9.2f &nbsp; </td>\n", $thiswork->work_rate);
             $value = $thiswork->work_quantity * $thiswork->work_rate;
             $total += $value;
-            $qty_total += $work_quantity;
+            $qty_total += $thiswork->work_quantity;
             printf("<td align=right>%9.2f &nbsp; </td>\n", $value);
             echo "</tr>\n";
           }

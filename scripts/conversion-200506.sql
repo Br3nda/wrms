@@ -26,6 +26,46 @@ BEGIN;
 SELECT check_wrms_revision(1,99,5);  -- Will fail if this revision doesn't exist, or a later one does
 SELECT new_wrms_revision(1,99,6, 'Baguette' );
 
+ALTER TABLE organisation DROP COLUMN admin_user_no;
+ALTER TABLE organisation DROP COLUMN support_user_no;
+ALTER TABLE organisation DROP COLUMN admin_usr;
+
+ALTER TABLE usr DROP COLUMN access_level;
+ALTER TABLE usr DROP COLUMN linked_user;
+
+-- Change the "enabled" column to a boolean...
+ALTER TABLE usr ADD COLUMN enabled_new BOOLEAN;
+UPDATE usr SET enabled_new = (enabled > 0) ;
+ALTER TABLE usr DROP COLUMN enabled;
+ALTER TABLE usr ALTER COLUMN enabled_new RENAME TO enabled;
+ALTER TABLE usr ALTER COLUMN enabled DEFAULT TRUE;
+ALTER TABLE usr DROP COLUMN organisation;
+
+ALTER TABLE ugroup DROP COLUMN module_name;
+
+ALTER TABLE work_system DROP COLUMN support_user_no;
+ALTER TABLE work_system DROP COLUMN notify_user;
+
+ALTER TABLE org_system DROP COLUMN admin_user_no;
+ALTER TABLE org_system DROP COLUMN support_user_no;
+
+ALTER TABLE usr_setting ADD COLUMN user_no INT4;
+UPDATE usr_setting SET user_no = SELECT usr.user_no FROM usr WHERE lower(usr.username) = lower(usr_setting.username);
+ALTER TABLE usr_setting DROP COLUMN username;
+ALTER TABLE usr_setting ALTER COLUMN enabled_new RENAME TO enabled;
+
+ALTER TABLE request DROP COLUMN request_by;
+ALTER TABLE request_history DROP COLUMN request_by;
+
+ALTER TABLE request_status DROP COLUMN status_by;
+ALTER TABLE request_note DROP COLUMN note_by;
+ALTER TABLE request_quote DROP COLUMN quoted_by;
+ALTER TABLE request_allocated DROP COLUMN allocated_to;
+ALTER TABLE request_interested DROP COLUMN username;
+ALTER TABLE request_timesheet DROP COLUMN work_by;
+
+
+
 -- And finally commit that to make it a logical unit...
 COMMIT;
 

@@ -21,6 +21,12 @@ if ( !isset($session) ) {
     if ( $debuggroups['Login'] )
       $session->Log( "DBG: User $username - $session->fullname ($session->user_no) login status is $session->logged_in" );
   }
+  else if ( isset($lsid) && $lsid != "" ) {
+    // Validate long-term session details
+    $session->LSIDLogin( $lsid );
+    if ( $debuggroups['Login'] )
+      $session->Log( "DBG: User $username - $session->fullname ($session->user_no) login status is $session->logged_in" );
+  }
 }
 
 function session_salted_md5( $instr, $salt = "" ) {
@@ -194,13 +200,13 @@ class Session
 
 
   function Login( $username, $password ) {
-    global $sysname, $sid, $debuggroups, $client_messages;
+    global $sysname, $sid, $debuggroups, $client_messages, $remember;
     if ( $debuggroups['Login'] )
       $this->Log( "DBG: Login: Attempting login for $username" );
 
     $sql = "SELECT * FROM usr WHERE lower(username) = ? ";
     $qry = new PgQuery( $sql, strtolower($username), md5($password), $password );
-    if ( $qry->Exec('Login') && $qry->rows == 1 ) {
+    if ( $qry->Exec('Session::UPWLogin') && $qry->rows == 1 ) {
       $usr = $qry->Fetch();
       if ( session_validate_password( $password, $usr->password ) ) {
         // Now get the next session ID to create one from...
@@ -224,6 +230,11 @@ class Session
             // Recognise that we have started a session now too...
             $this->Session();
             $this->Log( "DBG: Login: INFO: New session $session_id started for $username ($usr->user_no)" );
+            if ( isset($remember) && intval($remember) > 0 ) {
+              $cookie .= md5( $this->user_no ) . ";";
+              $cookie .= session_salted_md5($usr->user_no . $usr->username . $usr->password);
+              setcookie( "lsid", $cookie, time() + (86400 * 3600), "$base_url/" );   // will expire in ten or so years
+            }
             return true;
           }
    // else ...
@@ -252,6 +263,72 @@ class Session
     $this->Log( "DBG: Login $this->cause" );
     return false;
   }
+
+
+
+  function LSIDLogin( $lsid ) {
+    global $sysname, $debuggroups, $client_messages, $sid;
+    if ( $debuggroups['Login'] )
+      $this->Log( "DBG: Login: Attempting login for $lsid" );
+
+    list($md5_user_no,$validation_string) = split( ';', $lsid );
+    $qry = new PgQuery( "SELECT * FROM usr WHERE md5(user_no)=?;", $md5_user_no );
+    if ( $qry->Exec('Session::LSIDLogin') && $qry->rows == 1 ) {
+      $usr = $qry->Fetch();
+      list( $x, $salt, $y) = split('\*', $validation_string);
+      $my_validation = session_salted_md5($usr->user_no . $usr->username . $usr->password, $salt);
+      if ( $validation_string == $my_validation ) {
+        // Now get the next session ID to create one from...
+        $qry = new PgQuery( "SELECT nextval('session_session_id_seq')" );
+        if ( $qry->Exec('Login') && $qry->rows == 1 ) {
+          $seq = $qry->Fetch();
+          $session_id = $seq->nextval;
+          $session_key = md5( rand(1010101,1999999999) . microtime() );  // just some random shite
+          if ( $debuggroups['Login'] )
+            $this->Log( "DBG:: Login: Valid username/password for $username ($usr->user_no)" );
+
+          // And create a session
+          $sql = "INSERT INTO session (session_id, user_no, session_key) VALUES( ?, ?, ? )";
+          $qry = new PgQuery( $sql, $session_id, $usr->user_no, $session_key );
+          if ( $qry->Exec('Login') ) {
+            // Assign our session ID variable
+            $sid = "$session_id;$session_key";
+
+            //  Create a cookie for the sesssion
+            setcookie('sid',$sid, 0,'/');
+            // Recognise that we have started a session now too...
+            $this->Session();
+            $this->Log( "DBG: Login: INFO: New session $session_id started for $this->username ($usr->user_no)" );
+            return true;
+          }
+   // else ...
+          $this->cause = 'ERR: Could not create new session.';
+        }
+        else {
+          $this->cause = 'ERR: Could not increment session sequence.';
+        }
+      }
+      else {
+        $this->Log("DBG: $validation_string != $my_validation ($salt - $usr->user_no, $usr->username, $usr->password)");
+        $client_messages[] = 'Invalid username or password.';
+        if ( $debuggroups['Login'] )
+          $this->cause = 'WARN: Invalid password.';
+        else
+          $this->cause = 'WARN: Invalid username or password.';
+      }
+    }
+    else {
+    $client_messages[] = 'Invalid username or password.';
+    if ( $debuggroups['Login'] )
+      $this->cause = 'WARN: Invalid username.';
+    else
+      $this->cause = 'WARN: Invalid username or password.';
+    }
+
+    $this->Log( "DBG: Login $this->cause" );
+    return false;
+  }
+
 
   function LoginRequired( $groups = "" ) {
     global $system_name, $admin_email, $session, $images, $colors;

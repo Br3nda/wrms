@@ -19,8 +19,8 @@ $debuglevel = 5;
 $debug_email = 'andrew@catalyst.net.nz';
 
 // //////////////////// Enable for debugging...
-//$debuggroups['Session'] = 1;
-//$debuggroups['Login'] = 1;
+$debuggroups['Session'] = 1;
+$debuggroups['Login'] = 1;
 $debuggroups['querystring'] = 1;
 $debuggroups['Request'] = 1;
 $debuggroups['WorkSystem'] = 1;

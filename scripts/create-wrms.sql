@@ -88,21 +88,6 @@ CREATE INDEX xak2_request ON request ( active, severity_code, request_by );
 CREATE INDEX xak3_request ON request ( active, request_by );
 CREATE INDEX xak4_request ON request ( active, last_status );
 
-CREATE FUNCTION active_request(INT4)
-    RETURNS BOOL
-    AS 'SELECT active FROM request WHERE request.request_id = $1' LANGUAGE 'sql';
-CREATE FUNCTION max_request()
-    RETURNS INT4
-    AS 'SELECT max(request_id) FROM request' LANGUAGE 'sql';
-CREATE FUNCTION get_request_org(INT4)
-    RETURNS INT4
-    AS 'SELECT usr.org_code FROM request, usr WHERE request.request_id = $1 AND request.request_by = usr.username
-    ' LANGUAGE 'sql';
-CREATE FUNCTION request_sla_code(INTERVAL,CHAR)
-    RETURNS TEXT
-    AS 'SELECT text( date_part( ''hour'', $1) ) || ''|'' || text(CASE WHEN $2 ='' '' THEN ''O'' ELSE $2 END)
-    ' LANGUAGE 'sql';
-
 CREATE TABLE work_system (
   system_code TEXT NOT NULL UNIQUE PRIMARY KEY,
   system_desc TEXT,

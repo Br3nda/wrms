@@ -278,3 +278,49 @@ CREATE or REPLACE FUNCTION request_tags( INT ) RETURNS TEXT AS '
      RETURN taglist;
    END;
 ' LANGUAGE 'plpgsql';
+
+CREATE OR REPLACE FUNCTION get_usr_setting(TEXT,TEXT)
+    RETURNS TEXT
+    AS 'SELECT setting_value FROM usr_setting
+            WHERE usr_setting.username = $1
+            AND usr_setting.setting_name = $2 ' LANGUAGE 'sql';
+
+
+CREATE OR REPLACE FUNCTION active_request(INT4)
+    RETURNS BOOL
+    AS 'SELECT active FROM request WHERE request.request_id = $1' LANGUAGE 'sql';
+CREATE OR REPLACE FUNCTION max_request()
+    RETURNS INT4
+    AS 'SELECT max(request_id) FROM request' LANGUAGE 'sql';
+CREATE OR REPLACE FUNCTION get_request_org(INT4)
+    RETURNS INT4
+    AS 'SELECT usr.org_code FROM request, usr WHERE request.request_id = $1 AND request.request_by = usr.username
+    ' LANGUAGE 'sql';
+CREATE OR REPLACE FUNCTION request_sla_code(INTERVAL,CHAR)
+    RETURNS TEXT
+    AS 'SELECT text( date_part( ''hour'', $1) ) || ''|'' || text(CASE WHEN $2 ='' '' THEN ''O'' ELSE $2 END)
+    ' LANGUAGE 'sql';
+
+CREATE FUNCTION get_last_note_on(INT4)
+    RETURNS TIMESTAMP
+    AS 'SELECT max(note_on) FROM request_note WHERE request_note.request_id = $1
+    ' LANGUAGE 'sql';
+
+CREATE FUNCTION get_lookup_desc( TEXT, TEXT, TEXT )
+    RETURNS TEXT
+    AS 'SELECT lookup_desc AS RESULT FROM lookup_code
+               WHERE source_table = $1 AND source_field = $2 AND lookup_code = $3;' LANGUAGE 'sql';
+
+CREATE FUNCTION get_lookup_misc( TEXT, TEXT, TEXT )
+    RETURNS TEXT
+    AS 'SELECT lookup_misc AS RESULT FROM lookup_code
+               WHERE source_table = $1 AND source_field = $2 AND lookup_code = $3;' LANGUAGE 'sql';
+
+
+CREATE FUNCTION get_status_desc(CHAR)
+    RETURNS TEXT
+    AS 'SELECT lookup_desc AS status_desc FROM lookup_code
+            WHERE source_table=''request'' AND source_field=''status_code''
+            AND lower(lookup_code) = lower($1)
+    ' LANGUAGE 'sql';
+

@@ -18,7 +18,9 @@ function get_system_list( $access="", $current="", $maxwidth=50 ) {
   if ( ! $rid ) {
     echo "<p>$query";
   }
-  else if ( pg_NumRows($rid) > 1 ) {
+  // Alan changed > 1 to > 0 because - well it wasn't getting the first one
+  // else if ( pg_NumRows($rid) > 1 ) {
+  else if ( pg_NumRows($rid) > 0 ) {
     // Build table of systems found
     $rows = pg_NumRows( $rid );
     for ( $i=0; $i < $rows; $i++ ) {

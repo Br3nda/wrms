@@ -15,6 +15,7 @@
 
 if ( is_object ( $settings ) ) {
 
+/*
   if ( ! is_numeric( $settings->get('counter')) )
     $settings->set('counter', 0 );
   else
@@ -28,5 +29,6 @@ if ( is_object ( $settings ) ) {
   if ( !$result ) {
     error_log( "$sysabbr footers QF: $query", 0);
   }
+*/
 }
 ?>

@@ -1,18 +1,23 @@
 <?php
 $begin_processing = microtime();
 
-$wrms_db = pg_Connect("dbname=wrms user=general");
-$dbconn = $wrms_db;
+$dbconn = pg_Connect("dbname=wrms user=general");
+$wrms_db = $dbconn;
+include_once("inc/PgQuery.php");
 
 $admin_email = "wrmsadmin@catalyst.net.nz";
 $basefont = "verdana,sans-serif";
 $system_name = "Catalyst WRMS";
 $sysabbr = "wrms";
 $left_panel = true;
+$right_panel = false;
+$hurl = "";
+if ( !isset($request_id) ) $request_id= 0;
+$request_id = intval($request_id);
 
 $base_dns = "http://$HTTP_HOST";
 $base_url = "";
-$base_dir = "/home/wrms/wrms/html";
+$base_dir = $DOCUMENT_ROOT;
 $module = "base";
 $images = "images";
 $colors = array(
@@ -28,6 +33,8 @@ $colors = array(
 	"row0" =>  "#ffffff", // dark rows in listings
 	"row1" =>  "#f0ece8", // light rows in listings
 	"link2" =>  "#333333", // Links on row0/row1
+	"bghelp" => "#ffffff", // help background
+	"fghelp" =>  "#000000", // text on help background
 	8 =>  "#583818", // Form headings
 	9 =>  "#ccbea1", // Mandatory forms
 	9 =>  "#ccbea1", // Mandatory forms
@@ -51,7 +58,7 @@ $fonts = array( "tahoma",		// primary font
 		"fixed"	=> "courier, fixed",	// monospace font
 		"block"	=> "tahoma"); 	// block font
 
-  if ( "$L" == "" && "$E" == "" && "$M" == "LC" ) {
+  if ( (! isset($L) || "$L" == "") && (!isset($E) || "$E" == "") && (! isset($M) || "$M" == "LC" ) ) {
     // Not a login after all.
     unset($M);
     unset($L);
@@ -115,19 +122,6 @@ class Setting {
   function to_save() {
     return str_replace( "'", "''", str_replace( "\\", "\\\\", serialize( $this->parameters ) ));
   }
-}
-
-
-//-----------------------------------------
-// Function to tell difference between two 'microtime()'s
-//-----------------------------------------
-function duration( $t1, $t2 ) {
-  // Return a duration, given a "mS S" string such as returned from microtime()
-  list( $ms1, $s1 ) = explode( " ", $t1 );
-  list( $ms2, $s2 ) = explode( " ", $t2 );
-  $s1 = $s2 - $s1;
-  $s1 = $s1 + ( $ms2 - $ms1 );
-  return $s1;
 }
 
 

@@ -33,6 +33,8 @@
       $UserNotifications   = tidy("$UserNotifications");
       if ( !is_object($usr->settings)) $usr->settings = new Setting;
       $usr->settings->set('fontsize', "$UserFontsize");
+      $usr->settings->set('bigboxrows', "$UserBoxRows");
+      $usr->settings->set('bigboxcols', "$UserBoxCols");
 
       $UserStatus  = ( !isset($UserStatus) || "$UserStatus" == "A" ? "A" : "I" );
       if ( ! ($roles['wrms']['Admin'] || $roles['wrms']['Support']) && $M == "add" ) {

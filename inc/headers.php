@@ -28,7 +28,6 @@
     echo "A $linkstyle }\n";
     $borders = "border: solid $colors[blocksides] 1px; ";
     echo ".msglink $linkstyle }\n";
-    echo ".msgunmod $linkstyle; color: $colors[fgunmod]; }\n";
 
     if ( $agent == "moz4" ) {
       echo ".menu, .bmenu $linkstyle font: bold $fontsizes[1] $fonts[1]; text-decoration: underline; background: $colors[bg3]; color: $colors[fg3]; }
@@ -59,16 +58,19 @@ td.sidebarleft { color: white; background-color: $colors[blockback]; }
 th.h3, td.h3  {font: bold $fontsizes[3] $fonts[0], sans-serif; color: $colors[fg3]; color: white; background-color: $colors[bg3];margin: 6px 0px 0px 0px; }\n";
     }
 
-    echo ".block { text-decoration: none; font: $fontsizes[1] $fonts[block], sans-serif; color: " . $colors["blockfront"] . "; }\n";
-    echo ".blockhead { text-decoration: none; font: $fontsizes[1] $fonts[block], sans-serif; color: " . $colors["blockfront"] . "; font-weight: 700; }\n";
+    echo ".block { text-decoration: none; font: $fontsizes[1] $fonts[block], sans-serif; color: $colors[blockfront]; }\n";
+    echo ".blockhead { text-decoration: none; font: $fontsizes[1] $fonts[block], sans-serif; color: $colors[blockfront]; font-weight: 700; }\n";
 
     echo "body, p, td, input {font: $fontsizes[1]  $fonts[0], sans-serif; color: $colors[fg1]; }
+.error {font-family: $fonts[1], serif; font-weight: 700; color: white; background: red; }
+.error h2 { font-size: $fontsizes[4]; }
+.error h3 { font-size: $fontsizes[3]; }
+.error h4 { font-size: $fontsizes[2]; }
 .help		{font: italic $fontsizes[1] $fonts[help], serif; color: $colors[fghelp]; background: $colors[bghelp]; }
 .blocka		{font: $fontsizes[1] $fonts[block], sans-serif; color: $colors[blockfront]; }
 .blockhead	{font: $fontsizes[1] $fonts[block], sans-serif; font-weight: 700; color: $colors[blockfront]; }
 .msgtitle		{font: bold $fontsizes[1] $fonts[1], sans-serif; font-weight: 700; color: $colors[blockfront]; background: $colors[blocktitle]; margin: 6px 0px 0px 0px; }
 .msginfo		{font: $fontsizes[0] $fonts[1], sans-serif; margin: 0; text-align: right; color: $colors[fg2]; background: $colors[bg2]; }
-.msginfmod	{font: $fontsizes[0] $fonts[1], sans-serif; margin: 0; text-align: right; color: $colors[fgunmod]; background: $colors[bgunmod]; }
 .mand		{font: bold $fontsizes[0] $fonts[1], sans-serif; background: $colors[9];}
 .smb		{font: bold $fontsizes[0] $fonts[narrow], sans-serif; color: $colors[fg1]; }
 .row0 { background: $colors[row0]; color: $colors[link2]; }
@@ -78,9 +80,9 @@ a.row0, a.row1 { color: $colors[link2]; }
 blockquote {font: italic $fontsizes[1]  $fonts[quote]; color: $colors[fg2]; }
 input.sml, select.sml {font: $fontsizes[0] $fonts[0], sans-serif; }
 textarea.sml { font: $fontsizes[0] $fonts[fixed], fixed; }
-h1, .h1, th {font: bold $fontsizes[2]/$fontsizes[3] $fonts[0], sans-serif; color: " . $colors[link1] . "; }
-h2, .h2 {font: normal $fontsizes[2] $fonts[0], sans-serif; color: " . $colors[link1] . "; }
-h3, th.h3 {font: bold $fontsizes[1] $fonts[0], sans-serif; color: " . $colors[link1] . "; }
+h1, .h1, th {font: bold $fontsizes[2]/$fontsizes[3] $fonts[0], sans-serif; color: $colors[link1]; }
+h2, .h2 {font: normal $fontsizes[2] $fonts[0], sans-serif; color: $colors[link1]; }
+h3, th.h3 {font: bold $fontsizes[1] $fonts[0], sans-serif; color: $colors[link1]; }
 th.cols, th.rows, a.cols  {font: small-caps bold $fontsizes[1] $fonts[0], sans-serif; color: $colors[fg3];  background: $colors[bg3]; margin: 6px 0px 0px 0px; }
 .cols  {font: small-caps bold $fontsizes[1] $fonts[0], sans-serif; color: $colors[fg3];  background: $colors[bg3]; }
 .cols:hover  { color: $colors[hv2]; }\n";
@@ -129,7 +131,7 @@ th.cols, th.rows, a.cols  {font: small-caps bold $fontsizes[1] $fonts[0], sans-s
     if ( $left_panel ) {
       echo "<table border=\"0\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\"><tr bgcolor=$colors[bg1]>\n";
       echo "<td width=\"10%\" valign=\"top\" class=sidebarleft>";
-      if ( "$error_qry" == "" ) {
+      if ( !isset($error_qry) || "$error_qry" == "" ) {
         include("inc/sidebarleft.php");
       }
       echo "\n</td>\n";

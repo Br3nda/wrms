@@ -229,7 +229,7 @@
   echo "<tr><th class=rows align=right valign=top><br>Details:</th>\n";
   echo "<td colspan=2>";
   if ( $editable )
-    echo "<textarea class=sml name=\"new_detail\" rows=12 cols=60  wrap=\"SOFT\">$request->detailed</textarea>";
+    echo "<textarea class=sml name=\"new_detail\" rows=$bigboxrows cols=$bigboxcols  wrap=\"SOFT\">$request->detailed</textarea>";
   else
     echo html_format($request->detailed);
   echo "</td></tr>\n";
@@ -596,15 +596,12 @@
       }
       echo "</tr>\n";
     }
-?>
-
-<tr valign=top>
-  <th class=rows align=right>New Note:<div class=sml align="left"><br>
-<label><input type="checkbox" name="convert_html" value="1">Process<br>HTML as Text</label></div></TH>
-  <td align=left colspan=3><textarea class=sml name="new_note" rows=8 cols=60  wrap="SOFT"></textarea></TD>
+    echo "<tr valign=top>
+  <th class=rows align=right>New Note:<div class=sml align=\"left\"><br>
+<label><input type=\"checkbox\" name=\"convert_html\" value=1>Process<br>HTML as Text</label></div></TH>
+  <td align=left colspan=3><textarea class=sml name=\"new_note\" rows=$bigboxrows cols=$bigboxcols  wrap=\"SOFT\"></textarea></TD>
 </tr>
-</table>
-<?php
+</table>\n";
 
   }  // if ! plain
 }  // $is_request (way up there with the update details!)

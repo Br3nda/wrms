@@ -158,4 +158,10 @@
     exit; /* Make sure that code below does not get executed when we redirect. */
   }
 
+  if ( is_object($settings) ) {
+    $bigboxrows = $settings->get('bigboxrows');
+    $bigboxcols = $settings->get('bigboxcols');
+  }
+  if ( intval($bigboxrows) == 0 ) $bigboxrows = 10;
+  if ( intval($bigboxcols) == 0 ) $bigboxcols = 60;
 ?>

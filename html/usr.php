@@ -149,6 +149,20 @@ echo "</td>\n</tr>\n";
   </td>
 </tr>\n";
 
+  if ( is_object( $usr->settings ) ) $UserBoxRows = $usr->settings->get('bigboxrows');
+  if ( "$UserBoxRows" == "" ) $UserBoxRows = "10";
+  if ( is_object( $usr->settings ) ) $UserBoxCols = $usr->settings->get('bigboxcols');
+  if ( "$UserBoxCols" == "" ) $UserBoxCols = "60";
+  echo "<tr>
+  <th align=right class=rows>Entry Boxes</th>
+  <td>
+    <table border=0 cellspacing=0 cellpadding=3><tr>
+      <td>&nbsp; Rows:</td><td><input type=text name=\"UserBoxRows\" size=5 value=\"$UserBoxRows\"></td>
+      <td>&nbsp; Cols:</td><td><input type=text name=\"UserBoxCols\" size=5 value=\"$UserBoxCols\"></td>
+    </tr></table>
+  </td>
+</tr>\n";
+
 
   if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] || $roles['wrms']['Manage'] ) {
     echo "\n<tr>\n<th align=right class=rows>Status</th>";

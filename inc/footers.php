@@ -1,5 +1,5 @@
 <?php
-  if ( "$style" != "stripped" ) {
+  if ( isset($style) && "$style" != "stripped" ) {
     echo "</td></tr></table>\n";
     if ( $left_panel ) {
       echo "</td>\n";

@@ -4,6 +4,23 @@
   include("inc/code-list.php");
   include( "$base_dir/inc/user-list.php" );
 
+  // Force some variables to have values.
+  if ( !isset($format) ) $format = "";
+  if ( !isset($style) ) $style = "";
+  if ( !isset($qry) ) $qry = "";
+  if ( !isset($qs) ) $qs = "";
+  if ( !isset($org_code) ) $org_code = "";
+  if ( !isset($system_code) ) $system_code = "";
+  if ( !isset($search_for) ) $search_for = "";
+  if ( !isset($interested_in) ) $interested_in = "";
+  if ( !isset($allocated_to) ) $allocated_to = "";
+  if ( !isset($type_code) ) $type_code = "";
+  if ( !isset($inactive) ) $inactive = "";
+  if ( !isset($user_no) ) $user_no = "";
+  if ( !isset($requested_by) ) $requested_by = "";
+  if ( !isset($from_date) ) $from_date = "";
+  if ( !isset($to_date) ) $to_date = "";
+
 //Uses a URL variable format = edit in order to indicate that the report should be in the Brief (editable) format
 
 //------------------------------------------------------
@@ -225,6 +242,8 @@
 //Builds up and outputs the HTML for a linked column header on the request list
 function column_header( $ftext, $fname ) {
   global $rlsort, $rlseq, $header_cell;
+  $fseq = "";
+  $seq_image = "";
   if ( "$rlsort" == "$fname" ) {
     $fseq = ( "$rlseq" == "DESC" ? "ASC" : "DESC");
     $seq_image .= "&nbsp;<img border=0 src=\"images/sort-$rlseq.png\">";
@@ -240,7 +259,7 @@ function column_header( $ftext, $fname ) {
 
   include("inc/headers.php");
 
-if ( ! $roles['wrms']['Request'] || "$error_msg$error_qry" != "" ) {
+if ( ! $roles['wrms']['Request'] || ((isset($error_msg) || isset($error_qry)) && "$error_msg$error_qry" != "") ) {
   include( "inc/error.php" );
 }
 else {
@@ -621,7 +640,7 @@ $query";
         if ( $show_details )
           echo "<tr class=row3>\n<td colspan=7>&nbsp;</td></tr>\n";
 
-        if ( $status_edit || $active_edit ) //Maintains the $EditableRequests_count counter
+        if ( (isset($status_edit) && $status_edit) || (isset($active_edit) && $active_edit ) ) //Maintains the $EditableRequests_count counter
          $EditableRequests_count++;
       }
     }

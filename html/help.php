@@ -1,6 +1,8 @@
 <?php
   include("always.php");
-  include("options.php");
+  require_once("authorisation-page.php");
+  $session->LoginRequired();
+
   $form = "help";
   $topic = str_replace("\\", "", $h );
   $topic = str_replace("/", "", $topic );

@@ -1,6 +1,7 @@
 <?php
   include("always.php");
-  include("options.php");
+  require_once("authorisation-page.php");
+  $session->LoginRequired();
 
   $can_edit = is_member_of('Admin','Support' );
   $can_vote = is_member_of('Admin','Support' );

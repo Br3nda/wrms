@@ -1,10 +1,9 @@
 <?php
   require_once("always.php");
   require_once("authorisation-page.php");
-  include("options.php");
+  $session->LoginRequired();
   include("tidy.php");
 
-  $debuglevel = 5;
   if ( "$submit" <> "") {
     include("timesheet-valid.php");
     if ( "$because" == "" ) include("timesheet-action.php");

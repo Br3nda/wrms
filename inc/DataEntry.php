@@ -101,7 +101,7 @@ class EntryField
          break;
 
        case "checkbox":
-         $checked =  ( $this->current == 't' ? " checked" : "" );
+         $checked =  ( $this->current == 't' || $this->current == 'on' ? " checked" : "" );
          $r .= "input type=\"checkbox\" name=\"$this->fname\"$checked%%attributes%%>\n";
          break;
 
@@ -179,7 +179,7 @@ class EntryForm
   }
 
   function StartForm( $extra_attributes='' ) {
-    if ( !is_array($extra_attributes) ) {
+    if ( !is_array($extra_attributes) && $extra_attributes != '' ) {
       list( $k, $v ) = explode( '=', $extra_attributes );
       $extra_attributes = array( $k => $v );
     }
@@ -228,11 +228,10 @@ class EntryForm
                                                $fname, $fvalue), "");
   }
 
-  //////////////////////////////////////////////////////
-  // A utility function for a data entry line within a table
-  //////////////////////////////////////////////////////
-  function _ParseTypeExtra( $ftype = '', $type_extra = '' )
-  {
+  /////////////////////////////////////////////////////
+  // Internal function for parsing the type extra on a field.
+  /////////////////////////////////////////////////////
+  function _ParseTypeExtra( $ftype = '', $type_extra = '' )  {
     if ( !is_array($type_extra) ) {
       list( $k, $v ) = explode( '=', $type_extra );
       $type_extra = array( $k => $v );
@@ -269,15 +268,31 @@ class EntryForm
       return sprintf($format, $this->record->{$fname} );
     }
 
+    $currval = '';
     // Get the default value, preferably from $_POST
-    if ( isset($_POST[$fname]) ) {
-      $currval = $_POST[$fname];
-    }
-    else if ( isset($this->record) && is_object($this->record) && isset($this->record->{"$fname"}) ) {
-      $currval = $this->record->{"$fname"};
+    if ( preg_match("/^(.+)\[(.+)\]$/", $fname, $parts) ) {
+      $p1 = $parts[1];
+      $p2 = $parts[2];
+      error_log( "DBG: fname=$fname, p1=$p1, p2=$p2, POSTVAL=" . $_POST[$p1][$p2] . ", record=".$this->record->{"$p1"}["$p2"] );
+      // fixme - This could be changed to handle more dimensions on submitted variable names
+      if ( isset($_POST[$p1]) ) {
+        if ( isset($_POST[$p1][$p2]) ) {
+          $currval = $_POST[$p1][$p2];
+        }
+      }
+      else if ( isset($this->record) && is_object($this->record)
+                && isset($this->record->{"$p1"}["$p2"])
+              ) {
+        $currval = $this->record->{"$p1"}["$p2"];
+      }
     }
     else {
-      $currval = '';
+      if ( isset($_POST[$fname]) ) {
+        $currval = $_POST[$fname];
+      }
+      else if ( isset($this->record) && is_object($this->record) && isset($this->record->{"$fname"}) ) {
+        $currval = $this->record->{"$fname"};
+      }
     }
     if ( $ftype == "date" ) $currval = format_date($currval);
 
@@ -303,11 +318,11 @@ class EntryForm
   // A utility function for a data entry line, where the
   // prompt is a drop-down.
   //////////////////////////////////////////////////////
-  function MultiEntryLine( $prompt_options, $default_prompt, $format, $ftype='', $fname='', $type_extra='' )
+  function MultiEntryLine( $prompt_options, $prompt_name, $default_prompt, $format, $ftype='', $fname='', $type_extra='' )
   {
     global $session;
 
-    $prompt = "<select name=\"$fname\">\n";
+    $prompt = "<select name=\"$prompt_name\">\n";
 
     reset($prompt_options);
     while( list($k,$v) = each($prompt_options) ) {

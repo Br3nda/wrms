@@ -1,6 +1,7 @@
 <?php
   include("always.php");
   include("options.php");
+  include("maintenance-page.php");
 
   $title = "$system_name User Search";
   include("headers.php");

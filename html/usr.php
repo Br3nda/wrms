@@ -1,6 +1,7 @@
 <?php
   include("always.php");
   include("options.php");
+  include("maintenance-page.php");
   include("organisation-list.php");
   include("tidy.php");
 
@@ -84,12 +85,12 @@
   echo "$tbldef><tr><td class=sml colspan=2>&nbsp;</td></tr><tr>$hdcell";
   echo "<td class=h3 align=right colspan=2>User Details</td></tr>
 <tr>
-	<th align=right class=rows>Login ID</th>
-	<td class=h1>$user_no&nbsp;</td>
+  <th align=right class=rows>Login ID</th>
+  <td class=h1>$user_no&nbsp;</td>
 </tr>
 <tr>
-	<th align=right class=rows>User Name</th>
-	<td>";
+  <th align=right class=rows>User Name</th>
+  <td>";
 if ( is_member_of('Admin') || ("$usr->username" == ""))
   echo "<input Type=\"Text\" Name=\"UserName\" Size=\"15\" Value=\"";
 else
@@ -105,12 +106,12 @@ echo "</td>\n</tr>\n";
   echo "\"></td>\n</tr>\n";
 ?>
 <tr>
-	<th align=right class=rows>Full Name</th>
-	<td><input Type="Text" Name="UserFullName" Size="24" Value="<?php echo "$usr->fullname"; ?>"></td>
+  <th align=right class=rows>Full Name</th>
+  <td><input Type="Text" Name="UserFullName" Size="24" Value="<?php echo "$usr->fullname"; ?>"></td>
 </tr>
 <tr>
-	<th align=right class=rows>Email</th>
-	<td><input Type="Text" Name="UserEmail" Size="50" Value="<?php echo "$usr->email"; ?>"></td>
+  <th align=right class=rows>Email</th>
+  <td><input Type="Text" Name="UserEmail" Size="50" Value="<?php echo "$usr->email"; ?>"></td>
 </tr>
 <?php
   echo "<tr>

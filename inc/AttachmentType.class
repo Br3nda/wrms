@@ -1,0 +1,160 @@
+<?php
+/////////////////////////////////////////////////////////////
+//   C L A S S   F O R   AttachmentType
+/////////////////////////////////////////////////////////////
+require_once("html-format.php");
+class AttachmentType {
+   var $type_code;
+   var $new_record;
+
+   function AttachmentType( $id, $new_record = false ) {
+     global $session;
+     if ( !$session->logged_in ) return false;
+     $loaded = false;
+     $id = str_replace("'","''",str_replace("\\","",trim("$id")));
+     if ( $new_record != true ) {
+       // Try and load it from file
+       $sql = "SELECT attachment_type.* ";
+       $sql .= " FROM attachment_type ";
+       $sql .= " WHERE attachment_type.type_code = '$id'";
+       if ( !($session->AllowedTo('Admin') || $session->AllowedTo('Support')) )
+         $sql .= " AND attachment_type.type_code = '$session->type_code' ";
+
+       if ( $qry = new PgQuery($sql) ) {
+         if ( $qry->Exec("newAttachmentType")
+                  && $qry->rows == 1 && $row = $qry->Fetch() ) {
+           $this->new_record = false;
+           while( list($k,$v) = each($row) ) {
+             if ( isset($debuggroups['AttachmentType']) && $debuggroups['AttachmentType'] ) {
+               error_log( sprintf("%s: DBG: \$this->{'%-25.25s = %s", $sysabbr, "$k'}", $v) );
+             }
+             $this->{$k} = $v;
+           }
+         }
+       }
+     }
+     else {
+       $this->new_record = true;
+       $this->type_code = $id;
+       // Assign some defaults because it looks like we're starting a new one
+       if ( isset($_GET['attachment_type_template']) ) {
+         // Oh goody, we can get some defaults from a saved template :-)
+         $loaded = false;  // templates aren't done yet :-(
+       }
+       if ( ! $loaded ) {
+         // Initialise to standard default values
+       }
+     }
+   }
+
+   /////////////////////////////////////////////////////////////
+  // AllowedTo - Can the user do that to this attachment_type
+   /////////////////////////////////////////////////////////////
+   function AllowedTo( $action ) {
+     global $session;
+     if ( $session->AllowedTo('Admin') || $session->AllowedTo('Support') ) {
+       return true;  // Of course they can!
+     }
+     elseif ( $action != 'update' ) {
+       return true;
+     }
+     return false;
+   }
+
+   /////////////////////////////////////////////////////////////
+   // Render - Return HTML to show the W/R
+   //   A separate function is called for each logical area
+   //   on the W/R.
+   /////////////////////////////////////////////////////////////
+   function Render( ) {
+     global $edit;
+     $html = "";
+
+     $ef = new EntryForm( $REQUEST_URI, $this, $edit );
+     $ef->NoHelp();  // Prefer this style, for the moment
+
+     if ( $edit ) $html .= $ef->StartForm( array("autocomplete" => "off", "onsubmit" => "return CheckAttachmentTypeForm();" ) );
+
+     $html .= "<table width=\"100%\" class=\"data\" cellspacing=\"0\" cellpadding=\"0\">\n";
+
+     $html .= $ef->BreakLine("Attachment Type Details");
+
+     $html .= $ef->DataEntryLine( "Type Code", "%s", "text", "type_code",
+               array( "size" => 10, "title" => "The code for the attachment type.") );
+
+     $html .= $ef->DataEntryLine( "Sequence", "%s", "integer", "seq",
+               array( "size" => 10, "title" => "The sequence for the attachment type.") );
+
+     // Description
+     $html .= $ef->DataEntryLine( "Description", "%s", "text", "type_desc",
+               array( "size" => 70, "title" => "The description of the attachment type.") );
+
+     // MIME Type
+     $html .= $ef->DataEntryLine( "Mime Type", "%s", "text", "mime_type",
+               array( "size" => 70, "title" => "The recognised mime type for this type of attachment.") );
+
+     // Pattern
+     $html .= $ef->DataEntryLine( "Pattern", "%s", "text", "pattern",
+               array( "size" => 70, "title" => "A regular expression which will match filenames for this type of attachment.") );
+
+     // MIME Pattern
+     $html .= $ef->DataEntryLine( "Mime Pattern", "%s", "text", "mime_pattern",
+               array( "size" => 70, "title" => "A regular expression to match the mime type returned by the 'file -b --mime' command.") );
+
+     if ( $edit ) $html .= $ef->SubmitButton( "submit", ($this->new_record ? "Create" : "Update") );
+     $html .= "</table>\n";
+     if ( $edit ) $html .= $ef->EndForm();
+
+     return $html;
+   }
+
+
+   function Validate( $ef ) {
+     global $session, $client_messages;
+     error_log("$system_name: vpw: DBG: Validating attachment_type");
+
+     if ( isset($_POST) ) {
+       $valid = true;
+       $_POST['type_code'] = strtolower(trim($_POST['type_code'] ));
+       $_POST['seq'] = intval("$_POST[seq]");
+
+       if ( $_POST['type_code'] == "" ) {
+         $client_messages[] = "ERROR: The type code may not be blank.";
+         $valid = false;
+       }
+
+       if ( trim($_POST['type_desc']) == "" ) {
+         $client_messages[] = "ERROR: The type description may not be blank.";
+         $valid = false;
+       }
+
+       if ( trim($_POST['pattern']) == "" ) {
+         $client_messages[] = "ERROR: The pattern may not be blank.";
+         $valid = false;
+       }
+
+       return $valid;
+     }
+
+     $client_messages[] = "ERROR: No form data submitted!";
+     return false;
+   }
+
+   function Write( $ef ) {
+     global $client_messages;
+     error_log("$system_name: vpw: DBG: Writing attachment_type form details to database");
+     $client_messages[] = "Writing system details to database.";
+
+     $qry = new PgQuery("BEGIN");              $qry->Exec("Sys::Write");
+
+     $sql = sql_from_post( $_POST['submit'], "attachment_type", "WHERE type_code='$this->type_code'");
+     $qry = new PgQuery($sql);
+     if ( !$qry->Exec("Sys::Write") ) $client_messages[] = "$qry->errorstring";
+
+     $qry = new PgQuery("COMMIT; ROLLBACK;");  $qry->Exec("Sys::Write");
+
+     return true;
+   }
+
+}
+?>

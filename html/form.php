@@ -1,6 +1,8 @@
 <?php
   include("always.php");
+//require_once("Session.php");
   include("options.php");
+  require_once("maintenance-page.php");
   include("tidy.php");
   if ( isset($f) ) $form = $f;
   $form = eregi_replace( "[^a-z0-9_]", "", $form);

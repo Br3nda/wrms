@@ -11,8 +11,6 @@ if ( !$session->logged_in ) {
 require_once("maintenance-page.php");
 require_once("Request.class");
 
-echo '<script language="JavaScript" src="/js/request.js"></script>' . "\n";
-
 $wr = new Request($request_id);
 if ( $wr->request_id == 0 ) {
   unset( $request_id );
@@ -32,10 +30,9 @@ if ( $M != "LC" && $wr->AllowedTo("update") && isset($_POST['submit']) ) {
 }
 
   include("headers.php");
+  echo '<script language="JavaScript" src="/js/request.js"></script>' . "\n";
 
-echo "<p><a href=/wr.php?request_id=$request_id>Plain</a> &nbsp; ";
-echo "<a href=/wr.php?request_id=$request_id&edit=1>Editable</a></p>\n";
-echo $wr->Render();
+  echo $wr->Render();
 
   include("footers.php");
 ?>

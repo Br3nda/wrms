@@ -25,7 +25,8 @@ function duration( $t1, $t2 )                   // Enter two times from microtim
 ///////////////////
    function log_error( $locn, $tag, $string)
    {
-      GLOBAL $sysname;
+      GLOBAL $sysname, $sysabbr;
+      if ( !isset($sysname) ) $sysname = $sysabbr;
 
       while( strlen( $string ) > 0 )
          {
@@ -129,11 +130,12 @@ class PgQuery
   function Exec( $location = '' )
    {
     global $dbconn, $debuggroups;
-    $this->location = $location;
+    $this->location = trim($location);
+    if ( $this->location == "" ) $this->location = substr($GLOBALS['PHP_SELF'],1);
 
     if ( isset($debuggroups['querystring']) )
     {
-      log_error( 'PgQuery.php', 'query', $this->querystring );
+      log_error( $this->location, 'query', $this->querystring );
     }
 
     $t1 = microtime();
@@ -141,7 +143,7 @@ class PgQuery
     $this->rows = pg_numrows($this->result);
     $t2 = microtime();
     $this->execution_time = sprintf( "%2.06lf", duration( $t1, $t2 ));
-    $locn = sprintf( "%-12.12s", $location );
+    $locn = sprintf( "%-12.12s", $this->location );
 
     if ( !$this->result )
     {
@@ -169,14 +171,14 @@ class PgQuery
     global $debuggroups;
 
     if ( isset($debuggroups["$this->location"]) && $debuggroups["$this->location"] > 2 ) {
-      error_log( "Result: $this->result Rows: $this->rows, Rownum: $this->rownum");
+      log_error( $this->location, "Fetch", "$this->result Rows: $this->rows, Rownum: $this->rownum");
     }
     if ( ! $this->result ) return false;
     if ( ($this->rownum + 1) >= $this->rows ) return false;
 
     $this->rownum++;
     if ( isset($debuggroups["$this->location"]) && $debuggroups["$this->location"] > 1 ) {
-      error_log( "Fetching row $this->rownum" );
+      log_error( $this->location, "Fetch", "Fetching row $this->rownum" );
     }
     if ( $as_array )
     {

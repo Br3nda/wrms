@@ -5,10 +5,12 @@ var system_code = "";
 
 var popt_rx = /^Person: <option value="(.+)">(.+)<\/option>/i
 var sopt_rx = /^System: <option value="(.+)">(.+)<\/option>/i
+var number_rx = /^[0-9\.]*$/
 
 var person_options;
 var system_options;
 
+var org_sel;
 var per_sel;
 var sys_sel;
 
@@ -92,7 +94,7 @@ function PersonChanged() {
   var new_person_id = per_sel.value;
   var person_orgcode = per_sel.options[per_sel.selectedIndex].text.replace( /^.+\(([^(]+)\)$/, "$1" );
 
-  var org_sel = document.forms.form.org_code;
+  org_sel = document.forms.form.org_code;
   var org_rx = new RegExp( ("^.+\\(" + person_orgcode + "[)]$") );
   for ( var i=0; i < org_sel.options.length; i++ ) {
     if ( org_sel.options[i].text.match( org_rx ) ) {
@@ -113,10 +115,38 @@ function SystemChanged() {
   system_code = sys_sel.value;
 }
 
+function ValidNumber( num_value ) {
+  // Check if this is a valid number
+  if ( ! num_value.value.match( number_rx ) ) {
+    alert("That is not a plain number!", "title" );
+    num_value.focus();
+    return false;
+  }
+}
+
 function CheckRequestForm() {
   if ( person_id < 0 || system_code == "" || organisation_id < 0 ) {
-    alert("You must select organisation,\nperson and system details!" );
-    return false;
+    per_sel = document.forms.form.requester_id;
+    person_id = per_sel.value;
+    org_sel = document.forms.form.org_code;
+    organisation_id = org_sel.value;
+    sys_sel = document.forms.form.system_code;
+    system_code = sys_sel.value;
+    if ( person_id <= 0 || system_code == "" || organisation_id <= 0 ) {
+      alert("You must select appropriate organisation,\nperson and system details!" );
+      return false;
+    }
+  }
+  if ( document.forms.form.quote_brief != "" ) {
+    if ( document.forms.form.quote_amount.value == "" ) {
+      alert("If you enter a quote, you must enter an amount!" );
+      return false;
+    }
+    if ( ! document.forms.form.quote_amount.value.match( number_rx ) ) {
+      alert("The quote amount should be a plain number!" );
+      document.forms.form.quote_amount.focus();
+      return false;
+    }
   }
   return true;
 }

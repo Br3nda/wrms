@@ -39,7 +39,7 @@ th.prompt {
   width: 8em;
   font-family: sans-serif;
   border: none;
-  line-height: 1.2em;
+  line-height: 1.5em;
 }
 
 th.pcol {
@@ -91,4 +91,21 @@ li.messages {
   text-indent: -8em;
   margin-left: 8em;
   padding: 6px 0;
+}
+
+
+/* For the display of menus across the top on some pages */
+.tmnu, .tmnu:hover, .tmnu:visited,
+.tmnu_active, .tmnu_active:hover, .tmnu_active:visited
+{
+  font: bold 13px verdana, sans-serif;
+  color: #600;
+  background: #fff;
+  padding: 0 0.3em 0.1em;
+  margin: 0 0.4em 0.1em 0;
+}
+.tmnu_active, .tmnu_active:hover, .tmnu_active:visited
+{
+  color: #fff;
+  background: #600;
 }

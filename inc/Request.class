@@ -3,6 +3,7 @@
 //   C L A S S   F O R   W O R K   R E Q U E S T S
 /////////////////////////////////////////////////////////////
 require_once("html-format.php");
+require_once("guess-file-type.php");
 class Request {
    var $request_id;      // Which WR is this
    var $new_record;
@@ -182,29 +183,32 @@ class Request {
    }
 
    function RenderAttachments( $ef ) {
-     global $session, $request_id;
+     global $session;
      $html = "";
      $sql = "SELECT att_filename, attachment_id, att_brief, att_description, ";
-     $sql .= "to_char(attached_on, 'DD-MM-YYYY') AS att_on, fullname ";
+     $sql .= "to_char(attached_on, 'HH24:MI DD-MM-YYYY') AS att_on, fullname, type_desc ";
      $sql .= "FROM request_attachment JOIN usr ON ( attached_by = user_no ) ";
-     $sql .= "WHERE request_id = $request_id";
+     $sql .= "LEFT OUTER JOIN attachment_type ON ( request_attachment.att_type = attachment_type.type_code ) ";
+     $sql .= "WHERE request_id = $this->request_id ";
      $sql .= "ORDER BY request_id, attachment_id";
      # Select the records
      $q = new PgQuery($sql);
-     if ( $q && $q->Exec() && $q->rows ) {
+     $q->Exec('WR::Attachments') ;
+     if ( $ef->editmode || $q->rows )
        $html .= $ef->BreakLine("Attached Files");
-       $html .= '<tr><td colspan="2"><table>'."\n";
-       $html .= '<tr><th class="pcol">File</th><th class="pcol">Description</th><th class="pcol">By</th><th class="pcol">On</th></tr>'."\n";
+     if ( $q->rows ) {
+       $html .= '<tr><td colspan="2"><table width="100%">'."\n";
+       $html .= '<tr><th class="pcol">File</th><th class="pcol">Description</th><th class="pcol">By</th><th class="pcol">On</th><th class="pcol">Type</th></tr>'."\n";
        $attachment_format = '<tr class="row%d"><td class="entry"><a href="/attachment.php/%s?id=%d">%s</a></td>';
-       $attachment_format .= '<td class="entry">%s</td><td class="entry" style="white-space: nowrap;">%s</td><td class="entry">%s</td></tr>'."\n";
+       $attachment_format .= '<td class="entry">%s</td><td class="entry" style="white-space: nowrap;">%s</td><td class="entry">%s</td><td class="entry">%s</td></tr>'."\n";
        while( $row = $q->Fetch() ) {
          $html .= sprintf( $attachment_format, ($q->rownum % 2),
                     $row->att_filename, $row->attachment_id, $row->att_filename, $row->att_brief,
-                    $row->fullname, $row->att_on
+                    $row->fullname, $row->att_on, $row->type_desc
                   );
        }
+       $html .= '</table></td></tr>'."\n";
      }
-     $html .= '</table></td></tr>'."\n";
 
      if ( $ef->editmode ) {
        $html .= '<tr><td colspan="2"><table><tr>'."\n";
@@ -228,7 +232,82 @@ class Request {
    function RenderQuotations( $ef ) {
      global $session;
      $html = "";
-     $html .= $ef->BreakLine("Quotations");
+     $sql = "SELECT request_quote.*, ru.fullname AS quote_by, au.fullname AS approved_by, ";
+     $sql .= "to_char(quoted_on, 'HH24:MI DD-MM-YYYY') AS quoted_on, lookup_desc AS quote_type_desc ";
+     $sql .= "FROM request_quote ";
+     $sql .= "LEFT OUTER JOIN usr ru ON ( request_quote.quote_by_id = ru.user_no ) ";
+     $sql .= "LEFT OUTER JOIN usr au ON ( request_quote.approved_by_id = au.user_no ) ";
+     $sql .= "LEFT OUTER JOIN lookup_code ON ( source_table = 'request_quote' AND source_field = 'quote_type' AND lookup_code = request_quote.quote_type) ";
+     $sql .= "WHERE request_id = $this->request_id ";
+     $sql .= "ORDER BY request_id, quote_id";
+     # Select the records
+     $q = new PgQuery($sql);
+     $q->Exec('WR::Quotations');
+     if ( $ef->editmode || $q->rows )
+       $html .= $ef->BreakLine("Quotations");
+     if ( $q->rows ) {
+       $html .= '<tr><td colspan="2"><table width="100%">'."\n";
+       $html .= '<tr><th class="pcol">Type</th>';
+       $html .= '<th class="pcol">Quote On</th>';
+       $html .= '<th class="pcol">By</th>';
+       $html .= '<th class="pcol">Brief</th>';
+       $html .= '<th class="pcol">Quote</th></tr>'."\n";
+       $line_format = '<tr class="row%d"><td class="entry" width="5%%">%s</td>';
+       $line_format .= '<td class="entry">%s</td>';
+       $line_format .= '<td class="entry" style="white-space: nowrap;">%s</td>';
+       $line_format .= '<td class="entry">%s</td>';
+       $line_format .= '<td class="entry" style="white-space: nowrap;">%s %s</td></tr>'."\n";
+       $detail_format = '<tr class="row%d"><td class="entry" colspan="5">%s xxxxx</td></tr>'."\n";
+       while( $row = $q->Fetch() ) {
+         $html .= sprintf( $line_format,
+                    ($q->rownum % 2), $row->quote_type_desc, $row->quote_by, $row->quoted_on, $row->quote_brief,
+                    $row->quote_amount, $row->quote_units
+                  );
+         if ( trim("$row->quote_detail") != "" ) {
+           $html .= sprintf( $detail_format,
+                    ($q->rownum % 2), $row->quote_detail
+                  );
+         }
+       }
+       $html .= '</table></td></tr>'."\n";
+     }
+
+     if ( $ef->editmode ) {
+       $html .= '<tr><td colspan="2"><table><tr>'."\n";
+
+       $html .= '<th class="prompt">Add Quote</th><td class="entry">';
+       $html .= $ef->DataEntryField( "", "text", "quote_brief",
+                 array("title" => "Enter brief description of the quote", "size" => 40 ) );
+       $html .= '</td>';
+
+       $html .= '<th class="prompt">Type</th><td class="entry">';
+       $html .= $ef->DataEntryField( "", "lookup", "quote_type",
+                 array("_type" => "request_quote|quote_type", "style" => "width: 6em;",
+                       "title" => "The type of quote you are entering" ) );
+       $html .= '</td>';
+
+       $html .= '<th class="prompt">Amount</th><td class="entry">';
+       $html .= $ef->DataEntryField( "", "number", "quote_amount",
+                 array("title" => "Enter the amount of the quote",
+                       "size" => 10, "onblur" => "return ValidNumber(document.forms.form.quote_amount);" ) );
+       $html .= '</td>';
+
+       $html .= '<td class="entry">';
+       $html .= $ef->DataEntryField( "", "lookup", "quote_units",
+                 array("_type" => "request_quote|quote_units", "style" => "width: 6em;",
+                       "title" => "The units for the amount of the quote you are adding" ) );
+       $html .= '</td>';
+
+       $html .= '</tr>';
+
+       // Enter the description
+       $html .= '<tr><th class="prompt">Description</th><td class="entry" colspan="5">';
+       $html .= $ef->DataEntryField( "", "textarea", "att_brief",
+                 array("title" => "Enter a detailed description for the quote.", "cols" => 70, "rows" => 4 ) );
+       $html .= '</td>';
+
+       $html .= '</tr></table></td></tr>'."\n";
+     }
      return $html;
    }
 
@@ -282,42 +361,71 @@ class Request {
 
    function Write( $ef ) {
      global $client_messages;
-     error_log("$system_name: vpw: ERROR: Not writing request form details to database");
-     $client_messages[] = "WARNING: Not writing request form details to database.";
-     $qry = new PgQuery("BEGIN");  $qry->Exec("Request::Write");
-     if ( $_FILES['att_filename']['tmp_name'] != "" ) $this->AttachFile('att_filename',$att_brief);
-     $qry = new PgQuery("COMMIT; ROLLBACK;");
-     $qry->Exec("Request::Write");
+     error_log("$system_name: vpw: Writing request details to database");
+     $qry = new PgQuery("BEGIN");  $qry->Exec("WR::Write");
+
+     $db_errors = false;
+     $sql = sql_from_post( $_POST['submit'], "request", "WHERE request_id='$this->request_id'");
+     $qry = new PgQuery($sql);
+     if ( !$qry->Exec("WR::Write") ) {
+       $client_messages[] = "ERROR: $qry->errorstring";
+       $db_errors = true;
+     }
+     else {
+       // If we are creating a new record, we need to grab the ID that it got
+       if ( eregi("create",$_POST['submit']) ) {
+         $sql = "SELECT currval('organisation_org_code_seq';";
+         $qry = new PgQuery($sql);
+         $qry->Exec("WR::Write");
+         $row = $qry->Fetch(true);    // Fetch results as array
+         $this->request_id = $row[0];
+       }
+     }
+
+     if ( !$db_errors && $_FILES['att_filename']['tmp_name'] != "" ) {
+       $db_errors = ! $this->AttachFile('att_filename',$_POST['att_brief']);
+     }
+
+     $qry = new PgQuery( ( $db_errors ? "ROLLBACK;" : "COMMIT;") );  $qry->Exec("WR::Write");
+     if ( $db_errors ) {
+       $client_messages[] = "ERROR: Database problem writing request.";
+     }
+     else {
+       $client_messages[] = "Request details written.";
+     }
      return true;
    }
 
    function AttachFile( $fname, $description ) {
+     global $session, $client_messages;
      error_log( "$sysabbr Request::AttachFile: DBG: Adding attachment: " . $_FILES[$fname]['name'], 0);
      $sql = "SELECT nextval('request_attachment_attachment_id_seq') AS id ;";
      $qry = new PgQuery( $sql );
-     if ( ! $qry->PgExec('R-AttachFile') ) return;
+     if ( ! $qry->Exec('WR::AttachFile') ) {
+       $client_messages[] = "ERROR: $qry->errorstring";
+       return false;
+     }
 
      $row = $qry->Fetch();
      $attachment_id = $row->id;
-     move_uploaded_file($HTTP_POST_FILES[$fname]['tmp_name'], "attachments/$attachment_id");
-     $att_name = tidy($HTTP_POST_FILES[$fname]['name']);
-     $sql = "INSERT INTO request_attachment ( attachment_id, $this->request_id,  attached_by, att_brief, att_description, att_filename, att_type";
-     if ( isset($new_attach_inline) ) $query .= ", att_inline";
-      $query .= ", att_width, att_height ) ";
-      $query .= "VALUES( $attachment_id, $request_id, $session->user_no, '$tattach_brief', '$tattach_full', '$att_name', '$new_attachment_type'";
-      if ( isset($new_attach_inline) )
-        $query .= ", " . (intval("$new_attach_inline") > 0 ? "TRUE" : "FALSE");
-      $query .= ", $new_attach_x, $new_attach_y )";
-      $rid = awm_pgexec( $dbconn, $query, "req-action" );
-      if ( ! $rid ) {
-        $because .= "<H3>New Attachment Failed!</H3>\n";
-        $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $dbconn ) . "</TT>";
-        $because .= "<P>The failed query was:</P><TT>$query</TT>";
-        awm_pgexec( $dbconn, "ROLLBACK;", "req-action" );
-        return;
-      }
-      chmod( "attachments/$attachment_id", 0644 );
-      if ( $rid ) $because .= "<h3>File attachment \"$att_name\" added to this request</h3>";
+     move_uploaded_file($_FILES[$fname]['tmp_name'], "attachments/$attachment_id");
+     $att_name = tidy($_FILES[$fname]['name']);
+
+     $file_type = guess_file_type( $att_name, "attachments/$attachment_id" );
+
+     $sql = "INSERT INTO request_attachment ( attachment_id, request_id, attached_by, ";
+     $sql .= "att_brief, att_description, att_filename, att_type ) ";
+     $sql .= "VALUES( ?, ?, ?, ?, ?, ?, ? );";
+     $qry = new PgQuery( $sql, $attachment_id, $this->request_id, $session->user_no,
+                       $description, $description, $att_name, $file_type);
+     if ( ! $qry->Exec('WR::AttachFile') ) {
+       $client_messages[] = "ERROR: $qry->errorstring";
+       return false;
+     }
+
+     chmod( "attachments/$attachment_id", 0644 );
+     $client_messages[] = "File attachment \"$att_name\" added to this request</h3>";
+     return true;
    }
 }
 

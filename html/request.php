@@ -2,6 +2,7 @@
   include("always.php");
   include("options.php");
   include("notify-emails.php");
+  include("maintenance-page.php");
 
   if ( $logged_on ) {
     include("getrequest.php");

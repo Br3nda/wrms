@@ -77,7 +77,7 @@ CREATE TABLE request (
   requested_by_date TIMESTAMP,
   agreed_due_date TIMESTAMP,
   request_by TEXT,
-  brief TEXT,                  
+  brief TEXT,
   detailed TEXT,
   system_code TEXT,
   entered_by INT4
@@ -106,7 +106,7 @@ CREATE FUNCTION request_sla_code(INTERVAL,CHAR)
 CREATE TABLE work_system (
   system_code TEXT NOT NULL UNIQUE PRIMARY KEY,
   system_desc TEXT,
-	active BOOL,
+  active BOOL,
   support_user_no INT4,
   notify_usr TEXT
 ) ;
@@ -152,7 +152,7 @@ CREATE FUNCTION max_quote() RETURNS INT4 AS 'SELECT max(quote_id) FROM request_q
 CREATE TABLE request_allocated (
   request_id INT4,
   allocated_on TIMESTAMP DEFAULT current_timestamp,
-	allocated_to_id INT4,
+  allocated_to_id INT4,
   allocated_to TEXT
 );
 
@@ -182,7 +182,7 @@ CREATE TABLE timesheet_note (
   note_date TIMESTAMP,
   note_by_id INT4,
   note_detail TEXT,
-	PRIMARY KEY ( note_date, note_by_id )
+  PRIMARY KEY ( note_date, note_by_id )
 ) ;
 
 CREATE TABLE request_note (
@@ -191,7 +191,7 @@ CREATE TABLE request_note (
   note_by_id INT4,
   note_by TEXT,
   note_detail TEXT,
-	PRIMARY KEY ( request_id, note_on )
+  PRIMARY KEY ( request_id, note_on )
 ) ;
 
 CREATE FUNCTION get_last_note_on(INT4)
@@ -201,9 +201,9 @@ CREATE FUNCTION get_last_note_on(INT4)
 
 CREATE TABLE request_interested (
   request_id INT4,
-	user_no INT4 DEFAULT -1,
+  user_no INT4 DEFAULT -1,
   username TEXT,
-	PRIMARY KEY ( request_id, username )
+  PRIMARY KEY ( request_id, username )
 ) ;
 
 CREATE TABLE request_request (
@@ -211,7 +211,7 @@ CREATE TABLE request_request (
   to_request_id INT4,
   link_type CHAR,
   link_data TEXT,
-	PRIMARY KEY ( request_id, link_type, to_request_id )
+  PRIMARY KEY ( request_id, link_type, to_request_id )
 ) ;
 CREATE INDEX request_request_sk1 ON request_request ( to_request_id );
 
@@ -273,23 +273,31 @@ CREATE FUNCTION get_status_desc(CHAR)
     RETURNS TEXT
     AS 'SELECT lookup_desc AS status_desc FROM lookup_code
             WHERE source_table=''request'' AND source_field=''status_code''
-						AND lower(lookup_code) = lower($1)
+            AND lower(lookup_code) = lower($1)
     ' LANGUAGE 'sql';
 
 
 
+CREATE TABLE attachment_type (
+   type_code TEXT PRIMARY KEY,
+   type_desc TEXT,
+   seq INT4,
+   mime_type TEXT,
+   pattern TEXT,
+   mime_pattern TEXT
+);
 
 CREATE TABLE module (
    module_name TEXT PRIMARY KEY,
-	 module_description TEXT,
-	 module_seq INT4
+   module_description TEXT,
+   module_seq INT4
 );
 CREATE INDEX xak1module ON module ( module_seq, module_name );
 
 
 CREATE TABLE ugroup (
     group_no SERIAL,
-		module_name TEXT,
+    module_name TEXT,
     group_name TEXT );
 CREATE FUNCTION max_group() RETURNS INT4 AS 'SELECT max(group_no) FROM ugroup' LANGUAGE 'sql';
 
@@ -310,9 +318,9 @@ CREATE FUNCTION max_session() RETURNS INT4 AS 'SELECT max(session_id) FROM sessi
 
 CREATE TABLE system_usr (
     user_no INT4,
-		system_code TEXT,
-		role CHAR,
-		PRIMARY KEY ( user_no, system_code, role )
+    system_code TEXT,
+    role CHAR,
+    PRIMARY KEY ( user_no, system_code, role )
 );
 
 CREATE TABLE saved_queries (
@@ -393,6 +401,7 @@ GRANT INSERT, UPDATE, SELECT ON
   request_request, request_history,
   request_attachment,
   lookup_code,
+  attachment_type,
   session, session_session_id_seq,
   work_system,
   usr, usr_user_no_seq, usr_setting,

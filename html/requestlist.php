@@ -3,6 +3,7 @@
   include("options.php");
   include("code-list.php");
   include( "user-list.php" );
+  include("maintenance-page.php");
 
   // Force some variables to have values.
   if ( !isset($format) ) $format = "";

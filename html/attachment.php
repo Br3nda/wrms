@@ -1,9 +1,10 @@
 <?php
-  include("always.php");
+  include_once("always.php");
+  include_once("guess-file-type.php");
 
   if ( isset($id) ) $id = intval($id);
   if ( $id == 0 ) {
-    error_log( "wrms attachment: DBG: \$id not defined", 0);
+    error_log( "$sysabbr attachment: DBG: \$id not defined", 0);
     echo "<html><head><title>Error - invalid attachment ID</title><body><h1>Invalid attachment ID</h1></body></html>";
     exit;
   }
@@ -12,30 +13,22 @@
   $query .= "WHERE attachment_id = $id ";
   $query .= "AND source_table='request' AND source_field='attach_type' AND lookup_code = att_type ";
   $query .= " ; ";
-  $rid = awm_pgexec( $dbconn, $query, "imp");
-  $attachment = pg_Fetch_Object( $rid, 0);
+  $rid = awm_pgexec( $dbconn, $query, "attachment");
   if ( $rid && pg_NumRows($rid) > 0 ) {
     $attachment = pg_Fetch_Object( $rid, 0);
   }
   else {
     $query = "SELECT * FROM request_attachment ";
     $query .= "WHERE attachment_id = $id ; ";
-    $rid = awm_pgexec( $dbconn, $query, "imp");
+    $rid = awm_pgexec( $dbconn, $query, "attachment");
     if ( !$rid || pg_NumRows($rid) == 0 ) {
-      error_log( "wrms attachment: DBG: id [$id] not found", 0);
+      error_log( "$sysabbr attachment: DBG: id [$id] not found", 0);
       echo "<html><head><title>Error - invalid attachment ID [$id]</title><body><h1>Invalid attachment ID [$id]</h1></body></html>";
       exit;
     }
     $attachment = pg_Fetch_Object( $rid, 0);
-    if ( eregi( "\.doc$", $attachment->att_filename ) ) $attachment->lookup_misc = "application/msword";
-    elseif ( eregi( "\.xls$", $attachment->att_filename ) ) $attachment->lookup_misc = "application/vnd.ms-excel";
-    elseif ( eregi( "\.pdf$", $attachment->att_filename ) ) $attachment->lookup_misc = "application/pdf";
-    elseif ( eregi( "\.htm", $attachment->att_filename ) ) $attachment->lookup_misc = "text/html";
-    elseif ( eregi( "\.txt", $attachment->att_filename ) ) $attachment->lookup_misc = "text/plain";
-    elseif ( eregi( "\.gif$", $attachment->att_filename ) ) $attachment->lookup_misc = "image/gif";
-    elseif ( eregi( "\.jpe?g$", $attachment->att_filename ) ) $attachment->lookup_misc = "image/jpeg";
-    elseif ( eregi( "\.png$", $attachment->att_filename ) ) $attachment->lookup_misc = "image/png";
-    else $attachment->lookup_misc = "application/octet-stream";
+    $attachment->lookup_code = guess_file_type( $attachment->att_filename, "attachments/$id" );
+    $attachment->lookup_misc = guess_mime_type( $attachment->lookup_code );
   }
 
   header("Content-type: $attachment->lookup_misc");
@@ -43,13 +36,13 @@
   $bytes = filesize( "attachments/$id" );
   header("Content-length: $bytes");
   $written = readfile(  "attachments/$id" );
-  if ( $written != $bytes ) error_log( "wrms attachment: DBG: Didn't write complete file - $bytes vs. $written sent.", 0);
+  if ( $written != $bytes ) error_log( "$sysabbr attachment: DBG: Didn't write complete file - $bytes vs. $written sent.", 0);
+  error_log( "$sysabbr attachment: DBG: Served '$attachment->att_filename' as '$attachment->lookup_misc' ($attachment->lookup_code), $bytes bytes");
 
   if ( $debuglevel > 0 ) {
     $total_query_time = sprintf( "%3.06lf", $total_query_time );
     $total_time = sprintf( "%3.06lf", duration( $begin_processing, microtime() ));
-    error_log( "wrms attachment: cImpleted: TQ=$total_query_time ($total_query_count queries) TT=$total_time URI: $REQU
+    error_log( "$sysabbr attachment: completed: TQ=$total_query_time ($total_query_count queries) TT=$total_time URI: $REQU
 EST_URI", 0);
   }
 ?>
-

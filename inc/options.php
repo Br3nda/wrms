@@ -2,11 +2,16 @@
   if ( !isset($maxresults) ) $maxresults = 100;
   $maxresults = intval($maxresults);
 
+  if ( isset($session) ) return;
+
+if ( ! function_exists('salted_md5') ) {
 function salted_md5( $instr, $salt = "" ) {
   if ( $salt == "" ) $salt = substr( md5(rand(100000,999999)), 2, 8);
   return ( "*$salt*" . md5($salt . $instr) );
 }
+}
 
+if ( ! function_exists('validate_password') ) {
 function validate_password( $they_sent, $we_have ) {
   global $system_name;
 
@@ -40,6 +45,7 @@ function validate_password( $they_sent, $we_have ) {
   // Otherwise they just have a plain text string, which we
   // compare directly, but case-insensitively
   return ( $they_sent == $pwcompare || strtolower($they_sent) == strtolower($we_have) );
+}
 }
 
   // Various changes happen on the basis of $M

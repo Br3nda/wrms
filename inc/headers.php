@@ -174,4 +174,9 @@ th.cols, th.rows, a.cols  {font: small-caps bold $fontsizes[1] $fonts[0], sans-s
     }
   }
 
+  if ( isset($tmnu) && is_object($tmnu) ) {
+    $tmnu->LinkActiveSubMenus();
+    echo $tmnu->Render();
+  }
+
 ?>

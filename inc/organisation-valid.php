@@ -28,4 +28,3 @@
     $because .= "<P><B>Changes have not been processed - please correct because and re-submit</B></P>\n";
   }
 ?>
-

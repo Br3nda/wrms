@@ -17,21 +17,25 @@ $debuggroups['Session'] = 1;
 $debuggroups['Login'] = 1;
 $debuggroups['querystring'] = 1;
 
-$session = new Session();
+if ( !isset($session) ) {
+  $session = new Session();
 
-if ( isset($username) && isset($password) )
-{
-  // Try and log in if we have a username and password
-  $session->Login( $username, $password );
-  if ( $debuggroups['Login'] )
-    error_log( "$system_name: vpw: DBG: User $username - $session->fullname ($session->user_no) login status is $session->logged_in" );
+  if ( isset($username) && isset($password) ) {
+    // Try and log in if we have a username and password
+    $session->Login( $username, $password );
+    if ( $debuggroups['Login'] )
+      error_log( "$system_name: vpw: DBG: User $username - $session->fullname ($session->user_no) login status is $session->logged_in" );
+  }
 }
 
-function salted_md5( $instr, $salt = "" ) {
-  if ( $salt == "" ) $salt = substr( md5(rand(100000,999999)), 2, 8);
-  return ( "*$salt*" . md5($salt . $instr) );
+if ( ! function_exists('salted_md5') ) {
+  function salted_md5( $instr, $salt = "" ) {
+    if ( $salt == "" ) $salt = substr( md5(rand(100000,999999)), 2, 8);
+    return ( "*$salt*" . md5($salt . $instr) );
+  }
 }
 
+if ( ! function_exists('validate_password') ) {
 function validate_password( $they_sent, $we_have ) {
   global $system_name, $debuggroups;
 
@@ -64,6 +68,7 @@ function validate_password( $they_sent, $we_have ) {
   // Otherwise they just have a plain text string, which we
   // compare directly, but case-insensitively
   return ( $they_sent == $pwcompare || strtolower($they_sent) == strtolower($we_have) );
+}
 }
 
 class Session

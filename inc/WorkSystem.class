@@ -1,0 +1,226 @@
+<?php
+/////////////////////////////////////////////////////////////
+//   C L A S S   F O R   W O R K S Y S T E M
+/////////////////////////////////////////////////////////////
+require_once("html-format.php");
+class WorkSystem {
+   var $system_code;
+   var $new_record;
+
+   function WorkSystem( $id, $new_record = false ) {
+     global $session;
+     if ( !$session->logged_in ) return false;
+     $loaded = false;
+     $id = str_replace("'","''",str_replace("\\","",trim("$id")));
+     if ( $new_record != true ) {
+       // Try and load it from file
+       $sql = "SELECT work_system.* ";
+       $sql .= " FROM work_system ";
+       $sql .= " WHERE work_system.system_code = '$id'";
+       if ( !($session->AllowedTo('Admin') || $session->AllowedTo('Support')) )
+         $sql .= " AND work_system.system_code = '$session->system_code' ";
+
+       if ( $qry = new PgQuery($sql) ) {
+         if ( $qry->Exec("newWorkSystem")
+                  && $qry->rows == 1 && $row = $qry->Fetch() ) {
+           $this->new_record = false;
+           while( list($k,$v) = each($row) ) {
+             if ( isset($debuggroups['WorkSystem']) && $debuggroups['WorkSystem'] ) {
+               error_log( sprintf("%s: DBG: \$this->{'%-25.25s = %s", $sysabbr, "$k'}", $v) );
+             }
+             $this->{$k} = $v;
+           }
+         }
+       }
+     }
+     else {
+       $this->new_record = true;
+       $this->system_code = $id;
+       // Assign some defaults because it looks like we're starting a new one
+       if ( isset($_GET['system_template']) ) {
+         // Oh goody, we can get some defaults from a saved template :-)
+         $loaded = false;  // templates aren't done yet :-(
+       }
+       if ( ! $loaded ) {
+         // Initialise to standard default values
+       }
+     }
+   }
+
+   /////////////////////////////////////////////////////////////
+  // AllowedTo - Can the user do that to this work_system
+   /////////////////////////////////////////////////////////////
+   function AllowedTo( $action ) {
+     global $session;
+     if ( $session->AllowedTo('Admin') || $session->AllowedTo('Support') ) {
+       return true;  // Of course they can!
+     }
+     elseif ( $action != 'update' ) {
+       return true;
+     }
+     return false;
+   }
+
+   /////////////////////////////////////////////////////////////
+   // Render - Return HTML to show the W/R
+   //   A separate function is called for each logical area
+   //   on the W/R.
+   /////////////////////////////////////////////////////////////
+   function Render( ) {
+     global $edit;
+     $html = "";
+
+     $ef = new EntryForm( $REQUEST_URI, $this, $edit );
+     $ef->NoHelp();  // Prefer this style, for the moment
+
+     if ( $edit ) $html .= $ef->StartForm( array("autocomplete" => "off", "onsubmit" => "return CheckWorkSystemForm();" ) );
+
+     $html .= "<table width=\"100%\" class=\"data\" cellspacing=\"0\" cellpadding=\"0\">\n";
+
+     $html .= $this->RenderDetails($ef);
+     $html .= $this->RenderOrganisations($ef);
+
+     if ( $edit ) $html .= $ef->SubmitButton( "submit", ($this->new_record ? "Create" : "Update") );
+     $html .= "</table>\n";
+     if ( $edit ) $html .= $ef->EndForm();
+
+     return $html;
+   }
+
+
+   function RenderDetails( $ef ) {
+     global $edit, $session, $bigboxcols, $bigboxrows;
+     $html = "";
+     $html .= $ef->BreakLine("System Details");
+
+     $html .= $ef->DataEntryLine( "System Code", "%s", "text", "system_code",
+               array( "size" => 10, "title" => "The code for the system.") );
+
+     // Name
+     $html .= $ef->DataEntryLine( "Description", "%s", "text", "system_desc",
+               array( "size" => 70, "title" => "The description of the system.") );
+
+     // Active?
+     $html .= $ef->DataEntryLine( "Active?", ($this->active == 't' ? "Active" : "Inactive"), "checkbox", "active",
+               array("title" => "Does this work_system have an SLA?") );
+
+     return $html;
+   }
+
+   function RenderOrganisations( $ef ) {
+     global $session, $system_code;
+     $html = "";
+     $sql = "SELECT organisation.*, ";
+     $sql .= "exists( SELECT 1 from org_system WHERE org_system.org_code = organisation.org_code AND system_code = ? ) AS applies ";
+     if ( $ef->editmode && ($session->AllowedTo('Admin') || $session->AllowedTo('Support')) ) {
+       $sql .= "FROM organisation ";
+       $sql .= "WHERE active ";
+     }
+     elseif ( $session->AllowedTo('Admin') || $session->AllowedTo('Support') ) {
+       $sql .= "FROM organisation JOIN org_system ON ( organisation.org_code = org_system.org_code ) ";
+       $sql .= "WHERE active AND org_system.system_code = ? ";
+     }
+     else {
+       $sql .= "FROM organisation JOIN org_system ON ( organisation.org_code = org_system.org_code ) ";
+       $sql .= "WHERE active AND org_system.org_code = $session->org_code ";
+       $sql .= "AND org_system.system_code = ? ";
+     }
+     $sql .= "ORDER BY org_name";
+
+     # Select the records
+     $q = new PgQuery($sql, $system_code, $system_code);
+     $column = 0;
+     if ( $q && $q->Exec() && $q->rows ) {
+       $html .= $ef->BreakLine("Active Organisations");
+       $html .= '<tr><td colspan="2"><table>'."\n";
+
+       while( $row = $q->Fetch() ) {
+         if ( $column % 3 == 0 ) $html .= "<tr>";
+         if ( trim($row->org_name) == "" ) $row->org_name = "&lt;&lt;&lt;unknown&gt;&gt;&gt;";
+         $html .= "<td width=\"33%\">";
+         if ( $ef->editmode  && ($session->AllowedTo('Admin') || $session->AllowedTo('Support')) ) {
+           $ef->record->applies[$row->org_code] = "$row->applies";
+           $html .= sprintf("<label style=\"color: %s\">", ( "$row->applies" == "t" ? "red" : "black") );
+           $html .= $ef->DataEntryField( "", "checkbox", "applies[$row->org_code]",
+                 array("title" => "Is this organisation active for this work_system?" ) );
+           $html .= " $row->org_name</label>";
+         }
+         else {
+           $html .= "<a href=\"/org.php?org_code=$row->org_code\">$row->org_name</a>";
+         }
+         $html .= "</td>";
+         if ( ++$column % 3 == 0 ) $html .= "</tr>";
+       }
+     }
+     while ( $column % 3 != 0 ) {
+       $html .= "<td></td>";
+       if ( ++$column % 3 == 0 ) $html .= "</tr>";
+     }
+     $html .= '</table></td></tr>'."\n";
+
+     return $html;
+   }
+
+
+   function Validate( $ef ) {
+     global $session, $client_messages;
+     error_log("$system_name: vpw: DBG: Validating work_system");
+
+     if ( isset($_POST) ) {
+       $valid = true;
+       $_POST['active'] = ( isset($_POST['active']) ? $_POST['active'] : 'f' );
+
+       if ( $_POST['system_code'] == "" ) {
+         $client_messages[] = "ERROR: The system code may not be blank.";
+         $valid = false;
+       }
+
+       if ( trim($_POST['system_desc']) == "" ) {
+         $client_messages[] = "ERROR: The system description may not be blank.";
+         $valid = false;
+       }
+
+       return $valid;
+     }
+
+     $client_messages[] = "ERROR: No form data submitted!";
+     return false;
+   }
+
+   function Write( $ef ) {
+     global $client_messages;
+     error_log("$system_name: vpw: DBG: Writing work_system form details to database");
+     $client_messages[] = "Writing system details to database.";
+
+     $qry = new PgQuery("BEGIN");              $qry->Exec("Sys::Write");
+
+     $sql = sql_from_post( $_POST['submit'], "work_system", "WHERE system_code='$this->system_code'");
+     $qry = new PgQuery($sql);
+     if ( !$qry->Exec("Sys::Write") ) $client_messages[] = "ERROR: $qry->errorstring";
+
+     $organisations = "";
+     while( list($k,$v) = each($_POST['applies']) ) {
+       if ( $v ) {
+         $organisations .= ( "$organisations" == "" ? "" : ", " );
+         $organisations .= "'" . str_replace("'","''",str_replace('\\','', $k)) . "'";
+       }
+     }
+     $sql = "DELETE FROM org_system WHERE system_code = '$this->system_code' AND org_code NOT IN ( $organisations ); ";
+     $qry = new PgQuery($sql);
+     if ( !$qry->Exec("Sys::Write") ) $client_messages[] = "ERROR: $qry->errorstring";
+
+     $sql = "INSERT INTO org_system (system_code, org_code) ";
+     $sql .= "SELECT '$this->system_code' AS system_code, org_code ";
+     $sql .= "FROM organisation WHERE org_code IN ( $organisations ) ";
+     $sql .= "AND NOT EXISTS( SELECT 1 FROM org_system WHERE system_code = '$this->system_code' ";
+     $sql .= "AND org_system.org_code = organisation.org_code); ";
+     $qry = new PgQuery($sql);
+     if ( !$qry->Exec("Sys::Write") ) $client_messages[] = "$qry->errorstring";
+
+     $qry = new PgQuery("COMMIT; ROLLBACK;");  $qry->Exec("Sys::Write");
+
+     return true;
+   }
+
+}
+?>

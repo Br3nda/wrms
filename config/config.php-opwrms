@@ -194,7 +194,7 @@ function local_page_header() {
            <td width="16%" align="center"><input type="text" name="search_for" /></td>
 <?php
    $sql = "SELECT * FROM work_system WHERE active ";
-   if ( ! $session->AllowedTo('Admin','Support') ) {
+   if ( ! is_member_of('Admin','Support') ) {
      $sql .= " AND EXISTS (SELECT system_usr.system_code FROM system_usr WHERE system_usr.system_code=work_system.system_code";
      $sql .= " AND user_no=$session->user_no)";
    }

@@ -91,13 +91,24 @@ class Session
 
     list( $session_id, $session_key ) = explode( ';', $sid, 2 );
 
-    $sql = "SELECT session.*, usr.*, organisation.*
-      FROM session, usr, organisation
-      WHERE usr.user_no = session.user_no
-      AND session_id = ?
-      AND (md5(session_start) = ? OR session_key = ?)
-      AND organisation.org_code = usr.org_code
-      ORDER BY session_start DESC LIMIT 1";
+    if ( $GLOBALS['pg_version'] == 7.2 ) {
+      $sql = "SELECT session.*, usr.*, organisation.*
+        FROM session, usr, organisation
+        WHERE usr.user_no = session.user_no
+        AND session_id = ?
+        AND (session_key = ? OR session_key = ?)
+        AND organisation.org_code = usr.org_code
+        ORDER BY session_start DESC LIMIT 1";
+    }
+    else {
+      $sql = "SELECT session.*, usr.*, organisation.*
+        FROM session, usr, organisation
+        WHERE usr.user_no = session.user_no
+        AND session_id = ?
+        AND (md5(session_start::text) = ? OR session_key = ?)
+        AND organisation.org_code = usr.org_code
+        ORDER BY session_start DESC LIMIT 1";
+    }
 
     $qry = new PgQuery($sql, $session_id, $session_key, $session_key);
     if ( $qry->Exec('Session') && $qry->rows == 1 )

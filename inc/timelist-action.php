@@ -24,7 +24,7 @@
     $msg = "<!doctype html public \"-//w3c//dtd html 4.0 transitional//en\"><HTML>$msg";
 
     $headers = "Content-Type: text/html; charset=us-ascii";
-    if ( strpos("$session->email", "@") ) $headers = "\nFrom: $session->email";
+    if ( strpos("$session->email", "@") ) $headers .= "\nFrom: $session->email";
 
     mail( "wrmsadmin@catalyst.net.nz", "Timesheets Charged", $msg, $headers  );
 

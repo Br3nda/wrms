@@ -24,4 +24,4 @@ cd ..
 # echo "."
 
 echo "Finishing load..."
-psql -qxtf finish-load.sql -d $DATABASE | grep -v RECORD
+psql -qxtf finish-load.sql -d $DATABASE | grep "|"

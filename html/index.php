@@ -31,6 +31,7 @@
     echo "\n</td>\n";
   }
   echo "<td WIDTH=3% NOWRAP> &nbsp; &nbsp; </td>\n";
+// phpinfo();
   echo "</tr></table></body></html>";
 ?>
 

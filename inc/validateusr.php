@@ -6,7 +6,8 @@
   if ( "$M" == "add" && "$UserPassword" == "")
     $because .= "User has no password.<br>";
 
-  if ( ! ($roles['wrms']['Admin'] || $roles[wrms]['Support'] || $roles[wrms]['Manage']) )
+  if ( ! ($roles['wrms']['Admin'] || $roles[wrms]['Support'] || $roles[wrms]['Manage']
+		 || ("$M" == "update" && $user_no == $session->user_no) ) )
     $because .= "You are not authorised<BR>";
 
   if ( ! ($roles['wrms']['Admin'] || $roles[wrms]['Support']) ) {

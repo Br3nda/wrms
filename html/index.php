@@ -8,8 +8,8 @@
 
 //  echo "Session: $session_id -- $session->session_start<br>$query";
 
-  echo "<br><table BORDER=0 WIDTH=95% CELLSPACING=0 CELLPADDING=7><tr>\n";
-  echo "<td WIDTH=3% NOWRAP> &nbsp; &nbsp; </td>\n";
+  echo "<br><table border=0 width=95% cellspacing=0 cellpadding=7><tr>\n";
+  echo "<td width=3% nowrap> &nbsp; &nbsp; </td>\n";
 
   echo "<td VALIGN=TOP WIDTH=";
   if ( $logged_on ) echo "94"; else echo "60";

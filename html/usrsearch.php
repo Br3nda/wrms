@@ -15,7 +15,7 @@
     echo "<p class=helptext>Use this form to search for users and to maintain their access rights.</p>\n";
     echo "<form Action=\"$base_url/usrsearch.php\" Method=\"POST\">\n";
 ?>
-<table align=center><tr valign=middle>
+<table align=center cellspacing=0 cellpadding=2><tr valign=middle>
 <td><b>Name </b><input TYPE="Text" Size="20" Name="search_for" Value="<?php echo "$search_for"; ?>"></td>
 <td><b>Type </b><SELECT NAME="user_type">
 <Option Value="."> All </Option>
@@ -30,7 +30,7 @@
 <?php
   if ( "$search_for$org_code$system_code " != "" && ( $roles['wrms']['Manage'] || $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) ) {
 
-    $query = "SELECT DISTINCT ON user_no * FROM usr, organisation";
+    $query = "SELECT * FROM usr, organisation";
 //    $query .= ", session";
     if ( isset( $system_code ) ) $query .= ", system_usr, lookup_code";
     $query .= " WHERE usr.org_code=organisation.org_code ";
@@ -66,8 +66,8 @@
     }
     else {
       // Build table of usrs found
-      echo "<p>" . pg_NumRows($result) . " users found</p>"; // <p>$query</p>";
-      echo "<table border=\"0\" align=center>\n<tr>\n";
+      echo "<p>&nbsp;" . pg_NumRows($result) . " users found</p>"; // <p>$query</p>";
+      echo "<table border=\"0\" cellpadding=2 cellspacing=1 align=center>\n<tr>\n";
       echo "<th class=cols>User&nbsp;ID</th><th class=cols>Full Name</th>\n";
       echo "<th class=cols>Organisation</th><th class=cols>Email</th>\n";
       if ( isset( $system_code ) )

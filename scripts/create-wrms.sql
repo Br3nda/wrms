@@ -166,7 +166,7 @@ CREATE TABLE request_quote (
 );
 CREATE INDEX xak1_request_quote ON request_quote ( request_id );
 GRANT INSERT,UPDATE,SELECT ON request_quote TO general;
-GRANT SELECT ON request_quote_quote_id_seq TO PUBLIC;
+GRANT SELECT,UPDATE ON request_quote_quote_id_seq TO PUBLIC;
 
 CREATE FUNCTION max_quote() RETURNS INT4 AS 'SELECT max(quote_id) FROM request_quote' LANGUAGE 'sql';
 
@@ -238,7 +238,7 @@ CREATE TABLE system_update (
 ) ;
 CREATE INDEX xak1_system_update ON system_update ( system_code, update_id );
 GRANT INSERT,UPDATE,SELECT ON system_update TO general;
-GRANT SELECT ON system_update_update_id_seq TO PUBLIC;
+GRANT SELECT,UPDATE ON system_update_update_id_seq TO PUBLIC;
 
 CREATE FUNCTION max_update() RETURNS INT4 AS 'SELECT max(update_id) FROM system_update' LANGUAGE 'sql';
 

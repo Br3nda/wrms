@@ -112,6 +112,21 @@ INSERT INTO lookup_code ( source_table, source_field, lookup_seq, lookup_code, l
 ALTER TABLE request ADD COLUMN importance INT;
 UPDATE request SET importance=(severity_code/20)*10;
 
+
+-- Need to rebuild the request_history table since it inherits from
+-- request.  One of the disadvantages of objects :-( well, implementation
+-- probably, in reality :-)
+DROP TABLE request_history;
+CREATE TABLE request_history (
+  modified_on DATETIME DEFAULT TEXT 'now'
+) INHERITS (request );
+GRANT INSERT,SELECT ON request_history TO PUBLIC;
+CREATE INDEX xpk_request_history ON request_history ( request_id, modified_on );
+\i dump/t-request_history.sql
+UPDATE request_history SET urgency=(severity_code/10)*10;
+UPDATE request_history SET importance=(severity_code/20)*10;
+
+
 INSERT INTO lookup_code (source_table, source_field, lookup_code, lookup_seq, lookup_desc )
     VALUES('codes', 'menus', 'request_quote|quote_units', 6, 'Quote&nbsp;Unit');
 INSERT INTO lookup_code (source_table, source_field, lookup_code, lookup_seq, lookup_desc )
@@ -197,7 +212,7 @@ INSERT INTO group_member ( group_no, user_no )
 
 INSERT INTO group_member ( group_no, user_no )
   SELECT '3', user_no FROM usr
-	        WHERE usr.status = 'S';
+	        WHERE usr.status = 'S' OR usr.status = 'C';
 
 INSERT INTO group_member ( group_no, user_no )
   SELECT '4', user_no FROM awm_usr, usr

@@ -7,7 +7,7 @@
 
   /* scope a transaction to the whole change */
   pg_exec( $wrms_db, "BEGIN;" );
-//  $debuglevel = 1;
+  $debuglevel = 1;
   if ( isset( $request ) ) {
     /////////////////////////////////////
     // Update an existing request
@@ -17,6 +17,7 @@
     if ( $new_active <> "TRUE" ) $new_active = "FALSE";
     if ( $request->active == "t" ) $request->active = "TRUE"; else $request->active = "FALSE";
     $note_added = ($new_note != "");
+    $quote_added = ($new_quote_brief != "") && ($new_quote_amount != "");
     $status_changed = ($request->last_status != $new_status );
     $old_eta = substr( nice_date($request->eta), 7);
     $eta_changed = (("$old_eta" != "$new_eta") && ( "$new_eta" != ""));
@@ -24,19 +25,23 @@
              || ($request->detailed != $new_detail)
              || ($request->request_type != $new_type )
              || ($request->severity_code != $new_severity )
+             || ($request->urgency != $new_urgency )
+             || ($request->importance != $new_importance )
              || ($request->system_code != $new_system_code )
              || ($request->active != $new_active )
              || ($request->last_status != $new_status )
-             || $eta_changed || $status_changed ;
+             || $eta_changed || $status_changed || $note_added || $quote_added;
     if ( $debuglevel >= 1 ) {
       echo "<p>---" . ($request->brief != $new_brief) . "-"
              . ($request->detailed != $new_detail) . "+"
              . ($request->request_type != $new_type ) . "-"
              . ($request->severity_code != $new_severity ) . "+"
+             . ($request->urgency != $new_urgency ) . "-"
+             . ($request->importance != $new_importance ) . "+"
              . ($request->system_code != $new_system_code ) . "-"
              . ($request->active != $new_active ) . "+"
              . ($request->last_status != $new_status ) . "-"
-             . $eta_changed . "+" . $status_changed
+             . $eta_changed . "+" . $status_changed . "-" . $note_added . "+" . $quote_added
              . "---$request->request_type != $new_type</p>" ;
 
       echo "<p>-$request->active|$new_active-</p>";
@@ -47,17 +52,13 @@
       return;
     }
 
-    $new_brief = tidy( $new_brief );
-    $new_detail = tidy( $new_detail );
-    $new_note = tidy( $new_note );
-
     /* take a snapshot of the current record */
     $query = "INSERT INTO request_history SELECT * FROM request WHERE request.request_id = '$request_id'";
     $rid = pg_exec( $wrms_db, $query );
     if ( ! $rid ) {
       $because .= "<H3>Snapshot Failed!</H3>\n";
-      $because .= "<P>The error returned was:</P><PRE>" . pg_ErrorMessage( $wrms_db ) . "</PRE>";
-      $because .= "<P>The failed query was:</P><PRE>$query</PRE>";
+      $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
+      $because .= "<P>The failed query was:</P><TT>$query</TT>";
       pg_exec( $wrms_db, "ROLLBACK;" );
       return;
     }
@@ -70,8 +71,8 @@
       if ( ! $rid ) {
         $errmsg = pg_ErrorMessage( $wrms_db );
         $because .= "<H3>&nbsp;Status Change Failed!</H3>\n";
-        $because .= "<P>The error returned was:</P><PRE>" . pg_ErrorMessage( $wrms_db ) . "</PRE>";
-        $because .= "<P>The failed query was:</P><PRE>$query</PRE>";
+        $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
+        $because .= "<P>The failed query was:</P><TT>$query</TT>";
         pg_exec( $wrms_db, "ROLLBACK;" );
         return;
       }
@@ -81,17 +82,31 @@
         $new_active = "TRUE";
     }
 
-    $query = "UPDATE request SET brief = '$new_brief', detailed = '$new_detail',";
+    $query = "UPDATE request SET";
+    if ( $request->brief != $new_brief )
+      $query .= " brief = '" . tidy($new_brief) . ",";
+    if ( $request->detailed != $new_detail )
+      $query .= " detailed = '" . tidy( $new_detail ) . "',";
     if ( ($sysmgr || $allocated_to) && $eta_changed ) $query .= " eta = '$new_eta',";
-    $query .= " active = $new_active, last_status = '$new_status',";
-    $query .= " request_type = $new_type, severity_code = $new_severity,";
-    $query .= " system_code = '$new_system_code' ";
+    if ( $request->active != $new_active )
+      $query .= " active = $new_active,";
+    if ( $request->last_status != $new_status )
+      $query .= " last_status = '$new_status',";
+    if ( $request->request_type != $new_request_type )
+      $query .= " request_type = $new_type,";
+    if ( $request->urgency != $new_urgency )
+      $query .= " urgency = $new_urgency,";
+    if ( $request->importance != $new_importance )
+      $query .= " importance = $new_importance,";
+    if ( $request->system_code != $new_system_code )
+      $query .= " system_code = '$new_system_code',";
+    $query .= " last_activity = 'now' ";
     $query .= "WHERE request.request_id = '$request_id'";
     $rid = pg_exec( $wrms_db, $query );
     if ( ! $rid ) {
       $because .= "<H3>&nbsp;Update Request Failed!</H3>\n";
-      $because .= "<P>The error returned was:</P><PRE>" . pg_ErrorMessage( $wrms_db ) . "</PRE>";
-      $because .="<P>The failed query was:</P><PRE>$query</PRE>";
+      $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
+      $because .="<P>The failed query was:</P><TT>$query</TT>";
       pg_exec( $wrms_db, "ROLLBACK;" );
       return;
     }
@@ -99,34 +114,67 @@
       $because .="<P>The query was:</P><TT>$query</TT>";
     }
 
+    if ( $quote_added ) {
+      $query = "SELECT NEXTVAL('request_quote_quote_id_seq');";
+      $rid = pg_exec( $wrms_db, $query );
+      if ( ! $rid ) {
+        $errmsg = pg_ErrorMessage( $wrms_db );
+        $because .= "<H3>Failed to get new quote ID!</H3>\n";
+        $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
+        $because .= "<P>The failed query was:</P><TT>$query</TT>";
+        pg_exec( $wrms_db, "ROLLBACK;" );
+        return;
+      }
+      $new_quote_id = pg_Result( $rid, 0, 0);
+
+      $new_quote_details = tidy( $new_quote_details );
+      $new_quote_brief = tidy( $new_quote_brief );
+
+      $query = "INSERT INTO request_quote (quote_id, quoted_by, quote_brief, quote_details, quote_type, quote_amount, quote_units, request_id, quote_by_id) ";
+      $query .= "VALUES( $new_quote_id, '$session->username', '$new_quote_brief', '$new_quote_details', '$new_quote_type', '$new_quote_amount', '$new_quote_unit', $request->request_id, $session->user_no )";
+      $rid = pg_exec( $wrms_db, $query );
+      if ( ! $rid ) {
+        $because .= "<H3>New Quote Failed!</H3>\n";
+        $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
+        $because .= "<P>The failed query was:</P><TT>$query</TT>";
+        pg_exec( $wrms_db, "ROLLBACK;" );
+        return;
+      }
+
+    }
+
     if ( $note_added ) {
       /* non-null note was entered */
+      $new_note = tidy( $new_note );
       $query = "INSERT INTO request_note (request_id, note_by, note_by_id, note_on, note_detail) ";
       $query .= "VALUES( $request_id, '$session->username', $session->user_no, 'now', '" . tidy($new_note) . "')";
       $rid = pg_exec( $wrms_db, $query );
       if ( ! $rid ) {
         $errmsg = pg_ErrorMessage( $wrms_db );
-        $because .= "<H3>&nbsp;Status Change Failed!</H3>\n";
-        $because .= "<P>The error returned was:</P><PRE>" . pg_ErrorMessage( $wrms_db ) . "</PRE>";
-        $because .= "<P>The failed query was:</P><PRE>$query</PRE>";
+        $because .= "<H3>New Notes Failed!</H3>\n";
+        $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
+        $because .= "<P>The failed query was:</P><TT>$query</TT>";
         pg_exec( $wrms_db, "ROLLBACK;" );
         return;
       }
     }
 
-    $because .= "<h2>Request number $request_id modified.</h2>";
+    $because .= "<h2>Request number $request_id modified.</h2><p>";
 
     if ( $statusable && $status_changed )
-      $because .= "<p>Request status has been changed.</p>\n";
+      $because .= "<br>Request status has been changed.\n";
 
     if ( $request->active != $new_active ) {
-      $because .= "<p>Request has been ";
+      $because .= "<br>Request has been ";
       if ( $new_active == "TRUE" ) $because .= "re-"; else $because .= "de-";
-      $because .= "activated</p>";
+      $because .= "activated\n";
     }
 
+    if ( $quote_added )
+      $because .= "<br>Quote $new_quote_id added to request.\n";
+
     if ( $note_added )
-      $because .= "<p>Notes added to request.</p>\n";
+      $because .= "<br>Notes added to request.\n";
   }
   else {
     /////////////////////////////////////
@@ -155,8 +203,8 @@
     else
       $requsr = $session;
 
-    $query = "INSERT INTO request (request_id, request_by, brief, detailed, active, last_status, severity_code, system_code, request_type, requester_id) ";
-    $query .= "VALUES( $request_id, '$requsr->username', '" . tidy($new_brief) . "','" . tidy($new_detail) . "', TRUE, 'N', $new_severity, '$new_system_code' , '$new_request_type', $requsr->user_no )";
+    $query = "INSERT INTO request (request_id, request_by, brief, detailed, active, last_status, urgency, importance, system_code, request_type, requester_id, last_activity) ";
+    $query .= "VALUES( $request_id, '$requsr->username', '" . tidy($new_brief) . "','" . tidy($new_detail) . "', TRUE, 'N', $new_urgency, $new_importance, '$new_system_code' , '$new_request_type', $requsr->user_no, 'now' )";
     $rid = pg_exec( $wrms_db, $query );
     if ( ! $rid ) {
       $because .= "<P>The failed query was:</P><TT>$query</TT>";

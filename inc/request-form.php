@@ -49,13 +49,13 @@
 <TD CLASS=h3 ALIGN=RIGHT<?php echo " bgcolor=$colors[8]"; ?>><FONT SIZE=+1 color=<?php echo $colors[1]; ?>><B>Request details</B></FONT></TD></TR>
 <?php
   if ( !isset($request) ) {
-    if ( $roles[wrms][Admin] || $session->status == "S" || $session->status == "C" ) {
+    if ( $roles[wrms][Admin] || $roles[wrms][Support] || $roles[wrms][Manage] ) {
       echo "<TR><TH ALIGN=RIGHT>User:</TH>";
-      echo "<TD ALIGN=LEFT><SELECT NAME=\"new_user_no\">$user_list</SELECT></td></tr>\n";
+      echo "<TD colspan=2 ALIGN=LEFT><SELECT NAME=\"new_user_no\">$user_list</SELECT></td></tr>\n";
     }
-    if ( $roles[wrms][Admin] || $session->status == "S" ) {
+    if ( $roles[wrms][Admin] || $roles[wrms][Support] ) {
       echo "<TR><TH align=right>Assign to:</TH>";
-      echo "<TD ALIGN=LEFT><SELECT NAME=\"new_assigned\">$support_list</SELECT></TD></TR>";
+      echo "<TD colspan=2 ALIGN=LEFT><SELECT NAME=\"new_assigned\">$support_list</SELECT></TD></TR>";
       echo "</TD></TR>\n";
     }
   }
@@ -64,15 +64,15 @@
   if ( isset($request) ) echo "WR #:"; else echo "Request:";
   echo "</TH>\n";
   if ( isset($request) ) echo "<td align=center class=h2>$request->request_id</td>\n";
+  echo "<td";
+  if ( !isset( $request ) ) echo " colspan=2";
   if ( $editable )
-    echo "<td><INPUT TYPE=\"text\" NAME=\"new_brief\" SIZE=55 VALUE=\"$request->brief\">"; 
+    echo "><INPUT TYPE=\"text\" NAME=\"new_brief\" SIZE=55 VALUE=\"$request->brief\">"; 
   else
-    echo "<td valign=middle><h2>$request->brief";
-?>
-  </TD>
-</TR>
+    echo " valign=middle><h2>$request->brief";
 
-<?php
+  echo "</TD></TR>\n";
+
   if ( isset($request) ) {
     echo "<TR><TH ALIGN=RIGHT>From:</TH>";
     echo "<TD ALIGN=CENTER>$request->fullname</TD>\n";
@@ -90,24 +90,18 @@
     }
     else if ( $request->active == "TRUE" ) echo "Active";
     else echo "Inactive";
-    echo "</TD><TD ALIGN=LEFT>";
-    if ( $editable )
-      echo "<SELECT NAME=\"new_status\">$status_list</SELECT>";
-    else
-      echo "&nbsp;$request->last_status - $request->status_desc";
-    echo "</TD></TR>\n";
+    echo "</TD>\n<TD ALIGN=LEFT>&nbsp;$request->last_status - $request->status_desc</TD></TR>\n";
   }
-?>
 
-<TR>
-  <TH ALIGN=RIGHT>System:</TH>
-  <?php if ( isset($request) )
+  echo "<TR><TH ALIGN=RIGHT VALIGN=MIDDLE>System:</TH>\n";
+  if ( isset($request) )
     echo "<TD ALIGN=CENTER>$request->system_code</TD>\n";
-  echo "<TD ALIGN=LEFT>";
+  echo "<td align=left";
+  if ( !isset( $request ) ) echo " colspan=2";
   if ( $editable )
-    echo "<SELECT NAME=\"new_system_code\">$system_codes</SELECT>"; 
+    echo "><SELECT NAME=\"new_system_code\">$system_codes</SELECT>"; 
   else
-    echo "$request->system_desc";
+    echo ">$request->system_desc";
 ?>
   </TD>
 </TR>
@@ -116,11 +110,12 @@
   <TH ALIGN=RIGHT>Type:</TH>
   <?php if ( isset($request) )
     echo "<TD ALIGN=CENTER>$request->request_type</TD>\n";
-  echo "<TD ALIGN=LEFT>";
+  echo "<td align=left";
+  if ( !isset( $request ) ) echo " colspan=2";
   if ( $editable )
-    echo "<SELECT NAME=\"new_type\">$request_types</SELECT>"; 
+    echo "><SELECT NAME=\"new_type\">$request_types</SELECT>"; 
   else
-    echo "$request->request_type_desc";
+    echo ">$request->request_type_desc";
 ?>
   </TD>
 </TR>
@@ -129,11 +124,26 @@
   <TH ALIGN=RIGHT>Urgency:</TH>
   <?php if ( isset($request) )
     echo "<TD ALIGN=CENTER>$request->urgency</TD>\n";
-  echo "<TD ALIGN=LEFT>";
+  echo "<td align=left";
+  if ( !isset( $request ) ) echo " colspan=2";
   if ( $editable )
-    echo "<SELECT NAME=\"new_urgency\">$urgencies</SELECT>"; 
+    echo "><SELECT NAME=\"new_urgency\">$urgencies</SELECT>"; 
   else
-    echo "$request->urgency_desc";
+    echo ">$request->urgency_desc";
+?>
+  </TD>
+</TR>
+
+<TR>
+  <TH ALIGN=RIGHT>Importance:</TH>
+  <?php if ( isset($request) )
+    echo "<TD ALIGN=CENTER>$request->importance</TD>\n";
+  echo "<td align=left";
+  if ( !isset( $request ) ) echo " colspan=2";
+  if ( $editable )
+    echo "><SELECT NAME=\"new_importance\">$importances</SELECT>"; 
+  else
+    echo ">$request->importance_desc";
 ?>
   </TD>
 </TR>
@@ -149,7 +159,7 @@
 
   if ( !isset($request) ) {
     echo "<TR><TH ALIGN=RIGHT>Notify:</TH>\n";
-    echo "<TD ALIGN=LEFT><LABEL><INPUT TYPE=checkbox NAME=\"in_notify\" VALUE=1 CHECKED>&nbsp;Keep me updated on the status of this request.</LABEL></TD></TR>\n";
+    echo "<TD colspan=2 ALIGN=LEFT><LABEL><INPUT TYPE=checkbox NAME=\"in_notify\" VALUE=1 CHECKED>&nbsp;Keep me updated on the status of this request.</LABEL></TD></TR>\n";
   }
 ?>
 </TD></TR></TABLE>

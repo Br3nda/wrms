@@ -193,18 +193,18 @@ if (isset($user_no) && $user_no > 0 ) echo "      ";
       echo ">View Requests</option>\n";
       echo "</select></font></td>\n";
     }
-//  }  // If role is wrms/Admin
-  echo "</table>\n";
 
-  echo "$tbldef>\n<tr><td align=center class=mand>";
-  echo "<B><INPUT TYPE=\"submit\" NAME=\"submit\" VALUE=\"";
-  if ( isset($user_no) && $user_no > 0 )
-    echo " Apply Changes ";
-  else
-    echo " Add User ";
-  echo "\"></b></td>\n</tr></table></form>";
+    echo "</table>\n";
 
-} /* The end of the else ... clause waaay up there! */ ?>
+    echo "$tbldef>\n<tr><td align=center class=mand>";
+    echo "<B><INPUT TYPE=\"submit\" NAME=\"submit\" VALUE=\"";
+    if ( isset($user_no) && $user_no > 0 )
+      echo " Apply Changes ";
+    else
+      echo " Add User ";
+    echo "\"></b></td>\n</tr></table></form>";
+  } // end of "else 'there was no error' way up there.
+?>
 </body> 
 </html>
 

@@ -173,7 +173,7 @@ function dates_equal( $date1, $date2 ) {
       $query .= " request_type = $new_type,";
     if (isset($new_sla_code) && $request->request_sla_code != $new_sla_code ) {
       $sla_split = explode('|', $new_sla_code, 2);
-      $query .= " sla_response_time = '$sla_split[0] hours', sla_response_type = '$sla_split[1]',";
+      $query .= " sla_response_time = '" . intval($sla_split[0]) . " hours', sla_response_type = '$sla_split[1]',";
     }
     if ( "$new_requested_by_date" <> "" && ($sysmgr || $allocated_to) && $requested_by_changed )
       $query .= " requested_by_date = '$new_requested_by_date',";
@@ -329,7 +329,7 @@ function dates_equal( $date1, $date2 ) {
     $query .= ") ";
     $query .= "VALUES( $request_id, '$requsr->username', '" . tidy($new_brief) . "','" . tidy($new_detail) . "', ";
     $query .= "TRUE, 'N', $new_urgency, $new_importance, '$new_system_code' , '$new_type', $requsr->user_no, 'now', ";
-    $query .= "'$sla_split[0] hours', '$sla_split[1]' ";
+    $query .= "'" . intval($sla_split[0]) . " hours', '$sla_split[1]' ";
     if ( "$new_requested_by_date" <> "" ) $query .= ", '$new_requested_by_date'";
     if ( "$new_agreed_due_date" <> "" ) $query .= ", '$new_agreed_due_date'";
     $query .= ")";

@@ -5,6 +5,28 @@
 require_once("html-format.php");
 require_once("guess-file-type.php");
 require_once('class.phpmailer.php');
+
+// Random Joe Functions we use
+function simplify_string( $str ) {
+
+  $result = stripslashes($str);
+
+  if ( function_exists('html_entity_decode') ) {
+    $result = html_entity_decode($result);
+  }
+  else {
+    // Otherwise try and ensure some consistency the other way...
+    if ( ! strpos( $result, '&' ) ) {
+      $result = htmlentities($result);
+    }
+  }
+
+  $result = preg_replace( '/\s+/s', '', $result );
+
+  return $result;
+}
+
+
 class Request {
    var $request_id;         // Which WR is this
    var $new_record;
@@ -1182,8 +1204,8 @@ class Request {
        $this->send_an_email = true;
      }
 
-     $previous = preg_replace( '/\s+/s', '', html_entity_decode(stripslashes($_POST['detailed'])));
-     $current  = preg_replace( '/\s+/s', '', html_entity_decode(stripslashes($this->detailed)));
+     $previous = simplify_string($_POST['detailed']);
+     $current  = simplify_string($this->detailed);
      $detail_changed = ( $previous != $current );
      if ( $this->chtype == "update" && $detail_changed ) {
        $this->mail_message_data[]['text']

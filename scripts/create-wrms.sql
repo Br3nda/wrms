@@ -14,7 +14,7 @@ CREATE TABLE usr (
     phone TEXT,
     fax TEXT,
 		pager TEXT,
-    org_code TEXT,
+    org_code INT4,
     organisation TEXT,
 		email_ok BOOL DEFAULT TRUE,
 		pager_ok BOOL DEFAULT TRUE,
@@ -129,7 +129,7 @@ CREATE FUNCTION max_request()
     AS 'SELECT max(request_id) FROM request'
     LANGUAGE 'sql';
 CREATE FUNCTION get_request_org(INT4)
-    RETURNS TEXT
+    RETURNS INT4
     AS 'SELECT usr.org_code FROM request, usr WHERE request.request_id = $1 AND request.request_by = usr.username'
     LANGUAGE 'sql';
 
@@ -143,7 +143,7 @@ GRANT SELECT ON work_system TO PUBLIC;
 GRANT INSERT,UPDATE,SELECT ON work_system TO general;
 
 CREATE TABLE org_system (
-  org_code TEXT NOT NULL,
+  org_code INT4 NOT NULL,
   system_code TEXT
 ) ;
 GRANT SELECT ON org_system TO PUBLIC;
@@ -556,7 +556,7 @@ GRANT ALL ON system_usr TO andrew;
 
 CREATE TABLE org_usr (
     user_no INT4,
-		org_code TEXT,
+		org_code INT4,
 		role CHAR,
 		PRIMARY KEY ( user_no, org_code, role )
 );

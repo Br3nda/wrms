@@ -8,7 +8,7 @@
       $amount = doubleval( $chg_amt[$k] );
       $invoice = doubleval( $chg_inv[$k] );
       if ( "$amount" == "" ) continue;
-      $because .= "<tr><td>$k</td><td>$v</td><td>$invoice</td><td align=right>" . sprintf( "%10.2f", $amount) . "</td></tr>\n";
+      $because .= "<tr><td align=center>$k</td><td align=center>$v</td><td align=center>$invoice</td><td align=right>" . sprintf( "%10.2f", $amount) . "</td></tr>\n";
       $query .= "UPDATE request_timesheet SET";
       $query .= " work_charged='$v',";
       $query .= " charged_by_id=$session->user_no,";

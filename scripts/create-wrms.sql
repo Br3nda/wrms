@@ -138,7 +138,7 @@ CREATE TABLE org_system (
   system_code TEXT
 ) ;
 GRANT SELECT ON org_system TO PUBLIC;
-GRANT INSERT,UPDATE,SELECT ON work_system TO general;
+GRANT DELETE,INSERT,UPDATE,SELECT ON org_system TO general;
 CREATE INDEX xpk_org_system ON org_system ( org_code, system_code );
 CREATE INDEX xak1_org_system ON org_system ( system_code, org_code );
 

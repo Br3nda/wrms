@@ -360,36 +360,24 @@ CREATE TABLE org_usr (
 GRANT SELECT,INSERT,UPDATE ON org_usr TO PUBLIC;
 GRANT ALL ON org_usr TO andrew;
 
-CREATE FUNCTION set_interested (int4, int4) RETURNS int4 AS '
-   DECLARE
-      u_no ALIAS FOR $1;
-      req_id ALIAS FOR $2;
-      curr_val TEXT;
-   BEGIN
-      SELECT username INTO curr_val FROM request_interested
-			                WHERE user_no = u_no AND request_id = req_id;
-      IF NOT FOUND THEN
-        INSERT INTO request_interested (user_no, request_id, username)
-				    SELECT user_no, req_id, username FROM usr WHERE user_no = u_no;
-      END IF;
-      RETURN u_no;
-   END;
-' LANGUAGE 'plpgsql';
+CREATE TABLE help_hit (
+    user_no INT4,
+    topic TEXT,
+    times INT4,
+    last TIMESTAMP,
+    PRIMARY KEY (user_no, topic)
+);
+GRANT SELECT,INSERT,UPDATE ON help_hit TO PUBLIC;
+GRANT ALL ON help_hit TO andrew;
 
-CREATE FUNCTION set_allocated (int4, int4) RETURNS int4 AS '
-   DECLARE
-      u_no ALIAS FOR $1;
-      req_id ALIAS FOR $2;
-      curr_val TEXT;
-   BEGIN
-      SELECT allocated_to INTO curr_val FROM request_allocated
-			                WHERE allocated_to_id = u_no AND request_id = req_id;
-      IF NOT FOUND THEN
-        INSERT INTO request_allocated (allocated_to_id, request_id, allocated_to)
-				    SELECT user_no, req_id, username FROM usr WHERE user_no = u_no;
-      END IF;
-      RETURN u_no;
-   END;
-' LANGUAGE 'plpgsql';
+CREATE TABLE help (
+    topic TEXT,
+    seq INT4,
+    title TEXT,
+    content LZTEXT,
+    PRIMARY KEY (topic, seq)
+);
+GRANT SELECT,INSERT,UPDATE ON help TO PUBLIC;
+GRANT ALL ON help TO andrew;
 
 \i procedures.sql

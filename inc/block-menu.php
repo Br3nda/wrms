@@ -25,10 +25,10 @@
   }
 
   if ( $roles[wrms][Manage] ) {
-    echo "<br>\n &nbsp;<a href=$base_url/form.php?form=organisation&org_code=$session->org_code class=block>My&nbsp;Organisation</a>";
-    echo "<br>\n &nbsp;<a href=$base_url/usrsearch.php class=block>Our&nbsp;Users</a>";
-    echo "<br>\n &nbsp;<a href=$base_url/usr.php?org_code=$session->org_code class=block>New&nbsp;User</a>";
-    echo "<br>\n &nbsp;<a href=$base_url/form.php?form=syslist&org_code=$session->org_code class=block>Our&nbsp;Systems</a>";
+    echo "<br>\n &nbsp;<a href=\"$base_url/form.php?form=organisation&org_code=$session->org_code\" class=block>My&nbsp;Organisation</a>";
+    echo "<br>\n &nbsp;<a href=\"$base_url/usrsearch.php?org_code=$session->org_code\" class=block>Our&nbsp;Users</a>";
+    echo "<br>\n &nbsp;<a href=\"$base_url/usr.php?org_code=$session->org_code\" class=block>New&nbsp;User</a>";
+    echo "<br>\n &nbsp;<a href=\"$base_url/form.php?form=syslist&org_code=$session->org_code\" class=block>Our&nbsp;Systems</a>";
   }
 
   if ( $roles[wrms][Admin] ) {

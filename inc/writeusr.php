@@ -1,5 +1,6 @@
 <?php
   include("inc/tidy.php");
+  $debuglevel = 5;
 
   if ( "$because" <> "" ) {
     $because = "<H3>User Not Added</H3><P>$because</P>\n";
@@ -7,7 +8,7 @@
   else {
     // Actually write the usr...
     $query = "BEGIN TRANSACTION;";
-    $result = awm_pgexec( $wrms_db, $query );
+    $result = awm_pgexec( $wrms_db, $query, "writeusr" );
 
     // Get the user number ...
     if ( "$M" == "add" ) {
@@ -31,6 +32,7 @@
       $UserPassword = tidy("$UserPassword");
       $UserFax      = tidy("$UserFax");
       $UserPager    = tidy("$UserPager");
+//      error_log( "status=$UserStatus==" . isset($UserStatus), 0);
       $UserStatus  = ( !isset($UserStatus) || "$UserStatus" == "A" ? "A" : "I" );
       if ( "$M" == "add" ) {
         $query = "INSERT INTO usr ( user_no, username, email, fullname, org_code, phone, fax, pager, ";
@@ -40,7 +42,7 @@
         $query .= "$user_no, LOWER('$UserName'), LOWER('$UserEmail'), '$UserFullName', '$UserOrganisation', ";
         $query .= " '$UserPhone', '$UserFax', '$UserPager', '$UserMail', '$UserStatus', 'now' ";
         if ( $UserPassword <> "      " ) $query .= ", '$UserPassword' ";
-	$query .= " ) ";
+	    $query .= " ) ";
       }
       else {
         $query = "UPDATE usr SET email=LOWER('$UserEmail'), fullname='$UserFullName', ";
@@ -56,11 +58,11 @@
         if ( $UserPassword <> "      " ) $query .= ", password='$UserPassword'";
         $query .= " WHERE user_no='$user_no' ";
       }
-      $result = awm_pgexec( $wrms_db, $query );
+      $result = awm_pgexec( $wrms_db, $query, "writeusr", 4 );
       if ( ! $result ) $because .= "<p>$query</p>";
 
       $query = "COMMIT TRANSACTION;";
-      $result = awm_pgexec( $wrms_db, $query );
+      $result = awm_pgexec( $wrms_db, $query, "writeusr", 4 );
       $because .= "<H3>User Record Written for $UserFullName</H3>\n";
 
       // Roles

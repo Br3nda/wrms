@@ -123,10 +123,10 @@ if (isset($user_no) && $user_no > 0 ) echo "      ";
   if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
     echo "\n<tr bgcolor=$colors[6]>\n<th align=right class=rows>Status</th>";
     echo "<td VALIGN=TOP><font Size=2>\n<table border=0 cellspacing=0 cellpadding=3><tr>\n";
-    echo "<td><font size=2><label><input type=checkbox name=\"UserStatus\"";
-    if ( isset($usr->status) || $usr->status <> "I" ) echo " CHECKED";
-    echo " value=\"A\"> Active</label></font></td>\n";
-    echo "</tr></table></td></tr>\n";
+    echo "<td><font size=2>";
+    echo "<label><input type=radio name=\"UserStatus\"" . ( !isset($usr->status) || $usr->status <> "I" ? " CHECKED" : "" ) . " value=\"A\"> Active</label>\n";
+    echo "<label><input type=radio name=\"UserStatus\"" . ( "$usr->status" == "I" ? " CHECKED" : "" ) . " value=\"I\"> Inactive</label>\n";
+    echo "</font></td>\n</tr></table></td></tr>\n";
 
     $org_code_list = get_organisation_list( "$usr->org_code" );
     echo "<tr bgcolor=$colors[6]>\n";
@@ -166,13 +166,13 @@ if (isset($user_no) && $user_no > 0 ) echo "      ";
 
 <?php
     // This displays all those checkboxes to select the systems the user can access.
-    for ( $i=0; $i <pg_NumRows($sys_res); $i++) {
+    for ( $i=0; $i < pg_NumRows($sys_res); $i++) {
       $sys = pg_Fetch_Object( $sys_res, $i );
       if ( $i % 2 == 0 ) echo "<tr bgcolor=$colors[row1]>";
       else echo "<tr bgcolor=$colors[row2]>";
       echo "$hdcell\n";
-      echo "<td NOWRAP><font size=1>$sys->system_desc</td>\n";
-      echo "<td NOWRAP><font size=1>\n";
+      echo "<td nowrap><font size=1>$sys->system_desc</td>\n";
+      echo "<td nowrap><font size=1>\n";
       if ( isset($UserCat) && is_array($UserCat) )
         $code = $UserCat[$sys->system_code];
       else
@@ -181,31 +181,31 @@ if (isset($user_no) && $user_no > 0 ) echo "      ";
         echo "<select name=\"NewUserCat[$sys->system_code]\">\n";
 
         echo "<option value=\"\"";
-        if ( "$code" == "" ) echo " SELECTED";
+        if ( "$code" == "" ) echo " selected";
         echo ">--- no access ---</option>\n";
 
         echo "<option value=A";
-        if ( "$code" == 'A') echo " SELECTED";
+        if ( "$code" == 'A') echo " selected";
         echo ">Administration</option>\n";
 
         echo "<option value=S";
-        if ( "$code" == 'S') echo " SELECTED";
+        if ( "$code" == 'S') echo " selected";
         echo ">System Support</option>\n";
 
         echo "<option value=C";
-        if ( "$code" == 'C') echo " SELECTED";
+        if ( "$code" == 'C') echo " selected";
         echo ">Client Coordinator</option>\n";
 
         echo "<option value=E";
-        if ( "$code" == 'E') echo " SELECTED";
+        if ( "$code" == 'E') echo " selected";
         echo ">Enter Requests</option>\n";
 
         echo "<option value=R";
-        if ( "$code" == 'R') echo " SELECTED";
+        if ( "$code" == 'R') echo " selected";
         echo ">Own Requests</option>\n";
 
         echo "<option value=U";
-        if ( "$code" == 'U') echo " SELECTED";
+        if ( "$code" == 'U') echo " selected";
         echo ">View Requests</option>\n";
 
         echo "</select></font></td>\n";

@@ -92,7 +92,7 @@ $fonts = array( "tahoma",		// primary font
 // Set the bebug variable initially to '0'. This variable is made available 
 // to all local routines for verbose printing. 
 
-if ( !isset($debuglevel) ) $debuglevel = 5;
+if ( !isset($debuglevel) ) $debuglevel = 1;
 
 class Setting {
   var $parameters;  // parameters we have set

@@ -26,7 +26,7 @@
       $query .= " WHERE user_no=$user_no ";
       $query .= " ORDER BY role, system_code ";
       $result = awm_pgexec( $wrms_db, $query, "getusr" );
-      if ( ! $result ) {
+      if ( $result ) {
         // Build array of user system data
         for ( $i=0; $i < pg_NumRows($result); $i++ ) {
           $sys = pg_Fetch_Object( $result, $i );

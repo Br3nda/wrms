@@ -5,12 +5,7 @@
   if ( "$submit" == "register" ) {
     $query = "INSERT INTO request_interested (request_id, username, user_no ) VALUES( $request_id, '$session->username', $session->user_no); ";
     $rid = awm_pgexec( $wrms_db, $query );
-    if ( ! $rid ) {
-      $because .= "<H3>&nbsp;Submit Interest Failed!</H3>\n";
-      $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
-      $because .= "<P>The failed query was:</P><TT>$query</TT>";
-    }
-    else {
+    if ( $rid ) {
       $because .= "<h3>You have been added to this request</h3>";
     }
     return;
@@ -24,13 +19,8 @@
     else
       $user_no = $session->user_no;
     $query = "DELETE FROM request_interested WHERE request_id=$request_id AND user_no=$user_no; ";
-    $rid = awm_pgexec( $wrms_db, $query );
-    if ( ! $rid ) {
-      $because .= "<H3>&nbsp;Remove Interest Failed!</H3>\n";
-      $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
-      $because .= "<P>The failed query was:</P><TT>$query</TT>";
-    }
-    else {
+    $rid = awm_pgexec( $wrms_db, $query, "req-action" );
+    if ( $rid ) {
       if ( $user_no == $session->user_no )
         $because .= "<h3>You have ";
       else
@@ -42,12 +32,7 @@
   else if ( "$submit" == "deltime" ) {
     $query = "SELECT * FROM request_timesheet WHERE timesheet_id=$timesheet_id ; ";
     $rid = awm_pgexec( $wrms_db, $query );
-    if ( ! $rid ) {
-      $because .= "<H3>&nbsp;Delete Timesheet Failed!</H3>\n";
-      $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
-      $because .= "<P>The failed query was:</P><TT>$query</TT>";
-    }
-    else {
+    if ( $rid ) {
       $work = pg_Fetch_Object( $rid, 0);
       $old_work_on = $work->work_on;
       $old_work_units = $work->work_units;
@@ -57,12 +42,7 @@
     }
     $query = "DELETE FROM request_timesheet WHERE timesheet_id=$timesheet_id ; ";
     $rid = awm_pgexec( $wrms_db, $query );
-    if ( ! $rid ) {
-      $because .= "<H3>&nbsp;Delete Timesheet Failed!</H3>\n";
-      $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
-      $because .= "<P>The failed query was:</P><TT>$query</TT>";
-    }
-    else {
+    if ( $rid ) {
       $because .= "<h3>Timesheet deleted.</h3>";
     }
     return;

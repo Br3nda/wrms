@@ -8,7 +8,7 @@ var sopt_rx = /^System: <option value="(.+)">(.+)<\/option>/i
 var aopt_rx = /^Subscriber: <option value="(.+)">(.+)<\/option>/i
 var orgtag_rx = /^OrgTag: <option value="(.+)">(.+)<\/option>/i
 var number_rx = /^[0-9\.]*$/
-var date_rx = /^([0-9][0-9]?[/-][0-1]?[0-9][/-][0-9][0-9][0-9]*|today|yesterday|now|tomorrow)$/
+var date_rx = /^([0-9][0-9]?[\/-][0-1]?[0-9][\/-][0-9][0-9][0-9]*|today|yesterday|now|tomorrow)$/
 
 var person_options;
 var system_options;

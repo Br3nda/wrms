@@ -18,7 +18,12 @@
     if ( "$org_code" <> "" ) $query .= ", org_code ";
     $query .= "FROM work_system ";
     if ( "$org_code" <> "" ) $query .= ", org_system ";
-    $query .= sprintf("WHERE %s active ", ("I" == "$status" ? "NOT" : "") );
+
+    if ( "I" == "$status" )
+      $query .= "WHERE (NOT active OR active IS NULL) ";
+    else
+      $query .= "WHERE active ";
+
     if ( "$search_for" <> "" ) {
       $query .= "AND (system_code ~* '$search_for' ";
       $query .= " OR system_desc ~* '$search_for' ) ";

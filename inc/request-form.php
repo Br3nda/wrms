@@ -52,7 +52,7 @@
   }
   echo "</td></tr>\n</table>\n";
 
-  echo "$tbldef bgcolor=$colors[7]><tr>$hdcell<td class=h3 colspan=3 align=right>";
+  echo "$tbldef bgcolor=$colors[bg1]><tr>$hdcell<td class=h3 colspan=3 align=right>";
   if ( ! $plain ) {
     echo "<form action=\"request.php\" method=post enctype=\"multipart/form-data\">";
     echo "<input type=\"hidden\" name=\"request_id\" value=\"$request->request_id\">";
@@ -89,6 +89,7 @@
   }
   echo "</td></tr>\n";
 
+
   if ( $is_request ) {
     // --------------------- FROM -----------------------
     if ( $is_request && strcmp( $request->eta, "") )
@@ -115,20 +116,21 @@
         echo " &nbsp; &nbsp; &nbsp; <b class=smb>ETA:</b> " .  substr( nice_date($request->eta), 7);
       echo "</TD></TR>\n";
     }
-  }
 
-  // --------------------- STATUS -----------------------
-  if ( is_member_of('Admin', 'Support','Manage' ) ) {
-    echo "<TR><th class=rows align=right VALIGN=MIDDLE>Status:</TH>\n";
-    echo "<TD ALIGN=CENTER>";
-    if ( $editable ) {
-      echo "<LABEL><INPUT class=sml TYPE=\"checkbox\" NAME=\"new_active\" VALUE=\"TRUE\"";
-      if ( $is_request && strtolower( substr( "$request->active", 0, 1)) == "t" ) echo " CHECKED";
-      echo ">&nbsp;Active</LABEL>";
+
+    // --------------------- STATUS -----------------------
+    if ( is_member_of('Admin', 'Support','Manage' ) ) {
+      echo "<TR><th class=rows align=right VALIGN=MIDDLE>Status:</TH>\n";
+      echo "<TD ALIGN=CENTER>";
+      if ( $editable ) {
+        echo "<LABEL><INPUT class=sml TYPE=\"checkbox\" NAME=\"new_active\" VALUE=\"TRUE\"";
+        if ( !$is_request || strtolower( substr( "$request->active", 0, 1)) == "t" ) echo " CHECKED";
+        echo ">&nbsp;Active</LABEL>";
+      }
+      else if ( $is_request && strtolower( substr( "$request->active", 0, 1)) == "t" ) echo "Active";
+      else echo "Inactive";
+      echo "</TD>\n<TD ALIGN=LEFT>&nbsp;$request->last_status - $request->status_desc</TD></TR>\n";
     }
-    else if ( $is_request && strtolower( substr( "$request->active", 0, 1)) == "t" ) echo "Active";
-    else echo "Inactive";
-    echo "</TD>\n<TD ALIGN=LEFT>&nbsp;$request->last_status - $request->status_desc</TD></TR>\n";
   }
 
   // --------------------- SYSTEM -----------------------
@@ -240,7 +242,7 @@
   echo "</td></tr>\n";
 
   // ----------------- NOTIFY (for normal users) -----------------
-  if ( ! is_request || is_member_of('Admin', 'Support', 'Manage') ) {
+  if ( ! $is_request || is_member_of('Admin', 'Support', 'Manage') ) {
     echo "<tr><th class=rows align=right>Notify:</th>\n";
     echo "<td colspan=2><label><input type=checkbox name=\"in_notify\" value=1 checked>&nbsp;Keep me updated on the status of this request.</label></td></tr>\n";
   }
@@ -248,62 +250,61 @@
   echo "</table>\n";
 
   //---------------- Attachment Details */
-  if ( ! $is_request || is_member_of('Admin', 'Support', 'Manage') ) {
-    if ( isset( $request ) ) {
-      $query = "SELECT * FROM request_attachment WHERE request_attachment.request_id = $request->request_id ";
-      $query .= "ORDER BY request_attachment.attachment_id;";
-      $updateq = awm_pgexec( $wrms_db, $query, 'request_form');
-      $rows = pg_NumRows($updateq);
-    }
-    else
-      $rows = 0;
+  if ( $is_request ) {
+    $query = "SELECT * FROM request_attachment WHERE request_attachment.request_id = $request->request_id ";
+    $query .= "ORDER BY request_attachment.attachment_id;";
+    $updateq = awm_pgexec( $wrms_db, $query, 'request_form');
+    $rows = pg_NumRows($updateq);
+  }
+  else
+    $rows = 0;
 
-    if ( ! $plain || $rows > 0 ) {
-      echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=5>&nbsp;</TD></TR><TR>$hdcell";
-      echo "<td class=h3 colspan=4 align=right>File Attachments</td></tr>\n";
-      echo "<tr>\n";
-      echo "<th class=cols>Filename</th>\n";
-      echo "<th class=cols>Type</th>\n";
-      echo "<th class=cols>Display / X <i>x</i> Y</th>\n";
-      echo "<th class=cols>Description</th>\n";
-      echo "</tr>\n";
-    }
-    if ( $rows > 0 ) {
+  if ( ! $plain || $rows > 0 ) {
+    echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=5>&nbsp;</TD></TR><TR>$hdcell";
+    echo "<td class=h3 colspan=4 align=right>File Attachments</td></tr>\n";
+    echo "<tr>\n";
+    echo "<th class=cols>Filename</th>\n";
+    echo "<th class=cols>Type</th>\n";
+    echo "<th class=cols>Display / X <i>x</i> Y</th>\n";
+    echo "<th class=cols>Description</th>\n";
+    echo "</tr>\n";
+  }
+  if ( $rows > 0 ) {
 
-      for( $i=0; $i<$rows; $i++ ) {
-        $attachment = pg_Fetch_Object( $updateq, $i );
+    for( $i=0; $i<$rows; $i++ ) {
+      $attachment = pg_Fetch_Object( $updateq, $i );
 
-        printf("<tr class=row%1d>", ($i % 2) );
-        echo "<td><a href=/attachment.php/" . urlencode($attachment->att_filename) . "?id=$attachment->attachment_id target=_new>$attachment->att_filename</a></td>\n";
-        echo "<td>$attachment->att_type</td>\n";
-        echo "<td>" . nice_date($attachment->attached_on) . "</TD>\n";
-        echo "<td>$attachment->att_brief</td>";
-        echo "</tr>\n";
-        if ( $attachment->att_inline == "t" ) {
-          printf("<tr class=row%1d>", ($i % 2) );
-          echo "<td colspan=4>";
-          echo "<iframe width=$attachment->att_width height=$attachment->att_height src=/attachment.php/$attachment->att_filename?id=$attachment->attachment_id>\n";
-          echo "<a href=/attachment.php/" . urlencode($attachment->att_filename) . "?id=$attachment->attachment_id target=_new>View Attachment</a>\n";
-          echo "</iframe>\n";
-          echo "</td></tr>";
-        }
-      }
-    }
-    if ( ! $plain ) {
       printf("<tr class=row%1d>", ($i % 2) );
-      echo "<td><input class=sml name=new_attachment_file size=20 type=file></td>\n";
-      echo "<td><select class=sml name=new_attachment_type>$attach_types</select></td>\n";
-      if ( is_member_of('Admin', 'Support' ) ) {
-        echo "<td nowrap><label>Show inline<input name=new_attach_inline type=checkbox value=1></label><input name=new_attach_x size=3 type=text>x<input name=new_attach_y size=3 type=text></td>";
-        echo "<td>";
+      echo "<td><a href=/attachment.php/" . urlencode($attachment->att_filename) . "?id=$attachment->attachment_id target=_new>$attachment->att_filename</a></td>\n";
+      echo "<td>$attachment->att_type</td>\n";
+      echo "<td>" . nice_date($attachment->attached_on) . "</TD>\n";
+      echo "<td>$attachment->att_brief</td>";
+      echo "</tr>\n";
+      if ( $attachment->att_inline == "t" ) {
+        printf("<tr class=row%1d>", ($i % 2) );
+        echo "<td colspan=4>";
+        echo "<iframe width=$attachment->att_width height=$attachment->att_height src=/attachment.php/$attachment->att_filename?id=$attachment->attachment_id>\n";
+        echo "<a href=/attachment.php/" . urlencode($attachment->att_filename) . "?id=$attachment->attachment_id target=_new>View Attachment</a>\n";
+        echo "</iframe>\n";
+        echo "</td></tr>";
       }
-      else {
-        echo "<td colspan=2>";
-      }
-      echo "<input class=sml size=30 name=new_attach_brief type=text></td></tr>\n";
     }
-    if ( ! $plain || $rows > 0 )
-      echo "</table>";
+  }
+  if ( ! $plain ) {
+    printf("<tr class=row%1d>", ($i % 2) );
+    echo "<td><input class=sml name=new_attachment_file size=20 type=file></td>\n";
+    echo "<td><select class=sml name=new_attachment_type>$attach_types</select></td>\n";
+    if ( is_member_of('Admin', 'Support' ) ) {
+      echo "<td nowrap><label>Show inline<input name=new_attach_inline type=checkbox value=1></label><input name=new_attach_x size=3 type=text>x<input name=new_attach_y size=3 type=text></td>";
+      echo "<td>";
+    }
+    else {
+      echo "<td colspan=2>";
+    }
+    echo "<input class=sml size=30 name=new_attach_brief type=text></td></tr>\n";
+  }
+  if ( ! $plain || $rows > 0 )
+    echo "</table>";
 
 
   /***** Quote Details */
@@ -410,7 +411,7 @@
 
   /***** Timesheet Details */
   /* we only show timesheet details if they exist */
-  if ( $is_request && is_member_of('Admin', 'Support', 'Manage') ) {
+  if ( $is_request && is_member_of('Admin', 'Support') ) {
     $query = "SELECT *, date_part('epoch',request_timesheet.work_duration) AS seconds ";
     $query .= "FROM request_timesheet, usr ";
     $query .= "WHERE request_timesheet.request_id = $request->request_id ";
@@ -419,20 +420,22 @@
     $workq = awm_pgexec( $wrms_db, $query);
     $rows = pg_NumRows($workq);
   }
-  else $rows = 0;
+  else
+    $rows = 0;
+
   if ( $rows > 0  || (($allocated_to || $sysmgr) && !$plain) ) {
-?>
-<?php echo "$tbldef>\n<tr><td class=sml colspan=7>&nbsp;</td></tr><tr>$hdcell"; ?>
-<td class=h3 colspan=7 align=right>Work Done</TD></TR>
- <tr valign=top>
-   <th class=smb>Done By</th>
-   <th class=smb>Done On</th>
-   <th class=smb>Quantity</th>
-   <th class=smb>Rate</th>
-   <th class=smb>Cost</th>
-   <th class=smb colspan=2>Description</th>
- </tr>
-<?php
+
+    echo "$tbldef>\n<tr><td class=sml colspan=7>&nbsp;</td></tr><tr>$hdcell";
+    echo "<td class=h3 colspan=7 align=right>Work Done</TD></TR>\n";
+    echo "<tr valign=top>\n";
+    echo "<th class=smb>Done By</th>\n";
+    echo "<th class=smb>Done On</th>\n";
+    echo "<th class=smb>Quantity</th>\n";
+    echo "<th class=smb>Rate</th>\n";
+    echo "<th class=smb>Cost</th>\n";
+    echo "<th class=smb colspan=2>Description</th>\n";
+    echo "</tr>\n";
+
     $total_cost = 0;
     for( $i=0; $i<$rows; $i++ ) {
       $work = pg_Fetch_Object( $workq, $i );
@@ -480,33 +483,34 @@
     }
     echo "</TABLE>\n";
 
-  }  // if rows>0
+  }  // if timesheet rows>0
 
-  /***** Interested People */
-  /* People who are interested - again, only if there are any.  The requestor is not shown */
-  $query = "SELECT usr.fullname, organisation.abbreviation, usr.user_no ";
-  $query .= "FROM request_interested, usr, organisation ";
-  $query .= "WHERE request_id = '$request->request_id' ";
-  $query .= "AND request_interested.user_no = usr.user_no ";
-  $query .= "AND organisation.org_code = usr.org_code ";
-  $peopleq = awm_pgexec( $wrms_db, $query);
-  $rows = pg_NumRows($peopleq);
+  if ( $is_request ) {
+    /***** Interested People */
+    /* People who are interested - again, only if there are any.  The requestor is not shown */
+    $query = "SELECT usr.fullname, organisation.abbreviation, usr.user_no ";
+    $query .= "FROM request_interested, usr, organisation ";
+    $query .= "WHERE request_id = '$request->request_id' ";
+    $query .= "AND request_interested.user_no = usr.user_no ";
+    $query .= "AND organisation.org_code = usr.org_code ";
+    $peopleq = awm_pgexec( $wrms_db, $query);
+    $rows = pg_NumRows($peopleq);
     echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=3>&nbsp;</TD></TR>\n";
     printf( "<TR>$hdcell<TD CLASS=h3 COLSPAN=%d align=right>Interested Users</TD></TR>\n", ( $plain ? 3 : 2) );
     echo "<TR VALIGN=TOP>\n<td>";
-  if ( $rows > 0 ) {
-    for( $i=0; $i<$rows; $i++ ) {
-      $interested = pg_Fetch_Object( $peopleq, $i );
-      if ( $i > 0 ) echo ", ";
-      if ( ! $plain && ($allocated_to || $sysmgr || is_member_of('Admin', 'Support', 'Manage')) ) {
-        echo "<a href=\"request.php?submit=deregister&user_no=$interested->user_no&request_id=$request_id\">\n";
+    if ( $rows > 0 ) {
+      for( $i=0; $i<$rows; $i++ ) {
+        $interested = pg_Fetch_Object( $peopleq, $i );
+        if ( $i > 0 ) echo ", ";
+        if ( ! $plain && ($allocated_to || $sysmgr || is_member_of('Admin', 'Support', 'Manage')) ) {
+          echo "<a href=\"request.php?submit=deregister&user_no=$interested->user_no&request_id=$request_id\">\n";
+        }
+        echo "$interested->fullname ($interested->abbreviation)\n";
+        if ( ($allocated_to || $sysmgr) && ! $plain )
+          echo "</a>\n";
       }
-      echo "$interested->fullname ($interested->abbreviation)\n";
-      if ( ($allocated_to || $sysmgr) && ! $plain )
-        echo "</a>\n";
     }
-  }
-
+  
     if ( !$plain ) {
       $notify_to = notify_emails( $wrms_db, $request_id );
       if ( strstr( $notify_to, $session->email ) ) {
@@ -517,34 +521,36 @@
         $tell = "Inform me about updates to this request!";
         $action = "register";
       }
-
+  
       echo "</TD>\n<TD ALIGN=RIGHT nowrap>";
       if ( is_member_of('Admin', 'Support', 'Manage') ) {
         echo "Add:&nbsp;<select class=sml name=\"new_interest\">$user_list</SELECT>\n";
       }
-      else
+      else {
         echo "<a class=r href=\"request.php?submit=$action&request_id=$request_id\">$tell</a>";
-    echo "</TD>\n</TR></TABLE>\n";
+      }
+      echo "</TD>\n</TR></TABLE>\n";
+    }
   }
-?>
 
 
-<?php /***** Notes */
+
+  /***** Notes */
   $noteq = "SELECT * FROM request_note WHERE request_note.request_id = '$request->request_id' ";
   $noteq .= "ORDER BY note_on ";
   $note_res = awm_pgexec( $wrms_db, $noteq );
   $rows = pg_NumRows($note_res);
   if ( $rows > 0 ) {
-?>
+    echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=4>&nbsp;</TD></TR><TR>$hdcell";
 
-<?php echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=4>&nbsp;</TD></TR><TR>$hdcell"; ?>
-<TD CLASS=h3 COLSPAN=3 align=right>Associated Notes</TD></TR>
-<TR VALIGN=TOP>
-  <TH ALIGN=LEFT class=cols>Noted&nbsp;By</TH>
-  <TH class=cols>Noted On</TH>
-  <TH ALIGN=LEFT class=cols>Details</TH>
-</TR>
-<?php /*** the actual details of notes */
+    echo "<TD CLASS=h3 COLSPAN=3 align=right>Associated Notes</TD></TR>\n";
+    echo "<TR VALIGN=TOP>\n";
+    echo "<TH ALIGN=LEFT class=cols>Noted&nbsp;By</TH>\n";
+    echo "<TH class=cols>Noted On</TH>\n";
+    echo "<TH ALIGN=LEFT class=cols>Details</TH>\n";
+    echo "</TR>\n";
+
+    /*** the actual details of notes */
     for( $i=0; $i<$rows; $i++ ) {
       $request_note = pg_Fetch_Object( $note_res, $i );
       printf("<tr class=row%1d>", ($i % 2) );
@@ -554,9 +560,10 @@
     }
     echo "</TABLE>\n";
   }  // if rows > 0
-?>
 
-<?php /***** Status Changes */
+
+
+  /***** Status Changes */
   $statq = "SELECT * FROM request_status, lookup_code AS status, usr ";
   $statq .= " WHERE request_status.request_id = '$request->request_id' AND request_status.status_code = status.lookup_code ";
   $statq .= " AND status.source_table='request' AND status.source_field='status_code' ";
@@ -566,14 +573,15 @@
   $rows = pg_NumRows($stat_res);
   if ( $rows > 0 ) {
     echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=4>&nbsp;</TD></TR><TR>$hdcell";
-?>
-<td class=h3 colspan=3 align=right>Changes in Status</TD></TR>
-<tr valign=top>
-  <th class=smb width="15%" align=left>Changed By</th>
-  <th class=smb width="25%" align=left>Changed On</th>
-  <th class=smb width="60%" align=left>Changed To</th>
-</tr>
-<?php /* the actual status stuff */
+
+    echo "<td class=h3 colspan=3 align=right>Changes in Status</TD></TR>\n";
+    echo "<tr valign=top>\n";
+    echo "<th class=smb width=\"15%\" align=left>Changed By</th>\n";
+    echo "<th class=smb width=\"25%\" align=left>Changed On</th>\n";
+    echo "<th class=smb width=\"60%\" align=left>Changed To</th>\n";
+    echo "</tr>\n";
+
+    /* the actual status stuff */
     for( $i=0; $i<$rows; $i++ ) {
       $request_status = pg_Fetch_Object( $stat_res, $i );
       printf("<tr class=row%1d>", ($i % 2) );
@@ -611,7 +619,7 @@
 </table>\n";
 
   }  // if ! plain
-}  // $is_request (way up there with the update details!)
+
 
 if ( "$style" != "plain" ) {
   echo "$tbldef>\n";

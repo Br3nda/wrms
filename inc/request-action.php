@@ -200,6 +200,7 @@ function dates_equal( $date1, $date2 ) {
 
     $because .= "<H2>Your request number for enquiries is $request_id.</H2>";
     $send_some_mail = TRUE;
+    $previous = $request;
   }
   else {
     /////////////////////////////////////
@@ -446,22 +447,17 @@ function dates_equal( $date1, $date2 ) {
     if ( $statusable && $status_changed )
       $because .= "<br>Request status has been changed.\n";
 
-    if ( isset($new_active) && $request->active != $new_active ) {
-      $because .= "<br>Request has been ";
-      if ( $new_active == "TRUE" ) $because .= "re-"; else $because .= "de-";
-      $because .= "activated\n";
-    }
+  if ( isset($new_active) && $request->active != $new_active ) {
+    $because .= "<br>Request has been ";
+    if ( $new_active == "TRUE" ) $because .= "re-"; else $because .= "de-";
+    $because .= "activated\n";
+  }
 
-    if ( $work_added )
-      $because .= "<br>Timesheet added to request.\n";
+  if ( $work_added ) $because .= "<br>Timesheet added to request.\n";
+  if ( $quote_added ) $because .= "<br>Quote $new_quote_id added to request.\n";
+  if ( $note_added ) $because .= "<br>Notes added to request.\n";
 
-    if ( $quote_added )
-      $because .= "<br>Quote $new_quote_id added to request.\n";
-
-    if ( $note_added )
-      $because .= "<br>Notes added to request.\n";
-
-    $previous = $request;
+  $previous = $request;
 
 
   // Looks like we made it through that transaction then...

@@ -240,6 +240,7 @@ function tidy( $instr ) {
 //-----------------------------------------
 function link_writeups( $instr ) {
   global $logged_on, $current_node;
+  $last_node = "";
   if ( isset($current_node) ) $last_node = "&last=$current_node";
   if ( !$logged_on ) return $instr;
   $instr = ereg_replace("\[mailto:([^]|]+)\]", "<a class=wu href=\"mailto:\\1\">\\1</a>", $instr);

@@ -11,69 +11,69 @@
   else {
     echo "<p class=helptext>Use this form to search for users and to maintain their access rights.</p>\n";
     echo "<form Action=\"$base_url/usrsearch.php\" Method=\"POST\">\n";
-?>
-<table align=center cellspacing=0 cellpadding=2><tr valign=middle>
-<td><b>Name </b><input TYPE="Text" Size="20" Name="search_for" Value="<?php echo "$search_for"; ?>"></td>
-<td><b>Type </b><SELECT NAME="user_type">
-<Option Value="."> All </Option>
-<Option Value="S"<?php if ( "$user_type" == "S" ) echo " checked"; ?>> System Support </OPTION>
-<Option Value="C"<?php if ( "$user_type" == "S" ) echo " checked"; ?>> Client Coordinator </OPTION>
-<Option Value="U"<?php if ( "$user_type" == "S" ) echo " checked"; ?>> System User </OPTION>
-</SELECT></td>
-<td><input TYPE="Image" src="images/in-go.gif" alt="go" WIDTH="44" BORDER="0" HEIGHT="26" name="submit"></td>
-</tr></table>
-</form>  
 
-<?php
-  if ( "$search_for$org_code$system_code " != "" && ( $roles['wrms']['Manage'] || $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) ) {
+    echo "<table align=center cellspacing=0 cellpadding=2><tr valign=middle>\n";
+    echo "<td><b>Name:</b><input type=text size=\"20\" name=search_for value=\"$search_for\"></td>\n";
 
-    $query = "SELECT * FROM usr, organisation";
+    if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
+      include( "inc/organisation-list.php" );
+      $orglist = "<option value=\"\">--- All Organisations ---</option>\n" . get_organisation_list( "$org_code" );
+      echo "<td><b>Org:</b><select name=\"org_code\">\n$orglist</select></td>\n";
+      echo "<td>&nbsp;<label><b>Inactive:</b><input type=\"checkbox\" name=status value=I" . ("$status" == "I" ? " checked" : "") . "></label></td>\n";
+    }
+    else if ( $roles['wrms']['Manage'] ) {
+      include( "inc/system-list.php" );
+      $syslist = get_system_list( "VOECS", "$system_code" );
+      echo "<td><b>Type </b><select name=\"system_code\">\n$syslist</select></td>\n";
+    }
+
+    echo "<td><input type=image src=images/in-go.gif alt=go width=\"44\" border=\"0\" height=\"26\" name=submit></td>\n";
+    echo "</tr></table>\n</form>\n";
+
+    if ( "$search_for$org_code$system_code$status " != "" && ( $roles['wrms']['Manage'] || $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) ) {
+
+      $query = "SELECT * FROM usr, organisation";
 //    $query .= ", session";
-    if ( isset( $system_code ) ) $query .= ", system_usr, lookup_code";
-    $query .= " WHERE usr.org_code=organisation.org_code ";
+      if ( isset( $system_code ) ) $query .= ", system_usr, lookup_code";
+      $query .= " WHERE usr.org_code=organisation.org_code ";
+      if ( !isset( $org_code ) || $org_code == "" )
+        $query .= "AND organisation.active ";
+      if ( !isset( $status ) || $status <> "I" )
+        $query .= "AND usr.status != 'I' ";
 //    $query .= " AND usr.user_no=session.user_no ";
-    if ( "$search_for" != "" ) {
-      $query .= " AND (fullname ~* '$search_for' ";
-      $query .= " OR username ~* '$search_for' ";
-      $query .= " OR email ~* '$search_for' )";
-    }
-    if ( $roles[wrms][Manage] && ! ($roles[wrms][Admin] || $roles[wrms][Support]) )
-      $query .= " AND usr.org_code='$session->org_code' ";
-    else if ( isset( $org_code ) ) 
-      $query .= " AND usr.org_code='$org_code' ";
+      if ( "$search_for" != "" ) {
+        $query .= " AND (fullname ~* '$search_for' ";
+        $query .= " OR username ~* '$search_for' ";
+        $query .= " OR email ~* '$search_for' )";
+      }
+      if ( $roles[wrms][Manage] && ! ($roles[wrms][Admin] || $roles[wrms][Support]) )
+        $query .= " AND usr.org_code='$session->org_code' ";
+      else if ( isset( $org_code ) && $org_code != "" )
+        $query .= " AND usr.org_code='$org_code' ";
 
-    if ( isset( $user_type ) ) {
-      $query .= " AND usr.status~'^$user_type'";
-    }
+      if ( isset( $system_code ) ) {
+        $query .= " AND system_usr.system_code='$system_code'";
+        $query .= " AND system_usr.user_no=usr.user_no";
+        $query .= " AND lookup_code.source_table='system_usr' AND lookup_code.source_field='role' AND lookup_code.lookup_code=system_usr.role ";
+      }
 
-    if ( isset( $system_code ) ) {
-      $query .= " AND system_usr.system_code='$system_code'";
-      $query .= " AND system_usr.user_no=usr.user_no";
-      $query .= " AND lookup_code.source_table='system_usr' AND lookup_code.source_field='role' AND lookup_code.lookup_code=system_usr.role ";
-    }
-
-    $query .= " ORDER BY username";
+      $query .= " ORDER BY LOWER(fullname)";
 //    $query .= ", session_end DESC ";
 //    $query .= " LIMIT 100 ";
-    $result = pg_Exec( $wrms_db, $query );
-    if ( ! $result ) {
-      $error_loc = "usrsearch.php";
-      $error_qry = "$query";
-      include( "inc/error.php" );
-    }
-    else {
+      $result = awm_pgexec( $wrms_db, $query, 'usrsearch' );
+      if ( $result ) {
       // Build table of usrs found
-      echo "<p>&nbsp;" . pg_NumRows($result) . " users found</p>"; // <p>$query</p>";
-      echo "<table border=\"0\" cellpadding=2 cellspacing=1 align=center>\n<tr>\n";
-      echo "<th class=cols>User&nbsp;ID</th><th class=cols>Full Name</th>\n";
-      echo "<th class=cols>Organisation</th><th class=cols>Email</th>\n";
-      if ( isset( $system_code ) )
-        echo "<th class=cols>User Role</th>\n";
-      echo "<th class=cols>Updated</th>\n";
-      if ( ! isset( $system_code ) )
-        echo "<th class=cols>Accessed</th>\n";
-      echo "<th class=cols>Actions</th>\n";
-      echo "</tr>\n";
+        echo "<p>&nbsp;" . pg_NumRows($result) . " users found</p>"; // <p>$query</p>";
+        echo "<table border=\"0\" cellpadding=2 cellspacing=1 align=center>\n<tr>\n";
+        echo "<th class=cols>User&nbsp;ID</th><th class=cols>Full Name</th>\n";
+        echo "<th class=cols>Organisation</th><th class=cols>Email</th>\n";
+        if ( isset( $system_code ) )
+          echo "<th class=cols>User Role</th>\n";
+        echo "<th class=cols>Updated</th>\n";
+        if ( ! isset( $system_code ) )
+          echo "<th class=cols>Accessed</th>\n";
+        echo "<th class=cols>Actions</th>\n";
+        echo "</tr>\n";
 
       for ( $i=0; $i < pg_NumRows($result); $i++ ) {
         $thisusr = pg_Fetch_Object( $result, $i );
@@ -105,7 +105,7 @@
     }
   }
 
-} /* The end of the else ... clause waaay up there! */ 
+} /* The end of the else ... clause waaay up there! */
 
   include("inc/footers.php");
 ?>

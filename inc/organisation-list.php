@@ -6,12 +6,13 @@ function get_organisation_list( $current="", $maxwidth=50 ) {
 
   $query = "SELECT * ";
   $query .= "FROM organisation ";
-  $query .= " ORDER BY abbreviation";
-  $rid = awm_pgexec( $wrms_db, $query);
-  if ( ! $rid ) {
-    echo "<p>$query";
-  }
-  else if ( pg_NumRows($rid) > 1 ) {
+  $query .= "WHERE active ";
+  $query .= " ORDER BY LOWER(org_name)";
+  $rid = awm_pgexec( $wrms_db, $query, "organisation-list");
+
+  // Note that we use > 1 here since we can automatically assign the organisation
+  // if only one possibility could apply....
+  if ( $rid && pg_NumRows($rid) > 1 ) {
     // Build table of organisations found
     $rows = pg_NumRows( $rid );
     for ( $i=0; $i < $rows; $i++ ) {

@@ -33,7 +33,7 @@
     if ( "$org_code" <> "" ) {
       $query .= " AND org_system.org_code = $org_code ";
     }
-    $query .= " ORDER BY organisation.org_name ";
+    $query .= " ORDER BY LOWER(organisation.org_name) ";
     $query .= " LIMIT 100 ";
     $result = awm_pgexec( $wrms_db, $query );
     if ( ! $result ) {

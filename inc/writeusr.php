@@ -31,6 +31,7 @@
       $UserPassword = tidy("$UserPassword");
       $UserFax      = tidy("$UserFax");
       $UserPager    = tidy("$UserPager");
+      $UserStatus  = ( !isset($UserStatus) || "$UserStatus" == "A" ? "A" : "I" );
       if ( "$M" == "add" ) {
         $query = "INSERT INTO usr ( user_no, username, email, fullname, org_code, phone, fax, pager, ";
         $query .= " mail_style, status, last_update";

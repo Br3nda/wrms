@@ -92,7 +92,7 @@ $fonts = array( "tahoma",		// primary font
 // Set the bebug variable initially to '0'. This variable is made available 
 // to all local routines for verbose printing. 
 
-if ( !isset($debuglevel) ) $debuglevel = 0;
+if ( !isset($debuglevel) ) $debuglevel = 5;
 
 class Setting {
   var $parameters;  // parameters we have set
@@ -161,7 +161,10 @@ function awm_pgexec( $myconn, $query, $location="", $abort_on_fail=false, $mydbg
     error_log( "$sysabbr $locn QF: $query", 0);
   else if ( $debuglevel > 4  || $mydbg > 4 ) {
     error_log( "$sysabbr $locn URI: $REQUEST_URI", 0);
-    error_log( "$sysabbr $locn QT: $taken for: $query", 0);
+    while( strlen( $query ) > 0 ) {
+      error_log( "$sysabbr $locn QT: $taken for: " . substr( $query, 0, 220) , 0);
+      $query = substr( "$query", 220 );
+    }
   }
   else if ( $debuglevel > 2  || $mydbg > 2 ) {
     error_log( "$sysabbr $locn QT: $taken for: " . substr( $query, 0,200), 0);

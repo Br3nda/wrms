@@ -104,32 +104,30 @@ echo "$usr->username";
 if ( $roles['wrms']['Admin'] || ("$usr->username" == "") ) echo "\">";
 echo "</td>"; ?>
 </tr> 
-<tr bgcolor=<?php echo $colors[6]; ?>> 
+<tr bgcolor=<?php echo $colors[6]; ?>>
 	<th align=right class=rows>Password</th> 
 	<td><font Size="2"><input Type=password Name="UserPassword" Size="15" Value="<?php
 if (isset($user_no) && $user_no > 0 ) echo "      ";
-?>"></font></td> 
-</tr> 
-<tr bgcolor=<?php echo $colors[6]; ?>> 
-	<th align=right class=rows>Email</th> 
-	<td><font size=2><input Type="Text" Name="UserEmail" Size="50" Value="<?php echo "$usr->email"; ?>"></font></td> 
-</tr> 
-<tr bgcolor=<?php echo $colors[6]; ?>> 
+?>"></font></td>
+</tr>
+<tr bgcolor=<?php echo $colors[6]; ?>>
+	<th align=right class=rows>Email</th>
+	<td><font size=2><input Type="Text" Name="UserEmail" Size="50" Value="<?php echo "$usr->email"; ?>"></font></td>
+</tr>
+<tr bgcolor=<?php echo $colors[6]; ?>>
 	<th align=right class=rows>Full Name</th>
-	<td><font Size="2"><input Type="Text" Name="UserFullName" Size="24" Value="<?php echo "$usr->fullname"; ?>"></font></td> 
-</tr> 
-<?php if ( $roles['wrms']['Admin'] ) { ?>
-<tr bgcolor=<?php echo $colors[6]; ?>> 
-	<th align=right class=rows>User Type</th> 
-	<td><font Size="2">
-	<input Type="Radio" Name="UserStatus" Value="S"<?php if ("$usr->status" == "S" ) echo " CHECKED"; ?>> System Support &nbsp; 
-	<input Type="Radio" Name="UserStatus" Value="C"<?php if ("$usr->status" == "C" ) echo " CHECKED"; ?>> Client Coordinator &nbsp;
-	<input Type="Radio" Name="UserStatus" Value="U"<?php if ("$usr->status" == "U" ) echo " CHECKED"; ?>> System User &nbsp;</font></td> 
+	<td><font Size="2"><input Type="Text" Name="UserFullName" Size="24" Value="<?php echo "$usr->fullname"; ?>"></font></td>
 </tr>
 <?php
-  }  // end of   'if Admin... ' about 5 lines up
 
   if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
+    echo "\n<tr bgcolor=$colors[6]>\n<th align=right class=rows>Status</th>";
+    echo "<td VALIGN=TOP><font Size=2>\n<table border=0 cellspacing=0 cellpadding=3><tr>\n";
+    echo "<td><font size=2><label><input type=checkbox name=\"UserStatus\"";
+    if ( isset($usr->status) || $usr->status <> "I" ) echo " CHECKED";
+    echo " value=\"A\"> Active</label></font></td>\n";
+    echo "</tr></table></td></tr>\n";
+
     $org_code_list = get_organisation_list( "$usr->org_code" );
     echo "<tr bgcolor=$colors[6]>\n";
     echo "<th align=right class=rows>Organisation</th>\n";
@@ -161,7 +159,7 @@ if (isset($user_no) && $user_no > 0 ) echo "      ";
     echo "</select></font></td></tr></table></td></tr>\n";
   }
 ?>
-</table> 
+</table>
 
 <?php echo "$tbldef><TR><TD CLASS=sml COLSPAN=3>&nbsp;</TD></TR><TR>$hdcell"; ?>
 <TD CLASS=h3 COLSPAN=2 ALIGN=RIGHT<?php echo " bgcolor=$colors[8]"; ?>><FONT SIZE=+1 color=<?php echo $colors[1]; ?>><B>System Access</B></FONT></TD></TR>

@@ -1,5 +1,5 @@
 <?php
-function get_user_list( $status="", $org="", $current ) {
+function get_user_list( $role="", $org="", $current ) {
   global $wrms_db;
   global $session;
   $user_list = "";
@@ -7,13 +7,17 @@ function get_user_list( $status="", $org="", $current ) {
   $query = "SELECT DISTINCT usr.user_no, usr.fullname ";
   $query .= "FROM usr ";
   if ( $org <> "" )           $query .= ", organisation";
-  if ( "$status$org" <> "" )  $query .= " WHERE ";
-  if ( "$status" <> "" )      $query .= " usr.status~*'[$status]' ";
-  if ( "$status" <> "" && "$org" <> "" )  $query .= " AND ";
-  if ( "$org" <> "" )         $query .= " usr.org_code='$org' ";
+  $query .= " WHERE usr.status <> 'I' ";
+  if( $role <> "" ) {
+    $query .= "AND EXISTS (SELECT group_member.user_no FROM group_member, ugroup ";
+    $query .= "WHERE group_member.user_no = usr.user_no ";
+    $query .= "AND ugroup.group_no = group_member.group_no ";
+    $query .= "AND ugroup.group_name = '$role' )";
+  }
+  if ( "$org" <> "" )         $query .= " AND usr.org_code='$org' ";
   $query .= " ORDER BY usr.fullname; ";
 
-  $rid = awm_pgexec( $wrms_db, $query);
+  $rid = awm_pgexec( $wrms_db, $query, "userlist", 7);
   if ( ! $rid ) {
     echo "<p>$query";
   }

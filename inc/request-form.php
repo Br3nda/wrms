@@ -15,7 +15,7 @@
       if ( $roles['wrms']['Admin'] || $roles['wrms']['Support']  ) {
         $user_list = get_user_list( "", "", $session->user_no );
         $support_list = "<option value=\"\">--- not assigned ---</option>\n";
-        $support_list .= get_user_list( "S", "", $session->user_no );
+        $support_list .= get_user_list( "Support", "", $session->user_no );
       }
       else
         $user_list = get_user_list( "", $session->org_code, $session->user_no );
@@ -26,7 +26,10 @@
     }
 
     include("$base_dir/inc/system-list.php");
-    $system_codes = get_system_list("ASCE", "$request->system_code");
+    if ( $session->status == 'S' )  // Support Staff
+      $system_codes = get_system_list("ASCE", "$request->system_code");
+    else
+      $system_codes = get_system_list("ASCE", "$request->system_code");
     if ( ! isset($request) ) {
       $system_codes = "<option value=\"UNKNOWN\">--- not assigned ---</option>\n$system_codes";
     }
@@ -277,7 +280,7 @@
     $user_list = "<option value=\"\">--- no change ---</option>\n";
     if ( $roles['wrms']['Admin'] || $roles['wrms']['Support']  ) {
       $support_list = $user_list;
-      $support_list .= get_user_list( "S", "", "" );
+      $support_list .= get_user_list( "Support", "", "" );
       $user_list .= get_user_list( "", "", "" );
     }
     else

@@ -20,13 +20,13 @@
     $tooltip = "Search and list work requests";
     echo "<br>\n &nbsp;<a href=$base_url/requestlist.php class=block title=\"$tooltip\" alt=\"$tooltip\">List&nbsp;Requests</a>";
 
-    $tooltip = "A comprehensive search facility for reporting on work requests";
-    echo "<br>\n &nbsp;<a href=$base_url/requestlist.php?qs=complex class=block title=\"$tooltip\" alt=\"$tooltip\">Request&nbsp;Search</a>";
+    $tooltip = "A really comprehensive search facility for reporting on work requests (version 2)";
+    echo "<br>\n &nbsp;<a href=\"$base_url/wrsearch.php\" class=\"block\" title=\"$tooltip\" alt=\"$tooltip\">Search&nbsp;Requests</a>";
+
+//    $tooltip = "A comprehensive search facility for reporting on work requests";
+//    echo "<br>\n &nbsp;<a href=$base_url/requestlist.php?qs=complex class=block title=\"$tooltip\" alt=\"$tooltip\">Request&nbsp;Search</a>";
 
     if ( is_member_of('Admin', 'Support') || $rank_report_anyone ) {
-      $tooltip = "A really comprehensive search facility for reporting on work requests (version 2)";
-      echo "<br>\n &nbsp;<a href=\"$base_url/wrsearch.php\" class=\"block\" title=\"$tooltip\" alt=\"$tooltip\">Search&nbsp;V2</a>";
-
       $tooltip = "A ranked list of work requests, most important and urgent at the top";
       echo "<br>\n &nbsp;<a href=\"$base_url/requestrank.php?qs=\"complex\" class=\"block\" title=\"$tooltip\" alt=\"$tooltip\">Request&nbsp;Ranking</a>";
     }

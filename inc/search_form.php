@@ -212,6 +212,8 @@ function RenderSearchForm( $target_url ) {
               array("_label" => "With Order?", "class" => "srchf", "value" => 1 ) );
   $html .= $ef->DataEntryField( "%s", "checkbox", "save_public",
               array("_label" => "Public?", "class" => "srchf", "value" => 1 ) );
+
+  $search_record->save_hotlist = 't';
   $html .= $ef->DataEntryField( "%s", "checkbox", "save_hotlist",
               array("_label" => "In my menu?", "class" => "srchf", "value" => 1 ) );
 

@@ -6,7 +6,7 @@
   echo '<script language="JavaScript" src="js/date-picker.js"></script>' . "\n";
 
   // Style sheet
-  $style_sheets = true;
+  $style_sheets = false;
   if ( $style_sheets ) {
     if ( $agent == "moz4" )
       echo '<link rel="stylesheet" type="text/css" href="/wrmsmoz4.css">' . "\n";

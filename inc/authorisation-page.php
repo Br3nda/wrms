@@ -1,15 +1,4 @@
 <?php
-  // Convert some legacy WRMS stuff to what we want here...
-  if ( isset($LI) && !isset($M) && !isset($session_id) ) {
-    // Handle the login cookie
-      list( $E, $L ) = split( ";", $LI);
-      $E = strtr( "$E", "abcdefghijklmnopqrstuvwxyz", "nopqrstuvwxyzabcdefghijklm" );
-      $M = "LC";
-  }
-  if ( isset($session_id) && !isset($sid) ) {
-    list( $session_test, $session_hash) = explode( " ", $session_id);
-    $sid = "$session_test;$session_hash";
-  }
   if ( isset($E) ) $username = $E;
   if ( isset($L) ) $password = $L;
 

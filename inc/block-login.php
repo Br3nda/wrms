@@ -14,12 +14,11 @@
   $action_target = ereg_replace( '\?M=LO', '', $action_target );
 
   echo "<form action=\"$action_target\" method=\"post\" style=\"display:inline;\">";
-  echo "<input type=\"hidden\" name=\"M\" value=\"LC\">\n";
   echo " &nbsp;username:<br>\n";
-  echo " &nbsp; <font size=\"1\"><input type=\"text\" name=\"E\" size=\"12\"></font>\n";
+  echo " &nbsp; <font size=\"1\"><input type=\"text\" name=\"username\" size=\"12\"></font>\n";
 
   echo "<br> &nbsp;password:<br>\n";
-  echo "&nbsp; <font size=\"1\"><input type=\"password\" name=\"L\" size=\"7\"></font>";
+  echo "&nbsp; <font size=\"1\"><input type=\"password\" name=\"password\" size=\"7\"></font>";
 
   echo "&nbsp;<input type=\"submit\" value=\"GO!\" alt=\"go\" name=\"submit\" class=\"submit\"></font><br clear=\"all\">\n";
   echo " &nbsp;forget&nbsp;me&nbsp;not:<font size=\"2\"><input type=\"checkbox\" name=\"remember\" value=\"1\"></font>\n";

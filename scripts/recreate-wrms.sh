@@ -2,17 +2,15 @@
 #
 # Recreate the WRMS database from scratch
 #
+DATABASE=wrms
 echo " Destroying old database..."
-destroydb wrms
+destroydb $DATABASE
 echo " Creating new database..."
-createdb wrms
+createdb $DATABASE
 echo " Creating database structures..."
-cd ~/wrms
-psql -q -f ~/wrms/create-wrms.sql -d wrms 2>&1 | grep -v "will create implicit "
-echo " Creating 'awm' database structures..."
-psql -q -f ~/wrms/create-awm.sql -d wrms 2>&1 | grep -v "will create implicit "
+psql -q -f create-wrms.sql -d $DATABASE 2>&1 | grep -v "will create implicit "
 echo " Loading database tables..."
-psql -q -t -f ~/wrms/load-codes.sql wrms
+psql -q -t -f load-codes.sql wrms
 
 # echo " Loading 'awm' tables..."
 # psql -q -t -f seed-awm.sql wrms
@@ -30,9 +28,12 @@ cd ..
 echo "."
 
 echo " Loading dumped requests..."
-psql -q -t -f dumped_requests.sql -d wrms
+psql -q -t -f dumped_requests.sql -d $DATABASE
 echo " Loading dumped tables ..."
-psql -q -t -f dumped_tables.sql -d wrms
-echo "Finishing load..."
-psql -q -t -f finish-load.sql -d wrms
+psql -q -t -f dumped_tables.sql -d $DATABASE
 
+echo "Converting to new style ..."
+psql -q -t -f convert-users.sql -d $DATABASE
+
+echo "Finishing load..."
+psql -qxtf finish-load.sql -d $DATABASE | grep -v RECORD

@@ -1,5 +1,5 @@
 #!/bin/bash
-pushd ~/wrms
+pushd ~/wrms/scripts
 echo -n "Dumping request data "
 pg_dump -a -D -n -t request wrms >dumped_requests.sql
 echo -n "."

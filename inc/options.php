@@ -1,0 +1,138 @@
+<?php
+  $maxresults = 100;
+
+  // Various changes happen on the basis of $M
+  if ( "$M" == "LC" ) {
+    $query = "SELECT * FROM usr WHERE ";
+    $query .= " username=LOWER('$E')";
+    $result = pg_Exec( $wrms_db, $query );
+
+    if ( ! $result ) {
+      $error_loc = "inc/options.php";
+      $error_qry = "$query";
+    }
+    else if ( pg_NumRows($result) == 0 ) {
+      $error_msg = "<H3>Invalid Logon</H3><P>You have used an invalid ID or password</P>";
+    }
+    else {
+      $usr = pg_Fetch_Object($result, 0);
+      if ( strtolower("$L") <> "$usr->password" && md5(strtolower("$L")) <> "$usr->password" )
+        $error_msg = "<H3>Invalid Logon</H3><P>You have used an invalid ID or password</P>";
+      else {
+        $query = "INSERT INTO session (user_no) VALUES( '$usr->user_no' )";
+        $result = pg_Exec( $wrms_db, $query );
+        if ( ! $result ) {
+          $error_loc = "index.php";
+          $error_qry = "$query";
+        }
+        else {
+          $query = "SELECT * FROM session WHERE session.user_no='$usr->user_no' ";
+          $query .= " ORDER BY session_id DESC";
+//          $query .= " LIMIT 1";
+          $result = pg_Exec( $wrms_db, $query );
+          if ( ! $result ) {
+            $error_loc = "index.php";
+            $error_qry = "$query";
+          }
+          else {
+            $session = pg_Fetch_Object($result, 0);
+            $session_id = "$session->session_id " . md5($session->session_start);
+            setcookie( "session_id", "$session_id", "", "$base_url/" );
+            $logged_on = true;
+          }
+        }
+      }
+    }
+  }
+  else if ( "$M" == "LO" ) {
+    $logged_on = false;
+    setcookie( "session_id", "", "", "$base_url/" );
+  }
+  else if ( "$M" == "forgot" ) {
+    $query = "SELECT * FROM usr WHERE ";
+    $query .= " username=LOWER('$E')";
+    $result = pg_Exec( $wrms_db, $query );
+
+    if ( ! $result ) {
+      $error_loc = "index.php";
+      $error_qry = "$query";
+    }
+    else if ( pg_NumRows($result) == 0 ) {
+      $error_msg = "<H3>Invalid Logon</H3><P>User not found.</P>";
+    }
+    else {
+      // Send them an e-mail ... 
+      $usr = pg_Fetch_Object($result, 0);
+      if ( strtolower( substr("$usr->email_ok", 0, 1)) == "t" ) {
+        $subject = "Forgotten access code";
+        $msg = "This message is sent to you as requested by the $system_name system.\n\n";
+        $msg .= "User Number: $usr->user_no\n";
+        $msg .= "Access Code: $usr->password\n";
+        $hdrs = "From: $admin_email";
+        mail( "$usr->email", $subject, $msg, $hdrs );
+        $warn_msg = "<H3>EMail Sent</H3><P>Your password has been sent to &quot;$usr->email&quot; via email.</P>";
+      }
+      else {
+        $error_msg = "<H3>Invalid EMail</H3><P>That e-mail address has been marked as invalid.  I'm";
+        $error_msg .= " afraid that you will have to contact an administrator in some other way.</P>";
+      }
+    }
+  }
+
+  if ( "$M" <> "LO" && "$session_id" <> "" ) {
+    list( $session_test, $session_hash) = explode( " ", $session_id);
+    $query = "SELECT * FROM session, usr WHERE session_id='$session_test' AND session.user_no=usr.user_no ";
+    $result = pg_Exec( $wrms_db, $query );
+    if ( ! $result ) {
+      $error_loc = "index.php";
+      $error_qry = "$query";
+    }
+    else if ( pg_NumRows($result) > 0 ) {
+      $session = pg_Fetch_Object($result, 0);
+
+      $session_check = "$session_test " . md5($session->session_start);
+      if ( "$session_id" <> "$session_check" ) {
+        $error_msg = "<h3>Internal Processing Error</h3><p>An internal processing error has occurred.  You will need to log on again.</p>";
+      }
+      else {
+        $query = "UPDATE session SET session_end='now' WHERE session_id='$session_test' ";
+        $result = pg_Exec( $wrms_db, $query );
+        $logged_on = true;
+
+        $query = "SELECT * FROM group_member, ugroup WHERE group_member.group_no=ugroup.group_no ";
+        $query .= " AND group_member.user_no='$session->user_no'";
+        $result = pg_Exec( $wrms_db, $query );
+        if ( ! $result ) {
+          $error_loc = "inc/options.php";
+          $error_qry = "$query";
+        }
+        else if ( pg_NumRows($result) > 0 ) {
+          $roles = array();
+          for( $i=0; $i<pg_NumRows($result); $i++) {
+            $role = pg_Fetch_Object($result, $i);
+            $roles["$role->module_name"]["$role->group_name"] = 1;
+          }
+        }
+        if ( $roles[wrms][Admin] ) {
+          $query = "SELECT lookup_code AS system_code, 'M' AS role FROM lookup_code ";
+          $query .= " WHERE source_table='user' AND source_field='system_code' ";
+        }
+        else
+          $query = "SELECT system_code, role FROM system_usr WHERE user_no=$session->user_no ";
+        $result = pg_Exec( $wrms_db, $query );
+        if ( ! $result ) {
+          $error_loc = "inc/options.php";
+          $error_qry = "$query";
+        }
+        else if ( pg_NumRows($result) > 0 ) {
+          $system_roles = array();
+          for( $i=0; $i<pg_NumRows($result); $i++) {
+            $role = pg_Fetch_Object($result, $i);
+            $system_roles["$role->system_code"] = $role->role;
+          }
+        }
+      }
+    }
+    // fall through if session record not found in database
+  }
+?>

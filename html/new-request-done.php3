@@ -72,16 +72,18 @@
   else if (!pg_NumRows($rid) )
     echo "<P><B>Warning: </B> No system maintenance manager for '$request->system_code'</P>";
   else {
-    $sys_notify = pg_Fetch_Object( $rid, 0 );
+    for ( $i=0; $i<pg_NumRows($rid); $i++ ) {
+      $sys_notify = pg_Fetch_Object( $rid, $i );
 
-    if ( !$in_notify || strcmp( $sys_notify->perorg_id, $rusr->perorg_id) ) {
-      $query = "SELECT set_perreq_role( $sys_notify->perorg_id, $request_id, 'INTRST')";
-  echo "<P>$query</P>";
-      $rid = pg_exec( $dbid, $query );
-      if ( ! $rid ) {
-        echo "<H3>&nbsp;SYSMGR Interest Failed!</H3>\n";
-        echo "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $dbid ) . "</TT>";
-        echo "<P>The failed query was:</P><TT>$query</TT>";
+      if ( !$in_notify || strcmp( $sys_notify->perorg_id, $rusr->perorg_id) ) {
+        $query = "SELECT set_perreq_role( $sys_notify->perorg_id, $request_id, 'INTRST')";
+  // echo "<P>$query</P>";
+        $rid = pg_exec( $dbid, $query );
+        if ( ! $rid ) {
+          echo "<H3>&nbsp;SYSMGR Interest Failed!</H3>\n";
+          echo "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $dbid ) . "</TT>";
+          echo "<P>The failed query was:</P><TT>$query</TT>";
+        }
       }
     }
   }
@@ -102,15 +104,13 @@
     for ($i=0; $i <pg_NumRows($rid); $i++ ) {
       $admin_notify = pg_Fetch_Object( $rid, $i );
 
-      if ( (!$in_notify || strcmp( $admin_notify->perorg_id, $rusr->perorg_id )) && strcmp( $admin_notify->perorg_id, $sys_notify->perorg_id) ) {
-        $query = "SELECT set_perreq_role( $admin_notify->perorg_id, $request_id, 'INTRST')";
+      $query = "SELECT set_perreq_role( $admin_notify->perorg_id, $request_id, 'INTRST')";
   echo "<P>$query</P>";
-        $rid = pg_exec( $dbid, $query );
-        if ( ! $rid && $i == 0 ) {
-          echo "<H3>&nbsp;Admin Interest Failed!</H3>\n";
-          echo "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $dbid ) . "</TT>";
-          echo "<P>The failed query was:</P><TT>$query</TT>";
-        }
+      $rid = pg_exec( $dbid, $query );
+      if ( ! $rid && $i == 0 ) {
+        echo "<H3>&nbsp;Admin Interest Failed!</H3>\n";
+        echo "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $dbid ) . "</TT>";
+        echo "<P>The failed query was:</P><TT>$query</TT>";
       }
     }
   }

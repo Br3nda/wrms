@@ -112,7 +112,7 @@ CREATE FUNCTION get_request_org(INT4)
     LANGUAGE 'sql';
 CREATE FUNCTION request_sla_code(INTERVAL,CHAR)
     RETURNS TEXT
-    AS 'SELECT text( extract( ''hour'' from $1) ) || ''|'' || text($2) '
+    AS 'SELECT text( date_part( ''hour'', $1) ) || ''|'' || text($2) '
     LANGUAGE 'sql';
 
 CREATE TABLE work_system (

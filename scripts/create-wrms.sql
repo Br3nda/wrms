@@ -165,6 +165,7 @@ CREATE FUNCTION max_quote() RETURNS INT4 AS 'SELECT max(quote_id) FROM request_q
 CREATE TABLE request_allocated (
   request_id INT4,
   allocated_on DATETIME DEFAULT TEXT 'now',
+	allocated_to_id INT4,
   allocated_to TEXT
 );
 GRANT INSERT,UPDATE,SELECT ON request_allocated TO general;
@@ -177,7 +178,10 @@ CREATE TABLE request_timesheet (
   work_by TEXT,
   work_description TEXT,
   work_rate FLOAT8,
-  work_charged DATETIME
+  work_charged DATETIME,
+	charged_amount FLOAT8,
+	charged_by_id INT4,
+	PRIMARY KEY ( work_on, work_by_id )
 );
 GRANT INSERT,UPDATE,SELECT ON request_timesheet TO general;
 
@@ -187,9 +191,10 @@ CREATE TABLE request_note (
   note_on DATETIME DEFAULT TEXT 'now',
   note_by_id INT4,
   note_by TEXT,
-  note_detail TEXT
+  note_detail TEXT,
+	PRIMARY KEY ( request_id, note_on )
 ) ;
-CREATE UNIQUE INDEX xpk_request_note ON request_note ( request_id, note_on );
+-- CREATE UNIQUE INDEX xpk_request_note ON request_note ( request_id, note_on );
 GRANT INSERT,SELECT ON request_note TO PUBLIC;
 
 CREATE FUNCTION get_last_note_on(INT4)
@@ -199,9 +204,11 @@ CREATE FUNCTION get_last_note_on(INT4)
 
 CREATE TABLE request_interested (
   request_id INT4,
-  username TEXT
+	user_no INT4 DEFAULT -1,
+  username TEXT,
+	PRIMARY KEY ( request_id, username )
 ) ;
-CREATE UNIQUE INDEX xpk_request_interested ON request_interested ( request_id, username );
+-- CREATE UNIQUE INDEX xpk_request_interested ON request_interested ( request_id, username );
 GRANT INSERT,SELECT,UPDATE,DELETE ON request_interested TO PUBLIC;
 
 CREATE TABLE request_history (
@@ -228,9 +235,10 @@ CREATE FUNCTION max_update() RETURNS INT4 AS 'SELECT max(update_id) FROM system_
 
 CREATE TABLE request_update (
   request_id INT4,
-  update_id INT4
+  update_id INT4,
+	PRIMARY KEY ( request_id, update_id )
 );
-CREATE INDEX xpk_request_update ON request_update ( request_id );
+-- CREATE INDEX xpk_request_update ON request_update ( request_id );
 CREATE INDEX xak1_request_update ON request_update ( update_id );
 GRANT INSERT,UPDATE,SELECT ON request_update TO general;
 
@@ -509,7 +517,16 @@ CREATE TABLE system_usr (
     user_no INT4,
 		system_code TEXT,
 		role CHAR,
-		PRIMARY KEY ( user_no, system_code )
+		PRIMARY KEY ( user_no, system_code, role )
 );
 GRANT SELECT,INSERT,UPDATE ON system_usr TO PUBLIC;
 GRANT ALL ON system_usr TO andrew;
+
+CREATE TABLE org_usr (
+    user_no INT4,
+		org_code TEXT,
+		role CHAR,
+		PRIMARY KEY ( user_no, org_code, role )
+);
+GRANT SELECT,INSERT,UPDATE ON org_usr TO PUBLIC;
+GRANT ALL ON org_usr TO andrew;

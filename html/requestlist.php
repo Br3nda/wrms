@@ -468,7 +468,7 @@ else {
       echo " value=1>Inactive";
       echo "</td>\n";
     }
-    echo "<td valign=middle class=smb align=center><input type=submit value=\"RUN QUERY\" alt=go name=submit class=\"submit\"></td>\n";
+    echo "<td valign=middle class=smb align=center><input type=submit value=\"RUN\" alt=\"Run\" title=\"Run a query with these settings\" name=submit class=\"submit\"></td>\n";
     echo "</tr></table>\n</td></tr>\n";
 
     if ( isset($choose_columns) && $choose_columns ) {

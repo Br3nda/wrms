@@ -6,6 +6,7 @@ $admin_email = "helpdesk@plumbing-world.co.nz";
 $basefont = "verdana,sans-serif";
 $system_name = "Plumbing World WRMS";
 $sysabbr = "wrms";
+$attachment_dir = "/home/wrms/wrms/html/attachments";
 
 // Only admin/support can see the ranking report.
 $rank_report_anyone = 0;
@@ -62,35 +63,21 @@ if ( !isset($debuglevel) ) $debuglevel = 2;
 
 
 function block_open(  $bgcolor="", $border_color="") {
-  global $colors;
-  if ( $bgcolor == "" ) $bgcolor=$colors["blockback"];
-  if ( $border_color == "" ) $border_color=$colors["blocksides"];
-  echo "<table cellpadding=\"1\" cellspacing=\"0\" border=\"0\" width=\"100%\" bgcolor=\"$border_color\" style=\" margin: 0 1px;\">\n";
-  echo "<tr><td>\n";
-  echo "<table width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" bgcolor=\"$bgcolor\">\n";
+  echo '<div class="block">';
 }
 
 //-----------------------------------------
 // Function to title a block of options / menus / whatever
 //-----------------------------------------
 function block_title( $title="&nbsp;", $bgcolor="", $border_color="") {
-  global $colors;
-  if ( $bgcolor == "" ) $bgcolor=$colors["blocktitle"];
-  if ( $border_color == "" ) $border_color=$colors["blocksides"];
-
-  echo "<tr bgcolor=\"$bgcolor\">\n";
-  echo "<td class=blockhead align=center>$title</td>\n";
-  echo "</tr>\n";
-
+  echo '<div class="blockhead">'.$title.'</div>';
 }
 
 //-----------------------------------------
 // Function to finish a block of options / menus / whatever
 //-----------------------------------------
 function block_close() {
-  echo "</table>\n";
-  echo "</td></tr>\n";
-  echo "</table>\n";
+  echo '</div>';
 }
 
 

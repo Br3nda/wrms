@@ -278,9 +278,7 @@ function TagSelectionStanza() {
 function FixTagOptions(from_field) {
   var to_field;
   for( var i=0; i < stanza_count; i++ ) {
-    alert( "Copying options to select " + i );
     to_field = GetFieldFromName('taglist['+ i +']');
-    // to_field = tag_selections[i];
     CopyOptions(from_field,to_field);
   }
 }

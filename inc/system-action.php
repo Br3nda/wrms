@@ -1,6 +1,8 @@
 <?php
   $query = "BEGIN; ";
+  $system_code = tidy( trim($system_code) );
   $sys_desc = tidy( $sys_desc );
+  $active = tidy( $active );
   if ( "$active" == "" ) $active = "FALSE";
   if ( "$M" == "add" ) {
     $system_code = $sys_code;

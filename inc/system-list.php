@@ -8,7 +8,7 @@ function get_system_list( $access="", $current="", $maxwidth=50 ) {
   $query .= "FROM work_system WHERE active ";
   if ( $access != "" && !is_member_of('Admin','Support') ) {
     $query .= " AND EXISTS (SELECT system_usr.system_code FROM system_usr WHERE system_usr.system_code=work_system.system_code";
-    $query .= " AND user_no=$session->user_no ";
+    $query .= " AND user_no = " . $session->user_no ;
     $query .= " AND role~*'[$access]') ";
   }
   if ( $current <> "" ) {
@@ -16,7 +16,7 @@ function get_system_list( $access="", $current="", $maxwidth=50 ) {
   }
   $query .= " ORDER BY LOWER(system_code);";
 
-  $rid = awm_pgexec( $dbconn, $query);
+  $rid = awm_pgexec( $dbconn, $query, 'system-list' );
   if ( ! $rid ) return;
 
   if ( pg_NumRows($rid) > 0 ) {

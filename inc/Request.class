@@ -191,7 +191,7 @@ class Request {
      $sql .= "ORDER BY request_id, attachment_id";
      # Select the records
      $q = new PgQuery($sql);
-     if ( $q && $q->Exec() && $q->rows ) {
+     if ( $q && $q->Exec('RndrAttachments') && $q->rows ) {
        $html .= $ef->BreakLine("Attached Files");
        $html .= '<tr><td colspan="2"><table>'."\n";
        $html .= '<tr><th class="pcol">File</th><th class="pcol">Description</th><th class="pcol">By</th><th class="pcol">On</th></tr>'."\n";

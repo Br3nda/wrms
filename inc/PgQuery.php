@@ -148,6 +148,10 @@ class PgQuery
       $this->errorstring = pg_errormessage();
       log_error( $locn, 'QF', $this->querystring );
       log_error( $locn, 'QF', $this->errorstring );
+      // $bt = debug_backtrace();
+      // foreach( $bt as $k => $v ) {
+        // log_error( $locn, 'QF', sprintf( "Called by %s from %s line %d", $v['function'], $v['file'], $v['line'] ));
+      // }
     }
     elseif ( $this->execution_time > $this->query_time_warning )
     {

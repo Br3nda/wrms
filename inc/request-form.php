@@ -85,10 +85,10 @@
     echo "<TD ALIGN=CENTER>";
     if ( $editable ) {
       echo "<LABEL><INPUT TYPE=\"checkbox\" NAME=\"new_active\" VALUE=\"TRUE\"";
-      if ( strtolower( substr( $request->active, 0, 1)) == "t" ) echo " CHECKED";
+      if ( strtolower( substr( "$request->active", 0, 1)) == "t" ) echo " CHECKED";
         echo ">&nbsp;Active</LABEL>";
     }
-    else if ( $request->active == "TRUE" ) echo "Active";
+    else if ( strtolower( substr( "$request->active", 0, 1)) == "t" ) echo "Active";
     else echo "Inactive";
     echo "</TD>\n<TD ALIGN=LEFT>&nbsp;$request->last_status - $request->status_desc</TD></TR>\n";
   }

@@ -27,7 +27,7 @@ one of the recently modified requests from the list below.</H4>
   else {
     echo "<table border=0 align=center cellspacing=0 cellpadding=2><tr>\n";
     echo "<th class=cols>WR&nbsp;#</th><th class=cols>Requested By</th>";
-    echo "<th class=cols>Description</th><th class=cols>Status</th><th>Last&nbsp;Activity</th></tr>\n";
+    echo "<th class=cols>Description</th><th class=cols>Status</th><th class=cols>Last&nbsp;Activity</th></tr>\n";
     for ( $i=0; $i < pg_NumRows($result); $i++ ) {
       $thisrequest = pg_Fetch_Object( $result, $i );
 

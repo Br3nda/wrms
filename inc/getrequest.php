@@ -3,7 +3,8 @@
 
     /* Complex request mainly because we hook in all of the codes tables for easy display */
     $rows = 0;
-    $query = "SELECT *";
+    // Note: careful adjustment of the field order - work_system and request both have 'active' e.g.
+    $query = "SELECT usr.*, work_system.*, request.*";
     $query .= ", status.lookup_desc AS status_desc";
     $query .= ", request_type.lookup_desc AS request_type_desc";
     $query .= ", urgency.lookup_desc AS urgency_desc";

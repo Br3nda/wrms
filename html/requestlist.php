@@ -19,14 +19,14 @@
 
     include("inc/system-list.php");
     if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] )
-      $system_list = get_system_list( "", "$system_code", 35);
+      $system_list = get_system_list( "", "$system_code", 50);
     else
-      $system_list = get_system_list( "CES", "$system_code", 35);
+      $system_list = get_system_list( "CES", "$system_code", 50);
 ?>
 <table border=0 cellspacing=0 cellpadding=2 align=center bgcolor=<?php echo $colors[6]; ?>>
 <tr valign=middle>
-<td class=smb align=right>Search:</td><td class=sml><input class=sml TYPE="Text" Size="10" Name="search_for" Value="<?php echo "$search_for"; ?>"></td>
-<td class=smb align=right>&nbsp; System:</td><td class=sml><select class=sml name=system_code><?php echo "$system_list"; ?></select></td>
+<td class=smb align=right>Search:</td><td class=sml><font size=1><input class=sml TYPE="Text" Size="10" Name="search_for" Value="<?php echo "$search_for"; ?>"></font></td>
+<td class=smb align=right>&nbsp; System:</td><td class=sml><font size=1><select class=sml name=system_code><?php echo "$system_list"; ?></select></font></td>
 <td rowspan=2 valign=middle class=sml><input TYPE=Image src=images/in-go.gif alt=go WIDTH=44 BORDER=0 HEIGHT=26 name=submit></td></tr>
 <?php
   $query = "SELECT * FROM lookup_code WHERE source_table='request' ";
@@ -100,8 +100,7 @@
         if ( "$thisrequest->brief" == "" ) echo "-- no description --";
         echo "</a></td>\n";
         echo "<td class=sml>$thisrequest->status_desc</td>\n";
-        echo "<td class=sml nowrap><a href=\"form.php?request_id=$thisrequest->request_id&form=quote\">Quote</a>&nbsp;\n";
-        echo "<a href=\"form.php?request_id=$thisrequest->request_id&form=time\">Time</a></td>\n";
+        echo "<td class=sml nowrap>&nbsp;</td>\n";
 
         echo "</tr>\n";
       }

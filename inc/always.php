@@ -21,7 +21,7 @@ $colors = array( "#ccbea1", // primary background
 		 "#e4ddc2", // dark rows in listings
 		 "#f4f0dc", // light rows in listings
 		 "#583818", // Form headings
-		 "#e8f4d0", // Mandatory forms
+		 "#c0b090", // Mandatory forms
 		 "#50a070" );
 
 // Set the bebug variable initially to '0'. This variable is made available 

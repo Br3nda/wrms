@@ -90,11 +90,11 @@
 
 <?php echo "$tbldef><TR><TD CLASS=sml COLSPAN=2>&nbsp;</TD></TR><TR>$hdcell"; ?>
 <TD CLASS=h3 ALIGN=RIGHT<?php echo " bgcolor=$colors[8]"; ?>><FONT SIZE=+1 color=<?php echo $colors[1]; ?>><B>User Details</B></FONT></TD></TR>
-<TR> 
+<TR bgcolor=<?php echo $colors[6]; ?>> 
 	<th align=right>Login ID</TH>
 	<TD><font Size=2><?php echo "$user_no"; ?>&nbsp;</font></td>
 </tr>	 
-<tr> 
+<tr bgcolor=<?php echo $colors[6]; ?>> 
 	<th align=right>User Name</th> 
 	<td><?php
 if ( $roles['wrms']['Admin'] || ("$usr->username" == "")) echo "<input Type=\"Text\" Name=\"UserName\" Size=\"15\" Value=\"";
@@ -103,22 +103,22 @@ echo "$usr->username";
 if ( $roles['wrms']['Admin'] || ("$usr->username" == "") ) echo "\">";
 echo "</td>"; ?>
 </tr> 
-<tr> 
+<tr bgcolor=<?php echo $colors[6]; ?>> 
 	<th align=right>Password</th> 
 	<td><font Size="2"><input Type=password Name="UserPassword" Size="15" Value="<?php
 if (isset($user_no) && $user_no > 0 ) echo "      ";
 ?>"></font></td> 
 </tr> 
-<tr> 
+<tr bgcolor=<?php echo $colors[6]; ?>> 
 	<th align=right>Email</th> 
 	<td><font size=2><input Type="Text" Name="UserEmail" Size="50" Value="<?php echo "$usr->email"; ?>"></font></td> 
 </tr> 
-<tr> 
+<tr bgcolor=<?php echo $colors[6]; ?>> 
 	<th align=right>Full Name</th>
 	<td><font Size="2"><input Type="Text" Name="UserFullName" Size="24" Value="<?php echo "$usr->fullname"; ?>"></font></td> 
 </tr> 
 <?php if ( $roles['wrms']['Admin'] ) { ?>
-<tr> 
+<tr bgcolor=<?php echo $colors[6]; ?>> 
 	<th align=right>User Status</th> 
 	<td><font Size="2">
 	<input Type="Radio" Name="UserStatus" Value="N"<?php if ("$usr->status" == "S" ) echo " CHECKED"; ?>> System Support &nbsp; 
@@ -128,7 +128,7 @@ if (isset($user_no) && $user_no > 0 ) echo "      ";
 <?php
   }  // end of   'if Admin... '
   if ( "$user_no" > 0 ) {
-    echo "<tr><th align=right>Date Joined&nbsp;</th>";
+    echo "<tr bgcolor=$colors[6]>\n<th align=right>Date Joined&nbsp;</th>";
     echo "<td VALIGN=TOP><font Size=2>";
     echo substr("$usr->joined", 0, 16);
     echo " &nbsp; &nbsp; &nbsp; &nbsp; Last Updated&nbsp; ";
@@ -138,7 +138,7 @@ if (isset($user_no) && $user_no > 0 ) echo "      ";
 
   if ( $roles[wrms][Admin] ) {
     // This displays checkboxes to select the users special roles.
-    echo "\n<tr><th align=right>User Roles</th";
+    echo "\n<tr bgcolor=$colors[6]>\n<th align=right>User Roles</th>";
     echo "<td VALIGN=TOP><font Size=2>\n<table border=0 cellspacing=0 cellpadding=3><tr>\n";
     for ( $i=0; $i <pg_NumRows($grp_res); $i++) {
       if ( $i > 0 && ($i % 3) == 0 ) echo "</tr><tr>";
@@ -176,6 +176,9 @@ if (isset($user_no) && $user_no > 0 ) echo "      ";
       echo "<option value=A";
       if ( "$code" == 'A') echo " SELECTED";
       echo ">Administration</option>\n";
+      echo "<option value=S";
+      if ( "$code" == 'S') echo " SELECTED";
+      echo ">System Support</option>\n";
       echo "<option value=C";
       if ( "$code" == 'C') echo " SELECTED";
       echo ">Client Coordinator</option>\n";

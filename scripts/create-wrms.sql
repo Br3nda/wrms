@@ -115,6 +115,7 @@ CREATE TABLE request_words ( string TEXT, id OID );
 CREATE FUNCTION keyword() RETURNS OPAQUE AS '/usr/lib/postgresql/modules/keyword.so' LANGUAGE 'C';
 CREATE TRIGGER request_kidx_trigger AFTER UPDATE or INSERT or DELETE ON request
     FOR EACH ROW EXECUTE PROCEDURE keyword( request_words, detailed);
+GRANT DELETE,INSERT,UPDATE,SELECT ON request_words TO general;
 
 
 CREATE FUNCTION active_request(INT4)

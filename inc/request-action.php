@@ -7,7 +7,7 @@
 
   /* scope a transaction to the whole change */
   pg_exec( $wrms_db, "BEGIN;" );
-  $debuglevel = 1;
+//  $debuglevel = 1;
   if ( isset( $request ) ) {
     /////////////////////////////////////
     // Update an existing request
@@ -15,33 +15,38 @@
     $chtype = "change";
     $requsr = $session;
     if ( $new_active <> "TRUE" ) $new_active = "FALSE";
-    if ( $request->active == "t" ) $request->active = "TRUE"; else $request->active = "FALSE";
+    if ( $request->active ) $request->active = "TRUE"; else {
+      if ( $debuglevel >= 1 ) echo "Active: $request->active";
+      $request->active = "FALSE";
+    }
     $note_added = ($new_note != "");
     $quote_added = ($new_quote_brief != "") && ($new_quote_amount != "");
+    $work_added = ($new_work_on != "") && ($new_work_duration != "") && ($new_work_details != "") ;
     $status_changed = ($request->last_status != $new_status );
     $old_eta = substr( nice_date($request->eta), 7);
     $eta_changed = (("$old_eta" != "$new_eta") && ( "$new_eta" != ""));
-    $changes =  ($request->brief != $new_brief)
-             || ($request->detailed != $new_detail)
-             || ($request->request_type != $new_type )
-             || ($request->severity_code != $new_severity )
-             || ($request->urgency != $new_urgency )
-             || ($request->importance != $new_importance )
-             || ($request->system_code != $new_system_code )
-             || ($request->active != $new_active )
-             || ($request->last_status != $new_status )
-             || $eta_changed || $status_changed || $note_added || $quote_added;
+    $changes =  (isset($new_brief) && $request->brief != $new_brief)
+             || (isset($new_detail) && $request->detailed != $new_detail)
+             || (isset($new_type) && $request->request_type != $new_type )
+             || (isset($new_severity) && $request->severity_code != $new_severity )
+             || (isset($new_urgency) && $request->urgency != $new_urgency )
+             || (isset($new_importance) && $request->importance != $new_importance )
+             || (isset($new_system_code) && $request->system_code != $new_system_code )
+             || (isset($new_active) && $request->active != $new_active )
+             || (isset($new_status) && $request->last_status != $new_status )
+             || $eta_changed || $status_changed || $note_added || $quote_added || $work_added;
     if ( $debuglevel >= 1 ) {
-      echo "<p>---" . ($request->brief != $new_brief) . "-"
-             . ($request->detailed != $new_detail) . "+"
-             . ($request->request_type != $new_type ) . "-"
-             . ($request->severity_code != $new_severity ) . "+"
-             . ($request->urgency != $new_urgency ) . "-"
-             . ($request->importance != $new_importance ) . "+"
-             . ($request->system_code != $new_system_code ) . "-"
-             . ($request->active != $new_active ) . "+"
-             . ($request->last_status != $new_status ) . "-"
-             . $eta_changed . "+" . $status_changed . "-" . $note_added . "+" . $quote_added
+      echo "<p>---" . (isset($new_brief) && $request->brief != $new_brief) . "-"
+             . (isset($new_detail) && $request->detailed != $new_detail) . "+"
+             . (isset($new_type) && $request->request_type != $new_type ) . "-"
+             . (isset($new_severity) && $request->severity_code != $new_severity ) . "+"
+             . (isset($new_urgency) && $request->urgency != $new_urgency ) . "-"
+             . (isset($new_importance) && $request->importance != $new_importance ) . "+"
+             . (isset($new_system_code) && $request->system_code != $new_system_code ) . "-"
+             . (isset($new_active) && $request->active != $new_active ) . "+"
+             . (isset($new_status) && $request->last_status != $new_status ) . "-"
+             . $eta_changed . "+" . $status_changed . "-" . $note_added . "+"
+             . $quote_added . "-" . $work_added . "+"
              . "---$request->request_type != $new_type</p>" ;
 
       echo "<p>-$request->active|$new_active-</p>";
@@ -131,7 +136,7 @@
       $new_quote_brief = tidy( $new_quote_brief );
 
       $query = "INSERT INTO request_quote (quote_id, quoted_by, quote_brief, quote_details, quote_type, quote_amount, quote_units, request_id, quote_by_id) ";
-      $query .= "VALUES( $new_quote_id, '$session->username', '$new_quote_brief', '$new_quote_details', '$new_quote_type', '$new_quote_amount', '$new_quote_unit', $request->request_id, $session->user_no )";
+      $query .= "VALUES( $new_quote_id, '$session->username', '$new_quote_brief', '$new_quote_details', '$new_quote_type', '$new_quote_amount', '$new_quote_unit', $request_id, $session->user_no )";
       $rid = pg_exec( $wrms_db, $query );
       if ( ! $rid ) {
         $because .= "<H3>New Quote Failed!</H3>\n";
@@ -141,6 +146,23 @@
         return;
       }
 
+    }
+
+    if ( $work_added ) {
+      /* non-null timesheet was entered */
+      $new_work_details = tidy( $new_work_details );
+      $query = "DELETE FROM request_timesheet WHERE request_id=$request_id AND work_on='$new_work_on'; ";
+      $query .= "INSERT INTO request_timesheet (request_id,  work_on, work_duration, work_by_id, work_by, work_description ) ";
+      $query .= "VALUES( $request_id, '$new_work_on', '$new_work_duration', $session->user_no, '$session->username', '$new_work_details')";
+      $rid = pg_exec( $wrms_db, $query );
+      if ( ! $rid ) {
+        $errmsg = pg_ErrorMessage( $wrms_db );
+        $because .= "<H3>New Timesheet Failed!</H3>\n";
+        $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
+        $because .= "<P>The failed query was:</P><TT>$query</TT>";
+        pg_exec( $wrms_db, "ROLLBACK;" );
+        return;
+      }
     }
 
     if ( $note_added ) {
@@ -169,6 +191,9 @@
       if ( $new_active == "TRUE" ) $because .= "re-"; else $because .= "de-";
       $because .= "activated\n";
     }
+
+    if ( $work_added )
+      $because .= "<br>Timesheet added to request.\n";
 
     if ( $quote_added )
       $because .= "<br>Quote $new_quote_id added to request.\n";

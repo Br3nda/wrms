@@ -27,7 +27,7 @@
     }
   }
 
-  $hdcell = "<th width=7%><img src=images/clear.gif width=50 height=2></th>";
+  $hdcell = "<th width=7%><img src=images/clear.gif width=60 height=2></th>";
   $tbldef = "<table width=100% cellspacing=0 border=0 cellpadding=2\n";
   echo "$tbldef><tr><td align=left>\n";;
   if ( "$because" != "" )
@@ -225,7 +225,7 @@
         else echo "<tr bgcolor=$colors[7]>";
         echo "<TH ALIGN=CENTER VALIGN=TOP ROWSPAN=2><FONT SIZE=+2>$quote->quote_id</FONT></TH>\n";
         echo "<TD ALIGN=CENTER>$quote->fullname</TD>\n";
-        echo "<TD><A HREF=\"view-quote.php3?quote_id=$quote->quote_id\">$quote->quote_brief</A></TD>\n";
+        echo "<TD>$quote->quote_brief</TD>\n";
         echo "<TD ALIGN=CENTER>" . nice_date($quote->quoted_on) . "</TD>\n";
         echo "<TD ALIGN=CENTER>$quote->quote_type - $quote->type_desc</TD>\n";
         echo "<TD ALIGN=RIGHT>" . number_format($quote->quote_amount, 2) . " $quote->quote_units</TD>\n</tr>";
@@ -233,8 +233,6 @@
         else echo "<tr bgcolor=$colors[7]>";
         echo "<TD COLSPAN=5>";
         echo html_format($quote->quote_details) . "</A></TD></TR>\n";
-        if ( ($i + 1) < $rows )
-          echo "<TR><TD COLSPAN=7><FONT SIZE=-4>&nbsp;</FONT></TD></TR>";
       }
       if ( ($allocated_to || $sysmgr) && ! $plain ) {
         if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
@@ -247,7 +245,7 @@
         if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
         else echo "<tr bgcolor=$colors[7]>";
         echo "<th>&nbsp;</th>\n";
-        echo "<TD COLSPAN=5><textarea name=new_quote_details rows=4 cols=55 wrap=soft></textarea></TD></TR>\n";
+        echo "<TD COLSPAN=5><textarea name=new_quote_details rows=4 cols=60 wrap=soft></textarea></TD></TR>\n";
       }
       echo "</TABLE>";
     }
@@ -280,14 +278,13 @@
 <?php /***** Timesheet Details */
   /* we only show timesheet details if they exist */
   $query = "SELECT *, date_part('epoch',request_timesheet.work_duration) AS seconds ";
-  $query .= "FROM request_timesheet, awm_usr, awm_perorg ";
+  $query .= "FROM request_timesheet, usr ";
   $query .= "WHERE request_timesheet.request_id = $request->request_id ";
-  $query .= "AND request_timesheet.work_by_id = awm_usr.perorg_id ";
-  $query .= "AND awm_perorg.perorg_id = awm_usr.perorg_id ";
+  $query .= "AND request_timesheet.work_by_id = usr.user_no ";
   $query .= "ORDER BY request_timesheet.work_on ";
   $workq = pg_Exec( $wrms_db, $query);
   $rows = pg_NumRows($workq);
-  if ( $rows > 0 ) {
+  if ( $rows > 0  || (($allocated_to || $sysmgr) && !$plain) ) {
 ?>
 <?php echo "$tbldef><TR><TD CLASS=sml COLSPAN=5>&nbsp;</TD></TR><TR>$hdcell"; ?>
 <TD CLASS=h3 COLSPAN=4 ALIGN=RIGHT<?php echo " bgcolor=$colors[8]"; ?>><FONT SIZE=+1 color=<?php echo $colors[1]; ?>><B>Work Done</B></FONT></TD></TR>
@@ -299,18 +296,29 @@
    <TH class=cols>Description</TH>
  </TR>
 <?php
-      for( $i=0; $i<$rows; $i++ ) {
-        $work = pg_Fetch_Object( $workq, $i );
+    for( $i=0; $i<$rows; $i++ ) {
+      $work = pg_Fetch_Object( $workq, $i );
 
-        if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
-        else echo "<tr bgcolor=$colors[7]>";
-        echo "<th>&nbsp;</th><TD>$work->perorg_name</TD>\n";
-        echo "<TD>" . nice_date($work->work_on) . "</TD>\n";
-        echo "<TD ALIGN=RIGHT>" . sprintf( "%.2f", round(($work->seconds / 900) + 0.4 ) / 4) . "&nbsp;</TD>\n";
-        echo "<TD>$work->work_description</TD></TR>\n";
-      }
-      echo "</TABLE>\n";
-    }  // if rows>0
+      if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
+      else echo "<tr bgcolor=$colors[7]>";
+      echo "<th>&nbsp;</th><TD>$work->fullname</TD>\n";
+      echo "<TD align=center>" . substr( nice_date($work->work_on), 8) . "</TD>\n";
+      echo "<TD ALIGN=RIGHT>" . sprintf( "%.2f", round(($work->seconds / 900) + 0.4 ) / 4) . " &nbsp; &nbsp; </TD>\n";
+      echo "<TD>$work->work_description</TD></TR>\n";
+    }
+
+    if ( ($allocated_to || $sysmgr) && ! $plain ) {
+      if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]";
+      else echo "<tr bgcolor=$colors[7]";
+      echo " valign=top><th>&nbsp;</th>\n";
+      echo "<td>$session->fullname</td>\n";
+      echo "<TD><input name=new_work_on size=9 type=text value=today></TD>\n";
+      echo "<TD><input name=new_work_duration size=7 type=text><br>(e.g. &quot;2 hours&quot;)</TD>\n";
+      echo "<TD><textarea name=new_work_details rows=3 cols=40 wrap=soft></textarea></TD></TR>\n";
+    }
+    echo "</TABLE>\n";
+
+  }  // if rows>0
 ?>
 
 

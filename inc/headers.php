@@ -11,6 +11,8 @@
     echo '<link rel="stylesheet" type="text/css" href="/wrms.css">' . "\n" ;
   }
 
+  echo '<script language="JavaScript" src="/js/date-picker.js"></script>' . "\n";
+
 //  echo "<style type=\"text/css\"><!--\n";
   //$linkstyle = "{color: $colors[fg2]; text-decoration:none; ";
   //echo "A $linkstyle }\n";

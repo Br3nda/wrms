@@ -30,27 +30,13 @@
   else
     $tell = "Click here to receive updates to this request!";
 
-function dump_array( $arr  ) {
-  echo "<TABLE BORDER=1 WIDTH=100%><TR><TH>Key</TH><TH>Value</TH></TR>";
-  reset($arr);
-  while( list( $k, $v ) = each( $arr ) ) {
-    if ( is_array($arr["$k"]) ) {
-      echo "<TR><TD>$k</TD><TD>";
-      dump_array( $arr["$k"]  );
-      echo "</TD></TR>";
-    }
-    else
-      echo "<TR><TD>$k</TD><TD>$v</TD></TR>";
-  }
-  reset($arr);
-  echo "</TABLE>";
-}
+  $tell .= "<br>$notify_to";
 
-//  dump_array($request);
-$hdcell="<th width=7%><img src=images/clear.gif width=70 height=2></th>";
+  $hdcell = "<th width=7%><img src=images/clear.gif width=50 height=2></th>";
+  $tbldef = "<table width=100% cellspacing=0 border=0 cellpadding=3>\n";
+  echo $tbldef;
 ?>
 
-<TABLE WIDTH=100% cellspacing=0 border=0>
 <TR><TD ALIGN=LEFT><P CLASS=helptext>Use this form to enter changes to details for the
 requests of your systems, or to enter details for new requests.</P><?php
   if ( "$request->request_id" != "" )
@@ -59,8 +45,7 @@ requests of your systems, or to enter details for new requests.</P><?php
 </TR>
 </TABLE>
 
-<TABLE width=100% cellspacing=0 border=0>
-<TR><?php echo $hdcell; ?><TD CLASS=h3 COLSPAN=3 ALIGN=RIGHT><FONT SIZE=+1><B>Request details</B></FONT></TD></TR>
+<?php echo "$tbldef<TR>$hdcell"; ?><TD CLASS=h3 COLSPAN=3 ALIGN=RIGHT><FONT SIZE=+1><B>Request details</B></FONT></TD></TR>
 <TR>
 <?php
   echo "<TH ALIGN=RIGHT>";
@@ -71,7 +56,7 @@ requests of your systems, or to enter details for new requests.</P><?php
   if ( $editable ) {
     echo "<FORM ACTION=\"modify-request-done.php3\" METHOD=POST>";
     echo "<INPUT TYPE=\"hidden\" NAME=\"request_id\" VALUE=\"$request->request_id\">"; 
-    echo "<INPUT TYPE=\"text\" NAME=\"new_brief\" SIZE=65 VALUE=\"$request->brief\">"; 
+    echo "<INPUT TYPE=\"text\" NAME=\"new_brief\" SIZE=55 VALUE=\"$request->brief\">"; 
   }
   else
     echo "$request->brief";
@@ -91,7 +76,7 @@ requests of your systems, or to enter details for new requests.</P><?php
 ?>
 
 <TR>
-  <TH ALIGN=RIGHT>Status:</TH>
+  <TH ALIGN=RIGHT VALIGN=MIDDLE>Status:</TH>
 <?php
   if ( isset($request) ) echo "<TD ALIGN=CENTER>"; else echo "<TD>";
   if ( $editable ) {
@@ -153,7 +138,7 @@ requests of your systems, or to enter details for new requests.</P><?php
   <TD ALIGN=LEFT COLSPAN=2>
 <?php
   if ( $editable )
-    echo "<TEXTAREA NAME=\"new_detail\" ROWS=10 COLS=70  WRAP=\"SOFT\">$request->detailed</TEXTAREA>"; 
+    echo "<TEXTAREA NAME=\"new_detail\" ROWS=8 COLS=60  WRAP=\"SOFT\">$request->detailed</TEXTAREA>"; 
   else
     echo html_format($request->detailed);
 ?>
@@ -183,15 +168,15 @@ requests of your systems, or to enter details for new requests.</P><?php
     $rows = pg_NumRows($updateq);
     if ( $rows > 0 ) {
 ?>
- <TABLE BORDER=0 cellspacing=0 cellpadding=4 ALIGN=CENTER WIDTH=100%>
- <TR><TD CLASS=sml COLSPAN=5>&nbsp;</TD></TR>
- <TR><?php echo $hdcell; ?><TD CLASS=h3 COLSPAN=4 ALIGN=RIGHT><FONT SIZE=+1><B>Program Update Details</B></FONT></TD></TR>
+<?php echo "$tbldef<TR><TD CLASS=sml COLSPAN=5>&nbsp;</TD></TR><TR>$hdcell"; ?>
+<TD CLASS=h3 COLSPAN=4 ALIGN=RIGHT><FONT SIZE=+1><B>Program Update Details</B></FONT></TD></TR>
  <TR><TH>ID</TH><TH>Done By</TH><TH>Done On</TH><TH>Description</TH><TH>&nbsp;</TH></TR>
 <?php
       for( $i=0; $i<$rows; $i++ ) {
         $update = pg_Fetch_Object( $updateq, $i );
 
-        echo "<TR>";
+        if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
+        else echo "<tr bgcolor=$colors[7]>";
         echo "<TH VALIGN=TOP ALIGN=CENTER ROWSPAN=2><FONT SIZE=+2>$update->update_id</FONT></TH>\n";
         echo "<TD>$update->update_by</TD>\n";
         echo "<TD>" . nice_date($update->update_on) . "</TD>\n";
@@ -210,26 +195,25 @@ requests of your systems, or to enter details for new requests.</P><?php
   /* we only show quote details if it is 'quotable' (i.e. requestor, administrator or catalyst owner) */
   if ($quotable ) {
     $query = "SELECT *, awm_get_lookup_desc('request_quote','quote_type', request_quote.quote_type) AS type_desc ";
-    $query .= "FROM request_quote, awm_usr, awm_perorg ";
+    $query .= "FROM request_quote, usr ";
     $query .= "WHERE request_quote.request_id = $request->request_id ";
-    $query .= "AND request_quote.quote_by_id = awm_usr.perorg_id ";
-    $query .= "AND awm_perorg.perorg_id = awm_usr.perorg_id ";
+    $query .= "AND request_quote.quote_by_id = usr.user_no ";
     $quoteq = pg_Exec( $wrms_db, $query);
     $rows = pg_NumRows($quoteq);
     if ( $rows > 0 ) {
 ?>
- <TABLE BORDER=0 cellspacing=0 cellpadding=4 ALIGN=CENTER WIDTH=100%>
- <TR><TD CLASS=sml COLSPAN=7>&nbsp;</TD></TR>
- <TR><?php echo $hdcell; ?><TD CLASS=h3 COLSPAN=6 ALIGN=RIGHT><FONT SIZE=+1><B>Quotations</B></FONT></TD></TR>
- <TR><TH>Quote</TH><TH>WR #</TH><TH>Done By</TH><TH>Brief</TH><TH>Done On</TH><TH>Type</TH><TH>Amount</TH></TR>
+
+<?php echo "$tbldef<TR><TD CLASS=sml COLSPAN=6>&nbsp;</TD></TR><TR>$hdcell"; ?>
+<TD CLASS=h3 COLSPAN=5 ALIGN=RIGHT><FONT SIZE=+1><B>Quotations</B></FONT></TD></TR>
+ <TR><TH>Quote</TH><TH>Done By</TH><TH>Brief</TH><TH>Done On</TH><TH>Type</TH><TH>Amount</TH></TR>
 <?php
 
       for ( $i=0; $i < $rows; $i++ ) {
         $quote = pg_Fetch_Object( $quoteq, $i );
-        echo "<TR>";
+        if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
+        else echo "<tr bgcolor=$colors[7]>";
         echo "<TH ALIGN=CENTER VALIGN=TOP ROWSPAN=2><FONT SIZE=+2>$quote->quote_id</FONT></TH>\n";
-        echo "<TD ALIGN=CENTER><A HREF=\"modify-request.php3?request_id=$quote->request_id\">$quote->request_id</A></TD>\n";
-        echo "<TD ALIGN=CENTER>$quote->perorg_name</TD>\n";
+        echo "<TD ALIGN=CENTER>$quote->fullname</TD>\n";
         echo "<TD><A HREF=\"view-quote.php3?quote_id=$quote->quote_id\">$quote->quote_brief</A></TD>\n";
         echo "<TD ALIGN=CENTER>" . nice_date($quote->quoted_on) . "</TD>\n";
         echo "<TD ALIGN=CENTER>$quote->quote_type - $quote->type_desc</TD>\n";
@@ -246,23 +230,21 @@ requests of your systems, or to enter details for new requests.</P><?php
 
   /***** Allocated People */
   /* People who have been allocated to the request - again, only if there are any.  */
-  $query = "SELECT person.perorg_name AS fullname, org.perorg_sort_key AS org_code ";
-  $query .= "FROM perorg_request, awm_perorg AS person, awm_perorg AS org ";
+  $query = "SELECT usr.fullname, organisation.abbreviation ";
+  $query .= "FROM request_allocated, usr, organisation ";
   $query .= "WHERE request_id = '$request->request_id' ";
-  $query .= "AND perorg_request.perorg_id = person.perorg_id ";
-  $query .= "AND perorg_request.perreq_role = 'ALLOC' ";
-  $query .= "AND org.perorg_id = awm_get_rel_parent(perorg_request.perorg_id, 'Employer') ";
+  $query .= "AND usr.user_no=request_allocated.allocated_to_id ";
+  $query .= "AND organisation.org_code = usr.org_code ";
   $allocq = pg_Exec( $wrms_db, $query);
   $rows = pg_NumRows($allocq);
   if ( $rows > 0 ) {
-    echo "<TABLE border=0 cellspacing=0 cellpadding=4 ALIGN=CENTER WIDTH=100%>\n";
-    echo "<TR><TD CLASS=sml COLSPAN=2>&nbsp;</TD></TR>\n";
+    echo "$tbldef<TR><TD CLASS=sml COLSPAN=2>&nbsp;</TD></TR>\n";
     echo "<TR>$hdcell<TD CLASS=h3 ALIGN=RIGHT><FONT SIZE=+1><B>Work Allocated To</B></FONT></TD></TR>\n";
     echo "<TR VALIGN=TOP><th>&nbsp;</th><td>";
     for( $i=0; $i<$rows; $i++ ) {
       $alloc = pg_Fetch_Object( $allocq, $i );
       if ( $i > 0 ) echo ", ";
-      echo "$alloc->fullname ($alloc->org_code)";
+      echo "$alloc->fullname ($alloc->abbreviation)";
     }
     echo "</TD></TR></TABLE>\n";
   }
@@ -280,9 +262,8 @@ requests of your systems, or to enter details for new requests.</P><?php
   $rows = pg_NumRows($workq);
   if ( $rows > 0 ) {
 ?>
- <TABLE BORDER=0 cellspacing=0 cellpadding=4 ALIGN=CENTER WIDTH=100%>
- <TR><TD CLASS=sml COLSPAN=5>&nbsp;</TD></TR>
- <TR><?php echo $hdcell; ?><TD CLASS=h3 COLSPAN=4 ALIGN=RIGHT><FONT SIZE=+1><B>Work Done</B></FONT></TD></TR>
+<?php echo "$tbldef<TR><TD CLASS=sml COLSPAN=5>&nbsp;</TD></TR><TR>$hdcell"; ?>
+<TD CLASS=h3 COLSPAN=4 ALIGN=RIGHT><FONT SIZE=+1><B>Work Done</B></FONT></TD></TR>
  <TR VALIGN=TOP>
    <th>&nbsp;</th>
    <TH ALIGN=LEFT>Done By</TH>
@@ -294,7 +275,9 @@ requests of your systems, or to enter details for new requests.</P><?php
       for( $i=0; $i<$rows; $i++ ) {
         $work = pg_Fetch_Object( $workq, $i );
 
-        echo "<TR><th>&nbsp;</th><TD>$work->perorg_name</TD>\n";
+        if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
+        else echo "<tr bgcolor=$colors[7]>";
+        echo "<th>&nbsp;</th><TD>$work->perorg_name</TD>\n";
         echo "<TD>" . nice_date($work->work_on) . "</TD>\n";
         echo "<TD ALIGN=RIGHT>" . sprintf( "%.2f", round(($work->seconds / 900) + 0.4 ) / 4) . "&nbsp;</TD>\n";
         echo "<TD>$work->work_description</TD></TR>\n";
@@ -306,23 +289,21 @@ requests of your systems, or to enter details for new requests.</P><?php
 
 <?php /***** Interested People */
   /* People who are interested - again, only if there are any.  The requestor is not shown */
-  $query = "SELECT person.perorg_name AS fullname, org.perorg_sort_key AS org_code ";
-  $query .= "FROM perorg_request, awm_perorg AS person, awm_perorg AS org ";
+  $query = "SELECT usr.fullname, organisation.abbreviation ";
+  $query .= "FROM request_interested, usr, organisation ";
   $query .= "WHERE request_id = '$request->request_id' ";
-  $query .= "AND perorg_request.perorg_id = person.perorg_id ";
-  $query .= "AND perorg_request.perreq_role = 'INTRST' ";
-  $query .= "AND org.perorg_id = awm_get_rel_parent(perorg_request.perorg_id, 'Employer') ";
+  $query .= "AND request_interested.user_no = usr.user_no ";
+  $query .= "AND organisation.org_code = usr.org_code ";
   $peopleq = pg_Exec( $wrms_db, $query);
   $rows = pg_NumRows($peopleq);
   if ( $rows > 0 ) {
-    echo "<TABLE BORDER=0 cellspacing=0 cellpadding=4 ALIGN=CENTER WIDTH=100% CLASS=mgn>\n";
-    echo "<TR><TD CLASS=sml COLSPAN=4>&nbsp;</TD></TR>\n";
-    echo "<TR>$hdcell<TD CLASS=h3 COLSPAN=3 ALIGN=RIGHT><FONT SIZE=+1><B>Other Interested Users</B></FONT></TD></TR>\n";
+    echo "$tbldef<TR><TD CLASS=sml COLSPAN=2>&nbsp;</TD></TR>\n";
+    echo "<TR>$hdcell<TD CLASS=h3 ALIGN=RIGHT><FONT SIZE=+1><B>Other Interested Users</B></FONT></TD></TR>\n";
     echo "<TR VALIGN=TOP><th nowrap>&nbsp; &nbsp; &nbsp; </th><td>";
     for( $i=0; $i<$rows; $i++ ) {
       $interested = pg_Fetch_Object( $peopleq, $i );
       if ( $i > 0 ) echo ", ";
-      echo "$interested->fullname ($interested->org_code)\n";
+      echo "$interested->fullname ($interested->abbreviation)\n";
     }
     echo "</TD></TR></TABLE>\n";
   }
@@ -335,9 +316,8 @@ requests of your systems, or to enter details for new requests.</P><?php
   if ( $rows > 0 ) {
 ?>
 
-<TABLE BORDER=0 cellspacing=0 cellpadding=4 ALIGN=CENTER WIDTH=100%>
- <TR><TD CLASS=sml COLSPAN=4>&nbsp;</TD></TR>
- <TR><?php echo $hdcell; ?><TD CLASS=h3 COLSPAN=3 ALIGN=RIGHT><FONT SIZE=+1><B>Associated Notes</B></FONT></TD></TR>
+<?php echo "$tbldef<TR><TD CLASS=sml COLSPAN=4>&nbsp;</TD></TR><TR>$hdcell"; ?>
+<TD CLASS=h3 COLSPAN=3 ALIGN=RIGHT><FONT SIZE=+1><B>Associated Notes</B></FONT></TD></TR>
 <TR VALIGN=TOP>
   <TH NOWRAP>&nbsp; &nbsp; </TH>
   <TH ALIGN=LEFT>Noted By</TH>
@@ -347,7 +327,9 @@ requests of your systems, or to enter details for new requests.</P><?php
 <?php /*** the actual details of notes */
     for( $i=0; $i<$rows; $i++ ) {
       $request_note = pg_Fetch_Object( $noteq, $i );
-      echo "<TR VALIGN=TOP><TH NOWRAP>&nbsp; &nbsp; </TH>";
+      if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
+      else echo "<tr bgcolor=$colors[7]>";
+      echo "<TH NOWRAP>&nbsp; &nbsp; </TH>";
       echo "<TD>$request_note->note_by</TD><TD>";
       echo nice_date($request_note->note_on);
       echo "</TD>\n<TD>" . html_format($request_note->note_detail) . "</TD></TR>\n";
@@ -365,9 +347,8 @@ requests of your systems, or to enter details for new requests.</P><?php
   $rows = pg_NumRows($stat_res);
   if ( $rows > 0 ) {
 ?>
-<TABLE BORDER=0 cellspacing=0 cellpadding=4 ALIGN=CENTER WIDTH=100% CLASS=mgn>
- <TR><TD CLASS=sml COLSPAN=4>&nbsp;</TD></TR>
- <TR><?php echo $hdcell; ?><TD CLASS=h3 COLSPAN=3 ALIGN=RIGHT><FONT SIZE=+1><B>Changes in Status</B></FONT></TD></TR>
+<?php echo "$tbldef<TR><TD CLASS=sml COLSPAN=4>&nbsp;</TD></TR><TR>$hdcell"; ?>
+<TD CLASS=h3 COLSPAN=3 ALIGN=RIGHT><FONT SIZE=+1><B>Changes in Status</B></FONT></TD></TR>
 <TR VALIGN=TOP>
   <TH NOWRAP>&nbsp; &nbsp; &nbsp; </TH>
   <TH ALIGN=LEFT WIDTH="15%">Changed By</TH>
@@ -377,7 +358,9 @@ requests of your systems, or to enter details for new requests.</P><?php
 <?php /* the actual status stuff */
     for( $i=0; $i<$rows; $i++ ) {
       $request_status = pg_Fetch_Object( $stat_res, $i );
-      echo "<TR VALIGN=TOP><TH>&nbsp; &nbsp; &nbsp; </TH>";
+      if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
+      else echo "<tr bgcolor=$colors[7]>";
+      echo "<TH>&nbsp; &nbsp; &nbsp; </TH>";
       echo "<TD>$request_status->fullname</TD>\n<TD>" . nice_date($request_status->status_on) . "</TD> <TD>$request_status->status_code - $request_status->lookup_desc</TD></TR>\n";
     }
     echo "</TABLE>\n";
@@ -385,38 +368,36 @@ requests of your systems, or to enter details for new requests.</P><?php
 
   if ( ! $plain ) {
 
-?>
-
-<FORM ACTION="request-changed.php3" METHOD=POST>
-<?php echo "<INPUT TYPE=\"hidden\" NAME=\"request_id\" VALUE=\"$request->request_id\">"; ?>
-<TABLE BORDER=0 cellspacing=0 cellpadding=4 ALIGN=CENTER WIDTH=100%>
- <TR><TD CLASS=sml COLSPAN=4> &nbsp; </TD></TR>
- <TR><?php echo $hdcell; ?><TD CLASS=h3 COLSPAN=3 ALIGN=RIGHT><FONT SIZE=+1><B><?php
-  /**** only update status & eta if they are administrator */
-  if ( $administrator ) echo "Change Status or ";
-  echo "Add Notes</B></FONT></TD></TR>\n";
-  if ( $administrator && $notable ) {
-    echo "<TR>";
-    echo "<TH ALIGN=RIGHT>New Status:</TH>";
-    echo "<TD ALIGN=LEFT>&nbsp;<SELECT NAME=\"new_status\">$status_list</SELECT></TD>";
-    echo "<TH ALIGN=RIGHT>&nbsp;&nbsp;&nbsp;ETA:</TH>";
-    echo "<TD ALIGN=LEFT>&nbsp;";
-    if ( $sysmgr || $allocated_to ) echo "<INPUT TYPE=text NAME=\"new_eta\" SIZE=30 VALUE=\"";
-    echo substr( nice_date( $request->eta ), 7);
-    if ( $sysmgr || $allocated_to ) echo "\">";
-    echo "</TD></TR>\n";
-  }
+    echo "$tbldef<TR><TD CLASS=sml COLSPAN=4><FORM ACTION=\"request-changed.php3\" METHOD=POST></TD></TR><TR>$hdcell";
+    echo "<TD CLASS=h3 COLSPAN=3 ALIGN=RIGHT><FONT SIZE=+1><B>";
+    /**** only update status & eta if they are administrator */
+    if ( $administrator ) echo "Change Status or ";
+    echo "Add Notes</B></FONT></TD></TR>\n";
+    echo "";
+    echo "<INPUT TYPE=\"hidden\" NAME=\"request_id\" VALUE=\"$request->request_id\">";
+    if ( $administrator && $notable ) {
+      echo "<TR>";
+      echo "<TH ALIGN=RIGHT>New Status:</TH>";
+      echo "<TD ALIGN=LEFT>&nbsp;<SELECT NAME=\"new_status\">$status_list</SELECT></TD>";
+      echo "<TH ALIGN=RIGHT>&nbsp;&nbsp;&nbsp;ETA:</TH>";
+      echo "<TD ALIGN=LEFT>&nbsp;";
+      if ( $sysmgr || $allocated_to ) echo "<INPUT TYPE=text NAME=\"new_eta\" SIZE=30 VALUE=\"";
+      echo substr( nice_date( $request->eta ), 7);
+      if ( $sysmgr || $allocated_to ) echo "\">";
+      echo "</TD></TR>\n";
+    }
 ?>
 
 <TR VALIGN=TOP border=0 cellspacing=0 cellpadding=4>
   <TH ALIGN=RIGHT>New Note:</TH>
-  <TD ALIGN=LEFT COLSPAN=3><TEXTAREA NAME="new_note" ROWS=10 COLS=70  WRAP="SOFT"></TEXTAREA></TD>
+  <TD ALIGN=LEFT COLSPAN=3><TEXTAREA NAME="new_note" ROWS=8 COLS=60  WRAP="SOFT"></TEXTAREA></TD>
 </TR>
 <TR><TD CLASS=mand COLSPAN=4 ALIGN=CENTER><FONT SIZE=+1><B>
-<INPUT TYPE=submit VALUE="Update Request" NAME=submit></B></FONT></TD></TR>
+<INPUT TYPE=submit VALUE="Update Request" NAME=submit></B></FONT></form></TD></TR>
+</TABLE>
+
 <?php
   }  // if ! plain
 }  // isset($request) (way up there with the update details!)
 ?>
-</TABLE>
 

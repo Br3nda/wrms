@@ -1,10 +1,12 @@
---INSERT INTO usr (user_no, username, password, email_address, full_name)
---  SELECT DISTINCT ON user_no
---	awm_usr.perorg_id as user_no, username, password, 
---	awm_get_perorg_data(awm_usr.perorg_id,'email') AS email,
---	perorg_name AS full_name 
---	FROM awm_usr, awm_perorg 
---	WHERE awm_perorg.perorg_id=awm_usr.perorg_id;
+SELECT * INTO temp1 FROM awm_usr;
+DELETE FROM temp1 WHERE temp1.username=usr.username OR temp1.username='scoop';
+INSERT INTO usr (username, password, email, fullname)
+  SELECT DISTINCT ON user_no
+	username, password, 
+	awm_get_perorg_data(temp1.perorg_id,'email') AS email,
+	perorg_name AS full_name 
+	FROM temp1, awm_perorg 
+	WHERE awm_perorg.perorg_id=temp1.perorg_id;
 
 INSERT INTO module VALUES('wrms','WRMS Module','1');
 INSERT INTO ugroup VALUES(1,'wrms','Admin');
@@ -65,13 +67,25 @@ DROP TABLE request_type;
 
 UPDATE request SET requester_id=usr.user_no WHERE usr.username=request.request_by;
 UPDATE request_history SET requester_id=usr.user_no WHERE usr.username=request_history.request_by;
-UPDATE request_allocated SET allocated_to_id=usr.user_no WHERE usr.username=request_allocated.allocated_to;
-UPDATE request_interested SET user_no=usr.user_no WHERE usr.username=request_interested.username;
 UPDATE request_note SET note_by_id=usr.user_no WHERE usr.username=request_note.note_by;
 UPDATE request_quote SET quote_by_id=usr.user_no WHERE usr.username=request_quote.quoted_by;
 UPDATE request_status SET status_by_id=usr.user_no WHERE usr.username=request_status.status_by;
 UPDATE request_timesheet SET work_by_id=usr.user_no WHERE usr.username=request_timesheet.work_by;
 UPDATE system_update SET update_by_id=usr.user_no WHERE usr.username=system_update.update_by;
+
+DELETE FROM request_allocated;
+INSERT INTO request_allocated (request_id, allocated_on, allocated_to )
+    SELECT request_id, perreq_from, username FROM perorg_request, awm_usr
+		          WHERE awm_usr.perorg_id=perorg_request.perorg_id
+							AND perreq_role='ALLOC';
+UPDATE request_allocated SET allocated_to_id=usr.user_no WHERE usr.username=request_allocated.allocated_to;
+
+DELETE FROM request_interested;
+INSERT INTO request_interested (request_id, username )
+    SELECT request_id, username FROM perorg_request, awm_usr
+		          WHERE awm_usr.perorg_id=perorg_request.perorg_id
+							AND perreq_role='INTRST';
+UPDATE request_interested SET user_no=usr.user_no WHERE usr.username=request_interested.username;
 
 ALTER TABLE organisation ADD COLUMN abbreviation TEXT;
 UPDATE organisation SET abbreviation=awm_perorg.perorg_sort_key

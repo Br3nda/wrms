@@ -12,19 +12,43 @@
     include( "inc/error.php" );
   }
   else {
-    echo "<h3>Request List</h3>\n";
+    echo "<h3>Request List\n";
     echo "<form Action=\"$base_url/requestlist.php";
     if ( "$org_code" != "" ) echo "?org_code=$org_code";
-    echo "\" Method=\"POST\">\n";
+    echo "\" Method=\"POST\"></h3>\n";
 
     include("inc/system-list.php");
     $system_list = get_system_list( "CES", "$system_code");
 ?>
-<table><tr valign=middle>
-<td><b>Name</b><input TYPE="Text" Size="10" Name="search_for" Value="<?php echo "$search_for"; ?>"></td>
-<td> <b>System</b><select NAME=system_code><?php echo "$system_list"; ?></select></td>
+<table border=1 cellspacing=0 cellpadding=2>
+<tr valign=middle>
+<th align=right>Name:</th><td><input TYPE="Text" Size="10" Name="search_for" Value="<?php echo "$search_for"; ?>"></td>
+<th align=right>&nbsp; System:</th><td><select NAME=system_code><?php echo "$system_list"; ?></select></td>
 <td><input TYPE="Image" src="images/in-go.gif" alt="go" WIDTH="44" BORDER="0" HEIGHT="26" name="submit"></td>
-</tr></table>
+</tr>
+<?php
+  $query = "SELECT * FROM lookup_code WHERE source_table='request' ";
+  $query .= " AND source_field='status_code' ";
+  $query .= " ORDER BY source_table, source_field, lookup_seq, lookup_code ";
+  $rid = pg_Exec( $wrms_db, $query);
+  if ( ! $rid ) {
+    echo "<p>$query";
+  }
+  else if ( pg_NumRows($rid) > 1 ) {
+    echo "<tr valign=middle><th align=right>Statuses:</th><td colspan=4 class=sml valign=top>\n";
+    for ( $i=0; $i<pg_NumRows($rid); $i++ ) {
+      $status = pg_Fetch_Object( $rid, $i );
+      echo "<input type=checkbox name=incstat[$status->lookup_code]";
+      if ( !isset( $incstat) || $incstat[$status->lookup_code] <> "" ) echo " checked";
+      echo " value=1>&nbsp;" . str_replace( " ", "&nbsp;", $status->lookup_desc) . " &nbsp; ";
+    }
+    echo "<input type=checkbox name=inactive";
+    if ( isset($inactive) ) echo " checked";
+    echo " value=1>&nbsp;Inactive";
+    echo "</td></tr>";
+  }
+?>
+</table>
 </form>  
 
 <?php
@@ -38,6 +62,13 @@
       $query .= " OR detailed ~* '$search_for' ) ";
     }
     if ( "$system_code" != "" )     $query .= " AND system_code='$system_code' ";
+    if ( isset( $incstat) ) {
+      $query .= " AND (request.last_status ~* '[";
+      while( list( $k, $v) = each( $incstat ) ) {
+        $query .= $k ;
+      }
+      $query .= "]') ";
+    }
     $query .= " AND status.source_table='request' AND status.source_field='status_code' AND status.lookup_code=request.last_status ";
     $query .= " ORDER BY request_id DESC ";
     $query .= " LIMIT 100 ";

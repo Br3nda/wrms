@@ -4,9 +4,9 @@ function notify_emails( $dbid, $req_id ) {
 
   if ( "$req_id" == "" ) return "";
 
-  $query = "SELECT email FROM usr ";
-  $query .= "WHERE (request_interested.user_no = usr.user_no AND request_interested.request_id = $req_id) ";
-  $query .= " OR (request_allocated.allocated_to_id = usr.user_no AND request_allocated.request_id = $req_id) ";
+  $query = "SELECT DISTINCT email FROM usr ";
+  $query .= "WHERE (request_interested.user_no = usr.user_no";
+  $query .=      " AND request_interested.request_id = $req_id) ";
 
   $peopleq = pg_Exec( $dbid, $query);
 
@@ -18,7 +18,6 @@ function notify_emails( $dbid, $req_id ) {
       $to .= "$interested->email";
     }
   }
-
   return $to;
 }
 

@@ -215,6 +215,7 @@ function dates_equal( $date1, $date2 ) {
     else
       $request->active = "FALSE";
 
+    $behalf_changed = isset($new_user_no) && intval($new_user_no) > 0 && ($request->requester_id != $new_user_no );
     $status_changed = isset($new_status) && ($request->last_status != $new_status );
     $eta_changed = !dates_equal($request->eta, $new_eta);
     if ( isset( $new_brief) ) $new_brief = str_replace( "\r\n", "\n", $new_brief);
@@ -235,6 +236,7 @@ function dates_equal( $date1, $date2 ) {
     $agreed_changed = !dates_equal($request->agreed_due_date, $new_agreed_due_date);
     $changes =  $brief_changed
              || $detail_changed
+             || $behalf_changed
              || (isset($new_type) && $request->request_type != $new_type )
              || (isset($new_severity) && $request->severity_code != $new_severity )
              || (isset($new_urgency) && $request->urgency != $new_urgency )
@@ -257,7 +259,7 @@ function dates_equal( $date1, $date2 ) {
              . (isset($new_system_code) && $request->system_code != $new_system_code ) . "-"
              . (isset($new_active) && $request->active != $new_active ) . "+  also  -"
              . "$eta_changed+$status_changed-$note_added+"
-             . "$quote_added-$work_added+$interest_added-$allocation_added+$attachment_added"
+             . "$quote_added-$work_added+$interest_added-$allocation_added+$attachment_added*$behalf_changed"
              . "---", 0) ;
 
     if ( ! $changes ) {
@@ -293,6 +295,8 @@ function dates_equal( $date1, $date2 ) {
     }
 
     $query = "UPDATE request SET";
+   if ( $behalf_changed )
+      $query .= " requester_id = '" . tidy($new_user_no) . "',";
    if ( $brief_changed )
       $query .= " brief = '" . tidy($new_brief) . "',";
     if ( $detail_changed )

@@ -239,4 +239,14 @@ function tidy( $instr ) {
   return $instr ;
 }
 
+function link_writeups( $instr ) {
+  global $logged_on;
+  if ( !$logged_on ) return $instr;
+  $instr = ereg_replace("\[([^]|]+)\|([^]|]+)\]", "<a href=\"/wu.php?wu=\\1\">\\2</a>", $instr);
+  $instr = ereg_replace("\[([^]|]+)\]", "<a href=\"/wu.php?wu=\\1\">\\1</a>", $instr);
+//  $instr = ereg_replace("\[([a-zA-Z0-9]+)\]", "<a href=\"/wu.php?wu=\\1\">\\1</a>", $instr);
+  return $instr;
+}
+
+
 ?>

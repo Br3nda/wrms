@@ -244,7 +244,9 @@ $query";
       if ( $result && pg_NumRows($result) > 0 )
         echo "\n<small>" . pg_NumRows($result) . " requests found</small>"; // <p>$query</p>";
       else
-        echo "\n<p><small>No requests found</small></p><p>$query</p>";
+        echo "\n<p><small>No requests found</small></p>";
+        if ( $roles['wrms']['Admin'] )
+          echo "<p>You are an admin, so I can show you this:<br>\n<small><small>$query</small></small></p>";
     }
 
 function header_row() {
@@ -260,7 +262,7 @@ function header_row() {
 }
     echo "<table border=\"0\" align=left width=100%>\n";
 
-    if ( "$format" == "detailed" ) {
+    if ( "$format" == "detailed" || "$format" == "activity" ) {
       include("inc/html-format.php");
     }
     else
@@ -268,12 +270,13 @@ function header_row() {
 
 
     if ( $result ) {
+      $grand_total = 0.0;
 
       // Build table of requests found
       for ( $i=0; $i < pg_NumRows($result); $i++ ) {
         $thisrequest = pg_Fetch_Object( $result, $i );
 
-        if ( "$format" == "detailed" ) header_row();
+        if ( "$format" == "detailed" || "$format" == "activity" ) header_row();
         printf( "<tr class=row%1d>\n", $i % 2);
 
         echo "<td class=sml align=center><a href=\"request.php?request_id=$thisrequest->request_id\">$thisrequest->request_id</a></td>\n";
@@ -289,29 +292,58 @@ function header_row() {
 
         echo "</tr>\n";
 
-        if ( "$format" == "detailed" ) {
+        if ( "$format" == "detailed" || "$format" == "activity" ) {
           printf( "<tr class=row%1d>\n", $i % 2);
           echo "<td colspan=7>" . html_format($thisrequest->detailed) . "</td>\n";
           echo "</tr>\n";
-          $subquery = "SELECT *, to_char( note_on, 'DD/MM/YYYY') AS nice_date ";
-          $subquery .= "FROM request_note, usr ";
-          $subquery .= "WHERE request_id = $thisrequest->request_id ";
-          $subquery .= "AND usr.user_no = request_note.note_by_id ";
-          $subquery .= "ORDER BY request_id, note_on ";
-          $subres = awm_pgexec( $dbconn, $subquery, "requestlist" );
-          for ( $j=0; $subres && $j < pg_NumRows($subres); $j++ ) {
-            $thisnote = pg_Fetch_Object( $subres, $j );
-            printf( "<tr class=row%1d valign=top>\n", $i % 2);
-            echo "<td>$thisnote->nice_date</td>\n";
-            echo "<td>$thisnote->fullname</td>\n";
-            echo "<td colspan=5>" . html_format($thisnote->note_detail) . "</td>\n";
-            echo "</tr>\n";
+          if ( "$format" == "detailed" ) {
+            $subquery = "SELECT *, to_char( note_on, 'DD/MM/YYYY') AS nice_date ";
+            $subquery .= "FROM request_note, usr ";
+            $subquery .= "WHERE request_id = $thisrequest->request_id ";
+            $subquery .= "AND usr.user_no = request_note.note_by_id ";
+            $subquery .= "ORDER BY request_id, note_on ";
+            $subres = awm_pgexec( $dbconn, $subquery, "requestlist" );
+            for ( $j=0; $subres && $j < pg_NumRows($subres); $j++ ) {
+              $thisnote = pg_Fetch_Object( $subres, $j );
+              printf( "<tr class=row%1d valign=top>\n", $i % 2);
+              echo "<td>$thisnote->nice_date</td>\n";
+              echo "<td>$thisnote->fullname</td>\n";
+              echo "<td colspan=5>" . html_format($thisnote->note_detail) . "</td>\n";
+              echo "</tr>\n";
+            }
+          }
+          else {
+            $subquery = "SELECT *, to_char( work_on, 'DD/MM/YYYY') AS nice_date ";
+            $subquery .= "FROM request_timesheet, usr ";
+            $subquery .= "WHERE request_id = $thisrequest->request_id ";
+            $subquery .= "AND usr.user_no = request_timesheet.work_by_id ";
+            $subquery .= "ORDER BY request_id, work_on ";
+            $total = 0.0;
+            $subres = awm_pgexec( $dbconn, $subquery, "requestlist" );
+            for ( $j=0; $subres && $j < pg_NumRows($subres); $j++ ) {
+              $thiswork = pg_Fetch_Object( $subres, $j );
+              printf( "<tr class=row%1d valign=top>\n", $i % 2);
+              echo "<td>$thiswork->nice_date</td>\n";
+              echo "<td>$thiswork->fullname</td>\n";
+              echo "<td colspan=2>$thiswork->work_description</td>\n";
+              printf("<td align=right>%9.2f &nbsp; </td>\n", $thiswork->work_quantity);
+              printf("<td align=right>%9.2f &nbsp; </td>\n", $thiswork->work_rate);
+              $value = $thiswork->work_quantity * $thiswork->work_rate;
+              $total += $value;
+              printf("<td align=right>%9.2f &nbsp; </td>\n", $value);
+              echo "</tr>\n";
+            }
+            if ( $j > 0 )
+              printf( "<tr class=row%1d>\n<td colspan=6>&nbsp; &nbsp; &nbsp; Request #$thisrequest->request_id total</td>\n<td align=right>%9.2f &nbsp; </td>\n</tr>\n", $i % 2, $total);
+            $grand_total += $total;
           }
 
           echo "<tr class=row3>\n<td colspan=7>&nbsp;</td></tr>\n";
         }
       }
     }
+    if ( "$format" == "activity" )
+      printf( "<tr class=row%1d>\n<th align=left colspan=6>Grand Total</th>\n<th align=right>%9.2f &nbsp; </th>\n</tr>\n", $i % 2, $grand_total);
     echo "</table>\n";
 
     if ( "$style" != "stripped" ) {
@@ -323,6 +355,8 @@ function header_row() {
 
       echo "<br clear=all><hr>\n<table cellpadding=5 cellspacing=5 align=right><tr><td>Rerun as report: </td>\n<td>\n";
       printf( "<a href=\"$this_page\" target=_new>Brief</a>\n", "stripped", "brief");
+      if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] )
+        printf( " &nbsp;|&nbsp; <a href=\"$this_page\" target=_new>Activity</a>\n", "stripped", "activity");
       printf( " &nbsp;|&nbsp; <a href=\"$this_page\" target=_new>Detailed</a>\n", "stripped", "detailed");
       echo "</td></tr></table>\n";
     }

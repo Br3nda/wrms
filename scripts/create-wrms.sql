@@ -377,4 +377,28 @@ CREATE TABLE help (
 GRANT SELECT,INSERT,UPDATE ON help TO PUBLIC;
 GRANT ALL ON help TO andrew;
 
+CREATE TABLE infonode (
+    node_id SERIAL PRIMARY KEY,
+    nodename TEXT,
+    created_on TIMESTAMP,
+    created_by INT4,
+    node_type INT4
+);
+CREATE INDEX infonode_skey1 ON infonode (created_by, created_on);
+CREATE INDEX infonode_skey2 ON infonode (created_on);
+GRANT SELECT,INSERT,UPDATE ON infonode, infonode_node_id_seq TO PUBLIC;
+GRANT ALL ON infonode, infonode_node_id_seq TO andrew;
+
+CREATE TABLE wu (
+    node_id INT4,
+    wu_by INT4,
+    wu_on TIMESTAMP,
+    content LZTEXT,
+    PRIMARY KEY (node_id, wu_by)
+);
+CREATE INDEX wu_skey1 ON wu (wu_by, wu_on);
+CREATE INDEX wu_skey2 ON wu (wu_on);
+GRANT SELECT,INSERT,UPDATE ON wu TO PUBLIC;
+GRANT ALL ON wu TO andrew;
+
 \i procedures.sql

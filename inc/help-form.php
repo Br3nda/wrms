@@ -56,8 +56,8 @@
     else if ( 1 == $rows ) {
       // Only a single result, so display it
       $help = pg_Fetch_Object($rid,0);
-      echo "<h1>$help->title</h1>\n";
-      echo "$help->content\n";
+      echo link_writeups("<h1>$help->title</h1>\n");
+      echo link_writeups("$help->content\n");
       if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
         echo "<p><br><p><br><a href=\"/help.php?action=edit&h=" . htmlspecialchars($help->topic) . "&seq=$help->seq\">edit this help text</a>\n";
         echo " &nbsp;| &nbsp;<a href=\"/help.php?action=add&h=" . htmlspecialchars($help->topic) . "\">add new help text</a>\n";
@@ -73,8 +73,8 @@
       for( $i = 0; $i < $rows; $i ++ ) {
         $help = pg_Fetch_Object($rid,$i);
         if ( (isset($seq) && $help->seq == $seq) || isset($show_all) ) {
-          echo "<li><b><big>$help->title</big></b></li>\n";
-          echo "$help->content\n";
+          echo link_writeups("<li><b><big>$help->title</big></b></li>\n");
+          echo link_writeups("$help->content\n");
           if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
             echo "<p align=right><a href=\"/help.php?action=edit&h=" . htmlspecialchars($help->topic) . "&seq=$help->seq\">edit this help text</a></p>\n";
 //            echo " &nbsp;| &nbsp;<a href=\"/help.php?action=add&h=" . htmlspecialchars($help->topic) . "\">add new help text</a>\n";

@@ -6,6 +6,7 @@ function html_format( $instr ) {
   $instr = str_replace("\n", "<br>", $instr);
   $instr = str_replace("<p>", "\n<p>", $instr);
   $instr = str_replace("<br>", "<br>\n", $instr);
+  $instr = link_writeups($instr);
   return $instr;
 }
 ?>

@@ -173,13 +173,19 @@ class Request {
         if ( $session->AllowedTo("Support") ) {
           $answer = true;   // Support can always update
         }
-        if ( $this->org_code == $session->org_code ) {
-          $answer = ( strpos("SACEO",$session->system_roles[$this->system_code] ) != false );
+        else if ( $this->org_code == $session->org_code ) {
+          $answer = ( strpos("`SACEO",$session->system_roles[$this->system_code] ) != false );
         }
         else if ( $session->AllowedTo("Contractor") ) {
           // A contractor will need specific access to this System
-          $answer = ( strpos("SACEO",$session->system_roles[$this->system_code] ) != false );
+          $answer = ( strpos("`SACEO",$session->system_roles[$this->system_code] ) != false );
         }
+        break;
+
+      case 'viewtimesheets':
+        $answer = false;
+        if ( $session->AllowedTo("Support") )         $answer = true;
+        else if ( $session->AllowedTo("Contractor") ) $answer = true;
         break;
 
       default:
@@ -842,6 +848,8 @@ class Request {
   /////////////////////////////////////////////////////////////
   function RenderTimesheets( $ef ) {
     global $session, $sysabbr;
+
+    if ( ! $this->AllowedTo("viewtimesheets") ) return "";
     $html = "";
     $sql = "SELECT request_timesheet.*, usr.fullname, usr.email, cb.fullname AS charged_by, ";
     $sql .= "usr.base_rate AS worker_rate, supplier.work_rate AS supplier_rate, organisation.work_rate AS org_rate, ";

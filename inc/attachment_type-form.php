@@ -19,12 +19,12 @@
       // Build table of systems found
       $i = 0;
       $line_format  = '<tr class="row%1d">';
-      $line_format .= '<td class="sml"><a href="attachment_type.php?type_code=%s">%s</a></td>';
-      $line_format .= '<td class="sml"><a href="attachment_type.php?type_code=%s">%s</a></td>';
-      $line_format .= '<td class="sml" align="right">%d</td>';
-      $line_format .= '<td class="sml">%s</td>';
-      $line_format .= '<td class="sml">%s</td>';
-      $line_format .= '<td class="sml">%s</td>';
+      $line_format .= '<td class="sml" width="5%%"><a href="attachment_type.php?type_code=%s">%s</a></td>';
+      $line_format .= '<td class="sml" width="23%%"><a href="attachment_type.php?type_code=%s">%s</a></td>';
+      $line_format .= '<td class="sml" align="right" width="3%%">%d</td>';
+      $line_format .= '<td class="sml" width="23%%">%s</td>';
+      $line_format .= '<td class="sml" width="5%%">%s</td>';
+      $line_format .= '<td class="sml" width="23%%">%s</td>';
       $line_format .= "</tr>\n";
 
       while( $row = $qry->Fetch() ) {

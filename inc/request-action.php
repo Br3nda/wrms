@@ -16,7 +16,14 @@
     return;
   }
   else if ( "$submit" == "deregister" ) {
-    $query = "DELETE FROM request_interested WHERE request_id=$request_id AND user_no=$session->user_no; ";
+    if ( isset($user_no) && $user_no <> $session->user_no ) {
+      if ( !( $allocated_to || $sysmgr ) ) {
+        $because .= "<H3>You are not authorised to remove people from this request!</H3>\n";
+      }
+    }
+    else
+      $user_no = $session->user_no;
+    $query = "DELETE FROM request_interested WHERE request_id=$request_id AND user_no=$user_no; ";
     $rid = pg_Exec( $wrms_db, $query );
     if ( ! $rid ) {
       $because .= "<H3>&nbsp;Remove Interest Failed!</H3>\n";
@@ -24,7 +31,11 @@
       $because .= "<P>The failed query was:</P><TT>$query</TT>";
     }
     else {
-      $because .= "<h3>You have been removed from this request</h3>";
+      if ( $user_no == $session->user_no )
+        $because .= "<h3>You have ";
+      else
+        $because .= "<h3>User $user_no has ";
+      $because .= "been removed from this request</h3>";
     }
     return;
   }
@@ -79,6 +90,8 @@
     $quote_added = ($new_quote_brief != "") && ($new_quote_amount != "");
     $work_added = ($new_work_on != "") && ($new_work_quantity != "") && ($new_work_details != "") && ($new_work_rate != "") ;
     $status_changed = isset($new_status) && ($request->last_status != $new_status );
+    $interest_added = isset($new_interest) && ($new_interest != "" );
+    $allocation_added = isset($new_allocation) && ($new_allocation != "" );
     $old_eta = substr( nice_date($request->eta), 7);
     $eta_changed = (("$old_eta" != "$new_eta") && ( "$new_eta" != ""));
     $changes =  (isset($new_brief) && $request->brief != $new_brief)
@@ -89,9 +102,9 @@
              || (isset($new_importance) && $request->importance != $new_importance )
              || (isset($new_system_code) && $request->system_code != $new_system_code )
              || (isset($new_active) && $request->active != $new_active )
-             || $eta_changed || $status_changed || $note_added || $quote_added;
+             || $eta_changed || $status_changed || $note_added || $quote_added || $allocation_added ;
     $send_some_mail = $changes;
-    $changes = $changes || $work_added;
+    $changes = $changes || $work_added || $interest_added;
     if ( $debuglevel >= 1 ) {
       echo "<p>---" . (isset($new_brief) && $request->brief != $new_brief) . "-"
              . (isset($new_detail) && $request->detailed != $new_detail) . "+"
@@ -102,7 +115,7 @@
              . (isset($new_system_code) && $request->system_code != $new_system_code ) . "-"
              . (isset($new_active) && $request->active != $new_active ) . "+  also  -"
              . $eta_changed . "+" . $status_changed . "-" . $note_added . "+"
-             . $quote_added . "-" . $work_added . "+"
+             . $quote_added . "-" . $work_added . "+" . $interest_added . "-" . $allocation_added . "+"
              . "---$request->request_type != $new_type</p>" ;
 
       echo "<p>-$request->active|$new_active-</p>";
@@ -151,7 +164,7 @@
     if ( isset($new_eta) && ($sysmgr || $allocated_to) && $eta_changed ) $query .= " eta = '$new_eta',";
     if ( isset($new_active) && $request->active != $new_active )
       $query .= " active = $new_active,";
-    if ( isset($new_status) && $request->last_status != $new_status )
+    if ( $status_changed )
       $query .= " last_status = '$new_status',";
     if ( isset($new_type) && $request->request_type != $new_type )
       $query .= " request_type = $new_type,";
@@ -218,6 +231,38 @@
         $because .= "<P>The failed query was:</P><TT>$query</TT>";
         pg_exec( $wrms_db, "ROLLBACK;" );
         return;
+      }
+    }
+
+    if ( $interest_added ) {
+      /* new user was added as interested */
+      $query = "SELECT set_interested( $new_interest, $request_id ); ";
+      $rid = pg_exec( $wrms_db, $query );
+      if ( ! $rid ) {
+        $errmsg = pg_ErrorMessage( $wrms_db );
+        $because .= "<H3>New Interest Failed! (Warning)</H3>\n";
+        $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
+        $because .= "<P>The failed query was:</P><TT>$query</TT>";
+      }
+      else
+        $because .= "<h3>User $new_interest has been added to this request</h3>";
+    }
+
+    if ( $allocation_added ) {
+      /* new user was added as allocated */
+      $query = "SELECT set_interested( $new_allocation, $request_id ); ";
+      $rid = pg_exec( $wrms_db, $query );
+      $query = "SELECT set_allocated( $new_allocation, $request_id ) AS alloc_to, * FROM usr WHERE usr.user_no=$new_allocation; ";
+      $rid = pg_exec( $wrms_db, $query );
+      if ( ! $rid ) {
+        $errmsg = pg_ErrorMessage( $wrms_db );
+        $because .= "<H3>New Allocation Failed! (Warning)</H3>\n";
+        $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
+        $because .= "<P>The failed query was:</P><TT>$query</TT>";
+      }
+      else {
+        $alloc = pg_Fetch_Object( $rid, 0);
+        $because .= "<h3>$alloc->fullname (user #$new_allocation) has been allocated to work on this request</h3>";
       }
     }
 
@@ -415,7 +460,8 @@
     // Work out what to tell and who to tell it to
     //////////////////////////////////////////////
     $send_to = notify_emails( $wrms_db, $request_id );
-    $because .="<p>Details of the changes, along with future notes and status updates will be e-mailed to the following addresses: &nbsp; $send_to.</p>";
+    $because .="<p>Details of the changes, along with future notes and status updates will be e-mailed to the following addresses:<br>";
+    $because .= htmlentities($send_to) . "</p>";
 
     $msub = "WR #$request_id [$session->username] $chtype" . "d: " . stripslashes($request->brief);
     $msg = "Request No.:  $request_id\n"
@@ -457,6 +503,9 @@
     if ( $quote_added )
       $msg .= "Quotation:    A new quote has been entered against this request.\n";
 
+    if ( $allocation_added )
+      $msg .= "Work Allocated:    $work->fullname has been allocated to work on this request.\n";
+
 
     if ( $chtype == "change" && $request->detailed != $previous->detailed ) {
       $msg .= "\nPrevious Description:\n"
@@ -477,7 +526,7 @@
     $msg .= "\nFull details of the request, with all changes and notes, can be reviewed and changed at:\n"
          .  "    http://$HTTP_HOST$base_url/request.php?request_id=$request_id\n";
 
-    mail( $send_to, $msub, $msg, "From: wrms@catalyst.net.nz\nErrors-To: wrmsadmin@catalys.net.nz" );
+    mail( $send_to, $msub, $msg, "From: andrew@catalyst.net.nz\nErrors-To: wrmsadmin@catalys.net.nz" );
   }
 ?>
 

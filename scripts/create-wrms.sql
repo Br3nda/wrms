@@ -4,6 +4,7 @@ CREATE TABLE usr (
     enabled INT2 DEFAULT 1,
     access_level INT4 DEFAULT 10,
     last_accessed DATETIME,
+    linked_user INT4,
     username TEXT NOT NULL UNIQUE,
     password TEXT,
     email TEXT,
@@ -90,7 +91,7 @@ GRANT SELECT,UPDATE ON organisation_org_code_seq TO general;
 CREATE TABLE request (
   request_id SERIAL PRIMARY KEY,
   request_on DATETIME DEFAULT TEXT 'now',
-  active BOOL DEFAULT TEXT 't',
+  active BOOL DEFAULT TRUE,
   last_status CHAR DEFAULT 'N',
 	urgency INT2,
 	importance INT2,
@@ -113,11 +114,11 @@ GRANT INSERT,UPDATE,SELECT ON request TO general;
 GRANT SELECT,UPDATE ON request_request_id_seq TO PUBLIC;
 
 
-CREATE TABLE request_words ( string TEXT, id OID );
-CREATE FUNCTION keyword() RETURNS OPAQUE AS '/usr/lib/postgresql/modules/keyword.so' LANGUAGE 'C';
-CREATE TRIGGER request_kidx_trigger AFTER UPDATE or INSERT or DELETE ON request
-    FOR EACH ROW EXECUTE PROCEDURE keyword( request_words, detailed);
-GRANT DELETE,INSERT,UPDATE,SELECT ON request_words TO general;
+-- CREATE TABLE request_words ( string TEXT, id OID );
+-- CREATE FUNCTION keyword() RETURNS OPAQUE AS '/usr/lib/postgresql/modules/keyword.so' LANGUAGE 'C';
+-- CREATE TRIGGER request_kidx_trigger AFTER UPDATE or INSERT or DELETE ON request
+--     FOR EACH ROW EXECUTE PROCEDURE keyword( request_words, detailed);
+-- GRANT DELETE,INSERT,UPDATE,SELECT ON request_words TO general;
 
 
 CREATE FUNCTION active_request(INT4)
@@ -233,6 +234,17 @@ CREATE TABLE request_interested (
 ) ;
 -- CREATE UNIQUE INDEX xpk_request_interested ON request_interested ( request_id, username );
 GRANT INSERT,SELECT,UPDATE,DELETE ON request_interested TO PUBLIC;
+
+CREATE TABLE request_request (
+  request_id INT4,
+  to_request_id INT4,
+  link_type CHAR,
+  link_data TEXT
+	PRIMARY KEY ( request_id, link_type, to_request_id )
+) ;
+CREATE INDEX request_request_sk1 ON request_request ( to_request_id );
+GRANT INSERT,SELECT,UPDATE,DELETE ON request_request TO PUBLIC;
+
 
 CREATE TABLE request_history (
   modified_on DATETIME DEFAULT TEXT 'now'

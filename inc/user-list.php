@@ -4,7 +4,7 @@ function get_user_list( $status="", $org="", $current ) {
   global $session;
   $user_list = "";
 
-  $query = "SELECT DISTINCT ON user_no usr.user_no, usr.fullname ";
+  $query = "SELECT DISTINCT usr.user_no, usr.fullname ";
   $query .= "FROM usr ";
   if ( $org <> "" )           $query .= ", organisation";
   if ( "$status$org" <> "" )  $query .= " WHERE ";

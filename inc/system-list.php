@@ -4,7 +4,7 @@ function get_system_list( $access="", $current="", $maxwidth=50 ) {
   global $session;
   $system_code_list = "";
 
-  $query = "SELECT DISTINCT ON system_code work_system.system_code, system_desc ";
+  $query = "SELECT DISTINCT work_system.system_code, system_desc ";
   $query .= "FROM work_system ";
   if ( $access <> "" ) {
     $query .= ", system_usr";
@@ -12,8 +12,8 @@ function get_system_list( $access="", $current="", $maxwidth=50 ) {
     $query .= " AND user_no=$session->user_no ";
     $query .= " AND role~*'[$access]'";
   }
-  $query .= " ORDER BY work_system.system_code";
-  if ( $access <> "" ) $query .= ", role";
+  $query .= " ORDER BY system_code";
+//  if ( $access <> "" ) $query .= ", role";
   $rid = pg_Exec( $wrms_db, $query);
   if ( ! $rid ) {
     echo "<p>$query";

@@ -4,7 +4,7 @@ function notify_emails( $dbid, $req_id ) {
 
   if ( "$req_id" == "" ) return "";
 
-  $query = "SELECT DISTINCT email FROM usr ";
+  $query = "SELECT DISTINCT email, fullname FROM usr ";
   $query .= "WHERE (request_interested.user_no = usr.user_no";
   $query .=      " AND request_interested.request_id = $req_id) ";
 
@@ -15,7 +15,7 @@ function notify_emails( $dbid, $req_id ) {
     for ( $i=0; $i < $rows; $i++ ) {
       $interested = pg_Fetch_Object( $peopleq, $i );
       if ( $i > 0 ) $to .= ", ";
-      $to .= "$interested->email";
+      $to .= "$interested->fullname <$interested->email>";
     }
   }
   return $to;

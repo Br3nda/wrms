@@ -273,6 +273,17 @@
     }
   }  // if quotable
 
+  if ( !$plain && ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] || $roles['wrms']['Manage'] ) ) {
+    $user_list = "<option value=\"\">--- no change ---</option>\n";
+    if ( $roles['wrms']['Admin'] || $roles['wrms']['Support']  ) {
+      $support_list = $user_list;
+      $support_list .= get_user_list( "S", "", "" );
+      $user_list .= get_user_list( "", "", "" );
+    }
+    else
+      $user_list .= get_user_list( "", $session->org_code, "" );
+  }
+
   /***** Allocated People */
   /* People who have been allocated to the request - again, only if there are any.  */
   $query = "SELECT usr.fullname, organisation.abbreviation ";
@@ -284,13 +295,21 @@
   $allocq = pg_Exec( $wrms_db, $query);
   $rows = pg_NumRows($allocq);
   if ( $rows > 0 ) {
-    echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=2>&nbsp;</TD></TR>\n";
-    echo "<TR>$hdcell<TD CLASS=h3 ALIGN=RIGHT bgcolor=$colors[8]><FONT SIZE=+1 color=$colors[1]><B>Work Allocated To</B></FONT></TD></TR>\n";
+    echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=3>&nbsp;</TD></TR>\n";
+    echo "<TR>$hdcell<TD CLASS=h3 COLSPAN=2 ALIGN=RIGHT bgcolor=$colors[8]><FONT SIZE=+1 color=$colors[1]><B>Work Allocated To</B></FONT></TD></TR>\n";
     echo "<TR VALIGN=TOP><th>&nbsp;</th><td>";
     for( $i=0; $i<$rows; $i++ ) {
       $alloc = pg_Fetch_Object( $allocq, $i );
       if ( $i > 0 ) echo ", ";
       echo "$alloc->fullname ($alloc->abbreviation)";
+    }
+
+    if ( $plain || !($roles['wrms']['Admin'] || $roles['wrms']['Support'] ) )
+      echo "</TD>\n<TD>&nbsp;";  // Or we could correct the cellspan above for this case...
+    else {
+      echo "</TD>\n<TD ALIGN=RIGHT nowrap><font size=-2>";
+      echo "Add:&nbsp;<SELECT NAME=\"new_allocation\">$support_list</SELECT>\n";
+      echo "</font>";
     }
     echo "</TD></TR></TABLE>\n";
   }
@@ -363,7 +382,7 @@
 
 <?php /***** Interested People */
   /* People who are interested - again, only if there are any.  The requestor is not shown */
-  $query = "SELECT usr.fullname, organisation.abbreviation ";
+  $query = "SELECT usr.fullname, organisation.abbreviation, usr.user_no ";
   $query .= "FROM request_interested, usr, organisation ";
   $query .= "WHERE request_id = '$request->request_id' ";
   $query .= "AND request_interested.user_no = usr.user_no ";
@@ -377,7 +396,11 @@
     for( $i=0; $i<$rows; $i++ ) {
       $interested = pg_Fetch_Object( $peopleq, $i );
       if ( $i > 0 ) echo ", ";
+      if ( ($allocated_to || $sysmgr) && ! $plain )
+        echo "<a href=\"request.php?submit=deregister&user_no=$interested->user_no&request_id=$request_id\">\n";
       echo "$interested->fullname ($interested->abbreviation)\n";
+      if ( ($allocated_to || $sysmgr) && ! $plain )
+        echo "</a>\n";
     }
 
     if ( $plain )
@@ -393,8 +416,13 @@
         $action = "register";
       }
 
-      echo "</TD>\n<TD ALIGN=RIGHT nowrap><font size=-2><a class=r href=\"request.php?submit=$action&request_id=$request_id\">";
-      echo "$tell</a></font>";
+      echo "</TD>\n<TD ALIGN=RIGHT nowrap><font size=-2>";
+      if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] || $roles['wrms']['Manage']  ) {
+        echo "Add:&nbsp;<SELECT NAME=\"new_interest\">$user_list</SELECT>\n";
+      }
+      else
+        echo "<a class=r href=\"request.php?submit=$action&request_id=$request_id\">$tell</a>";
+      echo "</font>";
     }
     echo "</TD>\n</TR></TABLE>\n";
   }

@@ -21,8 +21,8 @@
     $query .= " AND organisation.org_code = usr.org_code ";
     $query .= " AND status.source_table='request' AND status.source_field='status_code' AND status.lookup_code = request.last_status";
     $query .= " AND request_type.source_table='request' AND request_type.source_field='request_type' AND request.request_type = request_type.lookup_code";
-    $query .= " AND urgency.source_table='request' AND urgency.source_field='urgency' AND int(urgency.lookup_code)=request.urgency";
-    $query .= " AND importance.source_table='request' AND importance.source_field='importance' AND int(importance.lookup_code)=request.importance";
+    $query .= " AND urgency.source_table='request' AND urgency.source_field='urgency' AND int4(urgency.lookup_code)=request.urgency";
+    $query .= " AND importance.source_table='request' AND importance.source_field='importance' AND int4(importance.lookup_code)=request.importance";
     $query .= " AND work_system.system_code=request.system_code";
 
     /* now actually query the database... */

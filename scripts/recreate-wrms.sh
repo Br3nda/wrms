@@ -7,6 +7,7 @@ pg_dump -a -n -D -d $DATABASE -t session >dump/t-session.sql
 
 echo " Destroying old database..."
 destroydb $DATABASE
+dropdb $DATABASE
 echo " Creating new database..."
 createdb $DATABASE
 

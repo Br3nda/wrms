@@ -13,7 +13,7 @@ require("inc/wap.php");
   else {
     include("inc/showRequest.php");
 
-    WMLCardInit("showrequest", "false"); 
+    WMLCardInit("showrequest", "false", safe_for_wap("$title") ); 
     WMLdo("prev", "", "List", "", "<prev/>");
     WMLCardBody( safe_for_wap($request) );
   }

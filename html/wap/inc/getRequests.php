@@ -14,17 +14,17 @@
 
   if("$user_no" <> "") {
 
-    $query = "SELECT DISTINCT request.request_id, brief,
-		last_activity, lookup_desc AS status_desc, severity_code
-		FROM request, request_interested, lookup_code AS status 
-		WHERE request.request_id=request_interested.request_id
-		AND status.source_table='request' 
-		AND status.source_field='status_code' 
-		AND status.lookup_code=request.last_status
-		AND request_interested.user_no=$user_no
-    		AND request.active 
-		AND request.last_status~*'[AILNRQA]' 
-		ORDER BY request.severity_code DESC LIMIT 20 ";
+    $query = "SELECT DISTINCT request.request_id, brief, last_activity, ";
+    $query .= "lookup_desc AS status_desc, severity_code ";
+    $query .= "FROM request, request_interested, lookup_code AS status ";
+    $query .= "WHERE request.request_id=request_interested.request_id";
+    $query .= "AND status.source_table='request' ";
+    $query .= "AND status.source_field='status_code' ";
+    $query .= "AND status.lookup_code=request.last_status";
+    $query .= "AND request_interested.user_no=$user_no";
+    $query .= "AND request.active ";
+    $query .= "AND request.last_status~*'[AILNRQA]' ";
+    $query .= "ORDER BY request.severity_code DESC LIMIT 20; ";
 
     $result = pg_Exec( $wrms_db, $query );
     if ( !$result ) {

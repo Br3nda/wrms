@@ -215,7 +215,7 @@ function CheckRequestForm() {
 
   // Validate that they enter a description if they enter work.
   if ( document.forms.form.work_quantity.value != "" ) {
-    if ( ! document.forms.form.work_description.value == "" ) {
+    if ( document.forms.form.work_description.value == "" ) {
       alert("If you enter some work, you must enter a description!" );
       document.forms.form.work_description.focus();
       return false;

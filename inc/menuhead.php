@@ -15,15 +15,26 @@
     // we'll still be in the same place afterwards.
     echo "<a href=$base_url/";
     if ( $roles[wrms][Admin] ) {
-      $module_menu .= "<span style=\"font-weight: 700; \"><b>Admin:</b></span> <a href=$base_url/usrsearch.php>User Search</a> | ";
-      $module_menu .= "<a href=$base_url/usr.php>New User</a> | ";
+      $module_menu .= "<span style=\"font-weight: 700; \"><b>Admin:</b></span>&nbsp;";
+      $module_menu .= "<a href=$base_url/lookups.php>Lookup&nbsp;Codes</a> &nbsp; ";
+    }
+    if ( $roles[wrms][Support] ) {
+      $module_menu .= "<span style=\"font-weight: 700; \"><b>Support:</b></span>&nbsp;";
       $module_menu .= "<a href=$base_url/form.php?form=orglist>Organisations</a> | ";
-      $module_menu .= "<a href=$base_url/lookups.php>Lookup Codes</a> &nbsp; ";
+      $module_menu .= "<a href=$base_url/form.php?form=syslist>Systems</a> | ";
+      $module_menu .= "<a href=$base_url/form.php?form=timesheet>Work</a> &nbsp; ";
+    }
+    if ( $roles[wrms][Manage] ) {
+      $module_menu .= "<span style=\"font-weight: 700; \"><b>Manage:</b></span>&nbsp;";
+      $module_menu .= "<a href=$base_url/form.php?form=organisation&org_code=$session->org_code>Organisation</a> | ";
+      $module_menu .= "<a href=$base_url/usrsearch.php>Users</a> | ";
+      $module_menu .= "<a href=$base_url/usr.php?org_code=$session->org_code>New&nbsp;User</a> | ";
+      $module_menu .= "<a href=$base_url/form.php?form=syslist&org_code=$session->org_code>Systems</a> &nbsp; ";
     }
     if ( $roles[wrms][Request] ) {
-      $module_menu .= "<span style=\"font-weight: 700; \"><b>Requests:</b></span> <a href=$base_url/requestlist.php>List Requests</a> | ";
-      $module_menu .= "<a href=$base_url/request.php>New Request</a> | ";
-      $module_menu .= "<a href=$base_url/form.php?form=timesheet>Timesheets</a> ";
+      $module_menu .= "<span style=\"font-weight: 700; \"><b>Request:</b></span>&nbsp;";
+      $module_menu .= "<a href=$base_url/requestlist.php>List&nbsp;Requests</a> | ";
+      $module_menu .= "<a href=$base_url/request.php>New&nbsp;Request</a> ";
     }
     echo "index.php?M=LO>Logoff</a>\n &nbsp; $module_menu";
   }

@@ -23,7 +23,7 @@
 </form>  
 
 <?php
-  if ( "$search_for$org_code" != "" ) {
+  if ( "$search_for$org_code " != "" && ( $roles['wrms']['Manage'] || $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) ) {
     echo "<table border=\"0\" align=center><tr>\n";
     echo "<th>User&nbsp;ID</th><th>Full Name</th>";
     echo "<th>Organisation</th><th>Email</th><th>Updated</th></tr>";
@@ -34,7 +34,9 @@
       $query .= " OR username ~* '$search_for' ";
       $query .= " OR email ~* '$search_for' )";
     }
-    if ( isset( $org_code ) ) 
+    if ( $roles[wrms][Manage] && ! ($roles[wrms][Admin] || $roles[wrms][Support]) )
+      $query .= " AND usr.org_code='$session->org_code' ";
+    else if ( isset( $org_code ) ) 
       $query .= " AND usr.org_code='$org_code' ";
     $query .= " ORDER BY username ";
 //    $query .= " LIMIT 100 ";
@@ -59,7 +61,9 @@
         if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
         else echo "<tr bgcolor=$colors[7]>";
 
-        echo "<td class=sml><a href=\"index.php?M=LC&E=$thisusr->username&L=$thisusr->password\">$thisusr->username</a></td>\n";
+        echo "<td class=sml><a href=\"index.php?M=LC&E=$thisusr->username&L=";
+        echo md5(strtolower($thisusr->password));
+        echo "\">$thisusr->username</a></td>\n";
         echo "<td class=sml><a href=\"usr.php?user_no=$thisusr->user_no\">$thisusr->fullname</a></td>\n";
         echo "<td class=sml><a href=\"org.php?org_code=$thisusr->org_code\">$thisusr->org_name</a></td>\n";
         echo "<td class=sml><a href=\"mailto:$thisusr->email\">$thisusr->email</a>&nbsp;</td>\n";

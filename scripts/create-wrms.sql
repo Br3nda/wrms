@@ -105,6 +105,13 @@ CREATE INDEX xak4_request ON request ( active int4_ops, last_status );
 GRANT INSERT,UPDATE,SELECT ON request TO general;
 GRANT SELECT,UPDATE ON request_request_id_seq TO PUBLIC;
 
+
+-- CREATE TABLE request_fti ( string TEXT, id OID );
+-- CREATE FUNCTION fti() RETURNS OPAQUE AS '/usr/lib/postgresql/modules/fti.so' LANGUAGE 'C';
+-- CREATE TRIGGER request_fti_trigger AFTER UPDATE or INSERT or DELETE ON request
+--     FOR EACH ROW EXECUTE PROCEDURE fti( request_fti, detailed);
+
+
 CREATE FUNCTION active_request(INT4)
     RETURNS BOOL
     AS 'SELECT active FROM request WHERE request.request_id = $1'

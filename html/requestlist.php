@@ -8,7 +8,7 @@
   include("inc/bodydef.php");
   include("inc/menuhead.php");
 
-  if ( ! $roles[wrms][Request] || "$error_msg$error_qry" != "" ) {
+  if ( ! $roles['wrms']['Request'] || "$error_msg$error_qry" != "" ) {
     include( "inc/error.php" );
   }
   else {
@@ -52,11 +52,12 @@
 </form>  
 
 <?php
-  if ( "$search_for$org_code$system_code" != "" ) {
+  if ( "$search_for$org_code$system_code " != "" ) {
     $query = "SELECT request_id, brief, fullname, email, lookup_desc AS status_desc FROM request, usr, lookup_code AS status ";
     $query .= " WHERE request.request_by=usr.username ";
     if ( "$inactive" == "" )        $query .= " AND active ";
-    if ( "$org_code" != "" )        $query .= " AND org_code='$org_code' ";
+    if (! $roles['wrms']['Admin'] ) $query .= " AND org_code = '$session->org_code' ";
+    else if ( "$org_code" != "" )   $query .= " AND org_code='$org_code' ";
     if ( "$search_for" != "" ) {
       $query .= " AND (brief ~* '$search_for' ";
       $query .= " OR detailed ~* '$search_for' ) ";

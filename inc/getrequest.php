@@ -5,19 +5,22 @@
     $rows = 0;
     $query = "SELECT *";
     $query .= ", status.lookup_desc AS status_desc";
-    $query .= ", request_type.lookup_desc AS request_desc";
-    $query .= ", severity.lookup_desc AS severity_desc";
+    $query .= ", request_type.lookup_desc AS request_type_desc";
+    $query .= ", urgency.lookup_desc AS urgency_desc";
+    $query .= ", importance.lookup_desc AS importance_desc";
     $query .= ", system_desc ";
     $query .= " FROM request, usr";
     $query .= ", lookup_code AS status";
     $query .= ", lookup_code AS request_type";
-    $query .= ", lookup_code AS severity";
+    $query .= ", lookup_code AS urgency";
+    $query .= ", lookup_code AS importance";
     $query .= ", work_system ";
     $query .= " WHERE request.request_id = '$request_id'";
     $query .= " AND request.requester_id = usr.user_no ";
     $query .= " AND status.source_table='request' AND status.source_field='status_code' AND status.lookup_code = request.last_status";
     $query .= " AND request_type.source_table='request' AND request_type.source_field='request_type' AND request.request_type = request_type.lookup_code";
-    $query .= " AND severity.source_table='request' AND severity.source_field='severity_code' AND severity.lookup_code=request.severity_code";
+    $query .= " AND urgency.source_table='request' AND urgency.source_field='urgency' AND int(urgency.lookup_code)=request.urgency";
+    $query .= " AND importance.source_table='request' AND importance.source_field='importance' AND int(importance.lookup_code)=request.importance";
     $query .= " AND work_system.system_code=request.system_code";
 
     /* now actually query the database... */
@@ -46,11 +49,13 @@
   /* get the user's roles relative to the current request */
   include( "$base_dir/inc/get-request-roles.php");
 
+  if ( strtolower($request->active) == "t" ) $request->active = "TRUE";
+
   /* Current request is editable if the user requested it or user is sysmgr, cltmgr or allocated the job */
-  $plain = ("$style" == "plain");
+  if ( ! isset($plain) ) $plain = ("$style" == "plain");
   $statusable = isset($request) && ($author || $sysmgr || $cltmgr || $allocated_to );
   $quotable = $statusable;
-  $editable = ($sysmgr || $allocated_to);
+  $editable = ($sysmgr || $allocated_to || ! isset($request_id) );
   if ( $editable ) $editable = ! $plain;
 
 ?>

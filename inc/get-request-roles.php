@@ -42,4 +42,6 @@
   }
   if ( $rid && pg_NumRows($rid) > 0 ) $sysmgr = TRUE;
 
+  // Also set $sysmgr if the person is Admin...
+  if ( $roles['wrms']['Admin'] ) $sysmgr = TRUE;
 ?>

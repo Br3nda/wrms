@@ -10,50 +10,64 @@
     /* if it's editable then we'll need severity and request_type lists for drop-downs */
     $severities = get_code_list( "request", "severity_code", "$request->severity_code" );
     $request_types = get_code_list( "request", "request_type", "$request->request_type" );
+    $urgencies = get_code_list( "request", "urgency", "$request->urgency" );
+    $importances = get_code_list( "request", "importance", "$request->importance" );
+
+    if ( $roles[wrms][Admin] || $session->status == "S" || $session->status == "C" ) {
+      include( "$base_dir/inc/user-list.php" );
+      if ( $session->status == "C" )
+        $user_list = get_user_list( "", $session->org_code, $session->user_no );
+      else
+        $user_list = get_user_list( "", "", $session->user_no );
+      $support_list = get_user_list( "S", "", $session->user_no );
+    }
+    if ( $allocated_to || $sysmgr ) {
+      $quote_types = get_code_list( "request_quote", "quote_type", "Q" );
+      $quote_units = get_code_list( "request_quote", "quote_units", "hours" );
+    }
   }
 
-  $notify_to = notify_emails( $wrms_db, $request_id );
-  if ( strstr( $notify_to, $session->email ) )
-    $tell = "Click here to stop receiving updates to this request";
-  else
-    $tell = "Click here to receive updates to this request!";
-
-//  $tell .= "<br>$notify_to";
-
   $hdcell = "<th width=7%><img src=images/clear.gif width=50 height=2></th>";
-  $tbldef = "<table width=100% cellspacing=0 border=0 cellpadding=2>\n";
-  echo "$tbldef<tr><td align=left>\n";;
+  $tbldef = "<table width=100% cellspacing=0 border=0 cellpadding=2\n";
+  echo "$tbldef><tr><td align=left>\n";;
   if ( "$because" != "" )
     echo $because;
-  else {
+  else if ( ! $plain ) {
     ?><P CLASS=helptext>Use this form to enter changes to details for the
     requests of your systems, or to enter details for new requests.</P><?php
   }
-  if ( "$request->request_id" != "" )
-    echo "</TD><TD ALIGN=RIGHT nowrap><font size=-2><A HREF=\"request.php?action=register&request_id=$request_id\">$tell</a></font>";
 ?></TD>
 </TR>
 </TABLE>
 
-<?php echo "$tbldef<TR>$hdcell<th>";
-  if ( $editable ) {
+<?php echo "$tbldef bgcolor=$colors[7]><TR>$hdcell<th bgcolor=$colors[8]>";
+  if ( ! $plain ) {
     echo "<FORM ACTION=\"request.php\" METHOD=POST>";
     echo "<INPUT TYPE=\"hidden\" NAME=\"request_id\" VALUE=\"$request->request_id\">"; 
   }
 ?>&nbsp;</th>
-<TD CLASS=h3 COLSPAN=2 ALIGN=RIGHT><FONT SIZE=+1><B>Request details</B></FONT></TD></TR>
-<TR>
+<TD CLASS=h3 ALIGN=RIGHT<?php echo " bgcolor=$colors[8]"; ?>><FONT SIZE=+1 color=<?php echo $colors[1]; ?>><B>Request details</B></FONT></TD></TR>
 <?php
-  echo "<TH ALIGN=RIGHT>";
+  if ( !isset($request) ) {
+    if ( $roles[wrms][Admin] || $session->status == "S" || $session->status == "C" ) {
+      echo "<TR><TH ALIGN=RIGHT>User:</TH>";
+      echo "<TD ALIGN=LEFT><SELECT NAME=\"new_user_no\">$user_list</SELECT></td></tr>\n";
+    }
+    if ( $roles[wrms][Admin] || $session->status == "S" ) {
+      echo "<TR><TH align=right>Assign to:</TH>";
+      echo "<TD ALIGN=LEFT><SELECT NAME=\"new_assigned\">$support_list</SELECT></TD></TR>";
+      echo "</TD></TR>\n";
+    }
+  }
+
+  echo "<TR><TH ALIGN=RIGHT>";
   if ( isset($request) ) echo "WR #:"; else echo "Request:";
   echo "</TH>\n";
   if ( isset($request) ) echo "<td align=center class=h2>$request->request_id</td>\n";
-  echo "<TD ALIGN=LEFT>\n";
-  if ( $editable ) {
-    echo "<INPUT TYPE=\"text\" NAME=\"new_brief\" SIZE=55 VALUE=\"$request->brief\">"; 
-  }
+  if ( $editable )
+    echo "<td><INPUT TYPE=\"text\" NAME=\"new_brief\" SIZE=55 VALUE=\"$request->brief\">"; 
   else
-    echo "$request->brief";
+    echo "<td valign=middle><h2>$request->brief";
 ?>
   </TD>
 </TR>
@@ -71,10 +85,10 @@
     echo "<TD ALIGN=CENTER>";
     if ( $editable ) {
       echo "<LABEL><INPUT TYPE=\"checkbox\" NAME=\"new_active\" VALUE=\"TRUE\"";
-      if ( $request->active == "t" ) echo " CHECKED";
+      if ( $request->active == "TRUE" ) echo " CHECKED";
         echo ">&nbsp;Active</LABEL>";
     }
-    else if ( $request->active ) echo "Active";
+    else if ( $request->active == "TRUE" ) echo "Active";
     else echo "Inactive";
     echo "</TD><TD ALIGN=LEFT>";
     if ( $editable )
@@ -114,17 +128,17 @@
 <TR>
   <TH ALIGN=RIGHT>Urgency:</TH>
   <?php if ( isset($request) )
-    echo "<TD ALIGN=CENTER>$request->severity_code</TD>\n";
+    echo "<TD ALIGN=CENTER>$request->urgency</TD>\n";
   echo "<TD ALIGN=LEFT>";
   if ( $editable )
-    echo "<SELECT NAME=\"new_severity\">$severities</SELECT>"; 
+    echo "<SELECT NAME=\"new_urgency\">$urgencies</SELECT>"; 
   else
-    echo "$request->severity_desc";
+    echo "$request->urgency_desc";
 ?>
   </TD>
 </TR>
 
-<TR VALIGN=TOP>
+<tr valign=top>
   <TH ALIGN=RIGHT>&nbsp;<BR>Details:</TH>
   <TD ALIGN=LEFT COLSPAN=2>
 <?php
@@ -132,24 +146,13 @@
     echo "<TEXTAREA NAME=\"new_detail\" ROWS=8 COLS=60  WRAP=\"SOFT\">$request->detailed</TEXTAREA>"; 
   else
     echo html_format($request->detailed);
-?>
-</TD>
-</TR>
 
-<?php
-  if ( $editable ) {
-    /* of course, if it's editable we need to have an update button don't we, so here it is!  */
-    echo "<TR><TD COLSPAN=3 ALIGN=CENTER CLASS=mand>";
-    echo "<B><INPUT TYPE=\"submit\" NAME=\"submit\" VALUE=\"";
-    if ( isset($request) )
-      echo " Apply Changes ";
-    else
-      echo " Enter Request ";
-    echo "\"></B></TD></TR></FORM>";
+  if ( !isset($request) ) {
+    echo "<TR><TH ALIGN=RIGHT>Notify:</TH>\n";
+    echo "<TD ALIGN=LEFT><LABEL><INPUT TYPE=checkbox NAME=\"in_notify\" VALUE=1 CHECKED>&nbsp;Keep me updated on the status of this request.</LABEL></TD></TR>\n";
   }
 ?>
-
-</TABLE>
+</TD></TR></TABLE>
 
 
 <?php /***** Update Details */
@@ -159,8 +162,8 @@
     $rows = pg_NumRows($updateq);
     if ( $rows > 0 ) {
 ?>
-<?php echo "$tbldef<TR><TD CLASS=sml COLSPAN=5>&nbsp;</TD></TR><TR>$hdcell"; ?>
-<TD CLASS=h3 COLSPAN=4 ALIGN=RIGHT><FONT SIZE=+1><B>Program Update Details</B></FONT></TD></TR>
+<?php echo "$tbldef><TR><TD CLASS=sml COLSPAN=5>&nbsp;</TD></TR><TR>$hdcell"; ?>
+<TD CLASS=h3 COLSPAN=4 ALIGN=RIGHT<?php echo " bgcolor=$colors[8]"; ?>><FONT SIZE=+1 color=<?php echo $colors[1]; ?>><B>Program Update Details</B></FONT></TD></TR>
  <TR><TH>ID</TH><TH>Done By</TH><TH>Done On</TH><TH>Description</TH><TH>&nbsp;</TH></TR>
 <?php
       for( $i=0; $i<$rows; $i++ ) {
@@ -184,7 +187,7 @@
 
 <?php /***** Quote Details */
   /* we only show quote details if it is 'quotable' (i.e. requestor, administrator or catalyst owner) */
-  if ($quotable ) {
+  if ( $quotable ) {
     $query = "SELECT *, awm_get_lookup_desc('request_quote','quote_type', request_quote.quote_type) AS type_desc ";
     $query .= "FROM request_quote, usr ";
     $query .= "WHERE request_quote.request_id = $request->request_id ";
@@ -192,13 +195,19 @@
     $query .= " ORDER BY request_quote.quote_id";
     $quoteq = pg_Exec( $wrms_db, $query);
     $rows = pg_NumRows($quoteq);
-    if ( $rows > 0 ) {
+    if ( $rows > 0 || (($allocated_to || $sysmgr) && !$plain) ) {
 ?>
 
-<?php echo "$tbldef<TR><TD CLASS=sml COLSPAN=6>&nbsp;</TD></TR><TR>$hdcell"; ?>
-<TD CLASS=h3 COLSPAN=5 ALIGN=RIGHT><FONT SIZE=+1><B>Quotations</B></FONT></TD></TR>
- <TR><TH>Quote</TH><TH>Done By</TH><TH>Brief</TH><TH>Done On</TH><TH>Type</TH><TH>Amount</TH></TR>
+<?php echo "$tbldef><TR><TD CLASS=sml COLSPAN=6>&nbsp;</TD></TR><TR>$hdcell"; ?>
+<TD CLASS=h3 COLSPAN=5 ALIGN=RIGHT<?php echo " bgcolor=$colors[8]"; ?>><FONT SIZE=+1 color=<?php echo $colors[1]; ?>><B>Quotations</B></FONT></TD></TR>
 <?php
+      echo "<TR>";
+      if ( $rows > 0 ) echo "<TH>Quote</TH><TH class=cols>Done By"; else echo "<th>&nbsp;</th><th class=cols>&nbsp;";
+      echo "</TH><TH class=cols>Brief</TH>";
+      if ( $rows > 0 ) echo "<TH class=cols>Done On</TH>";
+      echo "<TH class=cols>Type</TH><TH class=cols>Amount</TH>";
+      if ( $rows <= 0 ) echo "<TH class=cols>Units</TH>";
+      echo "</tr>\n";
 
       for ( $i=0; $i < $rows; $i++ ) {
         $quote = pg_Fetch_Object( $quoteq, $i );
@@ -209,13 +218,27 @@
         echo "<TD><A HREF=\"view-quote.php3?quote_id=$quote->quote_id\">$quote->quote_brief</A></TD>\n";
         echo "<TD ALIGN=CENTER>" . nice_date($quote->quoted_on) . "</TD>\n";
         echo "<TD ALIGN=CENTER>$quote->quote_type - $quote->type_desc</TD>\n";
-        echo "<TD ALIGN=RIGHT>" . number_format($quote->quote_amount, 2) . " $quote->quote_units</TD>\n";
-        echo "</TR><TR><TD COLSPAN=6>";
+        echo "<TD ALIGN=RIGHT>" . number_format($quote->quote_amount, 2) . " $quote->quote_units</TD>\n</tr>";
+        if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
+        else echo "<tr bgcolor=$colors[7]>";
+        echo "<TD COLSPAN=5>";
         echo html_format($quote->quote_details) . "</A></TD></TR>\n";
         if ( ($i + 1) < $rows )
           echo "<TR><TD COLSPAN=7><FONT SIZE=-4>&nbsp;</FONT></TD></TR>";
       }
-
+      if ( ($allocated_to || $sysmgr) && ! $plain ) {
+        if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
+        else echo "<tr bgcolor=$colors[7]>";
+        echo "<th>&nbsp;</th>\n";
+        echo "<TD colspan=2><input name=new_quote_brief size=35 type=text></TD>\n";
+        echo "<TD><select name=new_quote_type>$quote_types</select></TD>\n";
+        echo "<TD ALIGN=RIGHT><input name=new_quote_amount size=10 type=text></td>";
+        echo "<TD ALIGN=LEFT><select name=new_quote_unit>$quote_units</select></TD></tr>\n";
+        if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
+        else echo "<tr bgcolor=$colors[7]>";
+        echo "<th>&nbsp;</th>\n";
+        echo "<TD COLSPAN=5><textarea name=new_quote_details rows=4 cols=55 wrap=soft></textarea></TD></TR>\n";
+      }
       echo "</TABLE>";
     }
   }  // if quotable
@@ -231,8 +254,8 @@
   $allocq = pg_Exec( $wrms_db, $query);
   $rows = pg_NumRows($allocq);
   if ( $rows > 0 ) {
-    echo "$tbldef<TR><TD CLASS=sml COLSPAN=2>&nbsp;</TD></TR>\n";
-    echo "<TR>$hdcell<TD CLASS=h3 ALIGN=RIGHT><FONT SIZE=+1><B>Work Allocated To</B></FONT></TD></TR>\n";
+    echo "$tbldef><TR><TD CLASS=sml COLSPAN=2>&nbsp;</TD></TR>\n";
+    echo "<TR>$hdcell<TD CLASS=h3 ALIGN=RIGHT bgcolor=$colors[8]><FONT SIZE=+1 color=$colors[1]><B>Work Allocated To</B></FONT></TD></TR>\n";
     echo "<TR VALIGN=TOP><th>&nbsp;</th><td>";
     for( $i=0; $i<$rows; $i++ ) {
       $alloc = pg_Fetch_Object( $allocq, $i );
@@ -256,14 +279,14 @@
   $rows = pg_NumRows($workq);
   if ( $rows > 0 ) {
 ?>
-<?php echo "$tbldef<TR><TD CLASS=sml COLSPAN=5>&nbsp;</TD></TR><TR>$hdcell"; ?>
-<TD CLASS=h3 COLSPAN=4 ALIGN=RIGHT><FONT SIZE=+1><B>Work Done</B></FONT></TD></TR>
+<?php echo "$tbldef><TR><TD CLASS=sml COLSPAN=5>&nbsp;</TD></TR><TR>$hdcell"; ?>
+<TD CLASS=h3 COLSPAN=4 ALIGN=RIGHT<?php echo " bgcolor=$colors[8]"; ?>><FONT SIZE=+1 color=<?php echo $colors[1]; ?>><B>Work Done</B></FONT></TD></TR>
  <TR VALIGN=TOP>
    <th>&nbsp;</th>
-   <TH ALIGN=LEFT>Done By</TH>
-   <TH>Done On</TH>
-   <TH>Hours</TH>
-   <TH>Description</TH>
+   <TH ALIGN=LEFT class=cols>Done By</TH>
+   <TH class=cols>Done On</TH>
+   <TH class=cols>Hours</TH>
+   <TH class=cols>Description</TH>
  </TR>
 <?php
       for( $i=0; $i<$rows; $i++ ) {
@@ -291,15 +314,24 @@
   $peopleq = pg_Exec( $wrms_db, $query);
   $rows = pg_NumRows($peopleq);
   if ( $rows > 0 ) {
-    echo "$tbldef<TR><TD CLASS=sml COLSPAN=2>&nbsp;</TD></TR>\n";
-    echo "<TR>$hdcell<TD CLASS=h3 ALIGN=RIGHT><FONT SIZE=+1><B>Other Interested Users</B></FONT></TD></TR>\n";
-    echo "<TR VALIGN=TOP><th nowrap>&nbsp; &nbsp; &nbsp; </th><td>";
+    echo "$tbldef><TR><TD CLASS=sml COLSPAN=3>&nbsp;</TD></TR>\n";
+    echo "<TR>$hdcell<TD CLASS=h3 COLSPAN=2 ALIGN=RIGHT bgcolor=$colors[8]><FONT SIZE=+1 color=$colors[1]><B>Other Interested Users</B></FONT></TD></TR>\n";
+    echo "<TR VALIGN=TOP><th nowrap>&nbsp;</th>\n<td>";
     for( $i=0; $i<$rows; $i++ ) {
       $interested = pg_Fetch_Object( $peopleq, $i );
       if ( $i > 0 ) echo ", ";
       echo "$interested->fullname ($interested->abbreviation)\n";
     }
-    echo "</TD></TR></TABLE>\n";
+
+    $notify_to = notify_emails( $wrms_db, $request_id );
+    if ( strstr( $notify_to, $session->email ) )
+      $tell = "Stop informing me on this request";
+    else
+      $tell = "Inform me about updates to this request!";
+
+    echo "</TD>\n<TD ALIGN=RIGHT nowrap><font size=-2><A HREF=\"request.php?submit=register&request_id=$request_id\">";
+    echo "<span style=\"background: $colors[6];\">$tell</span></a></font>";
+    echo "</TD>\n</TR></TABLE>\n";
   }
 ?>
 
@@ -312,13 +344,13 @@
   if ( $rows > 0 ) {
 ?>
 
-<?php echo "$tbldef<TR><TD CLASS=sml COLSPAN=4>&nbsp;</TD></TR><TR>$hdcell"; ?>
-<TD CLASS=h3 COLSPAN=3 ALIGN=RIGHT><FONT SIZE=+1><B>Associated Notes</B></FONT></TD></TR>
+<?php echo "$tbldef><TR><TD CLASS=sml COLSPAN=4>&nbsp;</TD></TR><TR>$hdcell"; ?>
+<TD CLASS=h3 COLSPAN=3 ALIGN=RIGHT<?php echo " bgcolor=$colors[8]"; ?>><FONT SIZE=+1 color=<?php echo $colors[1]; ?>><B>Associated Notes</B></FONT></TD></TR>
 <TR VALIGN=TOP>
-  <TH NOWRAP>&nbsp; &nbsp; </TH>
-  <TH ALIGN=LEFT>Noted By</TH>
-  <TH ALIGN=LEFT>Noted On</TH>
-  <TH ALIGN=LEFT>Details</TH>
+  <TH NOWRAP>&nbsp;</TH>
+  <TH ALIGN=LEFT class=cols>Noted By</TH>
+  <TH class=cols>Noted On</TH>
+  <TH ALIGN=LEFT class=cols>Details</TH>
 </TR>
 <?php /*** the actual details of notes */
     for( $i=0; $i<$rows; $i++ ) {
@@ -344,8 +376,8 @@
   $rows = pg_NumRows($stat_res);
   if ( $rows > 0 ) {
 ?>
-<?php echo "$tbldef<TR><TD CLASS=sml COLSPAN=4>&nbsp;</TD></TR><TR>$hdcell"; ?>
-<TD CLASS=h3 COLSPAN=3 ALIGN=RIGHT><FONT SIZE=+1><B>Changes in Status</B></FONT></TD></TR>
+<?php echo "$tbldef><TR><TD CLASS=sml COLSPAN=4>&nbsp;</TD></TR><TR>$hdcell"; ?>
+<TD CLASS=h3 COLSPAN=3 ALIGN=RIGHT<?php echo " bgcolor=$colors[8]"; ?>><FONT SIZE=+1 color=<?php echo $colors[1]; ?>><B>Changes in Status</B></FONT></TD></TR>
 <TR VALIGN=TOP>
   <TH>&nbsp;</TH>
   <TH class=cols ALIGN=LEFT WIDTH="15%">Changed By</TH>
@@ -365,8 +397,8 @@
 
   if ( ! $plain ) {
 
-    echo "$tbldef<TR><TD CLASS=sml COLSPAN=4><FORM ACTION=\"request.php\" METHOD=POST></TD></TR><TR>$hdcell";
-    echo "<TD CLASS=h3 COLSPAN=3 ALIGN=RIGHT><FONT SIZE=+1><B>";
+    echo "$tbldef><TR><TD CLASS=sml COLSPAN=4>&nbsp;</TD></TR>\n<TR>$hdcell";
+    echo "<TD CLASS=h3 COLSPAN=3 ALIGN=RIGHT bgcolor=$colors[8]><FONT SIZE=+1 color=$colors[1]><B>";
     /**** only update status & eta if they are administrator */
     if ( $statusable ) echo "Change Status or ";
     echo "Add Notes</B></FONT></TD></TR>\n";
@@ -376,25 +408,34 @@
       echo "<TR>";
       echo "<TH ALIGN=RIGHT>New Status:</TH>";
       echo "<TD ALIGN=LEFT width=100><SELECT NAME=\"new_status\">$status_list</SELECT></TD>";
-      echo "<TH ALIGN=RIGHT>&nbsp; ETA:</TH>";
-      echo "<TD ALIGN=LEFT>&nbsp;";
-      if ( $sysmgr || $allocated_to ) echo "<INPUT TYPE=text NAME=\"new_eta\" SIZE=30 VALUE=\"";
-      echo substr( nice_date( $request->eta ), 7);
-      if ( $sysmgr || $allocated_to ) echo "\">";
-      echo "</TD></TR>\n";
+      if ( $sysmgr || $allocated_to || "$request->eta" <> "" ) {
+        echo "<TH ALIGN=RIGHT>&nbsp; ETA:</TH>";
+        echo "<TD ALIGN=LEFT>&nbsp;";
+        if ( $sysmgr || $allocated_to ) echo "<INPUT TYPE=text NAME=\"new_eta\" SIZE=30 VALUE=\"";
+        echo substr( nice_date( $request->eta ), 7);
+        if ( $sysmgr || $allocated_to ) echo "\">";
+        echo "</TD>";
+      }
+      echo "</TR>\n";
     }
 ?>
 
 <TR VALIGN=TOP>
   <TH ALIGN=RIGHT>New Note:</TH>
-  <TD ALIGN=LEFT COLSPAN=3><TEXTAREA NAME="new_note" ROWS=8 COLS=65  WRAP="SOFT"></TEXTAREA></TD>
+  <TD ALIGN=LEFT COLSPAN=3><TEXTAREA NAME="new_note" ROWS=8 COLS=60  WRAP="SOFT"></TEXTAREA></TD>
 </TR>
-<TR><TD CLASS=mand COLSPAN=4 ALIGN=CENTER><FONT SIZE=+1><B>
-<INPUT TYPE=submit VALUE="Update Request" NAME=submit></B></FONT></TD></TR></form>
-</TABLE>
-
+</table>
 <?php
+
   }  // if ! plain
 }  // isset($request) (way up there with the update details!)
+
+  echo "$tbldef><tr><td align=center class=mand>";
+  echo "<B><INPUT TYPE=\"submit\" NAME=\"submit\" VALUE=\"";
+  if ( isset($request) )
+    echo " Apply Changes ";
+  else
+    echo " Enter Request ";
+  echo "\"></b></td>\n</tr></table></form>";
 ?>
 

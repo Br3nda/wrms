@@ -13,18 +13,17 @@
 </form>  
 
 <?php
-  if ( "$search_for$org_code" != "" ) {
-    $query = "SELECT * FROM work_system ";
-    if ( "$org_code" <> "" ) $query .= ", org_system ";
-    $query .= " WHERE ";
+  if ( "$search_for$org_code " != ""  && ( $roles['wrms']['Manage'] || $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) ) {
+    $query = "SELECT DISTINCT ON system_code * FROM work_system, org_system ";
+    $query .= "WHERE work_system.system_code=org_system.system_code ";
     if ( "$search_for" <> "" ) {
-      $query .= " (system_code ~* '$search_for' ";
+      $query .= " AND (system_code ~* '$search_for' ";
       $query .= " OR system_desc ~* '$search_for' ) ";
     }
-    else if ( "$org_code" <> "" ) {
-      $query .= " work_system.system_code=org_system.system_code ";
-      $query .= " AND org_code='$org_code' ";
-    }
+    if ( $roles[wrms][Manage] && ! ($roles[wrms][Admin] || $roles[wrms][Support]) )
+      $query .= " AND org_system.org_code='$session->org_code' ";
+    else if ( "$org_code" <> "" )
+      $query .= "AND org_system.org_code='$org_code' ";
     $query .= " ORDER BY work_system.system_code ";
     $query .= " LIMIT 100 ";
     echo "<p>$query</p>";
@@ -37,9 +36,9 @@
     else {
       echo "<p>" . pg_NumRows($result) . " systems found</p>"; // <p>$query</p>";
       echo "<table border=\"0\" align=center><tr>\n";
-      echo "<th>Org Code</th>";
-      echo "<th class=left>Full Name</th>";
-      echo "<th class=center align=center>Actions</th></tr>";
+      echo "<th class=cols>Org Code</th>";
+      echo "<th class=cols align=left>Full Name</th>";
+      echo "<th class=cols align=center>Actions</th></tr>";
 
       // Build table of systems found
       for ( $i=0; $i < pg_NumRows($result); $i++ ) {
@@ -62,6 +61,5 @@
     }
   }
 ?>
-</TABLE>
 </FORM>
 

@@ -17,10 +17,10 @@
 </form>  
 
 <?php
-  if ( "$search_for$system_code" != "" ) {
+  if ( "$search_for$system_code " != "" ) {
     $query = "SELECT * FROM organisation ";
     if ( "$system_code" <> "" ) $query .= ", org_system ";
-    $query .= " WHERE active ";
+    if ( "$search_for$system_code" != "" ) $query .= " WHERE active ";
     if ( "$search_for" <> "" ) {
       $query .= " AND (org_code ~* '$search_for' ";
       $query .= " OR org_name ~* '$search_for' ) ";
@@ -40,9 +40,9 @@
     else {
       echo "<p>" . pg_NumRows($result) . " organisations found</p>"; // <p>$query</p>";
       echo "<table border=\"0\" align=center><tr>\n";
-      echo "<th>Org Code</th><th>Debtor #</th>";
-      echo "<th class=left align=left>Full Name</th>";
-      echo "<th class=center align=center>Actions</th></tr>";
+      echo "<th class=cols>Org Code</th><th class=cols>Debtor #</th>";
+      echo "<th class=cols align=left>Full Name</th>";
+      echo "<th class=cols align=center>Actions</th></tr>";
 
       // Build table of organisations found
       for ( $i=0; $i < pg_NumRows($result); $i++ ) {

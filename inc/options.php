@@ -2,9 +2,10 @@
   $maxresults = 100;
 
   // Various changes happen on the basis of $M
+  if ( !isset($M) ) $M = "";
   if ( "$M" == "LC" ) {
     $query = "SELECT * FROM usr WHERE ";
-    $query .= " username=LOWER('$E')";
+    $query .= "username=LOWER('$E')";
     $result = pg_Exec( $wrms_db, $query );
 
     if ( ! $result ) {
@@ -16,8 +17,10 @@
     }
     else {
       $usr = pg_Fetch_Object($result, 0);
-      if ( strtolower("$L") <> "$usr->password" && md5(strtolower("$L")) <> "$usr->password" )
+      if ( strtolower("$L") <> "$usr->password" && md5(strtolower("$L")) <> "$usr->password" && "$L" <> md5(strtolower("$usr->password")) ) {
         $error_msg = "<H3>Invalid Logon</H3><P>You have used an invalid ID or password</P>";
+//        $error_msg = "<P>Password: $usr->password<BR>md5hash: " . md5(strtolower($usr->password)) . "<BR>You used: $L<BR>md5hash: " . md5(strtolower($L)) . "</p>";
+      }
       else {
         $query = "INSERT INTO session (user_no) VALUES( '$usr->user_no' )";
         $result = pg_Exec( $wrms_db, $query );
@@ -136,7 +139,7 @@
     // fall through if session record not found in database
   }
 
-  if ( "$session->user_no" == "" && $SCRIPT_NAME != "/index.php") {
+  if ( "$session->user_no" == "" && $SCRIPT_NAME != "/index.php" && $SCRIPT_NAME != "/request.php") {
     header("Location: $base_url");  /* Redirect browser to login page */
     exit; /* Make sure that code below does not get executed when we redirect. */
   }

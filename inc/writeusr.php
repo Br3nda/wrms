@@ -1,5 +1,5 @@
 <?php
-  include("inc/strip-ms.php");
+  include("inc/tidy.php");
 
   if ( "$because" <> "" ) {
     $because = "<H3>User Not Added</H3><P>$because</P>\n";
@@ -24,13 +24,13 @@
 
     // OK, so if we have a valid user number...
     if ( isset($user_no) && $user_no > 0 ) {
-      $UserEMail = str_replace( "'", "''", strtolower("$UserEMail") );
-      $UserName = str_replace( "'", "''", fix_MS_isms("$UserName") );
-      $UserFullName = str_replace( "'", "''", fix_MS_isms("$UserFullName") );
-      $UserPhone = str_replace( "'", "''", fix_MS_isms("$UserPhone") );
-      $UserPassword = str_replace( "'", "''", fix_MS_isms("$UserPassword") );
-      $UserFax = str_replace( "'", "''", fix_MS_isms("$UserFax") );
-      $UserPager = str_replace( "'", "''", fix_MS_isms("$UserPager") );
+      $UserEMail    = strtolower("$UserEMail");
+      $UserName     = tidy("$UserName");
+      $UserFullName = tidy("$UserFullName");
+      $UserPhone    = tidy("$UserPhone");
+      $UserPassword = tidy("$UserPassword");
+      $UserFax      = tidy("$UserFax");
+      $UserPager    = tidy("$UserPager");
       if ( "$M" == "add" ) {
         $query = "INSERT INTO usr ( user_no, username, email, fullname, organisation, phone, fax, pager, ";
         $query .= " mail_style, status, last_update";

@@ -1,19 +1,21 @@
 <?php
-  include("$base_dir/inc/strip-ms.php");
+  include("$base_dir/inc/tidy.php");
 
-  if ( ! $editable ) {
-    $because .= "<H2>Not Authorised</H2>";
-    $because .= "<P>You are not authorised to change details of request #$request_id</P>";
+  if ( "$submit" == "register" ) {
+    $because .= "";
   }
 
   /* scope a transaction to the whole change */
   pg_exec( $wrms_db, "BEGIN;" );
-
+//  $debuglevel = 1;
   if ( isset( $request ) ) {
     /////////////////////////////////////
     // Update an existing request
     /////////////////////////////////////
-    if ( strtolower($request->active) == "t" ) $request->active = "TRUE";
+    $chtype = "change";
+    $requsr = $session;
+    if ( $new_active <> "TRUE" ) $new_active = "FALSE";
+    if ( $request->active == "t" ) $request->active = "TRUE"; else $request->active = "FALSE";
     $note_added = ($new_note != "");
     $status_changed = ($request->last_status != $new_status );
     $old_eta = substr( nice_date($request->eta), 7);
@@ -26,7 +28,7 @@
              || ($request->active != $new_active )
              || ($request->last_status != $new_status )
              || $eta_changed || $status_changed ;
-    if ( $debuglevel >= 1 )
+    if ( $debuglevel >= 1 ) {
       echo "<p>---" . ($request->brief != $new_brief) . "-"
              . ($request->detailed != $new_detail) . "+"
              . ($request->request_type != $new_type ) . "-"
@@ -37,8 +39,11 @@
              . $eta_changed . "+" . $status_changed
              . "---$request->request_type != $new_type</p>" ;
 
+      echo "<p>-$request->active|$new_active-</p>";
+    }
     if ( ! $changes ) {
       $because = "";
+      $chtype = "";
       return;
     }
 
@@ -76,7 +81,6 @@
         $new_active = "TRUE";
     }
 
-    if ( $new_active <> "TRUE" ) $new_active = "FALSE";
     $query = "UPDATE request SET brief = '$new_brief', detailed = '$new_detail',";
     if ( ($sysmgr || $allocated_to) && $eta_changed ) $query .= " eta = '$new_eta',";
     $query .= " active = $new_active, last_status = '$new_status',";
@@ -128,6 +132,7 @@
     /////////////////////////////////////
     // Create a new request
     /////////////////////////////////////
+    $chtype = "create";
     $query = "select nextval('request_request_id_seq');";
     $rid = pg_exec( $wrms_db, $query );
     if ( ! $rid ) {
@@ -137,8 +142,22 @@
     }
     $request_id = pg_Result( $rid, 0, 0);
 
+    if ( $new_user_no > 0 && $new_user_no <> $session->user_no ) {
+      $query = "SELECT * FROM usr WHERE usr.user_no=$new_user_no ";
+      $rid = pg_exec( $wrms_db, $query );
+      if ( ! $rid || pg_NumRows($rid) == 0 ) {
+        $because .= "<P>The failed query was:</P><TT>$query</TT>";
+        pg_exec( $wrms_db, "ROLLBACK;" );
+        return;
+      }
+      $requsr = pg_Fetch_Object( $rid, 0);
+    }
+    else
+      $requsr = $session;
+
     $query = "INSERT INTO request (request_id, request_by, brief, detailed, active, last_status, severity_code, system_code, request_type, requester_id) ";
-    $query .= "VALUES( $request_id, '$session->username', '" . tidy($new_brief) . "','" . tidy($new_detail) . "', TRUE, 'N', $new_severity, '$new_system_code' , '$new_request_type', $session->user_no )";
+    $query .= "VALUES( $request_id, '$requsr->username', '" . tidy($new_brief) . "','" . tidy($new_detail) . "', TRUE, 'N', $new_severity, '$new_system_code' , '$new_request_type', $requsr->user_no )";
+    $rid = pg_exec( $wrms_db, $query );
     if ( ! $rid ) {
       $because .= "<P>The failed query was:</P><TT>$query</TT>";
       pg_exec( $wrms_db, "ROLLBACK;" );
@@ -146,11 +165,17 @@
     }
 
     $query = "INSERT INTO request_status (request_id, status_by, status_on, status_code, status_by_id) ";
-    $query .= "VALUES( $request_id, '$session->username', 'now', '$new_status', $session->user_no)";
+    $query .= "VALUES( $request_id, '$session->username', 'now', 'N', $session->user_no)";
     $rid = pg_exec( $wrms_db, $query );
+    if ( ! $rid ) {
+      $because .= "<P>The failed query was:</P><TT>$query</TT>";
+      pg_exec( $wrms_db, "ROLLBACK;" );
+      return;
+    }
+
 
     if ( $in_notify ) {
-      $rid = pg_Exec( $wrms_db, "INSERT INTO request_interested (request_id, username, user_no ) VALUES( $request_id, '$session->username', $session->user_no) ");
+      $rid = pg_Exec( $wrms_db, "INSERT INTO request_interested (request_id, username, user_no ) VALUES( $request_id, '$requsr->username', $requsr->user_no) ");
       if ( ! $rid ) {
         $because .= "<H3>&nbsp;Submit Interest Failed!</H3>\n";
         $because .= "<P>The error returned was:</P><TT>" . pg_ErrorMessage( $wrms_db ) . "</TT>";
@@ -162,9 +187,8 @@
 
     $query = "SELECT * FROM system_usr, usr ";
     $query .= "WHERE system_usr.system_code = '$new_system_code' ";
-    $query .= "AND system_usr.role = 'C' " ;
+    $query .= "AND system_usr.role = 'S' " ;
     $query .= "AND system_usr.user_no = usr.user_no " ;
-    $query .= "AND usr.org_code = '$session->org_code' " ;
     $rid = pg_Exec( $wrms_db, $query);
     if ( ! $rid  ) {
       $because .= "<P>Query failed:</P><P>$query</P>";
@@ -177,7 +201,7 @@
       for ( $i=0; $i<pg_NumRows($rid); $i++ ) {
         $sys_notify = pg_Fetch_Object( $rid, $i );
 
-        if ( !$in_notify || strcmp( $sys_notify->user_no, $session->user_no) ) {
+        if ( !$in_notify || strcmp( $sys_notify->user_no, $requsr->user_no) ) {
           $query = "SELECT set_interested( $sys_notify->user_no, $request_id )";
           $rid = pg_exec( $wrms_db, $query );
           if ( ! $rid ) {
@@ -192,7 +216,7 @@
     }
 
     $query = "SELECT * FROM org_usr, usr ";
-    $query .= "WHERE org_usr.org_code = '$session->org_code' ";
+    $query .= "WHERE org_usr.org_code = '$requsr->org_code' ";
     $query .= "AND org_usr.role = 'C' " ;
     $query .= "AND org_usr.user_no = usr.user_no " ;
     $rid = pg_Exec( $wrms_db, $query);
@@ -202,12 +226,12 @@
       return;
     }
     else if (!pg_NumRows($rid) )
-      $because .= "<P><B>Warning: </B> No organisation manager for '$session->org_code'</P>";
+      $because .= "<P><B>Warning: </B> No organisation manager for '$requsr->org_code'</P>";
     else {
       for ($i=0; $i <pg_NumRows($rid); $i++ ) {
         $admin_notify = pg_Fetch_Object( $rid, $i );
 
-        if ( !$in_notify || strcmp( $admin_notify->user_no, $session->user_no) ) {
+        if ( !$in_notify || strcmp( $admin_notify->user_no, $requsr->user_no) ) {
           $query = "SELECT set_interested( $admin_notify->user_no, $request_id )";
           $rid = pg_exec( $wrms_db, $query );
           if ( ! $rid ) {
@@ -223,6 +247,9 @@
     $because .= "<H2>Your request number for enquiries is $request_id.</H2>";
   }
 
+
+  // Looks like we made it through that transaction then...
+  pg_exec( $wrms_db, "END;" );
 
   ////////////////////////////////////////////////////////
   // Assignment of work request happens to new or old jobs
@@ -241,9 +268,7 @@
     $because .= "<H2>Assignment of User # $new_assigned to WR #$request_id</H2>";
   }
 
-
-  // Looks like we made it through that transaction then...
-  pg_exec( $wrms_db, "END;" );
+  include("$base_dir/inc/getrequest.php");
 
   //////////////////////////////////////////////
   // Work out what to tell and who to tell it to
@@ -251,19 +276,23 @@
   $send_to = notify_emails( $wrms_db, $request_id );
   $because .="<p>Details of the changes, along with future notes and status updates will be e-mailed to the following addresses: &nbsp; $send_to.</p>";
 
-  $msub = "WR #$request->request_id[$session->username] changed: (" . stripslashes($request->brief) . ")";
-  $msg = "Request No.:  $request->request_id\n"
+  $msub = "WR #$request_id [$session->username] $chtype" . "d: " . stripslashes($request->brief);
+  $msg = "Request No.:  $request_id\n"
        . "Request On:   $request->request_on\n"
        . "Overview:     $request->brief\n\n"
-       . "Changed by:   $session->fullname\n"
-       . "Changed on:   " . date( "D d M H:i:s Y" ) . "\n"
+       . "Changed by:   $session->fullname\n";
+
+  if ( $requsr->user_no <> $session->user_no )
+    $msg .= "Changed for:  $requsr->fullname\n";
+
+  $msg .= "Changed on:   " . date( "D d M H:i:s Y" ) . "\n"
        . "Urgency:      $request->severity_code \"$request->severity_desc\"\n\n"
        . "Detailed Description:\n" . stripslashes($request->detailed) . "\n\n\n";
   if ( $status_changed ) {
     $rid = pg_Exec( $wrms_db, "SELECT get_status_desc('$new_status')" );
     $msg .= "New Status:   $new_status - " . pg_Result( $rid, 0, 0) . " (previous status was $request->last_status - $request->status_desc)\n\n";
   }
-  if ( $request->active != $new_active ) {
+  if ( $chtype == "change" && $request->active != $new_active ) {
     $msg .= "<p>Request has been ";
     if ( $new_active == "TRUE" ) $msg .= "re-"; else $msg .= "de-";
     $msg .= "activated</p>";
@@ -277,9 +306,9 @@
     $msg .= "\nAdditional Notes:\n" . stripslashes($new_note) . "\n\n";
 
   $msg .= "\nFull details of the request, with all changes and notes, can be reviewed and changed at:\n"
-       .  "    $wrms_home/modify-request.php3?request_id=$request->request_id\n";
+       .  "    $base_url/request.php?request_id=$request_id\n";
 
-  mail( $send_to, $msub, $msg, "From: catalyst-wrms@cat-it.co.nz\nReply-To: $session->email" );
+  mail( $send_to, $msub, $msg, "From: catalyst-wrms@cat-it.co.nz\nReply-To: $requsr->email" );
 
 ?>
 

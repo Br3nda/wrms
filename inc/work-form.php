@@ -27,7 +27,6 @@ if ( isset($user_no) && $user_no != "" ) echo "&user_no=$user_no";
 </tr></table>
 </form>  
 
-
 <?php
   if ( "$search_for$system_code " != "" ) {
     $query = "SELECT request.*, organisation.*, request_timesheet.*, ";
@@ -57,16 +56,22 @@ if ( isset($user_no) && $user_no != "" ) echo "&user_no=$user_no";
     if ( "$before" != "" )
       $query .= " AND request_timesheet.work_on<'$before' ";
     if ( "$uncharged" != "" ) {
-      if ( "$charge" != "" )
-        $query .= " AND request_timesheet.ok_to_charge=TRUE ";
-      $query .= " AND request_timesheet.work_charged IS NULL ";
+//      if ( "$charge" != "" )
+//        $query .= " AND request_timesheet.ok_to_charge=TRUE ";
+//      $query .= " AND request_timesheet.work_charged IS NULL ";
 //      $query .= " ORDER BY org_code, work_on";
 //      $query .= " $order_by ";
     }
     else {
  //     $query .= " ORDER BY organisation.org_code, request_timesheet.request_id, request_timesheet.work_on";
  //     $query .= " $order_by ";
-      $query .= " LIMIT 100 ";
+ //     $query .= " LIMIT 100 ";
+    }
+
+    if( isset ($filter) && is_array($filter) ) {
+      while( list( $k, $v ) = each ( $filter ) ) {
+        if ($v != "") { $query .= " AND $k = $v "; }
+      }
     }
 
     if( "$order_by" == "" && isset ($sort) && is_array($sort) ) {
@@ -109,12 +114,34 @@ if ( isset($user_no) && $user_no != "" ) echo "&user_no=$user_no";
       echo "<th class=cols>Invoice No.</th>";
       echo "</tr>\n";
 
+
+      echo "<tr>\n";
+      echo "  <td class=sml>\n";
+      echo '    <select class=sml name="filter[request.requester_id]">' . "\n";
+      echo "      <option class=sml value=''>All</option>\n";
+
+      $requested_by_query = "SELECT user_no, fullname FROM usr ORDER BY fullname";
+      $requested_by_result = pg_Exec( $wrms_db, $requested_by_query );
+
+      for ( $i=0; $i < pg_NumRows($requested_by_result); $i++ ) {
+        $requested_by = pg_Fetch_Object( $requested_by_result, $i );
+        echo "      <option class=sml value='$requested_by->user_no'";
+        if ( $requested_by->user_no == $filter["request.requester_id"] ) {
+          echo ' selected';
+        }
+        echo ">$requested_by->fullname</option>\n";
+      }
+
+      echo "    </select>\n  </td>\n</tr>\n";
+
       // Build table of organisations found
       for ( $i=0; $i < pg_NumRows($result); $i++ ) {
         $timesheet = pg_Fetch_Object( $result, $i );
 
-        if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
-        else echo "<tr bgcolor=$colors[7]>";
+        if(floor($i/2)-($i/2)==0) echo "<tr class=bgcolor0>";
+ //       if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
+        else echo "<tr class=bgcolor1>";
+ //       else echo "<tr bgcolor=$colors[7]>";
 
 //        echo "<td class=sml>$timesheet->requester_name ($timesheet->abbreviation, #$timesheet->debtor_no)</td>\n";
         echo "<td class=sml>$timesheet->requester_name</td>\n";

@@ -311,7 +311,7 @@ class EntryForm
         $currval = $this->record->{"$fname"};
       }
     }
-    if ( $ftype == "date" ) $currval = format_date($currval);
+    if ( $ftype == "date" ) $currval = nice_date($currval);
 
     // Now build the entry field and render it
     $field = new EntryField( $ftype, $fname, $this->_ParseTypeExtra($ftype,$type_extra), $currval );

@@ -171,6 +171,9 @@ class Request {
        case 'untag':
          $this->Untag(intval($GLOBALS['tag_id']));
          break;
+       case 'disassociate':
+         $this->Disassociate(intval($GLOBALS['other_id']));
+         break;
        default:
          error_log("$sysabbr WR::Actions: ERROR: Unrecognised action: '$action'");
          $client_messages[] = "ERROR: Unrecognised action: '$action'";
@@ -306,6 +309,23 @@ class Request {
    }
 
    /////////////////////////////////////////////////////////////
+   // Disassociate - Unlink from a related W/R
+   /////////////////////////////////////////////////////////////
+   function Disassociate( $other_id ) {
+     global $client_messages;
+
+     $row = $q->Fetch();
+     $client_messages[] = "Disassociated from request $other_id.";
+
+     $sql = "DELETE FROM request_request ";
+     $sql .= "WHERE (request_id = $this->request_id AND to_request_id = $other_id) ";
+     $sql .= "   OR (to_request_id = $this->request_id AND request_id = $other_id) ";
+     # Select the records
+     $q = new PgQuery($sql);
+     $q->Exec('WR::Disassociate') ;
+   }
+
+   /////////////////////////////////////////////////////////////
    // Render - Return HTML to show the W/R
    //   A separate function is called for each logical area
    //   on the W/R.
@@ -322,6 +342,7 @@ class Request {
      $html .= "<table width=\"100%\" class=\"data\" cellspacing=\"0\" cellpadding=\"0\">\n";
 
      $html .= $this->RenderDetails($ef);
+     $html .= $this->RenderActions($ef);
      $html .= $this->RenderAttachments($ef);
      $html .= $this->RenderQuotations($ef);
      $html .= $this->RenderRelations($ef);
@@ -345,6 +366,7 @@ class Request {
 
 
    /////////////////////////////////////////////////////////////
+   // Display the core W/R details
    /////////////////////////////////////////////////////////////
    function RenderDetails( $ef ) {
      global $edit, $session, $bigboxcols, $bigboxrows;
@@ -365,7 +387,8 @@ class Request {
        $sql .= "AND EXISTS(SELECT work_system.system_code FROM org_system JOIN work_system ON (org_system.system_code = work_system.system_code) WHERE org_system.org_code = organisation.org_code AND work_system.active) ";
        $sql .= "ORDER BY lower(org_name)";
        $html .= $ef->DataEntryLine( "Organisation", "$this->org_name", "lookup", "org_code",
-                 array("_sql" => $sql, "_null" => "--- select an organisation ---", "onchange" => "OrganisationChanged();" ) );
+                 array("_sql" => $sql, "_null" => "--- select an organisation ---", "onchange" => "OrganisationChanged();",
+                       "title" => "The organisation that this work will be done for." ) );
      }
      else {
        if ( $this->new_record ) $this->org_name = $session->org_name;
@@ -387,7 +410,8 @@ class Request {
      }
      $sql .= "ORDER BY lower(fullname)";
      $html .= $ef->DataEntryLine( "Person", "$this->fullname", "lookup", "requester_id",
-               array("_sql" => $sql, "_null" => "--- select a person ---", "onchange" => "PersonChanged();" ) );
+               array("_sql" => $sql, "_null" => "--- select a person ---", "onchange" => "PersonChanged();",
+                     "title" => "The client who is requesting this, or who is in charge of ensuring it happens." ) );
 
      // System (within Organisation) drop-down
      $sql = "SELECT work_system.system_code, system_desc FROM work_system ";
@@ -412,19 +436,20 @@ class Request {
      }
      $sql .= "ORDER BY lower(system_desc)";
      $html .= $ef->DataEntryLine( "System", "$this->system_desc", "lookup", "system_code",
-               array("_sql" => $sql, "_null" => "--- select a system ---", "onchange" => "SystemChanged();") );
+               array("_sql" => $sql, "_null" => "--- select a system ---", "onchange" => "SystemChanged();",
+                     "title" => "The business system that this request applies to.") );
 
      // Type of Request
      $html .= $ef->DataEntryLine( "Type", $this->request_type_desc, "lookup", "request_type",
-               array("_type" => "request|request_type") );
+               array("_type" => "request|request_type", "title" => "The type of request") );
 
      // Urgency of Request
      $html .= $ef->DataEntryLine( "Urgency", $this->urgency_desc, "lookup", "urgency",
-               array("_type" => "request|urgency") );
+               array("_type" => "request|urgency", "title" => "The urgency of the request, separate from the long-term importance") );
 
      // Importance of Request
      $html .= $ef->DataEntryLine( "Importance", $this->importance_desc, "lookup", "importance",
-               array("_type" => "request|importance") );
+               array("_type" => "request|importance", "title" => "The relative long-term importance of the request, separate from the urgency") );
 
      // Detailed description
      $html .= $ef->DataEntryLine( "Details", html_format($this->detailed), "textarea", "detailed",
@@ -433,8 +458,51 @@ class Request {
      return $html;
    }
 
+   /////////////////////////////////////////////////////////////
+   // Display the organisationally defined actions and dates
+   /////////////////////////////////////////////////////////////
+   function RenderActions( $ef ) {
+     global $edit, $session;
+
+     if ( (!isset($this->request_id) || $this->request_id == 0) && (!isset($this->org_code) || $this->org_code == 0) ) return "";
+
+     // What actions are defined for this organisation
+     $sql = "SELECT organisation_action.*, completed_on::date, fullname ";
+     $sql .= "FROM organisation_action ";
+     $sql .= "LEFT JOIN request_action ON request_id = $this->request_id AND organisation_action.action_id = request_action.action_id ";
+     $sql .= "LEFT JOIN usr ON updated_by_id = user_no ";
+     $sql .= "WHERE organisation_action.org_code = $this->org_code ";
+     $sql .= "ORDER BY organisation_action.org_code, action_sequence";
+     $q = new PgQuery($sql);
+     $q->Exec('WR::RenderActions') ;
+
+     if ( $q->rows == 0 ) return "";
+
+     $html = $ef->BreakLine("Completed Actions");
+     $html .= '<tr><th class="prompt">Actioned Dates</th><td><table width="100%">';
+     $ef->TempLineFormat('<tr><th class="prompt" style="white-space: nowrap;">%s</th><td class="entry">%s');
+
+     while( $row = $q->Fetch() ) {
+
+       $_POST['request_action'][$row->action_id] = $row->completed_on;
+       $html .= $ef->DataEntryLine( $row->action_description, $row->completed_on, "text", "request_action[$row->action_id]",
+               array("size" => 12, "title" => "The date on which the '$row->action_description' action was completed.") );
+
+       if ( $row->fullname != "" ) {
+         $html .= " &nbsp; updated by $row->fullname.";
+       }
+       $html .= "</td></tr>";
+
+     }
+     $ef->RevertLineFormat();
+
+     $html .= "</table></td></tr>\n";
+     return $html;
+   }
+
 
    /////////////////////////////////////////////////////////////
+   // Display the files attached to the W/R
    /////////////////////////////////////////////////////////////
    function RenderAttachments( $ef ) {
      global $session;
@@ -1130,6 +1198,10 @@ class Request {
        $db_errors = ! $this->NewStatusCode();
      }
 
+     if ( !$db_errors && isset($_POST['request_action']) ) {
+       $db_errors = ! $this->UpdateActions();
+     }
+
      if ( !$db_errors && $_FILES['att_filename']['tmp_name'] != ""
                 && $_FILES['att_filename']['name'] != "" ) {
        $db_errors = ! $this->AttachFile('att_filename',$_POST['att_brief']);
@@ -1472,6 +1544,66 @@ EOX
        return false;
      }
      $client_messages[] = "Timesheet added to this request";
+
+     return true;
+   }
+
+   /////////////////////////////////////////////////////////////
+   // Write the actions to the file which have changed
+   /////////////////////////////////////////////////////////////
+   function UpdateActions( ) {
+     global $session, $client_messages;
+
+     $actions = $_POST['request_action'];
+     $messages = "";
+
+     error_log("DBG: Checking for changes to request actions..." );
+
+     if ( !is_array($actions) ) return true;  // Silently succeed
+
+     // What actions are defined for this organisation
+     $sql = "SELECT organisation_action.*, completed_on::date, fullname ";
+     $sql .= "FROM organisation_action ";
+     $sql .= "LEFT JOIN request_action ON request_id = $this->request_id AND organisation_action.action_id = request_action.action_id ";
+     $sql .= "LEFT JOIN usr ON updated_by_id = user_no ";
+     $sql .= "WHERE organisation_action.org_code = $this->org_code ";
+     $sql .= "ORDER BY organisation_action.org_code, action_sequence";
+     $q = new PgQuery($sql);
+     $q->Exec('WR::RenderActions') ;
+
+     $sql = "";
+
+     while( $row = $q->Fetch() ) {
+       if ( $actions[$row->action_id] != $row->completed_on ) {
+         error_log("DBG: Examining action for $row->action_id" );
+         $completed = str_replace( "'","''",str_replace('\\','\\\\', $actions[$row->action_id]));
+         if ( $row->completed_on == "" ) {
+           $sql .= "INSERT INTO request_action (request_id, action_id, completed_on, updated_by_id) ";
+           $sql .= "VALUES( $this->request_id, $row->action_id, '$completed'::date, $session->user_no ); ";
+           $message = "Action '$row->action_description' completed on ".$actions[$row->action_id].".";
+         }
+         elseif ( $completed == "" ) {
+           $sql .= "DELETE FROM request_action WHERE request_id = $this->request_id AND action_id = $row->action_id; ";
+           $message = "Action '$row->action_description' completion date cleared by $session->fullname.";
+         }
+         else {
+           $sql .= "UPDATE request_action ";
+           $sql .= "SET completed_on = '$completed'::date, updated_by_id = $session->user_no ";
+           $sql .= "WHERE request_id = $this->request_id AND action_id = $row->action_id; ";
+           $message = "Action '$row->action_description' updated on ".$actions[$row->action_id]." by $sesion->fullname.";
+         }
+         $client_messages[] = $message;
+         $this->mail_message_data[]['html'] = "<h4>$message</h4>\n";
+         $this->mail_message_data[]['text'] = " * $message\n";
+
+         $this->send_an_email = true;
+       }
+     }
+
+     if ( $sql != "" ) {
+       $q = new PgQuery($sql);
+       return $q->Exec('WR::RenderActions') ;
+     }
 
      return true;
    }

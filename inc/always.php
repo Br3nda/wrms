@@ -150,6 +150,7 @@ function awm_pgexec( $myconn, $query, $location="", $abort_on_fail=FALSE, $mydbg
 //-----------------------------------------
 awm_pgexec( $dbconn, "SET DATESTYLE TO 'ISO,European';", "always" );
 function nice_date($str) {
+  if ( trim($str) == "" ) return "";
   return substr($str, 11, 5) . ", " . substr($str, 8, 2) . "/" . substr($str, 5, 2) . "/" . substr($str, 0, 4);
 }
 

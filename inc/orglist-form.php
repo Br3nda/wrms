@@ -64,7 +64,7 @@
         echo "<a class=r href=\"usrsearch.php?org_code=$thisorganisation->org_code\">Users</a> &nbsp; \n";
         echo "<a class=r href=\"form.php?org_code=$thisorganisation->org_code&form=syslist\">Systems</a>\n";
         if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] )
-          echo " &nbsp; <a class=r href=\"form.php?org_code=$thisorganisation->org_code&form=timelist\">Work</a>\n";
+          echo " &nbsp; <a class=r href=\"form.php?org_code=$thisorganisation->org_code&form=timelist&uncharged=1\">Work</a>\n";
 
         echo "&nbsp;</td></tr>\n";
       }

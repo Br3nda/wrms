@@ -14,7 +14,12 @@ function nice_time( $in_time ) {
 // <P class=helptext>This page lists timesheets.</P>
 ?>
 
-<FORM METHOD=POST ACTION="<?php echo "$base_url/form.php?form=timelist"; ?>">
+<FORM METHOD=POST ACTION="<?php 
+echo "$base_url/form.php?form=timelist";
+if ( isset($org_code) && $org_code != "" ) echo "&org_code=$org_code";
+if ( isset($system_code) && $system_code != "" ) echo "&system_code=$system_code";
+if ( isset($user_no) && $user_no != "" ) echo "&user_no=$user_no";
+?>">
 <table align=center><tr valign=middle>
 <td><b>Desc.</b><input TYPE="Text" Size="20" Name="search_for" Value="<?php echo "$search_for"; ?>"></td>
 <td><label for=uncharged><input type=checkbox value=1 name=uncharged<?php if ("$uncharged"<>"" ) echo " checked"; ?>> Uncharged</label></td>

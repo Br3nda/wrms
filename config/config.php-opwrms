@@ -3,7 +3,7 @@
 $dbconn = pg_Connect("dbname=opwrms user=general");
 $pg_version = 7.2;
 
-$admin_email = "andrew@catalyst.net.nz";
+$admin_email = "moodlehost@catalyst.net.nz";
 $basefont = "verdana,sans-serif";
 $system_name = "Eduforge Support: ";
 $sysabbr = "wrms";
@@ -11,6 +11,7 @@ $debuglevel = 3;
 
 $base_dns = "http://$HTTP_HOST";
 $base_url = "";
+$external_base_url = $base_dns;
 $base_dir = $DOCUMENT_ROOT;
 $module = "base";
 $images = "images/eduforge";
@@ -161,7 +162,7 @@ td.h3, th.h3 {
 // Function to do the page header, that is local to this installation
 //-----------------------------------------
 function local_page_header() {
-  global $sysabbr;
+  global $sysabbr, $session;
 ?>
 <table summary="" class="standardtable" cellpadding="0" cellspacing="0" width="100%">
   <tr>
@@ -201,7 +202,7 @@ function local_page_header() {
    $sql .= "ORDER BY system_desc;";
 
    $qry = new PgQuery( $sql );
-   if ( $qry->Exec() && $qry->rows > 0 ) {
+   if ( $qry->Exec('Config::LocPgHdr') && $qry->rows > 0 ) {
      echo '<td width="10%" align="center" nowrap="nowrap">or Systems</td>
           <td width="20%" align="right"> <select name="system_code" size="1">
            <option value="0">-- select --</option>';
@@ -240,6 +241,33 @@ function local_page_header() {
 //-----------------------------------------
 function local_page_footer() {
   global $sysabbr;
+}
+
+//-----------------------------------------
+// Function to display stuff when a person is not logged in
+//-----------------------------------------
+function local_index_not_logged_in() {
+global $admin_email;
+?>
+<blockquote>
+<p><strong>
+Welcome to the technical support system of the Open Source Virtual Learning Environment project. For more information on the project please visit  <a href="http://www.ose.org.nz">www.ose.org.nz</a>.
+</strong></p>
+</blockquote>
+<p>The goal of the project is to select, further develop and support open source e-learning software for deployment throughout New Zealand's education sector.</p>
+<p>
+Eduforge Support is delivered by <a href="http://catalyst.net.nz/products-moodle.htm">Catalyst
+IT Limited</a> , a trusted Moodle Partner and the core development team on the OSVLE project.
+To set-up Moodle hosting and support on the Education Cluster please read our project wikis:
+</p>
+
+<ul>
+<li><a href="http://eduforge.org/wiki/wiki/nzvle/wiki?pagename=VLESetup">Setup of your Virtual
+learning Environment</a></li>
+<li><a href="http://eduforge.org/wiki/wiki/nzvle/wiki?pagename=VLESupport">Support for your Virtual learning Environment</a></li>
+</ul>
+<p>Please e-mail <a href="mailto:<?php echo $admin_email; ?>"><?php echo $admin_email; ?></a> if you require further information.</p>
+<?php
 }
 
 ?>

@@ -6,15 +6,17 @@ require_once("html-format.php");
 require_once("guess-file-type.php");
 require_once('class.phpmailer.php');
 class Request {
-   var $request_id;      // Which WR is this
+   var $request_id;         // Which WR is this
    var $new_record;
    var $mail_message_data;
+   var $send_an_email;      // Should we notify this change
 
    function Request( $id = 0 ) {
      global $session, $tmnu, $edit;
      if ( !$session->logged_in ) return false;
      $loaded = false;
      $this->request_id = 0;
+     $this->send_an_email = false;
      $this->mail_message_data = array();
 
      $id = intval("$id");
@@ -78,7 +80,7 @@ class Request {
              }
              $this->{$k} = $v;
            }
-           if ( strpos( "ASEC", strtoupper($this->system_usr_role)) {
+           if ( strpos( "ASEC", strtoupper($this->system_usr_role))
                 || $this->requester_id == $session->user_no ) {
              $tmnu->AddOption("Edit","/wr.php?edit=1&request_id=$this->request_id","Edit the details for this work request");
            }
@@ -913,7 +915,7 @@ class Request {
    /////////////////////////////////////////////////////////////
    function Validate( $ef ) {
      global $client_messages;
-     error_log("$system_name: vpw: ERROR: Not validating request");
+     error_log("$system_name: vpw: WARNING: Not validating request");
      $client_messages[] = "WARNING: Not validating request details yet.";
 
      // If we validated OK, make sure the request.last_status is synced with any submitted status.
@@ -948,11 +950,14 @@ class Request {
          $qry = new PgQuery($sql);
          $qry->Exec("WR::Write");
          $row = $qry->Fetch(true);    // Fetch results as array
-         $this->request_id = $row[0];
-         $request_id = $this->request_id;
+         $request_id = $row[0];
 
          // Fetch the other details for the request and assign them into this object.
          $this->ReadRequest($request_id);
+         $this->send_an_email = true;
+       }
+       else {
+         $this->DetectEmailChanges();
        }
      }
 
@@ -995,44 +1000,7 @@ class Request {
      else {
        $client_messages[] = "Request details written.";
 
-   //
-   // Add here calls to phpmailer??
-   //
-
-   $mail = &new phpmailer ();
-   $mail->IsSMTP();
-   $mail->From = 'wrms@catalyst.net.nz';
-   $mail->FromName = 'Catalyst IT WRMS';
-   $mail->Subject = 'Work request ' . $this->request_id . ' updated';
-
-   $body = 'You are receiving this message because an update has occured to a work request at Catalyst IT.<br /><ul>';
-   $textbody = "You are receiving this message because an update has occured to a work request at Catalyst IT.\n\n";
-
-   foreach ( $this->mail_message_data as $thing )
-   {
-     $body .= $thing['html'];
-     $textbody .= $thing['text'];
-   }
-
-   $body .= '</ul><br />Have a nice day :)<br />Catalyst WRMS';
-   $textbody .= "\nHave a nice day :)\nCatalyst WRMS";
-
-   // Build rest of body here from $this->mail_message_data
-   $mail->Body = $body;
-   $mail->AltBody = $textbody;
-
-   $send_to = $this->GetRecipients();
-
-   foreach ( $send_to as $email => $name )
-   {
-    $mail->AddAddress($email, $name);
-   }
-   //$mail->AddAddress('nigel@catalyst.net.nz', 'Nigel McNie');
-
-   if ( !$mail->Send() )
-   {
-    // Put here error message
-   }
+       $this->NotifyEmail();
 
        // Since we wrote it all successfully, clear the $_POST array
        // so that the posted data isn't all re-used in the form fields,
@@ -1042,6 +1010,102 @@ class Request {
      return true;
    }
 
+
+   /////////////////////////////////////////////////////////////
+   // Send an e-mail notifying changes to the W/R
+   /////////////////////////////////////////////////////////////
+   function NotifyEmail ()
+   {
+     global $base_dns, $session, $system_name, $admin_email, $debug_email;
+
+     $mail = &new phpmailer ();
+     // $mail->IsSendmail();  // Use sendmail to send
+     // We use neither, and it will default to the PHP mail() function - good.
+
+     $mail->From = $admin_email;
+     $mail->FromName = $system_name;
+     $mail->AddReplyTo( $session->email, $session->fullname );
+
+     $send_to = $this->GetRecipients();
+     foreach ( $send_to as $email => $name ) {
+       if ( isset($debug_email) ) {
+         $debug_to .= "$name <$email>";
+       }
+       else {
+         $mail->AddAddress($email, $name);
+       }
+     }
+     if ( isset($debug_email) ) {
+       $mail->IsSMTP();      // Use internal SMTP to send for debugging
+       $mail->AddAddress( $debug_email, "WRMS EMail Testing" );
+     }
+
+     $chtype = strtolower($_POST['submit']);
+
+     $mail->Subject = 'WR #' . $this->request_id . '['.$this->system_code.'/'.$this->username.'] '.$chtype.'d: '
+                      . $this->brief;
+
+     $tbody  = "Request No:  $this->request_id\n"
+             . "Overview:    $this->brief\n"
+             . "Type:        $this->request_type_desc\n"
+             . "Importance:  $this->importance_desc\n"
+             . "Urgency:     $this->urgency_desc\n";
+
+     $hbody  = "<table width=100%>"
+             . "<tr><th>Request No</th><td>$this->request_id</td></tr>"
+             . "<tr><th>Overview</th><td>$this->brief</td></tr>"
+             . "<tr><th>Type</th><td>$this->request_type_desc</td></tr>"
+             . "<tr><th>Importance</th><td>$this->importance_desc</td></tr>"
+             . "<tr><th>Urgency</th><td>$this->urgency_desc</td></tr>";
+
+     if ( $chtype == "update" ) {
+       $tbody .= "Request On:   $request->request_on\n";
+       $hbody .= "<tr><th>Request On</th><td>$request->request_on</td></tr>";
+     }
+
+     $tbody .= ucfirst($chtype) . "d by:   $session->fullname\n";
+     $hbody .= "<tr><th>".ucfirst($chtype)."d by</th><td>$session->fullname</td></tr>";
+
+     if ( $requsr->user_no <> $session->user_no ) {
+       $tbody .= ucfirst($chtype) . "d for:  $this->fullname\n";
+       $hbody .= "<tr><th>".ucfirst($chtype)."d for</th><td>$this->fullname</td></tr>";
+     }
+
+     $tbody .= ucfirst($chtype) . "d on:   " . date( "D d M H:i:s Y" ) . "\n";
+     $hbody .= "<tr><th>".ucfirst($chtype)."d on</th><td>". date( "D d M H:i:s Y" ) ."</td></tr></table>";
+
+     if ( isset($debug_email) ) {
+       $tbody .= "Debug To:    $debug_to\n";
+       $hbody .= "<tr><th>Debug To</th><td>$debug_to</td></tr>";
+     }
+     $tbody .= "\n\n";
+     $hbody .= "</table>\n<ul>";
+
+     // Now add the information that was produced as a part of writing the record
+     foreach ( $this->mail_message_data as $thing ) {
+       $hbody .= $thing['html'];
+       $tbody .= $thing['text'];
+     }
+
+     $hbody .= "</ul><br /> <p>Full details of the request, with all changes and notes, can be reviewed and changed at:<br />"
+            . ' &nbsp; &nbsp; <a href="'.$GLOBALS['base_dns'].'/wr.php?request_id='.$this->request_id.'">'
+            . $GLOBALS['base_dns'].'/wr.php?request_id='.$this->request_id.'</a><br />';
+     $tbody .= "\nFull details of the request, with all changes and notes, can be reviewed and changed at:\n"
+             . "    <".$GLOBALS['base_dns']."/wr.php?request_id=".$this->request_id.">\n";
+
+     // Actually assign the message parts from what we have built
+     $mail->Body = $hbody;
+     $mail->AltBody = $tbody;
+
+     if ( !$mail->Send() ) {
+       error_log( "$sysabbr: ERR: Unable to send e-mail for WR #$this->request_id" );
+       error_log( "$sysabbr: ERR: $mail->ErrorInfo" );
+     }
+   }
+
+   /////////////////////////////////////////////////////////////
+   // Return an array of recipients for the e-mail
+   /////////////////////////////////////////////////////////////
    function GetRecipients ()
    {
       $query = "SELECT email, fullname FROM usr, request_interested ";
@@ -1066,6 +1130,52 @@ class Request {
    }
 
    /////////////////////////////////////////////////////////////
+   // Detect if stuff on the request record needs notification
+   /////////////////////////////////////////////////////////////
+   function DetectEmailChanges( ) {
+     global $session, $client_messages;
+
+     $tfmt = " * %s\n";
+     $hfmt = "<li>%s</li>\n";
+     $chtype = strtolower($_POST['submit']);
+     if ( $this->brief != "" && "$this->brief" != $_POST['brief'] ) {
+       $this->mail_message_data[]['html'] = sprintf($hfmt, "New description: $_POST[brief]<br />(was: $this->brief)";
+       $this->mail_message_data[]['text'] = sprintf($tfmt, "New description: $_POST[brief]\n   (was: $this->brief)";
+       $this->send_an_email = true;
+     }
+
+     if ( isset($_POST['eta']) && "$this->eta" <> $_POST['eta'] )  {
+       $msg = "New ETA:      $new_eta";
+       if ( "$this->eta" != "" ) $msg .= "  (previous ETA was " . substr( nice_date($previous->eta), 7) . ")";
+       $this->mail_message_data[]['html'] = sprintf($hfmt, $msg );
+       $this->mail_message_data[]['text'] = sprintf($tfmt, $msg );
+       $this->send_an_email = true;
+     }
+
+     $previous = preg_replace( '/\s+/', ' ', stripslashes($_POST['detailed']));
+     $current  = preg_replace( '/\s+/', ' ', stripslashes($this->detailed));
+     if ( $chtype == "update" && $detail_changed ) {
+       $this->mail_message_data[]['text']
+            = " * Previous Description:\n"
+            . "   =====================\n"
+            . stripslashes($this->detailed) . "\n\n";
+       $this->mail_message_data[]['html']
+            = "<li>Previous Description:<br />"
+            . "=====================<br />"
+            . stripslashes($this->detailed) . "<br /></li>";
+       $this->send_an_email = true;
+     }
+
+     if ( $chtype == "create" || ( $chtype == "change" && $detail_changed ) )
+       $msg .= "\nDetailed Description:\n"
+             . "====================\n"
+             . stripslashes($request->detailed) . "\n\n";
+
+   }
+
+
+   /////////////////////////////////////////////////////////////
+   // Attach a file to the W/R
    /////////////////////////////////////////////////////////////
    function AttachFile( $fname, $description ) {
      global $session, $client_messages;
@@ -1098,6 +1208,9 @@ class Request {
      $client_messages[] = "File attachment \"$att_name\" added to this request</h3>";
      $this->mail_message_data[]['html'] = "<li>File attachment &quot;" . htmlspecialchars($att_name) . "&quot; was added.</li>\n";
      $this->mail_message_data[]['text'] = " * File attachment \"$att_name\" was added.\n";
+
+     $this->send_an_email = true;
+
      return true;
    }
 
@@ -1125,8 +1238,10 @@ class Request {
        return false;
      }
      $client_messages[] = "Quote added to this request";
-     $this->mail_message_data[]['html'] = "<li>A quote was added.<br /><span style=\"font-size: 90%\">" . $_POST['quote_brief'] . "</span></li>\n";
-     $this->mail_message_data[]['text'] = " * A quote was added.\n     " . $_POST['quote_brief'] . "\n";
+     $this->mail_message_data[]['html'] = "<li>A quote was added.</li>\n";
+     $this->mail_message_data[]['text'] = " * A quote was added.\n";
+
+     $this->send_an_email = true;
 
      return true;
    }
@@ -1178,6 +1293,8 @@ class Request {
      $this->mail_message_data[]['html'] = "<li>W/R " . $_POST['parent_request_id'] . " was linked to this request</li>\n";
      $this->mail_message_data[]['text'] = " * W/R " . $_POST['parent_request_id'] . " was linked to this request.\n";
 
+     $this->send_an_email = true;
+
      return true;
    }
 
@@ -1202,6 +1319,9 @@ class Request {
      $client_messages[] = sprintf("Request allocated to %d people.", count($_POST['new_allocations']));
      $this->mail_message_data[]['html'] = "<li>The request was allocated to " . count($_POST['new_allocations']) . " people.</li>\n";
      $this->mail_message_data[]['text'] = " * The request was allocated to " . count($_POST['new_allocations']) . " people.\n";
+
+
+     $this->send_an_email = true;
 
      return true;
    }
@@ -1249,6 +1369,9 @@ class Request {
      $this->mail_message_data[]['text'] = " * The status was changed from \"{$this->last_status}\" to \"" . $_POST['status_code'] . "\"\n";
 
      $_POST['last_status'] = $_POST['status_code'];
+
+     $this->send_an_email = true;
+
      return true;
    }
 
@@ -1273,6 +1396,8 @@ class Request {
      $client_messages[] = "Note added to request";
      $this->mail_message_data[]['html'] = "<li>A note was added:<br /><span style=\"font-size: 90%\">$note_detail</span></li>\n";
      $this->mail_message_data[]['text'] = " * A note was added:\n     $note_detail\n";
+
+     $this->send_an_email = true;
 
      return true;
    }

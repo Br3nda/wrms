@@ -173,17 +173,18 @@ class Organisation {
   }
 
   function RenderSystems( $ef ) {
-    global $session, $org_code;
+    global $session;
+
     $html = "";
     $sql = "SELECT work_system.*, ";
-    $sql .= "exists( SELECT 1 from org_system WHERE org_system.system_code = work_system.system_code AND org_code = $org_code ) AS applies ";
+    $sql .= "exists( SELECT 1 from org_system WHERE org_system.system_code = work_system.system_code AND org_code = $this->org_code ) AS applies ";
     if ( $ef->editmode && ($session->AllowedTo('Admin') || $session->AllowedTo('Support')) ) {
       $sql .= "FROM work_system ";
       $sql .= "WHERE active ";
     }
     elseif ( $session->AllowedTo('Admin') || $session->AllowedTo('Support') ) {
       $sql .= "FROM work_system JOIN org_system ON ( work_system.system_code = org_system.system_code ) ";
-      $sql .= "WHERE active AND org_system.org_code = $org_code ";
+      $sql .= "WHERE active AND org_system.org_code = $this->org_code ";
     }
     else {
       $sql .= "FROM work_system JOIN org_system ON ( work_system.system_code = org_system.system_code ) ";

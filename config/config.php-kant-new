@@ -121,7 +121,7 @@ require_once("organisation-selectors-sql.php");
 function local_page_header() {
   global $system_name, $sysabbr, $session, $images, $tmnu;
 
-  echo '<div id="topbar"><a href="/"><img src="'.$images.'/logo_main.gif" border="0"></a></div>'."\n";
+  echo '<div id="topbar"><a href="/"><img src="'.$images.'/logo_main.gif" width="180" height="50" border="0"></a></div>'."\n";
   if ( $session->logged_in /* && !preg_match( "/(requestlist|wrsearch)\.php/i", $GLOBALS['REQUEST_URI'] ) */ ) {
     echo '<div id="searchbar">';
     echo '<form action="/requestlist.php" method="post" name="search">';

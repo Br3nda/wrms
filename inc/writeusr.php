@@ -24,7 +24,7 @@
 
     // OK, so if we have a valid user number...
     if ( isset($user_no) && $user_no > 0 ) {
-      $UserEMail    = strtolower("$UserEMail");
+      $UserEMail    = tidy(strtolower("$UserEMail"));
       $UserName     = tidy("$UserName");
       $UserFullName = tidy("$UserFullName");
       $UserPhone    = tidy("$UserPhone");

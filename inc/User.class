@@ -345,25 +345,32 @@ class User {
 // Since PHP wants a field returning multiple values to
 // be named like "variable[]"
 //////////////////////////////////////////////////////////
-function ApplyToRoles() {
+function ApplyToRoles(to_all) {
   for ( var i=0; i < document.forms.form.elements.length ; i++ ) {
     if ( document.forms.form.elements[i].name.match( /^role/ ) ) {
-      document.forms.form.elements[i].value = document.forms.form.default_role.value;
+      if ( to_all || document.forms.form.elements[i].value == '' ) {
+        document.forms.form.elements[i].value = document.forms.form.default_role.value;
+      }
     }
   }
   return true;
 }
 </script>
-Choose a default and
 SCRIPT;
         $ef->TempLineFormat('<span class="srchf" style="white-space: nowrap">%s%s</span>' );
-        $html .= $ef->DataEntryLine( "", "", "button", "apply_default",
-                    array("value" => "Apply It",
-                          "onclick" => "ApplyToRoles();",
+        $btn_all = $ef->DataEntryLine( "", "", "button", "apply_all",
+                    array("value" => "All",
+                          "onclick" => "ApplyToRoles(true);",
                           "title" => "Click to apply the default to all systems for this user.",
                           "class" => "fsubmit" ) );
+        $btn_some = $ef->DataEntryLine( "", "", "button", "apply_new",
+                    array("value" => "Unassigned",
+                          "onclick" => "ApplyToRoles(false);",
+                          "title" => "Click to apply the default to unassigned systems for this user.",
+                          "class" => "fsubmit" ) );
         $ef->RevertLineFormat( );
-        $html .= 'to all possible systems</th>';
+
+        $html .= "Choose a default and apply to $btn_all or $btn_some systems</th>";
 
         $html .= '<td class="entry">';
         $options = array_merge($roles, array("title" => "Select the role this person has in relation to this system"));

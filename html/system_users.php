@@ -122,17 +122,72 @@ LINEFORMAT;
 $role_colours = array( 'A' => '#ff5010', 'S' => '#e03000', 'C' => '#60a000',
                        'E' => '#80b020', 'O' => '#d0e070', 'V' => '#f0ff80' );
 
+    if ( $ef->editmode  && ($session->AllowedTo('Admin') || $session->AllowedTo('Support') || $session->AllowedTo('OrgMgr')) ) {
+      $html .= '<tr class="row1">';
+      $html .= <<<SCRIPT
+<th class="prompt" style="width:auto;" colspan="2">
+<script language="javascript">
+//////////////////////////////////////////////////////////
+// Since PHP wants a field returning multiple values to
+// be named like "variable[]"
+//////////////////////////////////////////////////////////
+function ApplyToRoles(matching) {
+  re = new RegExp("^" + matching + "_" )
+  for ( var i=0; i < document.forms.form.elements.length ; i++ ) {
+    if ( document.forms.form.elements[i].name.match( /^role/ ) ) {
+      if ( document.forms.form.elements[i].value == '' ) {
+        if ( document.forms.form.elements[i].id.match( re ) ) {
+          document.forms.form.elements[i].value = document.forms.form.default_role.value;
+        }
+      }
+    }
+  }
+  return true;
+}
+</script>
+SCRIPT;
+      $ef->TempLineFormat('<span class="srchf" style="white-space: nowrap">%s%s</span>' );
+      $btn_clients = $ef->DataEntryLine( "", "", "button", "apply_clients",
+                  array("value" => "Client",
+                        "onclick" => "ApplyToRoles('client');",
+                        "title" => "Click to apply the default to unassigned users for this system.",
+                        "class" => "fsubmit" ) );
+      $btn_contractors = $ef->DataEntryLine( "", "", "button", "apply_contractors",
+                  array("value" => "Contractor",
+                        "onclick" => "ApplyToRoles('ext');",
+                        "title" => "Click to apply the default to unassigned users for this system.",
+                        "class" => "fsubmit" ) );
+      $btn_internal = $ef->DataEntryLine( "", "", "button", "apply_internal",
+                  array("value" => "Internal",
+                        "onclick" => "ApplyToRoles('int');",
+                        "title" => "Click to apply the default to unassigned users for this system.",
+                        "class" => "fsubmit" ) );
+      $ef->RevertLineFormat( );
+
+      $html .= "Choose a default and apply to unassigned $btn_clients / $btn_contractors / $btn_internal users</th>";
+
+      $html .= '<td class="entry" align="center">';
+      $options = array_merge($roles, array("title" => "Select the default role people have in relation to this system"));
+      $this->role[$row->system_code] = $row->role;
+      $html .= $ef->DataEntryField( "", "select", "default_role", $options );
+      $html .= "</td></tr>";
+      echo $html;
+    }
+
     $options = array_merge($roles, array("title" => "Select the role this person has in relation to this system"));
     $fld_format = '<span style="background-color: %s;">&nbsp; &nbsp; %s &nbsp; &nbsp;</span>';
     $i=0;
     while ( $row = $q->Fetch() ) {
       $search_record->role[$row->user_no] = $row->role;
-      $html = sprintf($fld_format, $role_colours["$row->role"],
-                                     $ef->DataEntryField( "", "select", "role[$row->user_no]", $options ) );
       $colour = '#e8ffe0';
       $type   = "This is a client";
-      if ( $row->internal_group == 't' )        { $colour = '#ffe8e0'; $type = "This is an internal person"; }
-      else if ( $row->contractor_group == 't' ) { $colour = '#e0e8ff'; $type = "This is an external support person"; }
+      $id     = "client_$i";
+      if ( $row->internal_group == 't' )        { $id = "int_$i"; $colour = '#ffe8e0'; $type = "This is an internal person"; }
+      else if ( $row->contractor_group == 't' ) { $id = "ext_$i"; $colour = '#e0e8ff'; $type = "This is an external support person"; }
+      $options['id'] = $id;
+      $html = sprintf($fld_format, $role_colours["$row->role"],
+                                     $ef->DataEntryField( "", "select", "role[$row->user_no]", $options ) );
+
       printf( $line_format, $i++%2, $type, $row->user_no, $row->fullname, $row->org_code, $row->org_name,
                             $colour, $html );
     }

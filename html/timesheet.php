@@ -133,6 +133,7 @@ function build_time_list( $name, $from, $current, $delta ) {
         $finish_tod = $sod + $duration;
       }
 
+      //
       for ( $j = 0; $j < $duration; $j += $period_minutes ) {
         $tm[$our_dow][sprintf("m%d", $start_tod + $j)] = "$ts->request_id/$ts->work_description" . ("$ts->entry_details" == "$ts->request_id" ? "" : "@|@$sow" );
         // echo "<p>\$tm[$our_dow][" . sprintf("m%d", $start_tod + $j) . "] = $ts->request_id/$ts->work_description" . ("$ts->entry_details" == "$ts->request_id" ? "" : "@|@$sow" );

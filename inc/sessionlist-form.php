@@ -8,7 +8,7 @@
 <?php
   if ( !($roles['Admin'] || $roles['Support']) ) $session_id = $session->session_id;
   if ( "$search_for$system_code " != "" ) {
-    $query = "SELECT *, (session_end - session_start)::timespan AS duration FROM usr, session ";
+    $query = "SELECT *, (session_end - session_start)::interval AS duration FROM usr, session ";
     $query .= "WHERE usr.user_no = session.user_no ";
     if ( "$search_for" <> "" )
       $query .= " AND session_start <= '$search_for' ";

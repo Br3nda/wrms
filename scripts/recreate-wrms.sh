@@ -7,7 +7,7 @@ DATABASE=wrms
 echo " Destroying old database..."
 dropdb $DATABASE
 echo " Creating new database..."
-createdb $DATABASE
+createdb --encoding "SQL_ASCII" $DATABASE
 
 echo " Creating database structures..."
 psql -q -f create-wrms.sql -d $DATABASE 2>&1 | grep -v "will create implicit " | grep -v "RemoveFunction"

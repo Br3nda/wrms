@@ -13,8 +13,8 @@ function update_timesheet( $ts_finish ) {
       error_log( "WR# $ts_no '$ts_description' was not found.", 0);
     }
     else {
-      $from = "'" . date( 'Y-M-d, H:i', $sow + ($dow * 86400) + ($ts_start * 60) ) . "'::timestamp";
-      $duration = sprintf( "'%d minutes'::timespan", $ts_finish - $ts_start );
+      $from = "'" . date( 'Y-M-d, H:i', $sow + ($dow * 86400) + (($ts_start - 60) * 60) ) . "'::timestamp without time zone";
+      $duration = sprintf( "'%d minutes'::interval", $ts_finish - $ts_start );
       $quantity = ($ts_finish - $ts_start ) / 60;
       $description = addslashes( ereg_replace( "@\|@.*\$", "", $ts_description ) );
       if ( strpos( $ts_description, "@|@" ) ) {
@@ -43,7 +43,7 @@ function update_timesheet( $ts_finish ) {
   if ( $logged_on && isset( $sow) && isset($tm) && is_array( $tm ) ) {
     $sow = intval($sow);
     $query = sprintf( "DELETE FROM request_timesheet WHERE entry_details = 'TS-%d-%d';", $session->user_no, $sow );
-    $query .= sprintf( "DELETE FROM request_timesheet WHERE entry_details = 'TS-%d-%d';", $session->user_no, $sow - 3600 );  // Allow fix for DST error
+    $query .= sprintf( "DELETE FROM request_timesheet WHERE entry_details = 'TS-%d-%d';", $session->user_no, $sow );  // Allow fix for DST error
     $result = awm_pgexec( $dbconn, $query, 'ts-action' );
     for ( $dow = 0; $dow < 7; $dow ++ ) {
 

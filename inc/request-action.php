@@ -286,10 +286,12 @@ function dates_equal( $date1, $date2 ) {
         awm_pgexec( $wrms_db, "ROLLBACK;" );
         return;
       }
+/*
       if ( eregi( "[fhc]", "$new_status") )
         $new_active = "FALSE";
       else
         $new_active = "TRUE";
+*/
     }
 //    error_log( "$sysabbr request-action2: Active: $request->active, New: $new_active (statusable: $statusable, status_changed: $status_changed", 0);
 

@@ -385,7 +385,7 @@
 
   /***** Timesheet Details */
   /* we only show timesheet details if they exist */
-  if ( isset( $request )  ) {
+  if ( isset( $request ) && ($roles['wrms']['Admin'] || $roles['wrms']['Support'] ) ) {
     $query = "SELECT *, date_part('epoch',request_timesheet.work_duration) AS seconds ";
     $query .= "FROM request_timesheet, usr ";
     $query .= "WHERE request_timesheet.request_id = $request->request_id ";

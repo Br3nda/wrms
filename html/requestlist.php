@@ -7,7 +7,6 @@
   if ( isset($system_code) && $system_code == "." ) unset( $system_code );
 
   $title = "$system_name Request List";
-  include("inc/headers.php");
 
   if ( !isset($rlsort) ) $rlsort = $settings->get('rlsort');
   if ( !isset($rlseq) ) $rlseq = $settings->get('rlseq');
@@ -23,34 +22,46 @@
   if ( isset($org_code) ) $org_code = intval($org_code);
   if ( isset($org_code) ) $org_code = intval($org_code);
 
+  // Build up the column header cell, with %s gaps for the sort, sequence and sequence image
+  $header_cell = "<th class=cols><a class=cols href=\"$PHP_SELF?rlsort=%s&rlseq=%s";
+  if ( isset($org_code) ) $header_cell .= "&org_code=$org_code";
+  if ( isset($system_code) ) $header_cell .= "&system_code=$system_code";
+  if ( isset($search_for) ) $header_cell .= "&search_for=$search_for";
+  if ( isset($inactive) ) $header_cell .= "&inactive=$inactive";
+  if ( isset($requested_by) ) $header_cell .= "&requested_by=$requested_by";
+  if ( isset($interested_in) ) $header_cell .= "&interested_in=$interested_in";
+  if ( isset($allocated_to) ) $header_cell .= "&allocated_to=$allocated_to";
+  if ( isset($from_date) ) $header_cell .= "&from_date=$from_date";
+  if ( isset($to_date) ) $header_cell .= "&to_date=$to_date";
+  if ( isset($type_code) ) $header_cell .= "&type_code=$type_code";
+  if ( isset($incstat) && is_array( $incstat ) ) {
+    reset($incstat);
+    while( list($k,$v) = each( $incstat ) ) {
+      $header_cell .= "&incstat[$k]=$v";
+    }
+  }
+  if ( "$qry" != "" ) $header_cell .= "&qry=$qry";
+  if ( "$style" != "" ) $header_cell .= "&style=$style";
+  if ( "$format" != "" ) $header_cell .= "&format=$format";
+  $header_cell .= "\">%s";      // %s for the Cell heading
+  $header_cell .= "%s</th>";    // %s For the image
+
 function column_header( $ftext, $fname ) {
-  global $rlsort, $rlseq, $org_code, $system_code, $search_for, $qry, $format, $style;
-  global $requested_by, $interested_in, $allocated_to, $inactive, $incstat, $from_date, $to_date, $type_code;
-  echo "<th class=cols><a class=cols href=\"$PHP_SELF?rlsort=$fname&rlseq=";
-  if ( "$rlsort" == "$fname" ) echo ( "$rlseq" == "DESC" ? "ASC" : "DESC");
-  if ( isset($org_code) ) echo "&org_code=$org_code";
-  if ( isset($system_code) ) echo "&system_code=$system_code";
-  if ( isset($search_for) ) echo "&search_for=$search_for";
-  if ( isset($inactive) ) echo "&inactive=$inactive";
-  if ( isset($requested_by) ) echo "&requested_by=$requested_by";
-  if ( isset($interested_in) ) echo "&interested_in=$interested_in";
-  if ( isset($allocated_to) ) echo "&allocated_to=$allocated_to";
-  if ( isset($from_date) ) echo "&from_date=$from_date";
-  if ( isset($to_date) ) echo "&to_date=$to_date";
-  if ( isset($type_code) ) echo "&type_code=$type_code";
-  reset($incstat);
-  while( list($k,$v) = each( $incstat ) ) {
-    echo "&incstat[$k]=$v";
+  global $rlsort, $rlseq, $header_cell;
+  if ( "$rlsort" == "$fname" ) {
+    $fseq = ( "$rlseq" == "DESC" ? "ASC" : "DESC");
+    $seq_image .= "&nbsp;<img border=0 src=\"images/sort-$rlseq.png\">";
   }
-  if ( "$qry" != "" ) echo "&qry=$qry";
-  if ( "$style" != "" ) echo "&style=$style";
-  if ( "$format" != "" ) echo "&format=$format";
-  echo "\">$ftext";
-  if ( "$rlsort" =="$fname" ) {
-    echo "&nbsp;<img border=0 src=\"images/sort-$rlseq.png\">";
-  }
-  echo "</th>";
+  printf( $header_cell, $fname, $fseq, $ftext, $seq_image );
 }
+
+  if ( "$qry" != "" && "$action" == "delete" ) {
+    $query = "DELETE FROM saved_queries WHERE user_no = '$session->user_no' AND LOWER(query_name) = LOWER('$qry');";
+    $result = awm_pgexec( $dbconn, $query, "requestlist", false, 7);
+    unset($qry);
+  }
+
+  include("inc/headers.php");
 
 if ( ! $roles['wrms']['Request'] || "$error_msg$error_qry" != "" ) {
   include( "inc/error.php" );
@@ -180,9 +191,10 @@ else {
   /////////////////////////////////////////////////////////////////////////////////////////////////
 
   if ( "$qry$search_for$org_code$system_code " != "" ) {
+    $query = "";
     if ( "$qry" != "" ) {
       $qry = tidy($qry);
-      $qquery = "SELECT * FROM saved_queries WHERE user_no = '$session->user_no' AND query_name = '$qry';";
+      $qquery .= "SELECT * FROM saved_queries WHERE user_no = '$session->user_no' AND query_name = '$qry';";
       $result = awm_pgexec( $dbconn, $qquery, "requestlist", false, 7);
       $thisquery = pg_Fetch_Object( $result, 0 );
       $query = $thisquery->query_sql;
@@ -191,7 +203,7 @@ else {
       // Recommended way of limiting queries to not include sub-tables for 7.1
       $result = awm_pgexec( $wrms_db, "SET SQL_Inheritance TO OFF;" );
 
-      $query = "SELECT request.request_id, brief, fullname, email, request_on, status.lookup_desc AS status_desc, last_activity, detailed ";
+      $query .= "SELECT request.request_id, brief, fullname, email, request_on, status.lookup_desc AS status_desc, last_activity, detailed ";
       $query .= ", request_type.lookup_desc AS request_type_desc, lower(fullname) AS lfull, lower(brief) AS lbrief ";
       $query .= ", to_char( request.last_activity, 'FMdd Mon yyyy') AS last_change ";
       $query .= ", to_char( request.request_on, 'FMdd Mon yyyy') AS date_requested ";
@@ -275,7 +287,11 @@ function header_row() {
 }
     echo "<table border=\"0\" align=left width=100%>\n";
 
-    if ( "$format" == "detailed" || "$format" == "activity" ) {
+    $show_notes = ($format == "ultimate" || $format == "detailed" );
+    $show_details = ($format == "ultimate" || $format == "detailed" || "$format" == "activity" || "$format" == "quotes" );
+    $show_quotes = ( $format == "ultimate" || "$format" == "activity" || "$format" == "quotes" );
+    $show_work = ( $format == "ultimate" || "$format" == "activity" ) && ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] );
+    if ( $show_details ) {
       include("inc/html-format.php");
     }
     else
@@ -289,7 +305,7 @@ function header_row() {
       for ( $i=0; $i < pg_NumRows($result); $i++ ) {
         $thisrequest = pg_Fetch_Object( $result, $i );
 
-        if ( "$format" == "detailed" || "$format" == "activity" ) header_row();
+        if ( $show_details ) header_row();
         printf( "<tr class=row%1d>\n", $i % 2);
 
         echo "<td class=sml align=center><a href=\"request.php?request_id=$thisrequest->request_id\">$thisrequest->request_id</a></td>\n";
@@ -300,62 +316,87 @@ function header_row() {
         if ( "$thisrequest->brief" == "" ) echo substr( $thisrequest->detailed, 0, 50) . "...";
         echo "</a></td>\n";
         echo "<td class=sml>&nbsp;$thisrequest->status_desc&nbsp;</td>\n";
-        echo "<td class=sml>&nbsp;$thisrequest->request_type_desc&nbsp;</td>\n";
-        echo "<td class=sml align=center>$thisrequest->last_change</td>\n";
+        echo "<td class=sml>&nbsp;" . str_replace( " ", "&nbsp;", $thisrequest->request_type_desc) . "&nbsp;</td>\n";
+        echo "<td class=sml align=center>" . str_replace( " ", "&nbsp;", $thisrequest->last_change) . "</td>\n";
 
         echo "</tr>\n";
 
-        if ( "$format" == "detailed" || "$format" == "activity" ) {
+        if ( $show_details ) {
           printf( "<tr class=row%1d>\n", $i % 2);
           echo "<td colspan=7>" . html_format($thisrequest->detailed) . "</td>\n";
           echo "</tr>\n";
-          if ( "$format" == "detailed" ) {
-            $subquery = "SELECT *, to_char( note_on, 'DD/MM/YYYY') AS nice_date ";
-            $subquery .= "FROM request_note, usr ";
-            $subquery .= "WHERE request_id = $thisrequest->request_id ";
-            $subquery .= "AND usr.user_no = request_note.note_by_id ";
-            $subquery .= "ORDER BY request_id, note_on ";
-            $subres = awm_pgexec( $dbconn, $subquery, "requestlist" );
-            for ( $j=0; $subres && $j < pg_NumRows($subres); $j++ ) {
-              $thisnote = pg_Fetch_Object( $subres, $j );
-              printf( "<tr class=row%1d valign=top>\n", $i % 2);
-              echo "<td>$thisnote->nice_date</td>\n";
-              echo "<td>$thisnote->fullname</td>\n";
-              echo "<td colspan=5>" . html_format($thisnote->note_detail) . "</td>\n";
-              echo "</tr>\n";
-            }
-          }
-          else {
-            $subquery = "SELECT *, to_char( work_on, 'DD/MM/YYYY') AS nice_date ";
-            $subquery .= "FROM request_timesheet, usr ";
-            $subquery .= "WHERE request_id = $thisrequest->request_id ";
-            $subquery .= "AND usr.user_no = request_timesheet.work_by_id ";
-            $subquery .= "ORDER BY request_id, work_on ";
-            $total = 0.0;
-            $subres = awm_pgexec( $dbconn, $subquery, "requestlist" );
-            for ( $j=0; $subres && $j < pg_NumRows($subres); $j++ ) {
-              $thiswork = pg_Fetch_Object( $subres, $j );
-              printf( "<tr class=row%1d valign=top>\n", $i % 2);
-              echo "<td>$thiswork->nice_date</td>\n";
-              echo "<td>$thiswork->fullname</td>\n";
-              echo "<td colspan=2>$thiswork->work_description</td>\n";
-              printf("<td align=right>%9.2f &nbsp; </td>\n", $thiswork->work_quantity);
-              printf("<td align=right>%9.2f &nbsp; </td>\n", $thiswork->work_rate);
-              $value = $thiswork->work_quantity * $thiswork->work_rate;
-              $total += $value;
-              printf("<td align=right>%9.2f &nbsp; </td>\n", $value);
-              echo "</tr>\n";
-            }
-            if ( $j > 0 )
-              printf( "<tr class=row%1d>\n<td colspan=6>&nbsp; &nbsp; &nbsp; Request #$thisrequest->request_id total</td>\n<td align=right>%9.2f &nbsp; </td>\n</tr>\n", $i % 2, $total);
-            $grand_total += $total;
-          }
-
-          echo "<tr class=row3>\n<td colspan=7>&nbsp;</td></tr>\n";
         }
+        if ( $show_quotes ) {
+          $subquery = "SELECT *, to_char( quoted_on, 'DD/MM/YYYY') AS nice_date ";
+          $subquery .= "FROM request_quote, usr ";
+          $subquery .= "WHERE request_id = $thisrequest->request_id ";
+          $subquery .= "AND usr.user_no = request_quote.quote_by_id ";
+          $subquery .= "ORDER BY request_id, quoted_on ";
+          $total = 0.0;
+          $subres = awm_pgexec( $dbconn, $subquery, "requestlist" );
+          for ( $j=0; $subres && $j < pg_NumRows($subres); $j++ ) {
+            $thisquote = pg_Fetch_Object( $subres, $j );
+            printf( "<tr class=row%1d valign=top>\n", $i % 2);
+            echo "<td>$thisquote->nice_date</td>\n";
+            echo "<td>$thisquote->fullname</td>\n";
+            echo "<td colspan=4><b>$thisquote->quote_brief</b><br><hr>\n";
+            echo html_format($thisquote->quote_details);
+            echo "</td>\n";
+            printf("<td align=right>%9.2f &nbsp; %s</td>\n", $thisquote->quote_amount, $thisquote->quote_units);
+            // printf("<td align=right>%9.2f &nbsp; </td>\n", $thisquote->quote_rate);
+            // $value = $thisquote->quote_quantity * $thisquote->quote_rate;
+            // $total += $value;
+            // printf("<td align=right>%9.2f &nbsp; </td>\n", $value);
+            echo "</tr>\n";
+          }
+        }
+        if ( $show_notes ) {
+          $subquery = "SELECT *, to_char( note_on, 'DD/MM/YYYY') AS nice_date ";
+          $subquery .= "FROM request_note, usr ";
+          $subquery .= "WHERE request_id = $thisrequest->request_id ";
+          $subquery .= "AND usr.user_no = request_note.note_by_id ";
+          $subquery .= "ORDER BY request_id, note_on ";
+          $subres = awm_pgexec( $dbconn, $subquery, "requestlist" );
+          for ( $j=0; $subres && $j < pg_NumRows($subres); $j++ ) {
+            $thisnote = pg_Fetch_Object( $subres, $j );
+            printf( "<tr class=row%1d valign=top>\n", $i % 2);
+            echo "<td>$thisnote->nice_date</td>\n";
+            echo "<td>$thisnote->fullname</td>\n";
+            echo "<td colspan=5>" . html_format($thisnote->note_detail) . "</td>\n";
+            echo "</tr>\n";
+          }
+        }
+        if ( $show_work ) {
+          $subquery = "SELECT *, to_char( work_on, 'DD/MM/YYYY') AS nice_date ";
+          $subquery .= "FROM request_timesheet, usr ";
+          $subquery .= "WHERE request_id = $thisrequest->request_id ";
+          $subquery .= "AND usr.user_no = request_timesheet.work_by_id ";
+          $subquery .= "ORDER BY request_id, work_on ";
+          $total = 0.0;
+          $subres = awm_pgexec( $dbconn, $subquery, "requestlist" );
+          for ( $j=0; $subres && $j < pg_NumRows($subres); $j++ ) {
+            $thiswork = pg_Fetch_Object( $subres, $j );
+            printf( "<tr class=row%1d valign=top>\n", $i % 2);
+            echo "<td>$thiswork->nice_date</td>\n";
+            echo "<td>$thiswork->fullname</td>\n";
+            echo "<td colspan=2>$thiswork->work_description</td>\n";
+            printf("<td align=right>%9.2f &nbsp; </td>\n", $thiswork->work_quantity);
+            printf("<td align=right>%9.2f &nbsp; </td>\n", $thiswork->work_rate);
+            $value = $thiswork->work_quantity * $thiswork->work_rate;
+            $total += $value;
+            printf("<td align=right>%9.2f &nbsp; </td>\n", $value);
+            echo "</tr>\n";
+          }
+          if ( $j > 0 )
+            printf( "<tr class=row%1d>\n<td colspan=6>&nbsp; &nbsp; &nbsp; Request #$thisrequest->request_id total</td>\n<td align=right>%9.2f &nbsp; </td>\n</tr>\n", $i % 2, $total);
+          $grand_total += $total;
+        }
+
+        if ( $show_details )
+          echo "<tr class=row3>\n<td colspan=7>&nbsp;</td></tr>\n";
       }
     }
-    if ( "$format" == "activity" )
+    if ( $show_work )
       printf( "<tr class=row%1d>\n<th align=left colspan=6>Grand Total</th>\n<th align=right>%9.2f &nbsp; </th>\n</tr>\n", $i % 2, $grand_total);
     echo "</table>\n";
 
@@ -372,9 +413,11 @@ function header_row() {
       if ( isset($from_date) ) $this_page .= "&from_date=$from_date";
       if ( isset($to_date) ) $this_page .= "&to_date=$to_date";
       if ( isset($type_code) ) $this_page .= "&type_code=$type_code";
-      reset($incstat);
-      while( list($k,$v) = each( $incstat ) ) {
-        $this_page .= "&incstat[$k]=$v";
+      if ( isset($incstat) && is_array( $incstat ) ) {
+        reset($incstat);
+        while( list($k,$v) = each( $incstat ) ) {
+          $this_page .= "&incstat[$k]=$v";
+        }
       }
 
       echo "<br clear=all><hr>\n<table cellpadding=5 cellspacing=5 align=right><tr><td>Rerun as report: </td>\n<td>\n";
@@ -382,6 +425,10 @@ function header_row() {
       if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] )
         printf( " &nbsp;|&nbsp; <a href=\"$this_page\" target=_new>Activity</a>\n", "stripped", "activity");
       printf( " &nbsp;|&nbsp; <a href=\"$this_page\" target=_new>Detailed</a>\n", "stripped", "detailed");
+      if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] || $roles['wrms']['Manage'] )
+        printf( " &nbsp;|&nbsp; <a href=\"$this_page\" target=_new>Quotes</a>\n", "stripped", "quotes");
+      if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] )
+        printf( " &nbsp;|&nbsp; <a href=\"$this_page\" target=_new>Ultimate</a>\n", "stripped", "ultimate");
       if ( "$qry" != "" ) {
         echo "</td><td>|&nbsp; &nbsp; or <a href=\"$PHP_SELF?qs=complex&qry=$qry&action=delete\" class=sbutton>Delete</a> it\n";
       }

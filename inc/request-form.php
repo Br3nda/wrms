@@ -306,7 +306,7 @@
    <th>&nbsp;</th>
    <TH ALIGN=LEFT class=cols>Done By</TH>
    <TH class=cols>Done On</TH>
-   <TH class=cols>Hours</TH>
+   <TH class=cols>Quantity</TH>
    <TH class=cols>Rate</TH>
    <TH class=cols>Description</TH>
  </TR>
@@ -316,9 +316,9 @@
 
       if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
       else echo "<tr bgcolor=$colors[7]>";
-      echo "<th>&nbsp;</th><TD>$work->fullname</TD>\n";
+      echo "<th>&nbsp;</th><TD>" . str_replace(" ", "&nbsp;", $work->fullname) . "</TD>\n";
       echo "<TD align=center>" . substr( nice_date($work->work_on), 7) . "</TD>\n";
-      echo "<TD ALIGN=RIGHT>" . sprintf( "%.2f", round(($work->seconds / 900) + 0.4 ) / 4) . " &nbsp; &nbsp; </TD>\n";
+      echo "<TD ALIGN=RIGHT>$work->work_quantity&nbsp;$work->work_units &nbsp; &nbsp; </TD>\n";
       echo "<TD ALIGN=RIGHT>$work->work_rate &nbsp; &nbsp; </TD>\n";
       echo "<TD>$work->work_description</TD></TR>\n";
     }
@@ -327,11 +327,12 @@
       if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]";
       else echo "<tr bgcolor=$colors[7]";
       echo " valign=top><th>&nbsp;</th>\n";
-      echo "<td>$session->fullname</td>\n";
+      echo "<td><BR>$session->fullname</td>\n";
       echo "<TD><input name=new_work_on size=9 type=text value=today></TD>\n";
-      echo "<TD><input name=new_work_duration size=7 type=text><br>(e.g. &quot;2 hours&quot;)</TD>\n";
-      echo "<TD><input name=new_work_rate size=5 type=text><br>($ per hour)</TD>\n";
-      echo "<TD><textarea name=new_work_details rows=3 cols=40 wrap=soft></textarea></TD></TR>\n";
+      echo "<TD align=center><input name=new_work_quantity size=6 type=text><br>\n";
+      echo "<select name=new_work_units>$quote_units</select></TD>\n";
+      echo "<TD><input name=new_work_rate size=5 type=text><br>($ per unit)</TD>\n";
+      echo "<TD><textarea name=new_work_details rows=3 cols=30 wrap=soft></textarea></TD></TR>\n";
     }
     echo "</TABLE>\n";
 

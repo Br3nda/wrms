@@ -1,5 +1,5 @@
 <?php
-// Very useful function for stripping MS-isms out of the code
+// Very useful function for stripping MS-isms and other things out of the code
 function tidy( $instr ) {
   $instr = str_replace( chr(145), "'", $instr);
   $instr = str_replace( chr(146), "'", $instr);
@@ -9,6 +9,7 @@ function tidy( $instr ) {
   $instr = str_replace( chr(169), '&copy;', $instr);
   $instr = str_replace( chr(175), '&reg;', $instr);
   $instr = str_replace( "'", "''", $instr);
+  $instr = str_replace( "\\", "\\\\", $instr);
   return $instr ;
 }
 ?>

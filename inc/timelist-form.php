@@ -24,11 +24,13 @@ function nice_time( $in_time ) {
 
 <?php
   if ( "$search_for$system_code " != "" ) {
-    $query = "SELECT *, worker.fullname AS worker_name, requester.fullname AS requester_name";
-    $query .= " FROM request_timesheet, request, usr AS worker, usr AS requester ";
+    $query = "SELECT request.*, request_timesheet.*, organisation.*,";
+    $query .= " worker.fullname AS worker_name, requester.fullname AS requester_name";
+    $query .= " FROM request_timesheet, request, usr AS worker, usr AS requester, organisation ";
     $query .= " WHERE request_timesheet.request_id = request.request_id";
     $query .= " AND worker.user_no = work_by_id ";
     $query .= " AND requester.user_no = requester_id ";
+    $query .= " AND organisation.org_code = requester.org_code ";
 
     if ( "$user_no" <> "" ) {
       $query .= " AND work_by_id=$user_no ";
@@ -60,11 +62,15 @@ function nice_time( $in_time ) {
     }
     else {
       echo "<p>&nbsp;" . pg_NumRows($result) . " timesheets found</p>\n"; // <p>$query</p>";
-      if ( "$uncharged" != "" )
-        echo "<FORM METHOD=POST ACTION=\"$REQUEST_URI&uncharged=1\">\n";
+      if ( "$uncharged" != "" ) {
+        echo "<FORM METHOD=POST ACTION=\"$REQUEST_URI";
+        if ( ! strpos( $REQUEST_URI, "uncharged" ) ) echo "&uncharged=1";
+        echo "\">\n";
+      }
       echo "<table border=\"0\" align=center><tr>\n";
-      echo "<th class=cols>Done On</th><th class=cols>Duration</th><th class=cols>Rate</th>";
-      echo "<th class=cols>Done By</th><th class=cols>Work for</th>";
+      echo "<th class=cols>Work for</th><th class=cols>Done on</th>";
+      echo "<th class=cols>Duration</th><th class=cols>Rate</th>";
+      echo "<th class=cols>Done By</th>";
       if ( "$uncharged" == "" )
         echo "<th class=cols>Charged on</th>";
       echo "<th class=cols>Description</th></tr>";
@@ -76,11 +82,11 @@ function nice_time( $in_time ) {
         if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
         else echo "<tr bgcolor=$colors[7]>";
 
+        echo "<td class=sml>$timesheet->requester_name ($timesheet->abbreviation, #$timesheet->debtor_no)</td>\n";
         echo "<td class=sml nowrap>" . substr( nice_date($timesheet->work_on), 7) . "</td>\n";
-        echo "<td class=sml nowrap>" . nice_time($timesheet->work_duration) . "</td>\n";
+        echo "<td class=sml nowrap>$timesheet->work_quantity $timesheet->work_units</td>\n";
         echo "<td class=sml align=right nowrap>$timesheet->work_rate&nbsp;</td>\n";
         echo "<td class=sml>$timesheet->worker_name</td>\n";
-        echo "<td class=sml>$timesheet->requester_name</td>\n";
         if ( "$timesheet->work_charged" == "" ) {
           if ( "$uncharged" == "" ) echo "<td class=sml>uncharged</td>";
         }
@@ -92,10 +98,15 @@ function nice_time( $in_time ) {
           echo "</tr>\n";
           if(floor($i/2)-($i/2)==0) echo "<tr bgcolor=$colors[6]>";
           else echo "<tr bgcolor=$colors[7]>";
-          echo "<th class=cols align=right colspan=3>Charged&nbsp;On:</th>\n";
-          echo "<td><font size=2><input type=text size=10 name=\"chg_on[$timesheet->timesheet_id]\" value=\"" . date( "d/m/Y" ) . "\"></font></td>\n";
-          echo "<th class=cols align=right>Amount:</th>\n";
-          echo "<td><font size=2><input type=text size=12 name=\"chg_amt[$timesheet->timesheet_id]\" value=\"\"></font></td>\n";
+          echo "<td colspan=6><table align=right><tr>\n";
+          echo "<td class=cols valign=top align=left>$timesheet->brief</td>\n";
+          echo "<th class=cols align=right>&nbsp;Charged&nbsp;On:</th>\n";
+          echo "<td><font size=2><input type=text size=10 name=\"chg_on[$timesheet->timesheet_id]\" value=\"" . date( "d/m/Y" ) . "\"></font>&nbsp;</td>\n";
+          echo "<th class=cols align=right>&nbsp;Amount:</th>\n";
+          echo "<td><font size=2><input type=text size=12 name=\"chg_amt[$timesheet->timesheet_id]\" value=\"\"></font>&nbsp;</td>\n";
+          echo "<th class=cols align=right>&nbsp;Invoice:</th>\n";
+          echo "<td><font size=2><input type=text size=6 name=\"chg_inv[$timesheet->timesheet_id]\" value=\"\"></font>&nbsp;</td>\n";
+          echo "</tr></table></td>\n";
         }
         echo "</tr>\n";
       }

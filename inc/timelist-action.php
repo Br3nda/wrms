@@ -4,12 +4,14 @@
     $because = "<TABLE BORDER=1 WIDTH=50% ALIGN=CENTER>";
     $query = "";
     while( list( $k, $v ) = each ( $chg_on ) ) {
-      $amount = doubleval( $chg_amt["$k"] );
+      $amount = doubleval( $chg_amt[$k] );
+      $invoice = doubleval( $chg_inv[$k] );
       if ( $amount == 0 ) continue;
       $because .= "<tr><td>$k</td><td>$v</td></tr>";
       $query .= "UPDATE request_timesheet SET";
       $query .= " work_charged='$v',";
       $query .= " charged_by_id=$session->user_no,";
+      $query .= " charged_details='$invoice', ";
       $query .= " charged_amount=$amount";
       $query .= " WHERE timesheet_id=$k;";
     }

@@ -49,7 +49,7 @@
 
     $note_added = ($new_note != "");
     $quote_added = ($new_quote_brief != "") && ($new_quote_amount != "");
-    $work_added = ($new_work_on != "") && ($new_work_duration != "") && ($new_work_details != "") && ($new_work_rate != "") ;
+    $work_added = ($new_work_on != "") && ($new_work_quantity != "") && ($new_work_details != "") && ($new_work_rate != "") ;
     $status_changed = ($request->last_status != $new_status );
     $old_eta = substr( nice_date($request->eta), 7);
     $eta_changed = (("$old_eta" != "$new_eta") && ( "$new_eta" != ""));
@@ -182,8 +182,8 @@
       /* non-null timesheet was entered */
       $new_work_details = tidy( $new_work_details );
       $query = "DELETE FROM request_timesheet WHERE request_id=$request_id AND work_on='$new_work_on'; ";
-      $query .= "INSERT INTO request_timesheet (request_id,  work_on, work_duration, work_rate, work_by_id, work_by, work_description ) ";
-      $query .= "VALUES( $request_id, '$new_work_on', '$new_work_duration', '$new_work_rate', $session->user_no, '$session->username', '$new_work_details')";
+      $query .= "INSERT INTO request_timesheet (request_id,  work_on, work_quantity, work_units, work_rate, work_by_id, work_by, work_description ) ";
+      $query .= "VALUES( $request_id, '$new_work_on', '$new_work_quantity', '$new_work_units', '$new_work_rate', $session->user_no, '$session->username', '$new_work_details')";
       $rid = pg_exec( $wrms_db, $query );
       if ( ! $rid ) {
         $errmsg = pg_ErrorMessage( $wrms_db );

@@ -6,6 +6,7 @@ var system_code = "";
 var popt_rx = /^Person: <option value="(.+)">(.+)<\/option>/i
 var sopt_rx = /^System: <option value="(.+)">(.+)<\/option>/i
 var aopt_rx = /^Subscriber: <option value="(.+)">(.+)<\/option>/i
+var orgtag_rx = /^OrgTag: <option value="(.+)">(.+)<\/option>/i
 var number_rx = /^[0-9\.]*$/
 var date_rx = /^([0-9][0-9]?-[0-1]?[0-9]-[0-9][0-9]*|today|yesterday|now|tomorrow)$/
 
@@ -17,6 +18,7 @@ var per_sel;
 var sys_sel;
 var alloc_sel;
 var subsc_sel;
+var orgtag_sel;
 
 var xmlhttp;
 /*@cc_on @*/
@@ -56,6 +58,7 @@ function OrganisationChanged() {
   sys_sel = document.forms.form.system_code;
   alloc_sel = document.forms.form.allocatable;
   subsc_sel = document.forms.form.subscribable;
+  orgtag_sel = document.forms.form.orgtaglist;
   if ( new_org_id != organisation_id ) {
     organisation_id = new_org_id;
     xmlhttp.open("GET", "/js.php?org_code=" + new_org_id, true);
@@ -69,10 +72,12 @@ function OrganisationChanged() {
         CleanSelectOptions(sys_sel);
         CleanSelectOptions(alloc_sel);
         CleanSelectOptions(subsc_sel);
+        CleanSelectOptions(orgtag_sel);
         per_sel.options[0] = new Option( "--- select a person ---", "" );
         sys_sel.options[0] = new Option( "--- select a system ---", "" );
         alloc_sel.options[0] = new Option( "--- select a person ---", "" );
         subsc_sel.options[0] = new Option( "--- select a person ---", "" );
+        orgtag_sel.options[0] = new Option( "--- select a tag ---", "" );
         person_id = -1;
         system_code = "";
         for ( var i=0; i < lines.length; i++ ) {
@@ -91,6 +96,9 @@ function OrganisationChanged() {
           else if ( lines[i].match( /^Subscriber:/ ) ) {
             alloc_sel.options[alloc_sel.options.length] = new Option( lines[i].replace( aopt_rx, "$2"), lines[i].replace( aopt_rx, "$1") )
             subsc_sel.options[subsc_sel.options.length] = new Option( lines[i].replace( aopt_rx, "$2"), lines[i].replace( aopt_rx, "$1") )
+          }
+          else if ( lines[i].match( /^OrgTag:/ ) ) {
+            orgtag_sel.options[orgtag_sel.options.length] = new Option( lines[i].replace( orgtag_rx, "$2"), lines[i].replace( orgtag_rx, "$1") )
           }
         }
 
@@ -221,7 +229,7 @@ function GetFieldFromName(fname) {
 //////////////////////////////////////////////////////////
 // Insert new values into the list from the selection
 //////////////////////////////////////////////////////////
-function AllocateSelected(select_from, append_fname) {
+function AssignSelected(select_from, append_fname) {
   append_to = GetFieldFromName(append_fname)
   if ( ! append_to  ) return false;
 
@@ -238,19 +246,9 @@ function AllocateSelected(select_from, append_fname) {
   append_to.options[i] = select_from.options[j];
   append_to.options[i].selected = true;
   append_to.size = i + 1;
-  // alert( select_from.options[j].value );
-//  select_from.options[j] = null;
+
   if ( j < select_from.options.length ) {
     select_from.options[j].selected = true;
   }
 }
 
-function UnallocateSelected(remove_from, display_to) {
-  sel_id = select_from.value;
-  if ( append_to.value == "" ) {
-    append_to.value = sel_id;
-  }
-  else {
-    append_to.value += "," + sel_id;
-  }
-}

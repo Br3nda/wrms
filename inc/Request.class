@@ -41,6 +41,7 @@ class Request {
      $this->request_id = 0;
      $this->send_an_email = false;
      $this->mail_message_data = array();
+     $this->chtype = "none";
 
      $id = intval("$id");
      if ( $id > 0 ) {
@@ -295,6 +296,7 @@ class Request {
      $html .= $this->RenderAllocations($ef);
      $html .= $this->RenderTimesheets($ef);
      $html .= $this->RenderInterests($ef);
+     $html .= $this->RenderTags($ef);
      $html .= $this->RenderNotes($ef);
      $html .= $this->RenderStatuses($ef);
 
@@ -689,13 +691,15 @@ class Request {
        $html .= '<td class="entry">';
        $html .= $ef->DataEntryField( "", "lookup", "allocatable",
                  array("title" => "Select the person to allocate this W/R to",
-                       "style" => "vertical-align: top; width: 20em;", "_sql"  => $usr_sql ) );
+                       "style" => "vertical-align: top; width: 20em;",
+                       "_null" => "--- select a person ---",
+                       "_sql"  => $usr_sql ) );
 
        // Enter the description
        $html .= $ef->DataEntryField( "", "button", "add_allocation",
                  array("title" => "Add this person to the allocations for this work request",
                        "value" => "Add Person", "style" => "vertical-align: top;",
-                       "onClick" => "return AllocateSelected(document.forms.form.allocatable,'new_allocations[]');" ) );
+                       "onClick" => "return AssignSelected(document.forms.form.allocatable,'new_allocations[]');" ) );
 
        $html .= $ef->DataEntryField( "", "select", "new_allocations[]",
                  array("title" => "Unselect the person not allocate this W/R to them",
@@ -843,13 +847,15 @@ class Request {
        $html .= '<td class="entry">';
        $html .= $ef->DataEntryField( "", "lookup", "subscribable",
                  array("title" => "Select the person to subscribe to this W/R",
-                       "style" => "vertical-align: top; width: 20em;", "_sql"  => $usr_sql ) );
+                       "style" => "vertical-align: top; width: 20em;",
+                       "_null" => "--- select a person ---",
+                       "_sql"  => $usr_sql ) );
 
        // Enter the description
        $html .= $ef->DataEntryField( "", "button", "add_subscription",
                  array("title" => "Add this person to the subscriber list for this work request",
                        "value" => "Add Person", "style" => "vertical-align: top;",
-                       "onClick" => "return AllocateSelected(document.forms.form.subscribable,'new_subscriptions[]');" ) );
+                       "onClick" => "return AssignSelected(document.forms.form.subscribable,'new_subscriptions[]');" ) );
 
        $html .= $ef->DataEntryField( "", "select", "new_subscriptions[]",
                  array("title" => "Unselect the person to not subscribe them to this W/R",
@@ -860,6 +866,73 @@ class Request {
    }
 
    /////////////////////////////////////////////////////////////
+   // Display the tags that have been assigned to this W/R
+   /////////////////////////////////////////////////////////////
+   function RenderTags( $ef ) {
+     global $session;
+     $html = "";
+
+     $sql = "SELECT organisation_tag.* ";
+     $sql .= "FROM request_tag JOIN organisation_tag USING ( tag_id ) ";
+     $sql .= "WHERE request_id = $this->request_id ";
+     $sql .= "ORDER BY request_id, organisation_tag.tag_sequence";
+     # Select the records
+     $q = new PgQuery($sql);
+     $q->Exec('WR::Tags') ;
+     if ( $ef->editmode || $q->rows )
+       $html .= $ef->BreakLine("Assigned Tags");
+     if ( $q->rows ) {
+       $html .= '<tr><th class="prompt">&nbsp;</th><td class="entry" style="vertical-align: middle;">'."\n";
+       $line_format = '%s';
+       if ( $ef->editmode ) {
+         $line_format .= '<a href="/wr.php?request_id=%d&action=untag&tag_id=%d&edit=1" title="Remove the %s tag from this request"><img src="'.$GLOBALS['images'].'/delete.png" border="none"></a>';
+       }
+       $line_format .= "&nbsp; &nbsp;\n";
+       while( $row = $q->Fetch() ) {
+         $html .= sprintf( $line_format,
+                    $row->tag_description,
+                    $this->request_id, $row->tag_id, $row->tag_description
+                  );
+       }
+       $html .= '</td></tr>'."\n";
+     }
+
+     if ( $ef->editmode ) {
+       $html .= '<tr><th class="prompt">Assign Tag</th>'."\n";
+       // Select the file
+       $usr_sql = "SELECT tag_id, tag_description ";
+       $usr_sql .= "FROM organisation_tag JOIN organisation ON ( organisation_tag.org_code = organisation.org_code) ";
+       $usr_sql .= "WHERE organisation_tag.active AND organisation.active AND organisation.org_code ";
+       if ( isset($this->org_code) ) {
+         $usr_sql .= "IN ( $this->org_code, $session->org_code )";
+       }
+       else {
+          $usr_sql .= "= $session->org_code ";
+       }
+       $usr_sql .= " ORDER BY organisation_tag.tag_sequence, lower(organisation_tag.tag_description);";
+       $html .= '<td class="entry">';
+       $html .= $ef->DataEntryField( "", "lookup", "orgtaglist",
+                 array("title" => "Select the tag to assign to this W/R",
+                       "style" => "vertical-align: top; width: 20em;",
+                       "_null" => "--- select a tag ---",
+                       "_sql"  => $usr_sql ) );
+
+       // Enter the description
+       $html .= $ef->DataEntryField( "", "button", "add_orgtag",
+                 array("title" => "Add this tag to the assigned list for this work request",
+                       "value" => "Assign Tag", "style" => "vertical-align: top;",
+                       "onClick" => "return AssignSelected(document.forms.form.orgtaglist,'new_tags[]');" ) );
+
+       $html .= $ef->DataEntryField( "", "select", "new_tags[]",
+                 array("title" => "Deselect the tag to not assign it to this W/R",
+                       "style" => "width: 20em;", "multiple"  => "true", "size" => 1 ) );
+       $html .= '</td></tr>'."\n";
+     }
+     return $html;
+   }
+
+   /////////////////////////////////////////////////////////////
+   // Display the notes + notes entry panel
    /////////////////////////////////////////////////////////////
    function RenderNotes( $ef ) {
      global $session;
@@ -997,7 +1070,7 @@ class Request {
      }
      else {
        // If we are creating a new record, we need to grab the ID that it got
-       if ( eregi("create",$_POST['submit']) ) {
+       if ( "create" == $this->chtype ) {
          // Fetch the request_id for this record.
          $sql = "SELECT currval('request_request_id_seq');";
          $qry = new PgQuery($sql);
@@ -1033,11 +1106,16 @@ class Request {
        $db_errors = ! $this->NewAllocations();
      }
 
-     if ( !$db_errors && ($this->chtype == 'create' || isset($_POST['new_subscriptions'])) ) {
+     if ( !$db_errors && ('create' == $this->chtype || isset($_POST['new_subscriptions'])) ) {
        $db_errors = ! $this->NewSubscriptions();
      }
 
-     if ( !$db_errors && isset($_POST['status_code']) && $_POST['status_code'] != $this->last_status ) {
+     if ( !$db_errors && isset($_POST['new_tags']) ) {
+       $db_errors = ! $this->NewTags();
+     }
+
+     if ( !$db_errors && isset($_POST['status_code'])
+             && ($_POST['status_code'] != $this->last_status || "create" == $this->chtype ) ) {
        $db_errors = ! $this->NewStatusCode();
      }
 
@@ -1362,6 +1440,7 @@ class Request {
    }
 
    /////////////////////////////////////////////////////////////
+   // Write the new allocations for the W/R
    /////////////////////////////////////////////////////////////
    function NewAllocations( ) {
      global $session, $client_messages;
@@ -1426,6 +1505,35 @@ class Request {
        return false;
      }
      $client_messages[] = sprintf("Request subscribers added.");
+
+     return true;
+   }
+
+   /////////////////////////////////////////////////////////////
+   // Write the new tags to the W/R
+   /////////////////////////////////////////////////////////////
+   function NewTags( ) {
+     global $session, $client_messages;
+     error_log( "$sysabbr Request::NewTags: DBG: Adding tags: " . join(",", $_POST['new_tags']), 0);
+
+     $new_tags = preg_replace( "/[^0-9,]/", "", join(",", $_POST['new_tags']));
+     $sql = "INSERT INTO request_tag ( tag_id, request_id, tagged_on ) ";
+     $sql .= "SELECT tag_id, $this->request_id, current_timestamp ";
+     $sql .= "FROM organisation_tag WHERE tag_id IN ( $new_tags ) ";
+     $sql .= "AND NOT EXISTS( SELECT 1 FROM request_tag WHERE request_id = $this->request_id ";
+     $sql .=                  "AND request_tag.tag_id = organisation_tag.tag_id) ";
+     $sql .= "AND organisation_tag.org_code IN ( $this->org_code, $session->org_code ); ";
+     $qry = new PgQuery($sql);
+     if ( ! $qry->Exec('WR::NewTags') ) {
+       $client_messages[] = "$qry->errorstring";
+       return false;
+     }
+     $client_messages[] = sprintf("Request tagged.", count($_POST['new_tags']));
+     $this->mail_message_data[]['html'] = "<tr><th width='10%' align='left'>Allocated</th><td>The request was tagged.</td></tr>\n";
+     $this->mail_message_data[]['text'] = " * The request was tagged.\n";
+
+     // If we're going to send an e-mail, fine, but we won't trigger one for this.
+//     $this->send_an_email = true;
 
      return true;
    }

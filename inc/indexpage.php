@@ -1,7 +1,11 @@
 <?php
 if ( $logged_on ) {
   if ( is_member_of('Admin','Support') ) {
-    include("indexsupport.php");
+    include("indexextsupport.php");
+//    include("indexsupport.php");
+  }
+  else if ( is_member_of('ExtSupport') ) {
+    include("indexextsupport.php");
   }
   else {
     include("indexclients.php");

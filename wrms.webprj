@@ -1,6 +1,6 @@
 <!DOCTYPE webproject>
 <webproject>
-  <project usePreviewPrefix="0" preview="http://mywrms/" previewPrefix="file:file%3A" type="Local" newfiles="php" name="WRMS" encoding="iso 8859-1" >
+  <project usePreviewPrefix="0" preview="http://mywrms/" type="Local" previewPrefix="file:file%3A" newfiles="php" name="WRMS" encoding="iso 8859-1" >
     <upload/>
     <author>Andrew McMillan</author>
     <email>wrms@catalyst.net.nz</email>
@@ -316,10 +316,13 @@
     <item url="inc/phpmailer.lang-en.php" uploadstatus="1" />
     <item url="scripts/dump/" uploadstatus="1" />
     <item url="scripts/conversion-200411.sql" uploadstatus="1" />
+    <item url="inc/indexextsupport.php" uploadstatus="1" />
+    <item url="scripts/conversion-200501.sql" />
     <treestatus>
       <openfolder url="html" />
       <openfolder url="html/js" />
       <openfolder url="inc" />
+      <openfolder url="scripts" />
     </treestatus>
   </project>
 </webproject>

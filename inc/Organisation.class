@@ -72,6 +72,7 @@ class Organisation {
 
      $html .= $this->RenderDetails($ef);
      $html .= $this->RenderSystems($ef);
+     $html .= $this->RenderTags($ef);
 
      if ( $edit ) $html .= $ef->SubmitButton( "submit", ($this->new_record ? "Create" : "Update") );
      $html .= "</table>\n";
@@ -168,6 +169,64 @@ class Organisation {
      return $html;
    }
 
+   function RenderTags( $ef ) {
+     global $session, $org_code;
+     $html = "";
+     $sql = "SELECT * ";
+     if ( $ef->editmode && ($session->AllowedTo('Admin') || $session->AllowedTo('Support')) ) {
+       $sql .= "FROM organisation_tag ";
+     }
+     elseif ( $session->AllowedTo('Admin') || $session->AllowedTo('Support') ) {
+       $sql .= "FROM organisation_tag ";
+       $sql .= "WHERE org_system.org_code = ".intval($org_code);
+     }
+     else {
+       $sql .= "FROM organisation_tag ";
+       $sql .= "WHERE org_system.org_code = ".intval($session->org_code);
+     }
+     $sql .= "ORDER BY tag_sequence, lower(tag_description)";
+
+     # Select the records
+     $q = new PgQuery($sql);
+     $column = 0;
+     $html .= $ef->BreakLine("Organisation Tags for Requests");
+     if ( $q && $q->Exec() && $q->rows ) {
+       $html .= '<tr><td colspan="2"><table>'."\n";
+
+       while( $row = $q->Fetch() ) {
+         if ( $column % 3 == 0 ) $html .= "<tr>";
+         $html .= "<td width=\"33%\">";
+         if ( $ef->editmode  && ($session->AllowedTo('Admin') || $session->AllowedTo('Support')) ) {
+           $ef->record->tag_active[$row->tag_id] = "$row->active";
+           error_log( "Tag active: $row->tag_id, $row->active" );
+           $_POST['tag_active'][$row->tag_id] = $row->active;
+           $html .= sprintf("<label style=\"color: %s\">", ( "$row->active" != "t" ? "darkgrey" : "black") );
+           $html .= $ef->DataEntryField( "", "checkbox", "tag_active[$row->tag_id]",
+                 array("title" => "Is this request tag active for this organisation?" ) );
+           $html .= " $row->tag_description</label>";
+         }
+         else {
+           $html .= "<a href=\"/system.php?system_code=$row->system_code\">$row->system_desc</a>";
+         }
+         $html .= "</td>";
+         if ( ++$column % 3 == 0 ) $html .= "</tr>";
+       }
+
+       while ( $column % 3 != 0 ) {
+       $html .= "<td></td>";
+         if ( ++$column % 3 == 0 ) $html .= "</tr>";
+       }
+       $html .= '</table></td></tr>'."\n";
+     }
+
+     // New tag - always force field value to blank - if we're rendering we've written it already...
+     $_POST['new_tag'] = '';
+     $html .= $ef->DataEntryLine( "New W/R Tag", '', "text", "new_tag",
+               array("size" => "20", "title" => "Enter a new tag to classify W/Rs for this organisation.") );
+
+     return $html;
+   }
+
 
    function Validate( $ef ) {
      global $session, $client_messages;
@@ -241,6 +300,27 @@ class Organisation {
          $client_messages[] = "ERROR: $qry->errorstring";
          $db_errors = true;
        }
+
+       $tags = "";
+       while( isset($_POST['tag_active']) && is_array($_POST['tag_active']) && list($k,$v) = each($_POST['tag_active']) ) {
+         if ( $v ) {
+           $tags .= ( "$tags" == "" ? "" : ", " );
+           $tags .= "'" . str_replace("'","''",str_replace('\\','', $k)) . "'";
+         }
+       }
+
+       // Actually delete any inactive org_tags if no W/R references them, otherwise really do make them inactive.
+       $sql = "DELETE FROM organisation_tag WHERE org_code = $this->org_code "
+            . ($tags == "" ? "" : "AND tag_id NOT IN ( $tags ) ")
+            . "AND NOT EXISTS( SELECT 1 FROM request_tag WHERE request_tag.tag_id = organisation_tag.tag_id LIMIT 1); ";
+       $sql .= "UPDATE organisation_tag SET active = FALSE WHERE org_code = $this->org_code "
+             . ($tags == "" ? "" : "AND tag_id NOT IN ( $tags ) ")
+             . "AND EXISTS( SELECT 1 FROM request_tag WHERE request_tag.tag_id = organisation_tag.tag_id LIMIT 1); ";
+       $qry = new PgQuery($sql);
+       if ( !$qry->Exec("Org::Write") ) {
+         $client_messages[] = "ERROR: $qry->errorstring";
+         $db_errors = true;
+       }
      }
 
      if ( !$db_errors && $systems != "" ) {
@@ -250,6 +330,16 @@ class Organisation {
        $sql .= "AND NOT EXISTS( SELECT 1 FROM org_system WHERE org_code = $this->org_code ";
        $sql .= "AND org_system.system_code = work_system.system_code); ";
        $qry = new PgQuery($sql);
+       if ( !$qry->Exec("Org::Write") ) {
+         $client_messages[] = "ERROR: $qry->errorstring";
+         $db_errors = true;
+       }
+     }
+
+     if ( !$db_errors && $_POST['new_tag'] != "" ) {
+       $sql = "INSERT INTO organisation_tag (org_code, tag_description ) ";
+       $sql .= "VALUES ( $this->org_code, ? ); ";
+       $qry = new PgQuery($sql, $_POST['new_tag']);
        if ( !$qry->Exec("Org::Write") ) {
          $client_messages[] = "ERROR: $qry->errorstring";
          $db_errors = true;

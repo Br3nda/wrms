@@ -421,6 +421,7 @@ GRANT INSERT,UPDATE,SELECT, DELETE ON
   org_system,
   timesheet_note,
   group_member,
+  request_tag, organisation_tag, organisation_tag_tag_id_seq,
   system_usr,
   saved_queries
   TO general;

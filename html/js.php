@@ -9,7 +9,9 @@ if ( !$session->logged_in ) {
 }
 
 if ( isset($org_code) ) {
+  ////////////////////////////////  Sanitised once, here, and then used repeatedly...
   $org_code = intval($org_code);
+
   $sql = "SELECT user_no, fullname || ' (' || abbreviation || ')' AS name ";
   $sql .= "FROM usr JOIN organisation ON (usr.org_code = organisation.org_code) ";
   $sql .= "WHERE status != 'I' AND usr.org_code = $org_code ";
@@ -29,6 +31,17 @@ if ( isset($org_code) ) {
   if ( $qry->Exec('js') ) {
     while( $row = $qry->Fetch() ) {
       echo "System: <option value=\"$row->system_code\">$row->system_desc</option>\n";
+    }
+  }
+
+  $sql = "SELECT tag_id, tag_description ";
+  $sql .= "FROM organisation_tag ";
+  $sql .= "WHERE active AND organisation_tag.org_code = $org_code ";
+  $sql .= "ORDER BY tag_sequence, lower(tag_description);";
+  $qry = new PgQuery($sql);
+  if ( $qry->Exec('js') ) {
+    while( $row = $qry->Fetch() ) {
+      echo "OrgTag: <option value=\"$row->tag_id\">$row->tag_description</option>\n";
     }
   }
 

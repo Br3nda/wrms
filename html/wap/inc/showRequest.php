@@ -27,7 +27,6 @@
 
       $title = $thisrequest->brief ;
 
-      WMLDo("accept", "", "Submit", "wrms.php?l=\$(lo)&amp;p=\$(pw)&amp;id=\$(id)&amp;active=\$(active)", "");
       $request .= "<p align=\"center\">
 <fieldset title=\"Status\">
 Status: <select name=\"active\">

@@ -11,8 +11,9 @@ var fontsize = 2;
 
 var gNow = new Date();
 var ggWinCal;
-isNav = (navigator.appName.indexOf("Netscape") != -1) ? true : false;
-isIE = (navigator.appName.indexOf("Microsoft") != -1) ? true : false;
+
+isOldNav = (navigator.appName.indexOf("Netscape") != -1) && (parseInt(navigator.appVersion) < 5) ? true : false;
+isHTML4 = (navigator.appName.indexOf("Microsoft") != -1) || ((navigator.appName.indexOf("Netscape") != -1) && (parseInt(navigator.appVersion) > 4)) ? true : false;
 
 Calendar.Months = ["January", "February", "March", "April", "May", "June",
 "July", "August", "September", "October", "November", "December"];
@@ -29,7 +30,7 @@ function Calendar(p_item, p_WinCal, p_month, p_year, p_format) {
 		this.gWinCal = ggWinCal;
 	else
 		this.gWinCal = p_WinCal;
-	
+
 	if (p_month == null) {
 		this.gMonthName = null;
 		this.gMonth = null;
@@ -59,30 +60,30 @@ function Calendar_get_month(monthNo) {
 }
 
 function Calendar_get_daysofmonth(monthNo, p_year) {
-	/* 
+	/*
 	Check for leap year ..
-	1.Years evenly divisible by four are normally leap years, except for... 
-	2.Years also evenly divisible by 100 are not leap years, except for... 
-	3.Years also evenly divisible by 400 are leap years. 
+	1.Years evenly divisible by four are normally leap years, except for...
+	2.Years also evenly divisible by 100 are not leap years, except for...
+	3.Years also evenly divisible by 400 are leap years.
 	*/
 	if ((p_year % 4) == 0) {
 		if ((p_year % 100) == 0 && (p_year % 400) != 0)
 			return Calendar.DOMonth[monthNo];
-	
+
 		return Calendar.lDOMonth[monthNo];
 	} else
 		return Calendar.DOMonth[monthNo];
 }
 
 function Calendar_calc_month_year(p_Month, p_Year, incr) {
-	/* 
-	Will return an 1-D array with 1st element being the calculated month 
-	and second being the calculated year 
+	/*
+	Will return an 1-D array with 1st element being the calculated month
+	and second being the calculated year
 	after applying the month increment/decrement as specified by 'incr' parameter.
 	'incr' will normally have 1/-1 to navigate thru the months.
 	*/
 	var ret_arr = new Array();
-	
+
 	if (incr == -1) {
 		// B A C K W A R D
 		if (p_Month == 0) {
@@ -104,7 +105,7 @@ function Calendar_calc_month_year(p_Month, p_Year, incr) {
 			ret_arr[1] = parseInt(p_Year);
 		}
 	}
-	
+
 	return ret_arr;
 }
 
@@ -113,14 +114,14 @@ function Calendar_print() {
 }
 
 function Calendar_calc_month_year(p_Month, p_Year, incr) {
-	/* 
-	Will return an 1-D array with 1st element being the calculated month 
-	and second being the calculated year 
+	/*
+	Will return an 1-D array with 1st element being the calculated month
+	and second being the calculated year
 	after applying the month increment/decrement as specified by 'incr' parameter.
 	'incr' will normally have 1/-1 to navigate thru the months.
 	*/
 	var ret_arr = new Array();
-	
+
 	if (incr == -1) {
 		// B A C K W A R D
 		if (p_Month == 0) {
@@ -142,7 +143,7 @@ function Calendar_calc_month_year(p_Month, p_Year, incr) {
 			ret_arr[1] = parseInt(p_Year);
 		}
 	}
-	
+
 	return ret_arr;
 }
 
@@ -153,22 +154,22 @@ Calendar.prototype.getMonthlyCalendarCode = function() {
 	var vCode = "";
 	var vHeader_Code = "";
 	var vData_Code = "";
-	
+
 	// Begin Table Drawing code here..
 	vCode = vCode + "<TABLE BORDER=1 BGCOLOR=\"" + this.gBGColor + "\">";
-	
+
 	vHeader_Code = this.cal_header();
 	vData_Code = this.cal_data();
 	vCode = vCode + vHeader_Code + vData_Code;
-	
+
 	vCode = vCode + "</TABLE>";
-	
+
 	return vCode;
 }
 
 Calendar.prototype.show = function() {
 	var vCode = "";
-	
+
 	this.gWinCal.focus();
 	this.gWinCal.document.open();
 
@@ -177,8 +178,8 @@ Calendar.prototype.show = function() {
 	this.wwrite("<head><title>Calendar</title>");
 	this.wwrite("</head>");
 
-	this.wwrite("<body " + 
-		"link=\"" + this.gLinkColor + "\" " + 
+	this.wwrite("<body " +
+		"link=\"" + this.gLinkColor + "\" " +
 		"vlink=\"" + this.gLinkColor + "\" " +
 		"alink=\"" + this.gLinkColor + "\" " +
 		"text=\"" + this.gTextColor + "\">");
@@ -194,26 +195,26 @@ Calendar.prototype.show = function() {
 	var nextMMYYYY = Calendar.calc_month_year(this.gMonth, this.gYear, 1);
 	var nextMM = nextMMYYYY[0];
 	var nextYYYY = nextMMYYYY[1];
-	
+
 	this.wwrite("<TABLE WIDTH='100%' BORDER=1 CELLSPACING=0 CELLPADDING=0 BGCOLOR='#e0e0e0'><TR><TD ALIGN=center>");
 	this.wwrite("[<A HREF=\"" +
-		"javascript:window.opener.Build(" + 
+		"javascript:window.opener.Build(" +
 		"'" + this.gReturnItem + "', '" + this.gMonth + "', '" + (parseInt(this.gYear)-1) + "', '" + this.gFormat + "'" +
 		");" +
 		"\"><<<\/A>]</TD><TD ALIGN=center>");
 	this.wwrite("[<A HREF=\"" +
-		"javascript:window.opener.Build(" + 
+		"javascript:window.opener.Build(" +
 		"'" + this.gReturnItem + "', '" + prevMM + "', '" + prevYYYY + "', '" + this.gFormat + "'" +
 		");" +
 		"\"><<\/A>]</TD><TD ALIGN=center>");
 	this.wwrite("[<A HREF=\"javascript:window.print();\">Print</A>]</TD><TD ALIGN=center>");
 	this.wwrite("[<A HREF=\"" +
-		"javascript:window.opener.Build(" + 
+		"javascript:window.opener.Build(" +
 		"'" + this.gReturnItem + "', '" + nextMM + "', '" + nextYYYY + "', '" + this.gFormat + "'" +
 		");" +
 		"\">><\/A>]</TD><TD ALIGN=center>");
 	this.wwrite("[<A HREF=\"" +
-		"javascript:window.opener.Build(" + 
+		"javascript:window.opener.Build(" +
 		"'" + this.gReturnItem + "', '" + this.gMonth + "', '" + (parseInt(this.gYear)+1) + "', '" + this.gFormat + "'" +
 		");" +
 		"\">>><\/A>]</TD></TR></TABLE><BR>");
@@ -234,9 +235,9 @@ Calendar.prototype.showY = function() {
 	var vyf = 200;			// Y-Factor
 	var vxm = 10;			// X-margin
 	var vym;				// Y-margin
-	if (isIE)	vym = 75;
-	else if (isNav)	vym = 25;
-	
+	if (isHTML4)	vym = 75;
+	else if (isOldNav)	vym = 25;
+
 	this.gWinCal.document.open();
 
 	this.wwrite("<html>");
@@ -248,7 +249,7 @@ Calendar.prototype.showY = function() {
 		if (i>=3 && i<= 5)	vr = 1;
 		if (i>=6 && i<= 8)	vr = 2;
 		if (i>=9 && i<= 11)	vr = 3;
-		
+
 		vx = parseInt(vxf * vc) + vxm;
 		vy = parseInt(vyf * vr) + vym;
 
@@ -257,8 +258,8 @@ Calendar.prototype.showY = function() {
 	this.wwrite("-->\n</style>");
 	this.wwrite("</head>");
 
-	this.wwrite("<body " + 
-		"link=\"" + this.gLinkColor + "\" " + 
+	this.wwrite("<body " +
+		"link=\"" + this.gLinkColor + "\" " +
 		"vlink=\"" + this.gLinkColor + "\" " +
 		"alink=\"" + this.gLinkColor + "\" " +
 		"text=\"" + this.gTextColor + "\">");
@@ -269,16 +270,16 @@ Calendar.prototype.showY = function() {
 	// Show navigation buttons
 	var prevYYYY = parseInt(this.gYear) - 1;
 	var nextYYYY = parseInt(this.gYear) + 1;
-	
+
 	this.wwrite("<TABLE WIDTH='100%' BORDER=1 CELLSPACING=0 CELLPADDING=0 BGCOLOR='#e0e0e0'><TR><TD ALIGN=center>");
 	this.wwrite("[<A HREF=\"" +
-		"javascript:window.opener.Build(" + 
+		"javascript:window.opener.Build(" +
 		"'" + this.gReturnItem + "', null, '" + prevYYYY + "', '" + this.gFormat + "'" +
 		");" +
 		"\" alt='Prev Year'><<<\/A>]</TD><TD ALIGN=center>");
 	this.wwrite("[<A HREF=\"javascript:window.print();\">Print</A>]</TD><TD ALIGN=center>");
 	this.wwrite("[<A HREF=\"" +
-		"javascript:window.opener.Build(" + 
+		"javascript:window.opener.Build(" +
 		"'" + this.gReturnItem + "', null, '" + nextYYYY + "', '" + this.gFormat + "'" +
 		");" +
 		"\">>><\/A>]</TD></TR></TABLE><BR>");
@@ -286,9 +287,9 @@ Calendar.prototype.showY = function() {
 	// Get the complete calendar code for each month..
 	var j;
 	for (i=11; i>=0; i--) {
-		if (isIE)
+		if (isHTML4)
 			this.wwrite("<DIV ID=\"layer" + i + "\" CLASS=\"lclass" + i + "\">");
-		else if (isNav)
+		else if (isOldNav)
 			this.wwrite("<LAYER ID=\"layer" + i + "\" CLASS=\"lclass" + i + "\">");
 
 		this.gMonth = i;
@@ -297,9 +298,9 @@ Calendar.prototype.showY = function() {
 		this.wwrite(this.gMonthName + "/" + this.gYear + "<BR>");
 		this.wwrite(vCode);
 
-		if (isIE)
+		if (isHTML4)
 			this.wwrite("</DIV>");
-		else if (isNav)
+		else if (isOldNav)
 			this.wwrite("</LAYER>");
 	}
 
@@ -317,7 +318,7 @@ Calendar.prototype.wwriteA = function(wtext) {
 
 Calendar.prototype.cal_header = function() {
 	var vCode = "";
-	
+
 	vCode = vCode + "<TR>";
 	vCode = vCode + "<TD WIDTH='14%'><FONT SIZE='2' FACE='" + fontface + "' COLOR='" + this.gHeaderColor + "'><B>Sun</B></FONT></TD>";
 	vCode = vCode + "<TD WIDTH='14%'><FONT SIZE='2' FACE='" + fontface + "' COLOR='" + this.gHeaderColor + "'><B>Mon</B></FONT></TD>";
@@ -327,7 +328,7 @@ Calendar.prototype.cal_header = function() {
 	vCode = vCode + "<TD WIDTH='14%'><FONT SIZE='2' FACE='" + fontface + "' COLOR='" + this.gHeaderColor + "'><B>Fri</B></FONT></TD>";
 	vCode = vCode + "<TD WIDTH='16%'><FONT SIZE='2' FACE='" + fontface + "' COLOR='" + this.gHeaderColor + "'><B>Sat</B></FONT></TD>";
 	vCode = vCode + "</TR>";
-	
+
 	return vCode;
 }
 
@@ -345,7 +346,7 @@ Calendar.prototype.cal_data = function() {
 
 	/*
 	Get day for the 1st of the requested month/year..
-	Place as many blank cells before the 1st day of the month as necessary. 
+	Place as many blank cells before the 1st day of the month as necessary.
 	*/
 
 	vCode = vCode + "<TR>";
@@ -355,7 +356,7 @@ Calendar.prototype.cal_data = function() {
 
 	// Write rest of the 1st week
 	for (j=vFirstDay; j<7; j++) {
-		vCode = vCode + "<TD WIDTH='14%'" + this.write_weekend_string(j) + "><FONT SIZE='2' FACE='" + fontface + "'>" + 
+		vCode = vCode + "<TD WIDTH='14%'" + this.write_weekend_string(j) + "><FONT SIZE='2' FACE='" + fontface + "'>" +
 			"<A HREF='#' " + 
 				"onClick=\"self.opener.document." + this.gReturnItem + ".value='" + 
 				this.format_data(vDay) + 
@@ -397,7 +398,7 @@ Calendar.prototype.cal_data = function() {
 	// Fill up the rest of last week with proper blanks, so that we get proper square blocks
 	for (m=1; m<(7-j); m++) {
 		if (this.gYearly)
-			vCode = vCode + "<TD WIDTH='14%'" + this.write_weekend_string(j+m) + 
+			vCode = vCode + "<TD WIDTH='14%'" + this.write_weekend_string(j+m) +
 			"><FONT SIZE='2' FACE='" + fontface + "' COLOR='gray'> </FONT></TD>";
 		else
 			vCode = vCode + "<TD WIDTH='14%'" + this.write_weekend_string(j+m) + 
@@ -516,14 +517,14 @@ function Build(p_item, p_month, p_year, p_format) {
 }
 
 function show_calendar() {
-	/* 
+	/*
 		p_month : 0-11 for Jan-Dec; 12 for All Months.
 		p_year	: 4-digit year
 		p_format: Date format (mm/dd/yyyy, dd/mm/yy, ...)
 		p_item	: Return Item.
 	*/
 
-	p_item = arguments[0];
+    p_item = arguments[0];
 	if (arguments[1] == null)
 		p_month = new String(gNow.getMonth());
 	else
@@ -537,7 +538,7 @@ function show_calendar() {
 	else
 		p_format = arguments[3];
 
-	vWinCal = window.open("", "Calendar", 
+	vWinCal = window.open("", "Calendar",
 		"width=250,height=250,status=no,resizable=no,top=200,left=200");
 	vWinCal.opener = self;
 	ggWinCal = vWinCal;

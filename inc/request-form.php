@@ -170,7 +170,7 @@
   <TD ALIGN=LEFT COLSPAN=2>
 <?php
   if ( $editable )
-    echo "<TEXTAREA NAME=\"new_detail\" ROWS=8 COLS=60  WRAP=\"SOFT\">$request->detailed</TEXTAREA>"; 
+    echo "<textarea name=\"new_detail\" rows=8 cols=60  wrap=\"SOFT\">$request->detailed</textarea>";
   else
     echo html_format($request->detailed);
 
@@ -504,31 +504,32 @@
 
   if ( ! $plain ) {
 
-    echo "$tbldef>\n<TR><TD CLASS=sml COLSPAN=4>&nbsp;</TD></TR>\n<TR>$hdcell";
-    echo "<TD CLASS=h3 COLSPAN=4 ALIGN=RIGHT bgcolor=$colors[8]><FONT SIZE=+1 color=$colors[1]><B>";
+    echo "$tbldef>\n<tr><td class=sml colspan=4>&nbsp;</td></tr>\n<tr>$hdcell";
+    echo "<td class=h3 colspan=4 align=right bgcolor=$colors[8]><font size=+1 color=$colors[1]><b>";
     /**** only update status & eta if they are administrator */
     if ( $statusable ) echo "Change Status or ";
-    echo "Add Notes</B></FONT></TD></TR>\n";
+    echo "Add Notes</b></font></td></tr>\n";
     if ( $statusable ) {
-      echo "<TR>";
-      echo "<th class=rows align=right>New Status:</TH>";
-      echo "<TD ALIGN=LEFT width=100><SELECT NAME=\"new_status\">$status_list</SELECT></TD>";
+      echo "<tr>";
+      echo "<th class=rows align=right>New Status:</th>";
+      echo "<td align=left width=100><select name=\"new_status\">$status_list</select></td>";
       if ( $sysmgr || $allocated_to || "$request->eta" <> "" ) {
-        echo "<th class=rows align=right>&nbsp; ETA:</TH>";
-        echo "<TD ALIGN=LEFT>&nbsp;";
-        if ( $sysmgr || $allocated_to ) echo "<INPUT TYPE=text NAME=\"new_eta\" SIZE=30 VALUE=\"";
+        echo "<th class=rows align=right>&nbsp; ETA:</th>";
+        echo "<td align=left>&nbsp;";
+        if ( $sysmgr || $allocated_to ) echo "<input type=text name=\"new_eta\" size=30 value=\"";
         echo substr( nice_date( $request->eta ), 7);
         if ( $sysmgr || $allocated_to ) echo "\">";
-        echo "</TD>";
+        echo "</td>";
       }
-      echo "</TR>\n";
+      echo "</tr>\n";
     }
 ?>
 
-<TR VALIGN=TOP>
-  <th class=rows align=right>New Note:</TH>
-  <TD ALIGN=LEFT COLSPAN=3><TEXTAREA NAME="new_note" ROWS=8 COLS=60  WRAP="SOFT"></TEXTAREA></TD>
-</TR>
+<tr valign=top>
+  <th class=rows align=right>New Note:<div class=sml align="left"><br>
+<label><input type="checkbox" name="convert_html" value="1">Process<br>HTML as Text</label></div></TH>
+  <td align=left colspan=3><textarea name="new_note" rows=8 cols=60  wrap="SOFT"></textarea></TD>
+</tr>
 </table>
 <?php
 

@@ -1,6 +1,7 @@
 <?php
   include("inc/always.php");
   include("inc/options.php");
+  include("inc/code-list.php");
 
   if ( isset($system_code) && $system_code == "." ) unset( $system_code );
 
@@ -55,9 +56,10 @@
 //    echo "</td>\n</tr></table></td></tr>";
     echo "</td></tr></table>";
   }
+  $request_types = get_code_list( "request", "request_type", "$type_code" );
 ?>
 </td></tr>
-<tr><td><table border=0 cellspacing=0 cellpadding=0><tr valign=middle>
+<tr><td><table border=0 cellspacing=0 cellpadding=0 width=100%><tr valign=middle>
 <td class=smb align=right>Last&nbsp;Action&nbsp;From:</td>
 <td nowrap class=smb><input type=text size=10 name=from_date class=sml value="<?php echo "$from_date"; ?>">
 <a href="javascript:show_calendar('forms[0].from_date');" onmouseover="window.status='Date Picker';return true;" onmouseout="window.status='';return true;"><img valign="middle" src="/images/date-picker.gif" border=0></a>
@@ -67,7 +69,9 @@
 <td nowrap class=smb><input type=text size=10 name=to_date class=sml value="<?php echo "$to_date"; ?>">
 <a href="javascript:show_calendar('forms[0].to_date');" onmouseover="window.status='Date Picker';return true;" onmouseout="window.status='';return true;"><img valign="middle" src="/images/date-picker.gif" border=0></a>
 </td>
-<td valign=middle class=smb><input type=submit value="DO QUERY" alt=go name=submit class="submit"></td>
+<td class=smb align=right>&nbsp;Type:</td>
+<td nowrap class=smb><select name="type_code"><option value="">-- All Types --</option><?php echo "$request_types"; ?></select></td>
+<td valign=middle class=smb align=center><input type=submit value="RUN QUERY" alt=go name=submit class="submit"></td>
 </tr></table>
 </td>
 </tr></table>
@@ -102,6 +106,8 @@
       $query .= " OR detailed ~* '$search_for' ) ";
     }
     if ( "$system_code" != "" )     $query .= " AND system_code='$system_code' ";
+    if ( "$type_code" != "" )     $query .= " AND request_type=" . intval($type_code);
+    error_log( "type_code = >>$type_code<<", 0);
 
     if ( "$from_date" != "" )     $query .= " AND request.last_activity>='$from_date' ";
 
@@ -119,7 +125,7 @@
     $query .= " AND status.source_table='request' AND status.source_field='status_code' AND status.lookup_code=request.last_status ";
     $query .= " ORDER BY request_id DESC ";
     $query .= " LIMIT 100 ";
-    $result = awm_pgexec( $wrms_db, $query );
+    $result = awm_pgexec( $wrms_db, $query, "requestlist", false, 7 );
     if ( $result ) {
       echo "<p>" . pg_NumRows($result) . " requests found</p>"; // <p>$query</p>";
       echo "<table border=\"0\" align=left><tr>\n";

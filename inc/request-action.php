@@ -251,8 +251,11 @@
 
     if ( $note_added ) {
       /* non-null note was entered */
+      $insert_note = $new_note;
+      if ( intval("$convert_html") > 0 ) $insert_note = htmlspecialchars($insert_note);
+      $insert_note = tidy($insert_note);
       $query = "INSERT INTO request_note (request_id, note_by, note_by_id, note_on, note_detail) ";
-      $query .= "VALUES( $request_id, '$session->username', $session->user_no, 'now', '" . tidy($new_note) . "')";
+      $query .= "VALUES( $request_id, '$session->username', $session->user_no, 'now', '$insert_note')";
       $rid = awm_pgexec( $wrms_db, $query, "req-action", true );
       if ( ! $rid ) return;
     }

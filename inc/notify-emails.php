@@ -4,7 +4,7 @@ function notify_emails( $dbid, $req_id ) {
 
   if ( "$req_id" == "" ) return "";
 
-  $query = "SELECT DISTINCT email, fullname FROM usr ";
+  $query = "SELECT DISTINCT email, fullname FROM usr, request_interested ";
   $query .= "WHERE (request_interested.user_no = usr.user_no";
   $query .=      " AND request_interested.request_id = $req_id) ";
 

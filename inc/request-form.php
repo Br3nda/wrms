@@ -310,7 +310,7 @@
   /***** Quote Details */
   /* we only show quote details if it is 'quotable' (i.e. requestor, administrator or catalyst owner) */
   if ( $quotable ) {
-    if ( isset($request) ) {
+    if ( $is_request ) {
       $query = "SELECT *, get_lookup_desc('request_quote','quote_type', request_quote.quote_type) AS type_desc ";
       $query .= "FROM request_quote, usr ";
       $query .= "WHERE request_quote.request_id = $request->request_id ";

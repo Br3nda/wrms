@@ -249,7 +249,7 @@ function dates_equal( $date1, $date2 ) {
              || $eta_changed || $status_changed || $note_added || $quote_added || $allocation_added || $attachment_added ;
     $send_some_mail = $changes;
     $changes = $changes || $work_added || $interest_added;
-    error_log( "$sysabbr request-action: $changes---"
+    error_log( "$sysabbr request-action: DBG: $changes---"
              . $brief_changed . "-"
              . $detail_changed . "+"
              . (isset($new_type) && $request->request_type != $new_type ) . "-"
@@ -332,8 +332,6 @@ function dates_equal( $date1, $date2 ) {
     if ( ! $rid ) {
       return;
     }
-    else
-      error_log( "$sysabbr request-action Q: $query", 0);
   }
 
     if ( $quote_added ) {
@@ -362,8 +360,7 @@ function dates_equal( $date1, $date2 ) {
     }
 
     if ( $attachment_added ) {
-      $debuglevel = 5;
-      error_log( "Adding attachment: " . $HTTP_POST_FILES['new_attachment_file']['name'], 0);
+      error_log( "$sysabbr request-action: DBG: Adding attachment: " . $HTTP_POST_FILES['new_attachment_file']['name'], 0);
       $query = "SELECT nextval('request_attac_attachment_id_seq');";
       $rid = awm_pgexec( $wrms_db, $query, "req-action" );
       if ( ! $rid ) {

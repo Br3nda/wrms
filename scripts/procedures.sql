@@ -171,7 +171,7 @@ CREATE FUNCTION last_org_request ( int4 ) RETURNS timestamp AS '
 -- The number of requests active for a particular organisation
 DROP FUNCTION active_org_requests ( int4 );
 CREATE FUNCTION active_org_requests ( int4 ) RETURNS int4 AS '
-  SELECT count(request_id) FROM request, usr
+  SELECT count(request_id)::int4 FROM request, usr
     WHERE usr.org_code = $1
       AND request.requester_id = usr.user_no
       AND request.active;

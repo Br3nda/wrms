@@ -46,7 +46,7 @@
           else {
             $session = pg_Fetch_Object($result, 0);
             $session_id = "$session->session_id " . md5($session->session_start);
-            setcookie( "session_id", "$session_id", "", "$base_url/" );
+            setcookie( "session_id", "$session_id", 0, "$base_url/" );
             $logged_on = true;
             if ( $remember == 1 ) {
               $cookie .= strtr( $usr->username, "abcdefghijklmnopqrstuvwxyz", "nopqrstuvwxyzabcdefghijklm" ) . ";";
@@ -60,9 +60,9 @@
   }
   else if ( "$M" == "LO" ) {
     $logged_on = false;
-    setcookie( "session_id", "", "", "$base_url/" );
+    setcookie( "session_id", "", 0, "$base_url/" );
     if ( intval($forget) > 0 ) {
-      setcookie( "LI", "", "", "$base_url/" );
+      setcookie( "LI", "", 0, "$base_url/" );
     }
   }
   else if ( "$M" == "forgot" ) {

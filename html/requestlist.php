@@ -196,7 +196,8 @@ else {
       $qquery .= "SELECT * FROM saved_queries WHERE user_no = '$session->user_no' AND query_name = '$qry';";
       $result = awm_pgexec( $dbconn, $qquery, "requestlist", false, 7);
       $thisquery = pg_Fetch_Object( $result, 0 );
-      $query = $thisquery->query_sql;
+      $query = $thisquery->query_sql ;
+      error_log ( "Q: $qquery " . pg_NumRows($result), 0);
     }
     else {
       // Recommended way of limiting queries to not include sub-tables for 7.1
@@ -258,7 +259,6 @@ $query";
         }
       }
     }
-
     $query .= " AND status.source_table='request' AND status.source_field='status_code' AND status.lookup_code=request.last_status ";
     $query .= " ORDER BY $rlsort $rlseq ";
     $query .= " LIMIT 100 ";

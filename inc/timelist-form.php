@@ -123,7 +123,7 @@ function nice_time( $in_time ) {
     }
     $query .= " ORDER BY $tlsort $tlseq ";
     $query .= " LIMIT 100 ";
-    $result = awm_pgexec( $wrms_db, $query );
+    $result = awm_pgexec( $wrms_db, $query, 'timelist', FALSE, 7 );
     if ( $result ) {
 
       // Build up the column header cell, with %s gaps for the sort, sequence and sequence image

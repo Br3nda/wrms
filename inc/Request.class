@@ -755,7 +755,8 @@ class Request {
       $html .= '<th class="pcol">Child</th>';
       $html .= '<th class="pcol">Brief</th>';
       $html .= '<th class="pcol">Status</th>';
-      $html .= '<th class="pcol">&nbsp;</th></tr>'."\n";
+      if ( $ef->editmode ) $html .= '<th class="pcol">&nbsp;</th>';
+      $html .= '</tr>'."\n";
       $line_format = '<tr class="row%d"><td class="entry" width="5%%">%s</td>';
       $line_format .= '<td class="entry">%s</td>';
       $line_format .= '<td class="entry"><a href="/wr.php?request_id=%d">%s</a></td>';

@@ -111,12 +111,16 @@
 		echo "<th class=cols>Urgency</th>";
 		echo "<th class=cols>By Date</th>";
 		echo "<th class=cols>Status</th>";
+		echo "<th class=cols>Quotes</th>";
 		echo "<th class=cols>Type</th>";
 		echo "<th class=cols>Ranking</th>";
 	echo "</tr>";
 
  	for ( $i=0; $i < pg_NumRows($result); $i++ ) {
 		$thisrequest = pg_Fetch_Object( $result, $i );
+
+
+		
 
 		printf( "<tr class=row%1d>", $i % 2);
 		echo "<td class=sml><a href=\"request.php?request_id=$thisrequest->request_id\">$thisrequest->request_id</a></td>";
@@ -125,6 +129,32 @@
 		echo "<td class=sml>$thisrequest->urgency</td>";
 		echo "<td class=sml>$thisrequest->by_date</td>";
 		echo "<td class=sml>".str_replace(' ', '&nbsp;',$thisrequest->status)."</td>";
+		echo "<td class=sml>";
+
+		// Display request quote info.
+
+		$quotes_query = "SELECT quote_id, quoted_on::DATE AS quoted_date, quote_type, quote_amount, quote_units, " .
+					"approved_on::DATE AS approved_date, quote_brief, quoted_by, username " .
+				"FROM request_quote " .
+				"LEFT OUTER JOIN usr ON usr.user_no = request_quote.approved_by_id " .
+				"WHERE request_quote.request_id = $thisrequest->request_id";
+
+		$quotes_result = awm_pgexec( $dbconn, $quotes_query, "requestrank", false, 7 );
+
+		for ( $ii=0; $ii < pg_NumRows($quotes_result); $ii++ ) {
+			$quote_result = pg_Fetch_Object( $quotes_result, $ii );
+
+
+			echo "<INPUT TYPE=checkbox NAME=q_$quote_result->quote_id CHECKED " .
+			     "title='Quoted by $quote_result->quoted_by on $quote_result->quoted_date: $quote_result->quote_amount" .
+			     "&nbsp;$quote_result->quote_units'>";
+			if ($quote_result->approved_date <> "") 
+			        echo "&nbsp;<INPUT TYPE=checkbox NAME=a_$quote_result->quote_id CHECKED ".
+				     "title='Approved by $quote_result->username on $quote_result->approved_date'>";
+			echo "<BR>";
+		}
+
+		echo "</td>";
 		echo "<td class=sml>".str_replace(' ', '&nbsp;',$thisrequest->type)."</td>";
 		echo "<td class=sml>$thisrequest->ranking</td>";
 		echo "</tr>\n";

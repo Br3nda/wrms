@@ -182,7 +182,7 @@ if (isset($user_no) && $user_no > 0 ) echo "      ";
         $code = $UserCat[$sys->system_code];
       else
         $code = "";
-      if ( ! ($roles['wrms']['Admin'] || $roles['wrms']['Support'] ) ) {
+      if ( $roles['wrms']['Admin'] || $roles['wrms']['Support'] ) {
         echo "<select name=\"NewUserCat[$sys->system_code]\">\n";
 
         echo "<option value=\"\"";

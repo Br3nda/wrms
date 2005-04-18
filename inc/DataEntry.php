@@ -301,6 +301,7 @@ class EntryForm
     }
     elseif ( !$this->editmode ) {
       // Displaying editable values when we are not editing
+      $session->Log( "DBG: fmt='%s', fname='%s', fvalue='%s'", $format, $fname, $this->record->{$fname} );
       return sprintf($format, $this->record->{$fname} );
     }
 

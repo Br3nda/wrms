@@ -1261,7 +1261,18 @@ class Request {
   function _CheckNewRequester() {
     global $client_messages, $session;
 
-    $new_system_code = $_POST['system_code'];
+    $new_system_code = str_replace("'","",str_replace("\\","",trim($_POST['system_code'])));
+    $failed = false;
+    if ( intval($_POST['requester_id']) == 0 ) {
+      $client_messages[] = "You must select someone as the person making this request.";
+      $failed = true;
+    }
+    if ( $new_system_code == '' ) {
+      $client_messages[] = "You must select a system which this request applies to.";
+      $failed = true;
+    }
+    if ( $failed ) return false;
+    $_POST['system_code'] = $new_system_code;  // Assign the cleaned value back into the _POST array
 
     // Some simple decisions
     if ( $this->chtype == 'update' && $_POST['requester_id'] == $this->requester_id ) return true;

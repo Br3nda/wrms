@@ -826,7 +826,9 @@ $query";
         printf( " &nbsp;|&nbsp; <a href=\"$this_page\" target=_new>Ultimate</a>\n", "stripped", "ultimate");
       }
       if ( is_member_of('Admin', 'Support') ) {
-        printf( " &nbsp;|&nbsp; <a href=\"$this_page\" target=_new>Brief (editable)</a>\n", "stripped", "edit");  //uses the format = edit setting in this link for the Brief (editable) report
+        // The editable one must use wrsearch.php to work correctly now.
+        $that_page = str_replace( '/requestlist.php?', '/wrsearch.php?', $this_page );
+        printf( " &nbsp;|&nbsp; <a href=\"$that_page\" target=_new>Brief (editable)</a>\n", "stripped", "edit");  //uses the format = edit setting in this link for the Brief (editable) report
       }
       if ( "$saved_query" != "" ) {
         echo "</td><td>|&nbsp; &nbsp; or <a href=\"wrsearch.php?saved_query=".urlencode($saved_query)."&action=delete\" class=\"sbutton\">Delete</a> it\n";

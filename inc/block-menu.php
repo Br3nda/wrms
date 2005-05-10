@@ -35,7 +35,7 @@ function menu_break_line() {
   if ( $qry->Exec("block-menu") && $qry->rows > 0) {
     menu_break_line();
     while ( $thisquery = $qry->Fetch() ) {
-      echo "&nbsp;<a href=\"$base_url/requestlist.php?style=plain&saved_query=" . urlencode($thisquery->query_name) . "\" class=\"block\" title=\"$tooltip\" alt=\"$tooltip\"><b>&raquo;</b>$thisquery->query_name</a>";
+      echo "&nbsp;<a href=\"$base_url/wrsearch.php?style=plain&saved_query=" . urlencode($thisquery->query_name) . "\" class=\"block\" title=\"$tooltip\" alt=\"$tooltip\"><b>&raquo;</b>$thisquery->query_name</a>";
       if ( $thisquery->query_params != "" ) {
         echo "&nbsp;<a href=\"$base_url/wrsearch.php?saved_query=" . urlencode($thisquery->query_name) . "\" class=\"block\" title=\"$tooltip2\"><b>&laquo;e&raquo;</b></a>";
       }

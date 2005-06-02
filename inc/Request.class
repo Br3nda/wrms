@@ -1490,7 +1490,7 @@ class Request {
 A {color: navy; text-decoration:underline;  }
 body, input {font: 13px  tahoma, sans-serif; color: #000000; margin: 0.3em; }
 p, td { margin: 0 2em 0.5em; }
-td.etd {font: bold 13px tahoma, sans-serif; color: black; background-color: #f0ece8; }
+td.etd {font: bold 13px tahoma, sans-serif; color: black; background-color: #f0ece8; white-space:nowrap; }
 th.eth {font: bold 15px tahoma, sans-serif; color: white; background-color: #440000; margin: 0; padding: 1px 4px; }
 .row0 { background: #ffffff; color: #333333; }
 .row1 { background: #f0ece8; color: #333333; }
@@ -1502,35 +1502,35 @@ hr.footerline {line-height: 1em; margin: 1em; padding: 2px; height: 2px; width: 
 .footer { font: normal 11px tahoma, sans-serif; }
 --></style>
 </head>\n<body>
-<table width=100%>
-<tr><th width='10%' align='left' class='eth'>Request No</th><td class='etd'>$this->request_id</td></tr>
-<tr><th width='10%' align='left' class='eth'>Overview</th><td class='etd'>$this->brief</td></tr>
-<tr><th width='10%' align='left' class='eth'>Type</th><td class='etd'>$this->request_type_desc</td></tr>
-<tr><th width='10%' align='left' class='eth'>Status</th><td class='etd'>$this->status_desc</td></tr>
-<tr><th width='10%' align='left' class='eth'>Importance</th><td class='etd'>$this->importance_desc</td></tr>
-<tr><th width='10%' align='left' class='eth'>Urgency</th><td class='etd'>$this->urgency_desc</td></tr>
+<table>
+<tr><th align='left' class='eth'>Request No</th><td class='etd'>$this->request_id</td></tr>
+<tr><th align='left' class='eth'>Overview</th><td class='etd'>$this->brief</td></tr>
+<tr><th align='left' class='eth'>Type</th><td class='etd'>$this->request_type_desc</td></tr>
+<tr><th align='left' class='eth'>Status</th><td class='etd'>$this->status_desc</td></tr>
+<tr><th align='left' class='eth'>Importance</th><td class='etd'>$this->importance_desc</td></tr>
+<tr><th align='left' class='eth'>Urgency</th><td class='etd'>$this->urgency_desc</td></tr>
 EOX
 ;
 
     if ( $this->chtype == "update" ) {
       $tbody .= "Request On:  $this->request_on\n";
-      $hbody .= "<tr><th width='10%' align='left' class='eth'>Request On</th><td class='etd'>$this->request_on</td></tr>\n";
+      $hbody .= "<tr><th align='left' class='eth'>Request On</th><td class='etd'>$this->request_on</td></tr>\n";
     }
 
     $tbody .= ucfirst($this->chtype) . "d by:  $session->fullname\n";
-    $hbody .= "<tr><th width='10%' align='left' class='eth'>".ucfirst($this->chtype)."d by</th><td class='etd'>$session->fullname</td></tr>\n";
+    $hbody .= "<tr><th align='left' class='eth'>".ucfirst($this->chtype)."d by</th><td class='etd'>$session->fullname</td></tr>\n";
 
     if ( $requsr->user_no <> $session->user_no && $this->chtype != "update" ) {
       $tbody .= ucfirst($this->chtype) . "d for: $this->fullname\n";
-      $hbody .= "<tr><th width='10%' align='left' class='eth'>".ucfirst($this->chtype)."d for</th><td class='etd'>$this->fullname</td></tr>\n";
+      $hbody .= "<tr><th align='left' class='eth'>".ucfirst($this->chtype)."d for</th><td class='etd'>$this->fullname</td></tr>\n";
     }
 
     $tbody .= ucfirst($this->chtype) . "d on:  " . date( "D d M H:i:s Y" ) . "\n";
-    $hbody .= "<tr><th width='10%' align='left' class='eth'>".ucfirst($this->chtype)."d on</th><td class='etd'>". date( "D d M H:i:s Y" ) ."</td></tr>\n";
+    $hbody .= "<tr><th align='left' class='eth'>".ucfirst($this->chtype)."d on</th><td class='etd'>". date( "D d M H:i:s Y" ) ."</td></tr>\n";
 
     if ( isset($debug_email) ) {
       $tbody .= "Debug To:    $debug_to\n";
-      $hbody .= "<tr><th width='10%' align='left' class='eth'>Debug To</th><td class='etd'>$debug_to</td></tr>\n";
+      $hbody .= "<tr><th align='left' class='eth'>Debug To</th><td class='etd'>$debug_to</td></tr>\n";
     }
     $tbody .= "\n\n";
     $hbody .= "</table>\n";

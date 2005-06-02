@@ -1,0 +1,173 @@
+/* Basic CSS stylesheet for WRMS - those bits that use an
+ * external stylesheet anyway.
+ */
+
+table.data {
+/*  border: 0;
+  padding: 0;
+  margin: 0;
+  background: green; */
+}
+
+tr.data {
+  background: #ffe;
+}
+
+th.ph {
+  margin: 0;
+  border: none;
+  padding: 0.2em 0.3em 0;
+  color: white;
+  background: #442;
+  background: black;
+  border-top: thick solid #dda;
+  text-align: right;
+  font-family: sans-serif;
+  font-size: 130%;
+  font-variant: small-caps;
+}
+
+th.prompt {
+  margin: 0;
+  padding: 0;
+  text-align: right;
+  vertical-align: top;
+  padding: 0.1em 0.5em 0 0;
+  color: white;
+  background: black;
+  width: 8em;
+  font-family: sans-serif;
+  border: none;
+  line-height: 1.5em;
+}
+
+th.pcol {
+  margin: 0;
+  padding: 0;
+  text-align: left;
+  vertical-align: top;
+  padding: 0.1em 0.5em 0;
+  color: white;
+  background: black;
+  width: 8em;
+  font-family: sans-serif;
+  border: none;
+  line-height: 1.2em;
+}
+
+td.entry {
+  padding: 0.1em 0.2em;
+}
+
+span.prompt {
+  margin: 0;
+  padding: 0;
+  text-align: right;
+  vertical-align: top;
+  padding: 0.1em 0 0 0.2em;
+  color: #632;
+  font-weight: 700;
+  width: 8em;
+  font-family: sans-serif;
+  border: none;
+  line-height: 2em;
+}
+
+span.entry {
+  padding: 0.1em 1em 0 0.2em;
+}
+
+input.ftext {
+  font-family: tahoma,sans-serif;
+}
+select.flookup {
+  width: 25em;
+  font-family: tahoma,sans-serif;
+}
+textarea.ftextarea {
+  font-family: tahoma,sans-serif;
+  font-weight: lighter;
+  font-size: 100%;
+}
+
+.fsubmit {
+  text-decoration: none;
+  font: small-caps bold 11px verdana, sans-serif;
+  background: #660000;
+  color: #f0fff0;
+  padding: 0px 1px 1px 1px;
+  margin: 0px 1px;
+  border: thin outset;
+}
+.fsubmit:hover {
+  color: #f0ff4c;
+  border: thin inset;
+}
+
+
+/* For the display of important messages to the user, such as
+   validation failures and so forth. */
+div.messages {
+  /* color: #fff; background: #b10;  */
+  color: #900; background: #dad0b0;
+}
+ul.messages {
+  padding: 2px 12px;
+}
+li.messages {
+  display: block;
+  font-weight: 700;
+  font-size: 105%;
+  text-indent: -8em;
+  margin-left: 8em;
+  padding: 6px 0;
+}
+
+
+/* For the display of menus across the top on some pages */
+/* The div, and the base for the rest */
+.tmnu, .tmnu:hover, .tmnu:visited
+{
+  color: #600;
+  background: #fff;
+  padding: 0 0 0.2em;
+  margin: 0 0 0 0;
+}
+/* Left/Right sides of the context menu */
+.tmnu_left, .tmnu_active_left {
+  background: #eee url(/images/cxmenuleft.png) no-repeat top right;
+  padding: 0 0 0.2em 8px;
+  margin: 0 0 0 1px;
+}
+.tmnu_right, .tmnu_active_right {
+  background: #eee url(/images/cxmenuright.png) no-repeat top left;
+  padding: 0 4px 0.2em;
+  margin: 0 1px 0 0;
+}
+.tmnu_active_left {
+  background: #fff url(/images/cxmenuleft-sel.png) no-repeat top right;
+}
+.tmnu_active_right {
+  background: #fff url(/images/cxmenuright-sel.png) no-repeat top left;
+}
+
+a.tmnu, a.tmnu:hover, a.tmnu:visited,
+a.tmnu_active, a.tmnu_active:hover, a.tmnu_active:visited
+{
+  font: bold 13px verdana, sans-serif;
+  background-image: url(/images/cxmenumid.png);
+  padding: 0 2px 0.2em;
+}
+a.tmnu_active, a.tmnu_active:hover, a.tmnu_active:visited
+{
+  color: #fff;
+  background: #600;
+  background-image: url(/images/cxmenumid-sel.png);
+}
+
+/* And when we hover over the options */
+a.tmnu:hover
+{
+  background: #d0c8af url(/images/cxmenumid-hover.png) repeat-x center center;
+}
+

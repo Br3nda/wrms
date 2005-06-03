@@ -351,11 +351,11 @@ class EntryForm
   //////////////////////////////////////////////////////
   // A utility function for a data entry line within a table
   //////////////////////////////////////////////////////
-  function DataEntryLine( $prompt, $format, $ftype='', $fname='', $type_extra='' )
+  function DataEntryLine( $prompt, $currval, $ftype='', $fname='', $type_extra='' )
   {
     $type_extra = $this->_ParseTypeExtra( $ftype, $type_extra );
     return sprintf( $this->table_line_format, $prompt,
-                $this->DataEntryField( $format, $ftype, $fname, $type_extra ),
+                $this->DataEntryField( str_replace('%','%%',$currval), $ftype, $fname, $type_extra ),
                 $type_extra['_help'] );
   }
 

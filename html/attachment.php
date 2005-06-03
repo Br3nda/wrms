@@ -56,8 +56,10 @@ if ( !$session->logged_in ) {
   header("Content-Disposition: filename=$attachment->att_filename" );
   $bytes = filesize( "$attachment_dir/$id" );
   header("Content-length: $bytes");
-  $written = readfile(  "$attachment_dir/$id" );
-  if ( $written != $bytes ) error_log( "$sysabbr attachment: DBG: Didn't write complete file - $bytes vs. $written sent.", 0);
+
+  // dump the file
+  $fp = fopen( "$attachment_dir/$id", 'rb');
+  fpassthru($fp);
   error_log( "$sysabbr attachment: DBG: Served '$attachment->att_filename' as '$attachment->lookup_misc' ($attachment->lookup_code), $bytes bytes");
 
   if ( $debuglevel > 1 ) {

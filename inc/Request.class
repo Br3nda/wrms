@@ -440,7 +440,11 @@ class Request {
     $html = "";
     $html .= $ef->BreakLine("Request Details");
     if ( !$this->new_record ) {
-      $html .= $ef->DataEntryLine( "W/R #", "$this->request_id &nbsp; &nbsp; <b>Requested:</b> " . nice_date($this->request_on));
+      $html .= $ef->DataEntryLine( "W/R #",
+                     "$this->request_id"
+                    ." &nbsp; &nbsp; <b>Requested:</b> " . nice_date($this->request_on)
+                    ." &nbsp; &nbsp; <b>Status:</b> " . $this->status_desc
+               );
     }
 
     $html .= $ef->DataEntryLine( "Brief", "%s", "text", "brief",
@@ -485,7 +489,6 @@ class Request {
     // Detailed description
     $html .= $ef->DataEntryLine( "Details", html_format($this->detailed), "textarea", "detailed",
               array("title" => "Full details of the request", "rows" => $bigboxrows, "cols" => $bigboxcols  ) );
-
     return $html;
   }
 

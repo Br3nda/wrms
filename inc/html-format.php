@@ -15,10 +15,10 @@ global $colors;
   $instr = preg_replace("#\[(https?://[^]]+)\]#", " <a href=\"\$1\" target=_new>\$1</a> ", $instr);
 
   // A URL like " http://my.url " also gets converted to a link
-  $instr = preg_replace("#(https?://[^ ]+)#", " <a href=\"\$1\" target=_new>\$1</a> ", $instr);
+  $instr = preg_replace("#(https?://[^[:space:]]+)#", " <a href=\"\$1\" target=_new>\$1</a> ", $instr);
 
   // A URL like " mailto:user@domain.name " also gets converted to a link
-  $instr = preg_replace("/mailto:([^ ]+@[^ ]+)/", " <a href=\"mailto:\$1\">\$1</a> ", $instr);
+  $instr = preg_replace("/mailto:([^[:space:]]+@[^[:space:]]+)/", " <a href=\"mailto:\$1\">\$1</a> ", $instr);
 
   // A phrase like " W/R #99999 " (and variants) gets converted to a link
   $instr = preg_replace("/(W\/?RM?S? ?#?([[:digit:]]{4,6}))([^[:digit:]]|$)/i",

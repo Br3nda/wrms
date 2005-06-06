@@ -355,7 +355,7 @@ class EntryForm
   {
     $type_extra = $this->_ParseTypeExtra( $ftype, $type_extra );
     return sprintf( $this->table_line_format, $prompt,
-                $this->DataEntryField( str_replace('%','%%',$currval), $ftype, $fname, $type_extra ),
+                $this->DataEntryField( $currval, $ftype, $fname, $type_extra ),
                 $type_extra['_help'] );
   }
 

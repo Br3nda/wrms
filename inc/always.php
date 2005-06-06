@@ -150,15 +150,15 @@ function tidy( $instr ) {
 //-----------------------------------------
 // Function used to convert the [] notation to proper html links in help write ups
 //-----------------------------------------
-function link_writeups( $instr ) {
+function link_writeups( $instr, $prefix = "" ) {
   global $logged_on, $current_node;
   $last_node = "";
   if ( isset($current_node) ) $last_node = "&last=$current_node";
   if ( !$logged_on ) return $instr;
-  $instr = ereg_replace("\[mailto:([^]|]+)\]", "<a class=wu href=\"mailto:\\1\">\\1</a>", $instr);
-  $instr = ereg_replace("\[(https?:[^]|]+)\]", "<a class=wu href=\"\\1\" target=\"_new\">\\1</a>", $instr);
-  $instr = ereg_replace("\[([^]|]+)\|([^]|]+)\]", "<a class=wu href=\"/wu.php?wu=\\1$last_node\">\\2</a>", $instr);
-  $instr = ereg_replace("\[([^]|]+)\]", "<a class=wu href=\"/wu.php?wu=\\1$last_node\">\\1</a>", $instr);
+//  $instr = ereg_replace("\[mailto:([^]|]+)\]", "<a class=wu href=\"mailto:\\1\">\\1</a>", $instr);
+//  $instr = ereg_replace("\[(https?:[^]|]+)\]", "<a class=wu href=\"\\1\" target=\"_new\">\\1</a>", $instr);
+  $instr = preg_replace("#\[$prefix([^]|]+)\|([^]|]+)\]#i", "<a class=\"wu\" href=\"/wu.php?wu=\$1$last_node\">\$2</a>", $instr);
+  $instr = preg_replace("#\[$prefix([^]|]+)\]#i", "<a class=\"wu\" href=\"/wu.php?wu=\$1$last_node\">\$1</a>", $instr);
   return $instr;
 }
 

@@ -167,13 +167,13 @@
 
       // work on linked WRs
       $lw_query  = "SELECT rr.to_request_id, rr.link_type, sum(rt.work_quantity) AS quantity, rt.work_units AS units, lc.lookup_desc, rt.charged_details AS \"inv no\"";
-                  $lw_query .= " FROM request_request rr ";
-      if ("$invoiced" <> "invoiced") $lw_query .= " LEFT OUTER";
-            $lw_query .= " JOIN request_timesheet rt ON rt.request_id = rr.to_request_id ";
+      $lw_query .= " FROM request_request rr ";
+      if ("$invoiced" == "both") $lw_query .= " LEFT OUTER";
+      $lw_query .= " JOIN request_timesheet rt ON rt.request_id = rr.to_request_id ";
       if ("$invoiced" == "invoiced") $lw_query .= " AND rt.charged_details IS NOT null AND rt.charged_details <> ''";
       else if ("$invoiced" == "uninvoiced") $lw_query .= " AND (rt.charged_details IS null OR rt.charged_details = '')";
-            $lw_query .= " LEFT OUTER JOIN request r ON r.request_id = rr.to_request_id ";
-                  $lw_query .= " LEFT OUTER JOIN lookup_code lc ON lc.source_table = 'request' AND lc.source_field = 'status_code' AND lc.lookup_code  = r.last_status";
+      $lw_query .= " LEFT OUTER JOIN request r ON r.request_id = rr.to_request_id ";
+      $lw_query .= " LEFT OUTER JOIN lookup_code lc ON lc.source_table = 'request' AND lc.source_field = 'status_code' AND lc.lookup_code  = r.last_status";
       $lw_query .= " WHERE rr.request_id = " . $row["id"] ;
       $lw_query .= " GROUP BY rr.to_request_id, rr.link_type, rt.work_units, lc.lookup_desc, rt.charged_details";
       $lw_result = awm_pgexec( $dbconn, $lw_query, "billing.linkedwork", false, 7 );
@@ -185,18 +185,21 @@
 
     $max_res = max($numrows_w_result, $numrows_lw_result);
 
-                // echo " id: " . $row["id"] ." " . $max_res . " " . $row["inv no"] . " " . $numrows_w_result . " " . $numrows_lw_result .  " " ;
+    // echo " id: " . $row["id"] ." " . $max_res . " " . $row["inv no"] . " " . $numrows_w_result . " " . $numrows_lw_result .  " " ;
 
-                // If looking for invoiced only, and there are no invoice numbers for work done, or any quote, then skip it.
-                if ($max_res == 0 && "$invoiced" == "invoiced" && $row["inv no"] == "" ) continue;
+    // If looking for invoiced only, and there are no invoice numbers for work done, or any quote, then skip it.
+    if ($max_res == 0 && "$invoiced" == "invoiced" && $row["inv no"] == "" ) continue;
 
-                // looking for un-invoiced stuff.
-                if ("$invoiced" == "uninvoiced") {
-        // If there is a 'Q' type quote with an invoice no, skip it.
-        if ($row["quote type"] == "Q" && $row["inv no"] <> "") continue;
+    // looking for un-invoiced stuff.
+    if ("$invoiced" == "uninvoiced") {
+      // If there is a 'Q' type quote with an invoice no, and no un-invoiced work then skip it.
+      if ($row["quote type"] == "Q" && $row["inv no"] <> "" && $numrows_w_result == 0) continue;
 
-        // If there are invoice numbers for all work done, and only invoiced quotes, or no quote, then skip it.
-        if ($max_res == 0 && ($row["quote type"] == "" || $row["inv no"] <> "") ) continue;
+      // If there is no un-invoiced work on this WR and this is a 'E' type quote with no un-invoiced work on linked request then skip it.
+      if ($numrows_w_result == 0 && $row["quote type"] == "E" && $row["inv no"] == "" && $numrows_lw_result == 0) continue;
+
+      // If there are invoice numbers for all work done, and only invoiced quotes, or no quote, then skip it.
+      if ($max_res == 0 && ($row["quote type"] == "" || $row["inv no"] <> "") ) continue;
     }
 
                 $printed_rows++;

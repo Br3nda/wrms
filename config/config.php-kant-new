@@ -164,12 +164,6 @@ function local_menu_bar(&$tmnu) {
 function local_page_footer() {
   global $session;
   echo '<div id="page_footer">';
-/*
-  if ( $session->logged_in )
-    echo 'Logged in as '.$session->fullname;
-  else
-    echo 'Not logged in';
-*/
   echo '</div>';
 }
 
@@ -178,16 +172,17 @@ function local_page_footer() {
 //-----------------------------------------
 function local_index_not_logged_in() {
 global $admin_email, $system_name;
-?>
+
+  echo <<<INDEXNOTLOGGEDIN
 <blockquote>
 <p><strong>
-Welcome to <?php echo $system_name; ?>. For more information
+Welcome to $system_name. For more information
 on Catalyst, please visit  <a href="http://www.catalyst.net.nz">www.catalyst.net.nz</a>.
 </strong></p>
 </blockquote>
 
-<p>Please e-mail <a href="mailto:<?php echo $admin_email; ?>"><?php echo $admin_email; ?></a> if you require further information.</p>
-<?php
+<p>Please e-mail <a href="mailto:$admin_email">$admin_email</a> if you require further information.</p>
+INDEXNOTLOGGEDIN;
 }
 
 ?>

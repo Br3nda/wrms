@@ -1,4 +1,9 @@
 <?php
+function send_footers() {
+  global $style, $left_panel, $right_panel, $colors, $images, $settings;
+  global $session, $dbconn, $total_query_time, $begin_processing, $debuglevel;
+  global $REQUEST_URI, $HTTP_USER_AGENT, $HTTP_REFERER, $PHP_SELF;
+
   if ( isset($style) && "$style" != "stripped" ) {
     echo "</td></tr></table>\n";
     if ( $left_panel ) {
@@ -53,11 +58,16 @@ if ( is_object ( $settings ) && $settings->is_modified() ) {
     $total_query_time = sprintf( "%3.06lf", $total_query_time );
     error_log( "$sysabbr total_query_ TQ: $total_query_time URI: $REQUEST_URI", 0);
     $total_time = sprintf( "%3.06lf", duration( $begin_processing, microtime() ));
-    error_log( "$sysabbr process_time TT: $total_time      $HTTP_USER_AGENT $HTTP_REFERER  ", 0);
+    error_log( "$sysabbr process_time TT: $total_time      Agent: $HTTP_USER_AGENT Referrer: $HTTP_REFERER  ", 0);
+    error_log( "=============================================== Endof $PHP_SELF" );
   }
 
-?>
+  echo <<<CLOSEHTML
 <div id="overDiv" style="position:absolute; visibility:hidden; z-index:1000;"></div>
 <script language="JavaScript" src="js/overlib.js"></script>
 </body>
 </html>
+CLOSEHTML;
+}
+send_footers();
+?>

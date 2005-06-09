@@ -16,7 +16,7 @@
   }
   $show = 0;
 
-  if ( $M != "LC" && isset($_POST['submit']) ) {
+  if ( !$session->just_logged_in && isset($_POST['submit']) ) {
     if ( $session->AllowedTo("Admin") || $session->AllowedTo("Support")
             || ( $session->AllowedTo("OrgMgr") && ($user->user_no == 0 || $session->org_code == $user->org_code ))
               || ($user->user_no > 0 && $user->user_no == $session->user_no) ) {

@@ -1,4 +1,8 @@
 <?php
+function send_headers() {
+  global $colors, $fontsizes, $fonts, $stylesheet, $error_message, $warn_message, $client_messages;
+  global $title, $style, $left_panel, $right_panel, $images, $tmnu, $settings;
+
   $now = time();
   Header("Last-Modified: " . gmdate( "D, d M Y H:i:s T", $now) );
   $then = $now + 15;
@@ -25,9 +29,6 @@
   for ( $i=0; $i < 6; $i++) {
     $fontsizes[$i] = sprintf( "%dpx", $BaseFontsize + (2 * $i));
   }
-
-  global $colors, $fontsizes, $fonts, $stylesheet, $error_message, $warn_message, $client_messages;
-  global $title, $style, $left_panel, $right_panel, $images, $tmnu;
 
   // Style stuff
   echo "<style type=\"text/css\"><!--\n";
@@ -174,4 +175,6 @@ th.cols, th.rows, a.cols  {font: small-caps bold $fontsizes[1] $fonts[0], sans-s
       echo $tmnu->Render();
     }
   }
+}
+send_headers();
 ?>

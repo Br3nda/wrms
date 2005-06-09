@@ -1,5 +1,6 @@
 <?php
-
+function send_login_block() {
+  global $go_width, $go_height, $REQUEST_URI;
   echo "<br />\n";
   block_open();
   block_title("WRMS Login");
@@ -27,5 +28,6 @@
 
   echo "<img src=\"/images/clear.gif\" width=\"155\" height=\"1\" hspace=\"0\" vspace=\"2\" border=\"0\">\n";
   block_close();
-
+}
+send_login_block();
 ?>

@@ -345,8 +345,8 @@ class Session
     if ( $this->logged_in && $groups == "" ) return;
     if ( ! $this->logged_in ) {
       $client_messages[] = "You must log in to use this system.";
+      include("headers.php");
       if ( function_exists("local_index_not_logged_in") ) {
-        include("headers.php");
         local_index_not_logged_in();
       }
       else {

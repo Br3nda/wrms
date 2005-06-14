@@ -1,7 +1,7 @@
 <?php
 function send_headers() {
   global $colors, $fontsizes, $fonts, $stylesheet, $error_message, $warn_message, $client_messages;
-  global $title, $style, $left_panel, $right_panel, $images, $tmnu, $settings;
+  global $title, $style, $left_panel, $right_panel, $images, $tmnu, $settings, $session;
 
   $now = time();
   Header("Last-Modified: " . gmdate( "D, d M Y H:i:s T", $now) );

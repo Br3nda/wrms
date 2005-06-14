@@ -486,6 +486,14 @@ class Request {
     $html .= $ef->DataEntryLine( "Importance", $this->importance_desc, "lookup", "importance",
               array("_type" => "request|importance", "title" => "The relative long-term importance of the request, separate from the urgency") );
 
+    // Requested By Date
+    $html .= $ef->DataEntryLine( "Requested By", $this->requested_by_date, "date", "requested_by_date",
+              array("title" => "The date that you would like this request completed by") );
+
+    // Agreed Due Date
+    $html .= $ef->DataEntryLine( "Agreed Due", $this->agreed_due_date, "date", "agreed_due_date",
+              array("title" => "The date that has been agreed that the request will be completed by / on") );
+
     // Detailed description
     $html .= $ef->DataEntryLine( "Details", str_replace('%','%%', html_format($this->detailed)), "textarea", "detailed",
               array("title" => "Full details of the request", "rows" => $bigboxrows, "cols" => $bigboxcols  ) );
@@ -873,9 +881,9 @@ class Request {
     $sql .= "LEFT JOIN usr cb ON (request_timesheet.charged_by_id = cb.user_no ) ";
     $sql .= "LEFT JOIN organisation supplier ON (usr.org_code = supplier.org_code ) ";
     $sql .= "WHERE request_timesheet.request_id = $this->request_id ";
-    if ( !isset($allwork) || $allwork == 0 ) {
+//    if ( !isset($allwork) || $allwork == 0 ) {
       $sql .= "AND request_timesheet.charged_by_id IS NULL ";
-    }
+//    }
     // To get the right records, we ORDER BY DESC and then FetchBackwards later
     $sql .= "ORDER BY request_id DESC, request_timesheet.work_on DESC, usr.fullname DESC ";
     if ( !isset($allwork) || $allwork == 0 ) {

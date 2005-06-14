@@ -115,6 +115,12 @@ EOHTML;
         echo "<td class=sml align=center>" . ( $row->active == 't' ? "Active" : "Inactive" ) . "</td>\n";
       }
       break;
+    case "urgency":
+      echo "<td class=sml align=left>" . $row->request_urgency_desc . "</td>\n";
+      break;
+    case "importance":
+      echo "<td class=sml align=left>" . $row->request_importance_desc . "</td>\n";
+      break;
   }
 }
 
@@ -190,6 +196,7 @@ function column_header( $ftext, $fname ) {
   if ( isset($from_date) ) $header_cell .= "&from_date=$from_date";
   if ( isset($to_date) ) $header_cell .= "&to_date=$to_date";
   if ( isset($type_code) ) $header_cell .= "&type_code=$type_code";
+  if ( isset($columns) ) $header_cell .= "&columns=" . implode(",",$columns);
   if ( isset($incstat) && is_array( $incstat ) ) {
     reset($incstat);
     while( list($k,$v) = each( $incstat ) ) {

@@ -52,6 +52,8 @@
           "request_tags" => "Tags",
           "status_desc" => "Status",
           "request.last_activity" => "Last Chng",
+          "urgency" => "Urgency",
+          "importance" => "Importance",
           "active" => "Active",
    );
 

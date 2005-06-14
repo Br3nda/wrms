@@ -14,6 +14,8 @@
     $qry->Exec("WRSearch::Build");
     $thisquery = $qry->Fetch();
     $search_query = $thisquery->query_sql ;
+    $columns = unserialize($thisquery->query_params);
+    $columns = $columns["columns"];
 
     // If the maxresults they saved was non-default, use that, otherwise we
     // increase the default anyway, because saved queries are more carefully
@@ -32,6 +34,8 @@
     $flipped_columns = array_flip($columns);
 
     $search_query .= "SELECT request.request_id, brief, usr.fullname, usr.email, request_on, status.lookup_desc AS status_desc, last_activity, detailed ";
+    $search_query .= ", request_urgency.lookup_desc AS request_urgency_desc, request.urgency AS urgency";
+    $search_query .= ", request_importance.lookup_desc AS request_importance_desc, request.importance AS importance";
     $search_query .= ", request_type.lookup_desc AS request_type_desc, lower(usr.fullname) AS lfull, lower(brief) AS lbrief ";
     $search_query .= ", to_char( request.last_activity, 'FMdd Mon yyyy') AS last_change ";
     $search_query .= ", to_char( request.request_on, 'FMdd Mon yyyy') AS date_requested";
@@ -52,10 +56,14 @@
     $search_query .= ", usr";
     $search_query .= ", lookup_code AS status ";
     $search_query .= ", lookup_code AS request_type";
+    $search_query .= ", lookup_code AS request_urgency";
+    $search_query .= ", lookup_code AS request_importance";
     $search_query .= ", usr AS creator";
 
     $search_query .= " WHERE request.requester_id=usr.user_no AND request.entered_by=creator.user_no ";
     $search_query .= " AND request_type.source_table='request' AND request_type.source_field='request_type' AND request.request_type = request_type.lookup_code";
+    $search_query .= " AND request_urgency.source_table='request' AND request_urgency.source_field='urgency' AND request.urgency = request_urgency.lookup_code";
+    $search_query .= " AND request_importance.source_table='request' AND request_importance.source_field='importance' AND request.importance = request_importance.lookup_code";
     if ( "$inactive" == "" )        $search_query .= " AND request.active ";
     if ( ! is_member_of('Admin', 'Support' ) ) {
       $search_query .= " AND usr.org_code = '$session->org_code' ";

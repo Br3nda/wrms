@@ -14,8 +14,10 @@
     $qry->Exec("WRSearch::Build");
     $thisquery = $qry->Fetch();
     $search_query = $thisquery->query_sql ;
-    $columns = unserialize($thisquery->query_params);
-    $columns = $columns["columns"];
+
+    $saved_columns = unserialize($thisquery->query_params);
+    $saved_columns = $columns["columns"];
+    if ( isset($saved_columns) && is_array($saved_columns) ) $columns = $saved_columns;
 
     // If the maxresults they saved was non-default, use that, otherwise we
     // increase the default anyway, because saved queries are more carefully

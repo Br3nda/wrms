@@ -882,7 +882,7 @@ class Request {
     $sql .= "LEFT JOIN organisation supplier ON (usr.org_code = supplier.org_code ) ";
     $sql .= "WHERE request_timesheet.request_id = $this->request_id ";
 //    if ( !isset($allwork) || $allwork == 0 ) {
-      $sql .= "AND request_timesheet.charged_by_id IS NULL ";
+//      $sql .= "AND request_timesheet.charged_by_id IS NULL ";
 //    }
     // To get the right records, we ORDER BY DESC and then FetchBackwards later
     $sql .= "ORDER BY request_id DESC, request_timesheet.work_on DESC, usr.fullname DESC ";

@@ -1,7 +1,7 @@
 <?php
 function send_footers() {
   global $style, $left_panel, $right_panel, $colors, $images, $settings;
-  global $session, $dbconn, $total_query_time, $begin_processing, $debuglevel;
+  global $session, $dbconn, $total_query_time, $begin_processing, $debuglevel, $sysabbr;
   global $REQUEST_URI, $HTTP_USER_AGENT, $HTTP_REFERER, $PHP_SELF;
 
   if ( isset($style) && "$style" != "stripped" ) {

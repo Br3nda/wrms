@@ -2102,6 +2102,10 @@ EOX
     if ( ! isset($_POST['preserve_html']) || $_POST['preserve_html'] == '' ) {
       $note_detail = htmlspecialchars($note_detail);
     }
+    else {
+      // Make comments visible in any case
+      $note_detail = str_replace( '<!--', '&lt;!--', $note_detail );
+    }
 
     $sql = "INSERT INTO request_note ( request_id, note_on, note_by_id, note_detail ) ";
     $sql .= "VALUES( ?, current_timestamp, ?, ? );";

@@ -1,4 +1,18 @@
 <?php
+function html_format_url($matches)
+{
+  // as usual: $matches[0] is the complete match
+  // $matches[1] the match for the first subpattern
+  // enclosed in '(...)' and so on
+  $real_url = $matches[1];
+  $display_url = $real_url;
+  if ( strlen($display_url) > 80 ) {
+    $display_url = substr( $display_url, 0, 45 ) . " ... " . substr( $display_url, strlen($display_url) - 30 );
+  }
+  return " <a href=\"$real_url\" title=\"$real_url\" target=\"_new\">$display_url</a> ";
+}
+
+
 function html_format( $instr ) {
 global $colors;
 
@@ -12,13 +26,13 @@ global $colors;
   $instr = preg_replace("/ _([^ ]+)_ /", " <b>\$1</b> ", $instr);
 
   // A URL surrounded like [http://my.url] gets converted to a link
-  $instr = preg_replace("#\[(https?://[^]]+)\]#", " <a href=\"\$1\" target=_new>\$1</a> ", $instr);
+  $instr = preg_replace_callback("#\[(https?://[^]]+)\]#", "html_format_url", $instr);
 
   // A URL like " http://my.url " also gets converted to a link
-  $instr = preg_replace("#(https?://[^[:space:]]+)#", " <a href=\"\$1\" target=_new>\$1</a> ", $instr);
+  $instr = preg_replace_callback("#(https?://[^[:space:]]+)#", "html_format_url", $instr);
 
   // A URL like " mailto:user@domain.name " also gets converted to a link
-  $instr = preg_replace("/mailto:([^[:space:]]+@[^[:space:]]+)/", " <a href=\"mailto:\$1\">\$1</a> ", $instr);
+  $instr = preg_replace_callback("/(mailto:[^[:space:]]+@[^[:space:]]+)/", "html_format_url", $instr);
 
   // A phrase like " W/R #99999 " (and variants) gets converted to a link
   $instr = preg_replace("/(W\/?RM?S? ?#?([[:digit:]]{4,6}))([^[:digit:]]|$)/i",

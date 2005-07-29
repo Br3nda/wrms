@@ -80,6 +80,18 @@ class EntryField
 
       case "lookup":
         $r .= "select name=\"$this->fname\"%%attributes%%>";
+        reset( $this->attributes );
+        while( list($k,$v) = each( $this->attributes ) ) {
+          if ( substr($k, 0, 1) != '_' ) continue;
+          $k = substr($k,1);
+          if ( $k == 'help' || $k == "sql" || $k == "type" ) continue;
+          if ( $k == "null" ) $k = "";
+          if ( $k == "zero" ) $k = "0";
+          $r .= "<option value=\"".htmlentities($k)."\"";
+          if ( "$this->current" == "$k" ) $r .= " selected";
+          $r .= ">$v</option>" ;
+        }
+/*
         if ( isset($this->attributes["_all"]) ) {
           $r .= sprintf("<option value=\"all\"".("all"==$this->current?" selected":"").">%s</option>", $this->attributes["_all"] );
         }
@@ -89,6 +101,7 @@ class EntryField
         if ( isset($this->attributes["_zero"]) ) {
           $r .= sprintf("<option value=\"0\"".(0==$this->current?" selected":"").">%s</option>", $this->attributes["_zero"] );
         }
+*/
         if ( isset($this->attributes["_sql"]) ) {
           $qry = new PgQuery( $this->attributes["_sql"] );
         }

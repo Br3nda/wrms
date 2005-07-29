@@ -81,7 +81,7 @@
       $search_query .= " AND request_interested.request_id=request.request_id AND request_interested.user_no = " . intval($interested_in);
     if ( intval("$allocated_to") > 0 )
       $search_query .= " AND request_allocated.request_id=request.request_id AND request_allocated.allocated_to_id = " . intval($allocated_to);
-    else if ( intval("$allocated_to") < 0 )
+    else if ( $allocated_to == "nobody" )
       $search_query .= " AND NOT EXISTS( SELECT request_id FROM request_allocated WHERE request_allocated.request_id=request.request_id )";
 
     if ( "$search_for" != "" ) {
@@ -184,7 +184,10 @@ $search_query";
 
   }
 
-  $search_query .= " ORDER BY $rlsort $rlseq ";
+  if ( $rlsort != 'request_tags' || isset($flipped_columns['request_tags']) ) {
+    // We can only sort by request_tags if it is present in the target list!
+    $search_query .= " ORDER BY $rlsort $rlseq ";
+  }
   if ( !isset($maxresults) || intval($maxresults) == 0 ) $maxresults = 200;
   $search_query .= " LIMIT $maxresults ";
   // echo "<p>$search_query</p>";

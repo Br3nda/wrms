@@ -1,9 +1,13 @@
--- We do everything in a transaction now, which enables two things:
+-- We do everything in a transaction, which enables two things:
 --  1) We can check for the correct version to upgrade, and fail
 --     if we are at the wrong version.
 --  2) We apply the whole lot, or none at all, which should make
 --     updates more consistent.
 
+-- * * * * *  Note that 2.0.0 does not exist, even though we are
+-- * * * * *  developing the functionality for post 2.0 here...
+
+-- Should have been done by 1.99.6, but we'll make sure anyway
 CREATE or REPLACE FUNCTION request_tags( INT ) RETURNS TEXT AS '
    DECLARE
       req_id ALIAS FOR $1;
@@ -24,7 +28,7 @@ CREATE or REPLACE FUNCTION request_tags( INT ) RETURNS TEXT AS '
 BEGIN;
 
 SELECT check_wrms_revision(2,0,0);  -- Will fail if this revision doesn't exist, or a later one does
-SELECT new_wrms_revision(2,0,1, 'Baguette' );
+SELECT new_wrms_revision(2,0,1, 'Brioche' );
 
 ALTER TABLE organisation DROP COLUMN admin_user_no;
 ALTER TABLE organisation DROP COLUMN support_user_no;

@@ -90,7 +90,7 @@ function RenderSearchForm( $target_url ) {
   $html .= $ef->DataEntryLine( "ToDo", "", "lookup", "allocated_to",
             array("_sql" => SqlSelectSubscribers($org_code),
                   "_null" => "-- Any Assigned User --",
-                  "_all" => "-- Not Yet Allocated --",
+                  "_nobody" => "-- Not Yet Allocated --",
                   "class" => "srchf",
                   "title" => "A person who has been assigned to work on requests.",
                   "style" => "width: 12em" ) );

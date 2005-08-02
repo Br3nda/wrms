@@ -15,6 +15,8 @@ $external_base_url = $base_dns;
 $base_dir = $DOCUMENT_ROOT;
 $module = "base";
 $images = "images/eduforge";
+$stylesheet = "eduforge.css";
+
 $colors = array(
   "bg1" => "#ffffff", // primary background
   "fg1" =>  "#000000", // text on primary background
@@ -82,13 +84,24 @@ function block_close() {
   echo '</div>';
 }
 
+require_once("organisation-selectors-sql.php");
+
 //-----------------------------------------
 // Function to do the page header, that is local to this installation
 //-----------------------------------------
 function local_inline_styles() {
   global $sysabbr, $fonts, $fontsizes, $linkstyle, $colors;
 
-  echo "
+  echo <<<EOSTYLE
+.submit {
+  background-image: url(/images/eduforge/aquaTileSolid.gif);
+}
+
+.submit:hover {
+  color: #205070;
+  border: thin inset;
+}
+
 .standardtable {
   width: 100%;
   border-spacing: 0;
@@ -154,8 +167,8 @@ td.h3, th.h3 {
   background-color: $colors[bg2];
   margin: 6px 0px 0px 0px;
 }
+EOSTYLE;
 
-";
 }
 
 
@@ -236,13 +249,21 @@ function local_page_header() {
 
 }
 
+//-----------------------------------------
+// Function to do the bottom menu bar, that is local to this installation
+//-----------------------------------------
+function local_menu_bar(&$tmnu) {
+}
 
 //-----------------------------------------
 // Function to do the page footer, that is local to this installation
 //-----------------------------------------
 function local_page_footer() {
-  global $sysabbr;
+  global $session;
+  echo '<div id="page_footer">';
+  echo '</div>';
 }
+
 
 //-----------------------------------------
 // Function to display stuff when a person is not logged in

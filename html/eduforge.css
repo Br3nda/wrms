@@ -1,0 +1,303 @@
+/* Basic CSS stylesheet for WRMS - those bits that use an
+ * external stylesheet anyway.
+ */
+
+body {
+  padding: 0;
+  margin: 0;
+  font-size: 36pt;
+}
+
+table.data {
+/*  border: 0;
+  padding: 0;
+  margin: 0;
+  background: green; */
+  /* border-right: thick solid #606060; */
+  border-bottom: 12px solid #606060;
+  background-image:url(/catimg/tile_lines.gif);
+}
+
+tr.data {
+  background-image:none;
+  background: #fff;
+}
+
+th.ph {
+  margin: 0;
+  border: none;
+  padding: 0.2em 0.3em 0;
+  color: black;
+  border-top: thick solid #dda;
+  border-top: 14px solid #3d3d3d;
+  text-align: right;
+  font-family: sans-serif;
+  font-size: 130%;
+  font-variant: small-caps;
+}
+
+th.prompt {
+  margin: 0;
+  padding: 0;
+  text-align: right;
+  vertical-align: top;
+  padding: 0.1em 0.5em 0 0;
+  padding: 0;
+  color: black;
+  width: 8em;
+  font-family: sans-serif;
+  border: none;
+  line-height: 1.5em;
+}
+
+th.pcol {
+  margin: 0;
+  padding: 0;
+  text-align: left;
+  vertical-align: bottom;
+  padding: 0.1em 0.5em 0;
+  color: black;
+  font-family: arial narrow, helvetica narrow, times new roman, times, sans-serif;
+  font-weight: 700;
+  font-size: 85%;
+  border: none;
+  line-height: 1.2em;
+  background-image:none;
+  background: #ddd;
+}
+
+td.entry {
+  padding: 0.1em 0.2em;
+  background-image: none;
+}
+
+table.entry {
+  background-image: none;
+  width:100%;
+}
+
+span.prompt {
+  margin: 0;
+  padding: 0;
+  text-align: right;
+  vertical-align: top;
+  padding: 0.1em 0 0 0.2em;
+  color: #632;
+  font-weight: 700;
+  width: 8em;
+  font-family: sans-serif;
+  border: none;
+  line-height: 2em;
+}
+
+span.entry {
+  padding: 0.1em 1em 0 0.2em;
+}
+
+label {
+   white-space: nowrap;
+   padding: 0.1em 0.5em 0.1em 0.1em;
+}
+
+input.ftext {
+  font-family: tahoma,sans-serif;
+}
+select.flookup {
+  width: 25em;
+  font-family: tahoma,sans-serif;
+}
+textarea.ftextarea {
+  font-family: tahoma,sans-serif;
+  font-weight: lighter;
+  font-size: 100%;
+}
+
+.fsubmit {
+  text-decoration: none;
+  font: small-caps bold 11px verdana, sans-serif;
+  color: #fff;
+  background-image: url(/images/eduforge/aquaTileSolid.gif);
+  padding: 0px 1px 1px 1px;
+  margin: 0.2em 0.1em 0.0em;
+  vertical-align: text-bottom;
+  border: thin outset;
+}
+.fsubmit:hover {
+  color: #f8f400;
+  border: thin inset;
+}
+
+span.srchp {
+  font: bold 110% arial narrow, helvetica narrow, times new roman, times, sans-serif;
+  padding: 0 0.1em 0 0.3em;
+  vertical-align: 15%;
+  line-height:100%;
+}
+
+span.srchf, input.srchf, select.srchf, label.srchf {
+  font-family: arial narrow, helvetica narrow, times new roman, times, sans-serif;
+  padding-right: 0.3em;
+  margin: 0.2em 0 0.1em;
+}
+
+/* For the display of important messages to the user, such as
+   validation failures and so forth. */
+#messages {
+  /* color: #fff; background: #b10;  */
+  color: #900; background: #dad8d6;
+}
+ul.messages {
+  padding: 2px 12px;
+}
+li.messages {
+  display: block;
+  font-weight: 700;
+  font-size: 105%;
+  text-indent: -8em;
+  margin-left: 8em;
+  padding: 6px 0;
+}
+
+/* For the display of menus across the top on some pages */
+/* The div, and the base for the rest */
+.tmnu, .tmnu:hover, .tmnu:visited
+{
+  color: #fff;
+  padding: 0.25em;
+  margin: 0 0 0 0;
+}
+
+/* Left/Right sides of the context menu */
+.tmnu_left, .tmnu_active_left {
+  padding: 0 0 0.2em 8px;
+  margin: 0 0 0 1px;
+}
+.tmnu_right, .tmnu_active_right {
+  padding: 0 4px 0.2em;
+  margin: 0 1px 0 0;
+}
+/*
+.tmnu_active_left {
+  background: #fff url(/images/cxmenuleft-sel.png) no-repeat top right;
+}
+.tmnu_active_right {
+  background: #fff url(/images/cxmenuright-sel.png) no-repeat top left;
+}
+*/
+
+a.tmnu, a.tmnu:hover, a.tmnu:visited,
+a.tmnu_active, a.tmnu_active:hover, a.tmnu_active:visited
+{
+  font: bold 13px verdana, sans-serif;
+  padding: 0.25em;
+}
+a.tmnu_active, a.tmnu_active:hover, a.tmnu_active:visited
+{
+  color: #fff;
+  background: #505050;
+}
+
+/* And when we hover over the options */
+a.tmnu:hover
+{
+  /* background: #d0c8af url(/images/cxmenumid-hover.png) repeat-x center center; */
+}
+
+/* Stuff here will sit around the bottom right of the screen (Moz, anyway) so
+ * we use it for a div with the buttons on entry screen.
+ */
+#topbar {
+  /* position: fixed; */
+  width: auto;
+  height: 50px;
+  float:left;
+  top: 0;
+  left: 0;
+  bottom: auto;
+  right: auto;
+  text-align: left;
+  margin: 0;
+  padding: 0 0.3em 1em;
+  background-color: #ffffff;
+}
+#searchbar {
+  /* position: fixed; */
+  width: auto;
+  height: auto;
+  float: right;
+  top: 0;
+  left: auto;
+  bottom: auto;
+  right: 0;
+  text-align: right;
+  margin: 0;
+  padding: 0;
+  background-color: #ffffff;
+  font-size: 80%;
+  vertical-align:text-bottom;
+}
+.search_for {
+  font-family: tahoma,sans-serif;
+  width: 5em;
+  height: 1.5em;
+  margin-top:1.3em;
+  vertical-align: 0%;
+}
+
+select.search_for {
+  width: 20em;
+  height: 1.8em;
+  margin-top:1.1em;
+  vertical-align: 15%;
+}
+
+#top_menu {
+  margin: 0 0 20px 0;
+  margin: 0;
+  height: 24px;
+  clear:both;
+  text-align: center;
+  vertical-align: middle;
+  background-image: url(/catimg/bar_red_tile.gif);
+  color:white;
+}
+#footer {
+  position: fixed;
+  top: auto;
+  right: 15px;
+  bottom: 15px;
+  left: auto;
+  width: auto;
+  height: auto;
+  text-align: center;
+}
+#page_footer {
+  width: auto;
+  height: 14px;
+  text-align: left;
+  margin-top: 5px;
+  padding-left: 3px;
+  background-color: #606060;
+  color: white;
+  font-size:10px;
+}
+
+#columnselect {
+  background-color: #f0f0f0;
+}
+
+#savesearch {
+  display:block;
+  float: right;
+  clear: both;
+};
+
+div.block, div.blockhead {
+  width: 160px;
+  clear: both;
+}
+
+div.blockhead {
+  width: auto;
+  clear: both;
+}

@@ -97,7 +97,7 @@ function block_close() {
 
 
 //-----------------------------------------
-// Function to do the page header, that is local to this installation
+// Function to do any styles, that are local to this installation
 //-----------------------------------------
 function local_inline_styles() {
 
@@ -153,7 +153,7 @@ function local_page_header() {
 }
 
 //-----------------------------------------
-// Function to do the page footer, that is local to this installation
+// Function to do the bottom menu bar, that is local to this installation
 //-----------------------------------------
 function local_menu_bar(&$tmnu) {
 }

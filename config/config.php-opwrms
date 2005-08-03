@@ -94,21 +94,13 @@ function local_inline_styles() {
 
   echo <<<EOSTYLE
 .submit {
-  background-image: url(/images/eduforge/aquaTileSolid.gif);
+  background-image: url(/images/eduforge/bar_aqua_tile.gif);
 }
 
 .submit:hover {
   color: #205070;
   border: thin inset;
 }
-
-.standardtable {
-  width: 100%;
-  border-spacing: 0;
-  border: 0;
-  color: #333333;
-}
-
 td.spaced-out {
   color: #000000;
   padding-left:20px;
@@ -116,6 +108,31 @@ td.spaced-out {
 .spaced-out-grey {
   color:#666666;
 }
+th.cols, th.rows {
+  background: #fff;
+  background-image:url('/images/eduforge/aquaTileSolid.gif');
+  background-repeat:repeat-x;
+  font: small-caps bold $fontsizes[1] $fonts[0], sans-serif;
+  color: #205070;
+  margin: 6px 0px 0px 0px;
+  height:15px;
+  padding-left:10px;
+}
+
+a.cols {
+  font: small-caps bold $fontsizes[1] $fonts[0], sans-serif;
+  color: #205070;
+  background: transparent;
+}
+
+/*
+.standardtable {
+  width: 100%;
+  border-spacing: 0;
+  border: 0;
+  color: #333333;
+}
+
 td.searchbar-cell {
   background-color:#6C859F;
 }
@@ -144,29 +161,14 @@ td.searchbar-cell {
   padding-left:10px;
 }
 
-th.cols, th.rows {
-  background: #fff;
-  background-image:url('/images/eduforge/aquaTileSolid.gif');
-  background-repeat:repeat-x;
-  font: small-caps bold $fontsizes[1] $fonts[0], sans-serif;
-  color: #205070;
-  margin: 6px 0px 0px 0px;
-  height:15px;
-  padding-left:10px;
-}
-
-a.cols {
-  font: small-caps bold $fontsizes[1] $fonts[0], sans-serif;
-  color: #205070;
-  background: transparent;
-}
-
 td.h3, th.h3 {
   font: bold $fontsizes[1] $fonts[0], sans-serif;
   color: $colors[fg2];
   background-color: $colors[bg2];
   margin: 6px 0px 0px 0px;
 }
+*/
+
 EOSTYLE;
 
 }
@@ -176,6 +178,54 @@ EOSTYLE;
 // Function to do the page header, that is local to this installation
 //-----------------------------------------
 function local_page_header() {
+  global $system_name, $sysabbr, $session, $images, $tmnu;
+
+//  '<div id="topbar"><a href="/"><img src="'.$images.'/eduforge_logo.gif" width="145" height="62" border="0"></a></div>'."\n";
+  echo <<<EOHDR
+    <table border="0" cellspacing="0" cellpadding="0" style="height:86px;width:100%;background:url('/images/eduforge/eduforge_paua.jpg');">
+      <tr>
+       <td width="175" nowrap="nowrap" align="center">
+        <a href="/"><img alt="logo" border="0" src="/images/eduforge/eduforge_logo.gif" width="145" height="62" /></a>
+      </td>
+       <td class="spaced-out">s u p p o r t <span class="spaced-out-grey">. e d u f o r g e . o r g</span></td>
+EOHDR;
+
+  if ( $session->logged_in /* && !preg_match( "/(requestlist|wrsearch)\.php/i", $GLOBALS['REQUEST_URI'] ) */ ) {
+    echo '<td valign="bottom" style="background: inherit;"><div id="searchbar" style="background: inherit;">';
+    echo '<form action="/requestlist.php" method="post" name="search">';
+
+    echo '<span class="prompt" style="vertical-align: 0%;">Find:</span>';
+    echo '<span class="entry"><input class="search_for" type="text" name="search_for" value="'.$GLOBALS['search_for'].'"/></span>';
+
+    $systems = new PgQuery(SqlSelectSystems($GLOBALS['org_code']));
+    $system_list = $systems->BuildOptionList($GLOBALS['system_code'],'Config::LocPgHdr');
+    echo '<span class="prompt" style="vertical-align: 0%;">Systems:</span>';
+    echo '<span class="entry"><select name="system_code" class="search_for"><option value="">-- select --</option>'.$system_list;
+    echo '</select></span>';
+    echo '<span class="entry""><input type="submit" alt="go" class="fsubmit" value="Search" /></span>';
+    echo '</form>';
+    echo '</div></td>'."\n";
+  }
+
+  echo "</tr>\n</table>\n";
+  echo '<div id="top_menu">';
+  if ( $session->logged_in ) {
+    echo '<span style="float:right; margin-right:3px; margin-top:3px;">';
+    echo $session->fullname;
+    echo '</span>';
+  }
+  if ( isset($tmnu) && is_object($tmnu) && $tmnu->Size() > 0 ) {
+    echo $tmnu->Render();
+  }
+  echo '</div>'."\n";
+
+}
+
+
+//-----------------------------------------
+// Function to do the page header, that is local to this installation
+//-----------------------------------------
+function xxx_local_page_header() {
   global $sysabbr, $session;
 ?>
 <table summary="" class="standardtable" cellpadding="0" cellspacing="0" width="100%">

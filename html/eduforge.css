@@ -14,8 +14,8 @@ table.data {
   margin: 0;
   background: green; */
   /* border-right: thick solid #606060; */
-  border-bottom: 12px solid #606060;
-  background-image:url(/catimg/tile_lines.gif);
+  border-bottom: 6px solid #6C859F;
+  background-image:url(/images/eduforge/tile_grey.gif);
 }
 
 tr.data {
@@ -29,7 +29,7 @@ th.ph {
   padding: 0.2em 0.3em 0;
   color: black;
   border-top: thick solid #dda;
-  border-top: 14px solid #3d3d3d;
+  border-top: 6px solid #6C859F;
   text-align: right;
   font-family: sans-serif;
   font-size: 130%;
@@ -54,7 +54,7 @@ th.pcol {
   margin: 0;
   padding: 0;
   text-align: left;
-  vertical-align: bottom;
+  vertical-align: top;
   padding: 0.1em 0.5em 0;
   color: black;
   font-family: arial narrow, helvetica narrow, times new roman, times, sans-serif;
@@ -62,8 +62,11 @@ th.pcol {
   font-size: 85%;
   border: none;
   line-height: 1.2em;
-  background-image:none;
+/*  background-image:none;
   background: #ddd;
+*/  background: #fff;
+  background-image:url('/images/eduforge/aquaTileSolid.gif');
+  background-repeat:repeat-x;
 }
 
 td.entry {
@@ -116,7 +119,7 @@ textarea.ftextarea {
   text-decoration: none;
   font: small-caps bold 11px verdana, sans-serif;
   color: #fff;
-  background-image: url(/images/eduforge/aquaTileSolid.gif);
+  background-image: url(/images/eduforge/bar_aqua_tile.gif);
   padding: 0px 1px 1px 1px;
   margin: 0.2em 0.1em 0.0em;
   vertical-align: text-bottom;
@@ -258,7 +261,7 @@ select.search_for {
   clear:both;
   text-align: center;
   vertical-align: middle;
-  background-image: url(/catimg/bar_red_tile.gif);
+  background-image: url(/images/eduforge/bar_aqua_tile.gif);
   color:white;
 }
 #footer {
@@ -273,11 +276,12 @@ select.search_for {
 }
 #page_footer {
   width: auto;
-  height: 14px;
+  height: 32px;
   text-align: left;
   margin-top: 5px;
   padding-left: 3px;
-  background-color: #606060;
+  background-color: #6C859F;
+  background-color: white;
   color: white;
   font-size:10px;
 }

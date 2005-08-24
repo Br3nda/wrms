@@ -94,9 +94,29 @@ class User {
   /////////////////////////////////////////////////////////////
   function AllowedTo ( $whatever )
   {
+    global $session;
+
     // fixme: We need to change this to abstract the logic in here of
     // whether the current user can create, update, view things.
-    return ( isset($this->roles[$whatever]) && $this->roles[$whatever] );
+    switch( $whatever ) {
+      case 'ChangePassword':
+      case 'update':
+        if ( ($session->AllowedTo("Admin") || $session->AllowedTo("Support") || $session->AllowedTo("OrgMgr") ) )
+          return true;
+        if ( $this->user_no > 0 && $session->user_no == $this->user_no )
+          return true;
+        break;
+
+      case 'create':
+        if ( ($session->AllowedTo("Admin") || $session->AllowedTo("Support") || $session->AllowedTo("OrgMgr") ) )
+          return true;
+        break;
+
+      default:
+        return ( isset($session->roles[$whatever]) && $session->roles[$whatever] );
+    }
+    // By default, they ain't allowed...
+    return false;
   }
 
 
@@ -159,11 +179,9 @@ class User {
     $html = "";
     $html .= $ef->BreakLine("System Details");
 
-    $html .= $ef->DataEntryLine( "User Name", "%s", "text", "username",
+    $html .= $ef->DataEntryLine( "User Name", "%s", "text", "xxxxusername",
               array( "size" => 20, "title" => "The name this user can log into the system with.") );
-    if ( $ef->editmode
-       && ($session->AllowedTo("Admin") || $session->AllowedTo("Support")
-             || $session->AllowedTo("OrgMgr") ) ) {
+    if ( $ef->editmode && $this->AllowedTo('ChangePassword') ) {
       $this->new_password = '******';
       unset($_POST['new_password']);
       $html .= $ef->DataEntryLine( "New Password", "%s", "password", "new_password",
@@ -443,6 +461,13 @@ SCRIPT;
     global $session, $client_messages;
 
     $session->Log("DBG: User::Write: Writing usr form details to database");
+
+    $this->chtype = strtolower($_POST['submit']);
+    if ( ! $this->AllowedTo($this->chtype) ) {
+      $client_messages[] = "ERROR: You do not have privileges to $this->chtype - please contact the administrator.";
+      return;
+    }
+
     $client_messages[] = "Writing user details to database.";
 
     $db_errors = false;
@@ -454,25 +479,27 @@ SCRIPT;
     $this->settings->set('bigboxcols', $_POST['box_cols']);
     if ( is_object( $this->settings ) ) $_POST['config_data'] = $this->settings->to_save();
 
-    if ( $_POST['new_password'] != '******' && $_POST['new_password'] == $_POST['confirm_password'] ) {
-      $newpw = session_salted_md5($_POST['new_password']);
-      $_POST['password'] = $newpw;
-      $session->Log("DBG: New salted password = $newpw");
-    }
-    else if ( $_POST['new_password'] != '******' && $_POST['new_password'] != $_POST['confirm_password'] ) {
-      $client_messages[] = "WARNING: Confirmation password does not match - the password was not changed.";
-    }
-    else {
-      unset($_POST['password']);
+    unset($_POST['password']);  // Just in case...
+    if ( $this->AllowedTo('ChangePasswowrd') ) {
+      if ( $_POST['new_password'] != '******' && $_POST['new_password'] == $_POST['confirm_password'] ) {
+        $newpw = session_salted_md5($_POST['new_password']);
+        $_POST['password'] = $newpw;
+        $session->Log("DBG: New salted password = $newpw");
+      }
+      else if ( $_POST['new_password'] != '******' && $_POST['new_password'] != $_POST['confirm_password'] ) {
+        $client_messages[] = "WARNING: Confirmation password does not match - the password was not changed.";
+      }
     }
 
     if ( isset($_POST['base_rate']) ) $_POST['base_rate'] = doubleval($_POST['base_rate']);
-    $this->chtype = strtolower($_POST['submit']);
 
     $sql = sql_from_post( $this->chtype, "usr", "WHERE user_no='$this->user_no'");
     $qry = new PgQuery($sql);
     if ( !$qry->Exec("User::Write") ) {
-      $client_messages[] = "ERROR: $qry->errorstring";
+      if ( preg_match( '/duplicate key/i', $qry->errorstring ) )
+        $client_messages[] = "ERROR: That User Name is already in use";
+      else
+        $client_messages[] = "ERROR: $qry->errorstring";
       $db_errors = true;
     }
     else {

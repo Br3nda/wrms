@@ -19,11 +19,15 @@ function SqlSelectOrganisations( $org_code = 0 ) {
   $sql .= ") AND abbreviation !~ '^ *$' ";
   $sql .= "AND EXISTS(SELECT work_system.system_code FROM org_system JOIN work_system ON (org_system.system_code = work_system.system_code) WHERE org_system.org_code = organisation.org_code AND work_system.active) ";
   if ( $session->AllowedTo("Contractor") && ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) ) {
-    $sql .= "AND EXISTS (SELECT 1 FROM org_system ";
+    //  They could make requests for organisations that use systems they are Allocatable/Support for...
+    $sql .= "AND ( EXISTS (SELECT 1 FROM org_system ";
     $sql .= "JOIN system_usr USING (system_code) ";
     $sql .= "WHERE system_usr.role IN ('A','S') ";
     $sql .= "AND system_usr.user_no = $session->user_no ";
     $sql .= "AND org_system.org_code = organisation.org_code) ";
+    //  Or they could make requests for their own organisation too...
+    $sql .= "OR EXISTS (SELECT 1 FROM usr WHERE usr.user_no = $session->user_no ";
+    $sql .= "AND usr.org_code = organisation.org_code ) )";
   }
   $sql .= "ORDER BY lower(org_name)";
 
@@ -49,14 +53,25 @@ function SqlSelectRequesters( $org_code = 0 ) {
   if ( $org_code != 0 && ($session->AllowedTo("Admin") || $session->AllowedTo("Support")  || $session->AllowedTo("Contractor")) ) {
     $sql .= "AND organisation.org_code = $org_code ";
     if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support")) ) {
-    $sql .= "AND EXISTS (SELECT 1 FROM org_system ";
+/*
+      $sql .= "AND EXISTS (SELECT 1 FROM org_system ";
+      $sql .= "JOIN system_usr USING (system_code) ";
+      $sql .= "WHERE system_usr.role IN ('A','S') ";
+      $sql .= "AND system_usr.user_no = $session->user_no ";
+      $sql .= "AND org_system.org_code = organisation.org_code) ";
+*/
+    //  It could be for organisations that use systems they are Allocatable/Support for...
+    $sql .= "AND ( EXISTS (SELECT 1 FROM org_system ";
     $sql .= "JOIN system_usr USING (system_code) ";
     $sql .= "WHERE system_usr.role IN ('A','S') ";
     $sql .= "AND system_usr.user_no = $session->user_no ";
-    $sql .= "AND org_system.org_code = organisation.org_code) ";
+    $sql .= "AND org_system.org_code = $org_code) ";
+    //  Or they could make requests for their own organisation too...
+    $sql .= "OR EXISTS (SELECT 1 FROM usr WHERE usr.user_no = $session->user_no ";
+    $sql .= "AND usr.org_code = $org_code ) )";
     }
   }
-  else if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") || $session->AllowedTo("Contractor") ) )
+  else if ( $org_code == 0 || ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") || $session->AllowedTo("Contractor") ) )
     $sql .= "AND organisation.org_code = $session->org_code ";
   $sql .= " ORDER BY 3";
 

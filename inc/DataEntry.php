@@ -304,15 +304,28 @@ class EntryForm
   //////////////////////////////////////////////////////
   // A utility function for a data entry line within a table
   //////////////////////////////////////////////////////
-  function DataEntryField( $format, $ftype='', $fname='', $type_extra='' )
+  function DataEntryField( $format, $ftype='', $real_fname='', $type_extra='' )
   {
     global $session;
 
-    if ( ($fname == '' || $ftype == '') ) {
+    if ( ($real_fname == '' || $ftype == '') ) {
       // Displaying never-editable values
       return $format;
     }
-    elseif ( !$this->editmode ) {
+
+    if ( substr($real_fname,0,4) == 'xxxx' ) {
+      // Sometimes we will prepend 'xxxx' to the field name so that the field
+      // name differs from the column name in the database.  We also remove it
+      // when it's submitted.
+      $fname = substr($real_fname,4);
+      // Also assign any posted value
+      if ( !isset($_POST[$fname]) && isset($_POST[$real_fname]) )
+        $_POST[$fname] = $_POST[$real_fname];
+    }
+    else {
+      $fname = $real_fname;
+    }
+    if ( !$this->editmode ) {
       // Displaying editable values when we are not editing
       $session->Log( "DBG: fmt='%s', fname='%s', fvalue='%s'", $format, $fname, $this->record->{$fname} );
       return sprintf($format, $this->record->{$fname} );
@@ -347,7 +360,7 @@ class EntryForm
     if ( $ftype == "date" ) $currval = nice_date($currval);
 
     // Now build the entry field and render it
-    $field = new EntryField( $ftype, $fname, $this->_ParseTypeExtra($ftype,$type_extra), $currval );
+    $field = new EntryField( $ftype, $real_fname, $this->_ParseTypeExtra($ftype,$type_extra), $currval );
     return $field->Render();
   }
 

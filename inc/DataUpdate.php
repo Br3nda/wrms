@@ -29,6 +29,11 @@ function sql_from_post( $type, $tablename, $where, $fprefix = "" ) {
   foreach( $fields as $fn => $typ ) {
     $fn = $fprefix . $fn;
     error_log( "$sysname: _POST: DBG: $fn => $typ (".$_POST[$fn].")", 0);
+    if ( !isset($_POST[$fn]) && isset($_POST["xxxx$fn"]) ) {
+      // Sometimes we will have prepended 'xxxx' to the field name so that the field
+      // name differs from the column name in the database.
+      $_POST[$fn] = $_POST["xxxx$fn"];
+    }
     if ( !isset($_POST[$fn]) ) continue;
     $value = str_replace( "'", "''", str_replace("\\", "\\\\", $_POST[$fn]));
     if ( $fn == "password" ) {

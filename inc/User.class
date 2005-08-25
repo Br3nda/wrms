@@ -480,7 +480,7 @@ SCRIPT;
     if ( is_object( $this->settings ) ) $_POST['config_data'] = $this->settings->to_save();
 
     unset($_POST['password']);  // Just in case...
-    if ( $this->AllowedTo('ChangePasswowrd') ) {
+    if ( $this->AllowedTo('ChangePassword') ) {
       if ( $_POST['new_password'] != '******' && $_POST['new_password'] == $_POST['confirm_password'] ) {
         $newpw = session_salted_md5($_POST['new_password']);
         $_POST['password'] = $newpw;

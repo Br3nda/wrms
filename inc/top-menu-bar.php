@@ -17,7 +17,7 @@ function request_menus(&$tmnu, $wr) {
   if ( $wr->org_code > 0 )
     $tmnu->AddOption("Organisation","/org.php?org_code=$wr->org_code&request_id=$wr->request_id","View the details for this organisation");
   if ( $wr->system_code != "" )
-    $tmnu->AddOption("System","/system.php?system_code=$wr->system_code&request_id=$wr->request_id","View the details for this system");
+    $tmnu->AddOption("System","/system.php?system_code=".urlencode($wr->system_code)."&request_id=$wr->request_id","View the details for this system");
   if ( $wr->user_no > 0 )
     $tmnu->AddOption("User","/user.php?user_no=$wr->user_no&request_id=$wr->request_id","View the details for the requesting user");
 }
@@ -58,16 +58,16 @@ function system_menus(&$tmnu,$system) {
   if ( $system->system_code == "" ) return;
   if ( !$system->AllowedTo('view') ) return;
 
-  $tmnu->AddOption($system->system_code,"/system.php?system_code=$system->system_code","View the details for this system");
+  $tmnu->AddOption($system->system_code,"/system.php?system_code=".urlencode($system->system_code),"View the details for this system");
   if ( $system->AllowedTo('update') )
-    $tmnu->AddOption("Edit","/system.php?edit=1&system_code=$system->system_code","Edit the details for this system");
-  $tmnu->AddOption("Requests","/requestlist.php?system_code=$system->system_code","List current requests for this system");
-  $tmnu->AddOption("Organisations","/form.php?system_code=$system->system_code&form=orglist","List organisations for this system");
-  $tmnu->AddOption("Users","/usrsearch.php?system_code=$system->system_code","List users associated with this system");
-  $tmnu->AddOption("Roles","/system_users.php?system_code=$system->system_code","Maintain roles of users associated with this system");
+    $tmnu->AddOption("Edit","/system.php?edit=1&system_code=".urlencode($system->system_code),"Edit the details for this system");
+  $tmnu->AddOption("Requests","/requestlist.php?system_code=".urlencode($system->system_code),"List current requests for this system");
+  $tmnu->AddOption("Organisations","/form.php?system_code=".urlencode($system->system_code)."&form=orglist","List organisations for this system");
+  $tmnu->AddOption("Users","/usrsearch.php?system_code=".urlencode($system->system_code),"List users associated with this system");
+  $tmnu->AddOption("Roles","/system_users.php?system_code=".urlencode($system->system_code),"Maintain roles of users associated with this system");
 
   if ( $session->AllowedTo('Admin') || $session->AllowedTo('Support') ) {
-    $tmnu->AddOption("Uncharged","/form.php?system_code=$system->system_code&form=timelist&uncharged=1","List users for this system");
+    $tmnu->AddOption("Uncharged","/form.php?system_code=".urlencode($system->system_code)."&form=timelist&uncharged=1","List users for this system");
   }
 }
 
@@ -97,8 +97,8 @@ function request_id_menus(&$tmnu, $request_id) {
     $tmnu->AddOption("Edit Organisation","/org.php?edit=1&org_code=$org_code","Edit the details for this organisation");
   }
   if ( $system_code != "" ) {
-    $tmnu->AddOption("System","/system.php?system_code=$system_code&request_id=$request_id","View the details for this system");
-    $tmnu->AddOption("Edit System","/system.php?edit=1&system_code=$system_code","Edit the details for this system");
+    $tmnu->AddOption("System","/system.php?system_code=".urlencode($system_code)."&request_id=$request_id","View the details for this system");
+    $tmnu->AddOption("Edit System","/system.php?edit=1&system_code=".urlencode($system_code),"Edit the details for this system");
   }
 }
 
@@ -122,15 +122,15 @@ function system_code_menus(&$tmnu,$system_code) {
   global $session;
   if ( $system_code == "" ) return;
 
-  $tmnu->AddOption($system_code,"/system.php?system_code=$system_code","View the details for this system");
-  $tmnu->AddOption("Edit","/system.php?edit=1&system_code=$system_code","Edit the details for this system");
-  $tmnu->AddOption("Requests","/requestlist.php?system_code=$system_code","List current requests for this system");
-  $tmnu->AddOption("Organisations","/form.php?system_code=$system_code&form=orglist","List organisations for this system");
-  $tmnu->AddOption("Users","/usrsearch.php?system_code=$system_code","List users associated with this system");
-  $tmnu->AddOption("Roles","/system_users.php?system_code=$system_code","Maintain roles of users associated with this system");
+  $tmnu->AddOption($system_code,"/system.php?system_code=".urlencode($system_code),"View the details for this system");
+  $tmnu->AddOption("Edit","/system.php?edit=1&system_code=".urlencode($system_code),"Edit the details for this system");
+  $tmnu->AddOption("Requests","/requestlist.php?system_code=".urlencode($system_code),"List current requests for this system");
+  $tmnu->AddOption("Organisations","/form.php?system_code=".urlencode($system_code)."&form=orglist","List organisations for this system");
+  $tmnu->AddOption("Users","/usrsearch.php?system_code=".urlencode($system_code),"List users associated with this system");
+  $tmnu->AddOption("Roles","/system_users.php?system_code=".urlencode($system_code),"Maintain roles of users associated with this system");
 
   if ( $session->AllowedTo('Admin') || $session->AllowedTo('Support') ) {
-    $tmnu->AddOption("Uncharged","/form.php?system_code=$system_code&form=timelist&uncharged=1","List users for this system");
+    $tmnu->AddOption("Uncharged","/form.php?system_code=".urlencode($system_code)."&form=timelist&uncharged=1","List users for this system");
   }
 }
 

@@ -127,7 +127,7 @@ $qry = new PgQuery( "SET DATESTYLE TO 'ISO,European';" ); $qry->Exec("always");
 function nice_date($str) {
   $str = trim($str);
   if ( $str == "" ) return "";
-  if ( preg_match('#^([[:digit:]]{2}:[[:digit:]]{2},? )?[[:digit:]]{2}/[[:digit:]]{2}/[[:digit:]]{2,4}#', $str) ) return $str;
+  if ( preg_match('#^([[:digit:]]{1,2}:[[:digit:]]{2},? )?[[:digit:]]{1,2}/[[:digit:]]{1,2}/[[:digit:]]{2,4}#', $str) ) return $str;
   return substr($str, 11, 5) . ", " . substr($str, 8, 2) . "/" . substr($str, 5, 2) . "/" . substr($str, 0, 4);
 }
 

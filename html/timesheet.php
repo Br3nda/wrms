@@ -200,16 +200,22 @@ EOHEADERS;
   echo "</table>\n</form>\n";
 
   // Display a list of W/R's this person has worked on recently
-  $subselect = "SELECT request_id FROM request_timesheet WHERE work_by_id = $ts_user AND request.request_id = request_timesheet.request_id ";
-  $subselect .= "AND work_on >= '" . date( 'Y-M-d', $sow - (28 * 86400) ) . "' ";
-  $subselect .= "AND work_on < '" . date( 'Y-M-d', $sow + (14 * 86400) ) . "' ";
-  $query = "SELECT * ";
-  $query .= "FROM request, usr, organisation, work_system ";
-  $query .= "WHERE EXISTS( $subselect ) ";
-  $query .= "AND request.requester_id = usr.user_no ";
-  $query .= "AND usr.org_code = organisation.org_code ";
-  $query .= "AND request.system_code = work_system.system_code ";
-  $query .= "ORDER BY request_id ASC; ";
+  $ts_from  = date( 'Y-M-d', $sow - (56 * 86400) );
+  $ts_until = date( 'Y-M-d', $sow + (14 * 86400) );
+  $query = <<<EOQRY
+SELECT rt.request_id, abbreviation, system_desc, brief, sum(work_quantity) AS work_quantity
+ FROM request_timesheet rt
+ JOIN request ON (request.request_id = rt.request_id)
+ JOIN usr ON (request.requester_id = usr.user_no)
+ JOIN organisation USING (org_code)
+ JOIN work_system USING (system_code)
+ WHERE rt.work_by_id = $ts_user
+   AND work_on >= '$ts_from'
+   AND work_on < '$ts_until'
+ GROUP BY rt.request_id, abbreviation, system_desc, brief
+ ORDER BY rt.request_id ASC;
+EOQRY;
+
   $result = awm_pgexec( $dbconn, $query, 'timesheet' );
   if ( $result && pg_NumRows($result) ) {
     echo "<h3>Recent Requests You Have Worked On</h3>\n";
@@ -217,7 +223,12 @@ EOHEADERS;
     echo "<tr class=row1><th class=cols>WR #</th><th class=cols align=left>For</th><th class=cols align=left>System</th><th class=cols align=left>Request</th></tr>\n";
     for( $i=0; $i < pg_NumRows($result); $i++ ) {
       $wr = pg_Fetch_Object( $result, $i );
-      echo "<tr class=row" . $i%2 . "><th><a href=request.php?request_id=$wr->request_id>$wr->request_id</a></th><td>$wr->abbreviation</td><td>$wr->system_desc</td><td>$wr->brief</td></tr>\n";
+      echo "<tr class=row" . $i%2 . ">";
+      echo "<th><a href=request.php?request_id=$wr->request_id>$wr->request_id</a></th>";
+      echo "<td>$wr->abbreviation</td>";
+      echo "<td>$wr->system_desc</td>";
+      echo "<td>$wr->brief</td>";
+      echo "</tr>\n";
     }
     echo "</table>\n";
   }

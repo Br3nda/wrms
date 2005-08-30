@@ -626,21 +626,40 @@ class Request {
       $html .= $ef->BreakLine("Quotations");
     if ( $q->rows ) {
       $html .= '<tr><td colspan="2" class="entry"><table width="100%" class="entry">'."\n";
-      $html .= '<tr><th class="pcol">Type</th>';
-      $html .= '<th class="pcol">Quote On</th>';
+      $html .= '<tr><th class="pcol">No.</th>';
+      $html .= '<th class="pcol">Type</th>';
       $html .= '<th class="pcol">By</th>';
+      $html .= '<th class="pcol">Quote On</th>';
       $html .= '<th class="pcol">Brief</th>';
-      $html .= '<th class="pcol">Quote</th></tr>'."\n";
-      $line_format = '<tr class="row%d"><td class="entry" width="5%%">%s</td>';
+      $html .= '<th class="pcol">Quote</th>';
+      if ( $ef->editmode ) {
+        $html .= '<th class="pcol">Approve?</th>';
+      }
+      else {
+        $html .= '<th class="pcol">Approval</th>';
+      }
+      $html .= '</tr>'."\n";
+      $line_format = '<tr class="row%d"><td class="entry">%s</td>';
+      $line_format .= '<td class="entry" width="5%%">%s</td>';
       $line_format .= '<td class="entry">%s</td>';
       $line_format .= '<td class="entry" style="white-space: nowrap;">%s</td>';
       $line_format .= '<td class="entry">%s</td>';
-      $line_format .= '<td class="entry" style="white-space: nowrap;">%s %s</td></tr>'."\n";
-      $detail_format = '<tr class="row%d"><td class="entry">&nbsp;</td><td class="entry" colspan="4">%s</td></tr>'."\n";
+      $line_format .= '<td class="entry" style="white-space: nowrap;">%s %s</td>';
+      $line_format .= '<td class="entry">%s</td>';
+      $line_format .= '</tr>'."\n";
+      $detail_format = '<tr class="row%d"><td class="entry">&nbsp;</td><td class="entry" colspan="6">%s</td></tr>'."\n";
       while( $row = $q->Fetch() ) {
+        if ( $ef->editmode && $row->approved_by == "" ) {
+          $approval = $ef->DataEntryField( "", "checkbox", "quote_approved[$row->quote_id]",
+                array("title" => "Check the box to approve this quote" ) );
+          $approval .= 'Approved';
+        }
+        else {
+          $approval = $row->approved_by;
+        }
         $html .= sprintf( $line_format,
-                    ($q->rownum % 2), $row->quote_type_desc, $row->quote_by, $row->quoted_on, $row->quote_brief,
-                    $row->quote_amount, $row->quote_units
+                    ($q->rownum % 2), $row->quote_id, $row->quote_type_desc, $row->quote_by, $row->quoted_on, $row->quote_brief,
+                    $row->quote_amount, $row->quote_units, $approval
                   );
         if ( trim("$row->quote_details") != "" ) {
           $html .= sprintf( $detail_format,

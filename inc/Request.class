@@ -188,6 +188,20 @@ class Request {
         else if ( $session->AllowedTo("Contractor") ) $answer = true;
         break;
 
+      case 'approvequotes':
+        $answer = false;
+        if ( $session->AllowedTo("Support") ) {
+          $answer = true;   // Support can always update
+        }
+        else if ( $this->org_code == $session->org_code ) {
+          $answer = ( strpos("`SAC",$session->system_roles[$this->system_code] ) != false );
+        }
+        else if ( $session->AllowedTo("Contractor") ) {
+          // A contractor will need specific Support/Allocate access to this System
+          $answer = ( strpos("`SA",$session->system_roles[$this->system_code] ) != false );
+        }
+        break;
+
       default:
         $session->Log("WR::AllowedTo: WARNING: Unrecognised action: '$action'");
         // Default to allowing unrecognised actions, after the warning
@@ -612,6 +626,7 @@ class Request {
     global $session;
     $html = "";
     $sql = "SELECT request_quote.*, ru.fullname AS quote_by, au.fullname AS approved_by, ";
+    $sql .= "to_char(approved_on, 'HH24:MI DD-MM-YYYY') AS approved_on, ";
     $sql .= "to_char(quoted_on, 'HH24:MI DD-MM-YYYY') AS quoted_on, lookup_desc AS quote_type_desc ";
     $sql .= "FROM request_quote ";
     $sql .= "LEFT OUTER JOIN usr ru ON ( request_quote.quote_by_id = ru.user_no ) ";
@@ -626,11 +641,9 @@ class Request {
       $html .= $ef->BreakLine("Quotations");
     if ( $q->rows ) {
       $html .= '<tr><td colspan="2" class="entry"><table width="100%" class="entry">'."\n";
-      $html .= '<tr><th class="pcol">No.</th>';
-      $html .= '<th class="pcol">Type</th>';
+      $html .= '<tr><th class="pcol">Type</th>';
       $html .= '<th class="pcol">By</th>';
-      $html .= '<th class="pcol">Quote On</th>';
-      $html .= '<th class="pcol">Brief</th>';
+      $html .= '<th class="pcol">Brief description</th>';
       $html .= '<th class="pcol">Quote</th>';
       if ( $ef->editmode ) {
         $html .= '<th class="pcol">Approve?</th>';
@@ -639,15 +652,13 @@ class Request {
         $html .= '<th class="pcol">Approval</th>';
       }
       $html .= '</tr>'."\n";
-      $line_format = '<tr class="row%d"><td class="entry">%s</td>';
-      $line_format .= '<td class="entry" width="5%%">%s</td>';
-      $line_format .= '<td class="entry">%s</td>';
+      $line_format = '<tr class="row%d"><td class="entry" width="5%%">%s<br />%s</td>';
       $line_format .= '<td class="entry" style="white-space: nowrap;">%s</td>';
       $line_format .= '<td class="entry">%s</td>';
       $line_format .= '<td class="entry" style="white-space: nowrap;">%s %s</td>';
-      $line_format .= '<td class="entry">%s</td>';
+      $line_format .= '<td class="entry" style="white-space: nowrap;">%s</td>';
       $line_format .= '</tr>'."\n";
-      $detail_format = '<tr class="row%d"><td class="entry">&nbsp;</td><td class="entry" colspan="6">%s</td></tr>'."\n";
+      $detail_format = '<tr class="row%d"><td class="entry">&nbsp;</td><td class="entry" colspan="4">%s</td></tr>'."\n";
       while( $row = $q->Fetch() ) {
         if ( $ef->editmode && $row->approved_by == "" ) {
           $approval = $ef->DataEntryField( "", "checkbox", "quote_approved[$row->quote_id]",
@@ -655,10 +666,10 @@ class Request {
           $approval .= 'Approved';
         }
         else {
-          $approval = $row->approved_by;
+          $approval = "$row->approved_by<br />$row->approved_on";
         }
         $html .= sprintf( $line_format,
-                    ($q->rownum % 2), $row->quote_id, $row->quote_type_desc, $row->quote_by, $row->quoted_on, $row->quote_brief,
+                    ($q->rownum % 2), $row->quote_type_desc, $row->quote_id, "$row->quote_by<br />$row->quoted_on", $row->quote_brief,
                     $row->quote_amount, $row->quote_units, $approval
                   );
         if ( trim("$row->quote_details") != "" ) {
@@ -1423,6 +1434,10 @@ class Request {
           $db_errors = ! $this->AddParent();
         }
 
+        if ( !$db_errors && is_array($_POST['quote_approved']) ) {
+          $db_errors = ! $this->ApproveQuotes($_POST['quote_approved']);
+        }
+
         if ( !$db_errors && trim($_POST['quote_brief']) != "" ) {
           $db_errors = ! $this->AddQuote();
         }
@@ -1723,6 +1738,7 @@ EOX
   }
 
   /////////////////////////////////////////////////////////////
+  // Add a quote to the W/R
   /////////////////////////////////////////////////////////////
   function AddQuote( ) {
     global $session, $client_messages;
@@ -1750,6 +1766,50 @@ EOX
     $this->mail_message_data[]['text'] = " * A quote was added.\n";
 
     $this->send_an_email = true;
+
+    return true;
+  }
+
+  /////////////////////////////////////////////////////////////
+  // Add a quote to the W/R
+  /////////////////////////////////////////////////////////////
+  function ApproveQuotes( $approvals ) {
+    global $session, $client_messages;
+
+    if ( !$this->AllowedTo('ApproveQuotes') ) return true;
+
+    $sql = "";
+    $messages = array();
+    foreach ( $approvals AS $quote_id => $quote_status ) {
+      $quote_id = intval($quote_id);
+      if ( $quote_status == "on" ) {
+
+        if ( !$this->AllowedTo('approvequotes') ) {
+          $client_messages[] = "You are not authorised to approve quotes for this request.##AuthApproveQuotes##";
+          return false;
+        }
+
+        $sql .= "UPDATE request_quote SET approved_by_id = $session->user_no, approved_on = current_timestamp ";
+        $sql .= "WHERE request_id = $this->request_id AND quote_id = $quote_id; ";
+
+        $session->Log( "DBG: WR::ApproveQuotes: Quote $quote_id approved by $session->fullname" );
+
+        $messages[] = "Quote $quote_id approved.";
+        $this->mail_message_data[]['html'] = "<h4>Quote $quote_id was approved by $session->fullname.</h4>\n";
+        $this->mail_message_data[]['text'] = " * Quote $quote_id was approved by $session->fullname.\n";
+
+        $this->send_an_email = true;
+      }
+    }
+
+    if ( $sql != "" ) {
+      $qry = new PgQuery( $sql ) ;
+      if ( ! $qry->Exec('WR::ApproveQuotes') ) {
+        $client_messages[] = "$qry->errorstring";
+        return false;
+      }
+      $client_messages = $client_messages + $messages;
+    }
 
     return true;
   }

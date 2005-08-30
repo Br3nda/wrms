@@ -72,7 +72,7 @@ function system_menus(&$tmnu,$system) {
 }
 
 function attachment_type_menus(&$tmnu,$att) {
-  if ( intval("$att->type_code") > 0 ) {
+  if ( "$att->type_code" != "" ) {
     $tmnu->AddOption("$att->type_code","/attachment_type.php?type_code=$att->type_code","View the details for this Attachment Type");
     $tmnu->AddOption("Edit","/attachment_type.php?edit=1&type_code=$att->type_code","Edit the details for this Attachment Type");
   }

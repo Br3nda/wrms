@@ -84,7 +84,7 @@ class Session
   var $user_no = 0;
   var $session_id = 0;
   var $username = 'guest';
-  var $full_name = 'Guest';
+  var $fullname = 'Guest';
   var $email = '';
   var $roles;
   var $logged_in = false;

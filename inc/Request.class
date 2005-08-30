@@ -1310,6 +1310,9 @@ class Request {
       $client_messages[] = "You may not create requests for that organisation.";
       return false;
     }
+    // But contractors are still allowed to do that as well...
+    if ( $requester->org_code == $session->org_code ) return true;
+
     // Must be a contractor at this point
     if ( strpos("`SA",$session->system_roles[$new_system_code] ) == false ) {
       $session->Log("DBG: system role is not (S or A) for $session->username($session->user_no), $new_system_code - " . $session->system_roles[$new_system_code] );
@@ -1451,7 +1454,7 @@ class Request {
   /////////////////////////////////////////////////////////////
   function NotifyEmail ()
   {
-    global $base_dns, $session, $system_name, $admin_email, $debug_email;
+    global $base_dns, $session, $sysabbr, $system_name, $admin_email, $debug_email;
 
     if ( $_POST['send_no_email'] == 'on' ) {
       // The user has asked for it to be quiet.
@@ -1463,6 +1466,7 @@ class Request {
     // We use neither, and it will default to the PHP mail() function - good.
 
     $mail->From = $admin_email;
+    $mail->Sender = $admin_email;
     $mail->FromName = $system_name;
     $mail->AddReplyTo( $session->email, $session->fullname );
 

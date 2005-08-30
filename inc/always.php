@@ -6,9 +6,9 @@ $warn_msg = "";
 $client_messages = array();
 
 error_log( "=============================================== Start $PHP_SELF" );
-include_once("../config/config.php");
-
+require_once("../config/config.php");
 require_once("PgQuery.php");
+require_once("html-format.php");
 
 $left_panel = true;
 $right_panel = false;

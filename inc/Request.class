@@ -2,7 +2,6 @@
 /////////////////////////////////////////////////////////////
 //   C L A S S   F O R   W O R K   R E Q U E S T S
 /////////////////////////////////////////////////////////////
-require_once("html-format.php");
 require_once("guess-file-type.php");
 require_once('class.phpmailer.php');
 require_once("organisation-selectors-sql.php");
@@ -1467,7 +1466,7 @@ class Request {
 
     $qry = new PgQuery( ( $db_errors ? "ROLLBACK;" : "COMMIT;") );  $qry->Exec("WR::Write");
     if ( $db_errors ) {
-      $client_messages[] = "ERROR: Database problem  - Request not written.";
+      $client_messages[] = "ERROR: Request not written.##RequestNotWritten##";
     }
     else {
       $client_messages[] = "Request details written.";
@@ -1776,8 +1775,6 @@ EOX
   function ApproveQuotes( $approvals ) {
     global $session, $client_messages;
 
-    if ( !$this->AllowedTo('ApproveQuotes') ) return true;
-
     $sql = "";
     $messages = array();
     foreach ( $approvals AS $quote_id => $quote_status ) {
@@ -1786,6 +1783,7 @@ EOX
 
         if ( !$this->AllowedTo('approvequotes') ) {
           $client_messages[] = "You are not authorised to approve quotes for this request.##AuthApproveQuotes##";
+          $session->Log( "DBG: WR::ApproveQuotes: Quote $quote_id may not be approved by $session->fullname" );
           return false;
         }
 
@@ -1803,11 +1801,13 @@ EOX
     }
 
     if ( $sql != "" ) {
+/*
       $qry = new PgQuery( $sql ) ;
       if ( ! $qry->Exec('WR::ApproveQuotes') ) {
         $client_messages[] = "$qry->errorstring";
         return false;
       }
+*/
       $client_messages = $client_messages + $messages;
     }
 

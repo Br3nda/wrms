@@ -51,10 +51,8 @@
   $show_details = ($format == "ultimate" || $format == "detailed" || "$format" == "activity" || "$format" == "quotes" );
   $show_quotes = ( $format == "ultimate" || "$format" == "activity" || "$format" == "quotes" );
   $show_work = ( ($format == "ultimate" || "$format" == "activity" ) &&  is_member_of('Admin', 'Support' ) );
-  if ( $show_details ) {
-    include("html-format.php");
-  }
-  else
+
+  if ( ! $show_details )
     header_row();
 
 

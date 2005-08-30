@@ -1,5 +1,4 @@
 <?php
-  include("html-format.php");
 function nice_time( $in_time ) {
   /* does nothing yet... */
   return substr("$in_time", 2);

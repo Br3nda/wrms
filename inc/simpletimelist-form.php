@@ -1,5 +1,4 @@
 <?php
-  include("html-format.php");
   include( "user-list.php" );
 function nice_time( $in_time ) {
   /* does nothing yet... */

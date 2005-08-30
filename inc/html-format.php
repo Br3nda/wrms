@@ -13,6 +13,27 @@ function html_format_url($matches)
 }
 
 
+function make_help_link($matches)
+{
+  // as usual: $matches[0] is the complete match
+  // $matches[1] the match for the first subpattern
+  // enclosed in '##...##' and so on
+  // Use like: $s = preg_replace_callback("/##([^#]+)##", "make_help_link", $s);
+//  $help_topic = preg_replace( '/^##(.+)##$/', '$1', $matches[1]);
+  $help_topic = $matches[1];
+  $display_url = $help_topic;
+  if ( $GLOBALS['session']->AllowedTo("Admin") || $GLOBALS['session']->AllowedTo("Support") ) {
+    if ( strlen($display_url) > 30 ) {
+      $display_url = substr( $display_url, 0, 28 ) . "..." ;
+    }
+  }
+  else {
+    $display_url = "help";
+  }
+  return " <a class=\"help\" href=\"/help.php?h=$help_topic\" title=\"Show help on '$help_topic'\" target=\"_new\">[$display_url]</a> ";
+}
+
+
 function html_format( $instr ) {
 global $colors;
 

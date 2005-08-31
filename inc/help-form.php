@@ -37,8 +37,15 @@
       }
       else {
         $submitlabel = "Add New Help";
-        echo "<h1>Help about $topic</h1>";
-        echo "<h2> It seems this help hasn't been written yet :-(</h2>\n";
+        echo <<<EOHTML
+<h1>Help about $topic</h1>
+<h2> It seems this help hasn't been written yet :-(</h2>
+<p>Could you please <u><a href="mailto:$admin_email?Subject=Help needed for $base_dns$REQUEST_URI&Body=Please add some help here:%0A%0A%20%20%20&lt;$base_dns$REQUEST_URI&gt;%0A%0AThanks,%0A$session->fullname">
+e-mail $admin_email to request the help</a></u> to be written.</p>
+<p>Thanks</p>
+
+EOHTML;
+
       }
       if ( is_member_of('Admin','Support') ) {
         $seq = intval($seq);

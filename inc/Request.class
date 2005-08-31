@@ -1495,8 +1495,7 @@ class Request {
     }
 
     $mail = &new phpmailer ();
-    // $mail->IsSendmail();  // Use sendmail to send
-    // We use neither, and it will default to the PHP mail() function - good.
+    $mail->IsSMTP();      // Use internal SMTP since it seems most reliable
 
     $mail->From = $admin_email;
     $mail->Sender = $admin_email;
@@ -1514,7 +1513,6 @@ class Request {
       }
     }
     if ( isset($debug_email) ) {
-      $mail->IsSMTP();      // Use internal SMTP to send for debugging
       $mail->AddAddress( $debug_email, "WRMS EMail Testing" );
     }
 

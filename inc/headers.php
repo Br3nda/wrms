@@ -1,7 +1,7 @@
 <?php
 function send_headers() {
   global $colors, $fontsizes, $fonts, $stylesheet, $error_message, $warn_message, $client_messages;
-  global $title, $style, $left_panel, $right_panel, $images, $tmnu, $settings, $session;
+  global $title, $style, $left_panel, $right_panel, $images, $tmnu, $settings, $session, $help_url;
 
   $now = time();
   Header("Last-Modified: " . gmdate( "D, d M Y H:i:s T", $now) );
@@ -122,7 +122,7 @@ th.cols, th.rows, a.cols  {font: small-caps bold $fontsizes[1] $fonts[0], sans-s
             </table>
           </td>
           <td width="28%"><font size=1>&nbsp;</font></td>
-          <td width="32%" align="right"><a href="/help.php?h=<?php echo str_replace(".php","",$PHP_SELF); ?>"><img src="<?php echo $images; ?>/help.gif" width="101" height="19" border=0></a></td>
+          <td width="32%" align="right"><a href="/help.php?h=<?php echo $help_url); ?>"><img src="<?php echo $images; ?>/help.gif" width="101" height="19" border=0></a></td>
         </tr>
       </table>
     </td>

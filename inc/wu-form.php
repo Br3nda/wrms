@@ -70,7 +70,7 @@
       $query = "";
       while( list($k, $v) = each($words) ) {
         if ( $query != "" ) $query .= "UNION ";
-        $query .= "SELECT * FROM infonode WHERE LOWER(nodename) ~ '^$v' ";
+        $query .= "SELECT * FROM infonode WHERE LOWER(nodename) ~ '$v' ";
       }
       $query .= "LIMIT 100;";
       echo "<p>I can't find an exact match for \"$nodename\" but perhaps one of these is the answer you need:";

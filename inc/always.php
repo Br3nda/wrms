@@ -16,7 +16,7 @@ $hurl = "";
 if ( !isset($request_id) ) $request_id= 0;
 if ( !isset($style) ) $style = "";
 $request_id = intval(preg_replace('/[^0-9]/', '//', $request_id));
-
+$help_url = "/help.php?h=". str_replace(".php","",$PHP_SELF);
 
   if ( (! isset($L) || "$L" == "") && (!isset($E) || "$E" == "") && (! isset($M) || "$M" == "LC" ) ) {
     // Not a login after all.

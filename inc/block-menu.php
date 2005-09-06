@@ -13,7 +13,7 @@ function menu_break_line() {
 }
 
 function show_sidebar_menu() {
-  global $session, $hurl, $lsid;
+  global $session, $hurl, $lsid, $help_url;
 
   menu_url_line("/wr.php", "Enter a new work request into the system.", "New Request", "head" );
   $tooltip = "A comprehensive search facility for reporting on work requests.";
@@ -47,6 +47,7 @@ function show_sidebar_menu() {
   }
 
   menu_break_line();
+  menu_url_line($help_url, "Help on this screen", "Help" );
   $tooltip = "Maintain your name, phone and e-mail details, or change your password";
   menu_url_line("user.php?edit=1&user_no=$session->user_no", $tooltip, "Edit My Info" );
 

@@ -113,7 +113,7 @@ class User {
         break;
 
       default:
-        return ( isset($session->roles[$whatever]) && $session->roles[$whatever] );
+        return ( isset($this->roles[$whatever]) && $this->roles[$whatever] );
     }
     // By default, they ain't allowed...
     return false;
@@ -314,7 +314,7 @@ class User {
 
 
   function RenderSystemRoles( $ef ) {
-    global $session;
+    global $session, $debuggroups;
     $html = "";
 
     $sql = "SELECT lookup_code, lookup_desc FROM lookup_code ";
@@ -338,12 +338,18 @@ class User {
     if ( ($session->AllowedTo('Admin') || $session->AllowedTo('Support'))
                       && ($this->AllowedTo('Admin') || $this->AllowedTo('Support')) ) {
       // Actually, we do nothing in this case...
+      if ( isset($debuggroups['User']) && $debuggroups['User'] )
+        $session->Log("DBG: Admin/Support maintains Admin/Support person.  All systems shown");
     }
     elseif ( $session->AllowedTo('Admin') || $session->AllowedTo('Support') ) {
       $sql .= "AND EXISTS( SELECT 1 from org_system WHERE org_system.org_code = $this->org_code AND org_system.system_code = work_system.system_code) ";
+      if ( isset($debuggroups['User']) && $debuggroups['User'] )
+        $session->Log("DBG: Admin/Support maintains non Admin/Support person.  Org related systems only shown");
     }
     else {
       $sql .= "AND EXISTS( SELECT 1 from org_system WHERE org_system.org_code = $session->org_code AND org_system.system_code = work_system.system_code) ";
+      if ( isset($debuggroups['User']) && $debuggroups['User'] )
+        $session->Log("DBG: non Admin/Support maintains person.  Maintainer org related systems only shown");
     }
     $sql .= "ORDER BY lower(work_system.system_code)";
 

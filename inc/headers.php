@@ -122,7 +122,7 @@ th.cols, th.rows, a.cols  {font: small-caps bold $fontsizes[1] $fonts[0], sans-s
             </table>
           </td>
           <td width="28%"><font size=1>&nbsp;</font></td>
-          <td width="32%" align="right"><a href="/help.php?h=<?php echo $help_url); ?>"><img src="<?php echo $images; ?>/help.gif" width="101" height="19" border=0></a></td>
+          <td width="32%" align="right"><a href="/help.php?h=<?php echo $help_url; ?>"><img src="<?php echo $images; ?>/help.gif" width="101" height="19" border=0></a></td>
         </tr>
       </table>
     </td>

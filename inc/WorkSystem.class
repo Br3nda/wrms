@@ -2,6 +2,10 @@
 /////////////////////////////////////////////////////////////
 //   C L A S S   F O R   W O R K S Y S T E M
 /////////////////////////////////////////////////////////////
+function clean_system_code( $dirty ) {
+  return str_replace("'","",str_replace("\\","",trim("$dirty")));
+}
+
 class WorkSystem {
   var $system_code;
   var $new_record;
@@ -12,7 +16,7 @@ class WorkSystem {
     if ( !$session->logged_in ) return false;
     $this->new_record = true;
 
-    $id = str_replace("'","",str_replace("\\","",trim("$id")));
+    $id = clean_system_code("$id");
     if ( $id != "" ) {
       // Try and load it from file
       $this->ReadWorkSystem($id);
@@ -239,6 +243,7 @@ class WorkSystem {
 
    function Write( $ef ) {
      global $client_messages;
+     global $old_system_code, $new_system_code;
      error_log("$system_name: vpw: DBG: Writing work_system form details to database");
      $client_messages[] = "Writing system details to database.";
      $this->chtype = strtolower($_POST['submit']);
@@ -249,7 +254,11 @@ class WorkSystem {
      $qry = new PgQuery($sql);
      if ( !$qry->Exec("Sys::Write") )       $client_messages[] = "ERROR: $qry->errorstring";
      else if ( "create" == $this->chtype ) {
-       $this->system_code = $_POST['system_code'];
+       $this->system_code = clean_system_code($_POST['system_code']);
+       $GLOBALS['system_code'] = $this->system_code;
+     }
+     else if ( "update" == $this->chtype ) {
+       $this->system_code = $new_system_code;
        $GLOBALS['system_code'] = $this->system_code;
      }
 
@@ -259,6 +268,14 @@ class WorkSystem {
          $organisations .= ( "$organisations" == "" ? "" : ", " );
          $organisations .= "'" . str_replace("'","''",str_replace('\\','', $k)) . "'";
        }
+     }
+     if ( isset($old_system_code) ) {
+       // The system code has changed, and we need to do stuff to make it work...
+       $sql = "UPDATE org_system SET system_code = '$new_system_code' WHERE system_code = '$old_system_code'; ";
+       $sql .= "UPDATE system_usr SET system_code = '$new_system_code' WHERE system_code = '$old_system_code'; ";
+       $sql .= "UPDATE request SET system_code = '$new_system_code' WHERE system_code = '$old_system_code'; ";
+       $qry = new PgQuery($sql);
+       if ( !$qry->Exec("Sys::Write") ) $client_messages[] = "ERROR: $qry->errorstring";
      }
      $sql = "DELETE FROM org_system WHERE system_code = '$this->system_code' AND org_code NOT IN ( $organisations ); ";
      $qry = new PgQuery($sql);
@@ -273,7 +290,6 @@ class WorkSystem {
      if ( !$qry->Exec("Sys::Write") ) $client_messages[] = "$qry->errorstring";
 
      $qry = new PgQuery("COMMIT; ROLLBACK;");  $qry->Exec("Sys::Write");
-
      return true;
    }
 

@@ -39,8 +39,8 @@
 
         echo "<td align=center>&nbsp;$thissession->session_id&nbsp;</td>\n";
 
-        echo "<td>&nbsp;<a href=\"user.php?user_no=$thissession->user_no\">$thissession->full_name";
-        if ( "$thissession->full_name" == "" ) echo "$thissession->username";
+        echo "<td>&nbsp;<a href=\"user.php?user_no=$thissession->user_no\">$thissession->fullname";
+        if ( "$thissession->fullname" == "" ) echo "$thissession->username";
         echo "</a>&nbsp;</td>\n";
 
         echo "<td>" . nice_date($thissession->session_start) . "</td>\n";

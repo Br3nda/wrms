@@ -14,6 +14,10 @@
 
   // Initialise variables.
   include("system-list.php");
+  
+  if ( !isset($from_date) ) $from_date = "";
+  if ( !isset($to_date) )   $to_date   = "";
+  
 
   if ( is_member_of('Admin', 'Support' ) ) {
     $system_list = get_system_list( "", "$system_code");
@@ -29,7 +33,7 @@
 ?>
 
 <form  method="POST" action="<?php echo $PHP_SELF; ?>" class=row1>
-  <table align=center>
+  <table alignx=center>
     <tr>
       <td class=smb>System</td>
       <td class=sml>
@@ -77,10 +81,17 @@
   }
 ?>
     </tr>
+  </table>
+  <table>
     <tr>
       <td class=sml><input type=radio value=invoiced name=invoiced<?php if ("$invoiced" == "invoiced") echo " checked";?>>Invoiced</td>
       <td class=sml><input type=radio value=uninvoiced name=invoiced<?php if ("$invoiced" == "uninvoiced") echo " checked";?>>Uninvoiced</td>
       <td class=sml><input type=radio value=both name=invoiced<?php if ("$invoiced" == "both") echo " checked";?>>Both</td>
+      <td class=smb>Work From Date</td>
+      <td class=sml><input type=text name=from_date value=<?php echo $from_date;?> size=10></td>
+      <td class=smb>Work To Date</td>
+      <td class=sml><input type=text name=to_date value=<?php echo $to_date;?> size=10></td>
+      
     </tr>
   </table>
 </form>
@@ -161,6 +172,10 @@
       $w_query .= " FROM request_timesheet rt WHERE rt.request_id = " . $row["id"] ;
       if ("$invoiced" == "invoiced") $w_query .= " AND rt.charged_details IS NOT null ";
       else if ("$invoiced" == "uninvoiced") $w_query .= " AND rt.charged_details IS null ";
+
+      if ( "$from_date" != "" ) $w_query .= " AND rt.work_on >= '$from_date' ";
+      if ( "$to_date"   != "" ) $w_query .= " AND rt.work_on <= '$to_date' ";
+      
       $w_query .= " GROUP BY rt.work_units, rt.charged_details ";
       $w_result = awm_pgexec( $dbconn, $w_query, "billing.work", false, 7 );
       $numrows_w_result = pg_numrows($w_result) ;
@@ -172,6 +187,11 @@
       $lw_query .= " JOIN request_timesheet rt ON rt.request_id = rr.to_request_id ";
       if ("$invoiced" == "invoiced") $lw_query .= " AND rt.charged_details IS NOT null AND rt.charged_details <> ''";
       else if ("$invoiced" == "uninvoiced") $lw_query .= " AND (rt.charged_details IS null OR rt.charged_details = '')";
+      
+      if ( "$from_date" != "" ) $lw_query .= " AND rt.work_on >= '$from_date' ";
+      if ( "$to_date"   != "" ) $lw_query .= " AND rt.work_on <= '$to_date' ";
+      
+      
       $lw_query .= " LEFT OUTER JOIN request r ON r.request_id = rr.to_request_id ";
       $lw_query .= " LEFT OUTER JOIN lookup_code lc ON lc.source_table = 'request' AND lc.source_field = 'status_code' AND lc.lookup_code  = r.last_status";
       $lw_query .= " WHERE rr.request_id = " . $row["id"] ;

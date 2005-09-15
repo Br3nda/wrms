@@ -3,7 +3,9 @@ require_once("always.php");
 require_once("authorisation-page.php");
 require_once("organisation-selectors-sql.php");
 
-header( 'Cache-control: private' );
+header( 'Expires: ' . gmdate( 'D, d M Y H:i:s T') );
+header( 'Cache-control: max-age=1, private' );
+header( 'Pragma: no-cache' );
 
 if ( !$session->logged_in ) {
   // Very quiet

@@ -88,9 +88,9 @@
       <td class=sml><input type=radio value=uninvoiced name=invoiced<?php if ("$invoiced" == "uninvoiced") echo " checked";?>>Uninvoiced</td>
       <td class=sml><input type=radio value=both name=invoiced<?php if ("$invoiced" == "both") echo " checked";?>>Both</td>
       <td class=smb>Work From Date</td>
-      <td class=sml><input type=text name=from_date value=<?php echo $from_date;?> size=10></td>
+      <td class=sml><input type=text name=from_date size=10<?php if ("$from_date" != "") echo " value=$from_date";?>></td>
       <td class=smb>Work To Date</td>
-      <td class=sml><input type=text name=to_date value=<?php echo $to_date;?> size=10></td>
+      <td class=sml><input type=text name=to_date size=10<?php if ("$to_date" != "") echo " value=$to_date";?>></td>
       
     </tr>
   </table>

@@ -94,6 +94,9 @@ th.cols, th.rows, a.cols  {font: small-caps bold $fontsizes[1] $fonts[0], sans-s
   }
 
   echo "--></style>\n";
+  echo "<style type=\"text/css\" media=\"print\"><!--\n";
+  echo ".noprint, #topbar, #searchbar, #top_menu { display: none; }\n";
+  echo "--></style>\n";
 
   // Now start the body
   echo "</head>\n";
@@ -134,7 +137,7 @@ th.cols, th.rows, a.cols  {font: small-caps bold $fontsizes[1] $fonts[0], sans-s
     // The left hand sidebar.
     if ( $left_panel ) {
       echo "<table border=\"0\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\"><tr bgcolor=$colors[bg1]>\n";
-      echo "<td width=\"10%\" valign=\"top\" class=sidebarleft>";
+      echo "<td width=\"10%\" valign=\"top\" class=\"noprint sidebarleft\">";
       if ( !isset($error_qry) || "$error_qry" == "" ) {
         include("sidebarleft.php");
       }

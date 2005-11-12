@@ -501,11 +501,13 @@ class Request {
 
     // Requested By Date
     $html .= $ef->DataEntryLine( "Requested By", $this->requested_by_date, "date", "requested_by_date",
-              array("title" => "The date that you would like this request completed by") );
+              array("title" => "The date that you would like this request completed by",
+                        "onblur" => "this.value=CheckDate(this)" ) );
 
     // Agreed Due Date
     $html .= $ef->DataEntryLine( "Agreed Due", $this->agreed_due_date, "date", "agreed_due_date",
-              array("title" => "The date that has been agreed that the request will be completed by / on") );
+              array("title" => "The date that has been agreed that the request will be completed by / on",
+                        "onblur" => "this.value=CheckDate(this)" ) );
 
     // Detailed description
     $html .= $ef->DataEntryLine( "Details", str_replace('%','%%', html_format($this->detailed)), "textarea", "detailed",

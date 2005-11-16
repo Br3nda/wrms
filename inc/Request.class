@@ -24,7 +24,7 @@ function simplify_string( $str ) {
       $result = htmlentities($result);
     }
     else {
-      while( preg_match( "&amp;", $result ) ) {
+      while( preg_match( "/&amp;/", $result ) ) {
         $result = str_replace("&amp;", "&", $result );
       }
       $amp = "xXxXx-AMPERSAND-SILLINESS-xXxXx";

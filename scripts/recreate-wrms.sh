@@ -9,7 +9,7 @@ sudo pkill -f 'postgres: .* idle'
 dropdb $DATABASE
 echo " Creating new database..."
 createdb --encoding "SQL_ASCII" $DATABASE
-/usr/lib/postgresql/bin/createlang plpgsql ${DATABASE}
+createlang plpgsql ${DATABASE}
 
 echo " Creating database structures..."
 psql -q -f create-wrms.sql -d $DATABASE 2>&1 | grep -v "will create implicit " | grep -v "RemoveFunction"

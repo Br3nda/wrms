@@ -368,6 +368,7 @@ function column_header( $ftext, $fname ) {
   require_once("headers.php");
 
 if ( ! is_member_of('Request') || ((isset($error_msg) || isset($error_qry)) && "$error_msg$error_qry" != "") ) {
+  // error_log( "Error: Msg:$error_msg, Qry:$error_qry, Membership: ".is_member_of('Request'));
   include( "error.php" );
 }
 else {
@@ -624,7 +625,7 @@ $query";
 
     $query .= " ORDER BY $rlsort $rlseq ";
     $query .= " LIMIT $maxresults ";
-//    echo "<p>$query</p>";
+//    echo "<p>Query:<br />$query</p>";
 
     $result = awm_pgexec( $dbconn, $query, "requestlist", false, 7 );
 

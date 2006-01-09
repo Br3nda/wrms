@@ -70,8 +70,8 @@ $fonts = array( "tahoma",               // primary font
                 "block" => "tahoma");   // block font
 
 
-// Set the bebug variable initially to '0'. This variable is made available 
-// to all local routines for verbose printing. 
+// Set the bebug variable initially to '0'. This variable is made available
+// to all local routines for verbose printing.
 if ( !isset($debuglevel) ) $debuglevel = 0;
 
 
@@ -122,7 +122,7 @@ function local_page_header() {
   echo '<div id="topbar"><a href="/"><img src="'.$images.'/pwl-logo.png" width="252" height="60" border="0"></a></div>'."\n";
   if ( $session->logged_in /* && !preg_match( "/(requestlist|wrsearch)\.php/i", $GLOBALS['REQUEST_URI'] ) */ ) {
     echo '<div id="searchbar">';
-    echo '<form action="/requestlist.php" method="post" name="search">';
+    echo '<form action="/wrsearch.php" method="post" name="search">';
 
     echo '<span class="prompt" style="vertical-align: 0%;">Find:</span>';
     echo '<span class="entry"><input class="search_for" type="text" name="search_for" value="'.$GLOBALS['search_for'].'"/></span>';

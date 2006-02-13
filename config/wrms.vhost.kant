@@ -9,6 +9,7 @@
   Alias /images/ /home/andrew/wrms/html/images/
   php_value include_path /home/andrew/wrms/inc
   php_value magic_quotes_gpc 0
+  php_value register_globals 1
 </VirtualHost>
 
 

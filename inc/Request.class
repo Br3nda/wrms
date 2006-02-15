@@ -414,7 +414,7 @@ class Request {
   //   on the W/R.
   /////////////////////////////////////////////////////////////
   function Render( ) {
-    global $session;
+    global $session, $schema_version;
     $html = "";
 
     $ef = new EntryForm( $REQUEST_URI, $this, $GLOBALS['edit'] );
@@ -437,6 +437,9 @@ class Request {
     $html .= $this->RenderTimesheets($ef);
     $html .= $this->RenderInterests($ef);
     $html .= $this->RenderTags($ef);
+    if ( $schema_version >= 1099.007 ) {
+      $html .= $this->RenderQAActions($ef);
+    }
     $html .= $this->RenderNotes($ef);
     $html .= $this->RenderStatuses($ef);
 
@@ -1185,6 +1188,51 @@ class Request {
   }
 
   /////////////////////////////////////////////////////////////
+  // Display the QA Actions and entry panel
+  /////////////////////////////////////////////////////////////
+  function RenderQAActions( $ef ) {
+    global $session;
+    $html = "";
+    $sql = "SELECT request_qa_action.*, ru.fullname AS qa_action_by, ";
+    $sql .= "to_char(action_on, 'HH24:MI DD-MM-YYYY') AS qa_action_on ";
+    $sql .= "FROM request_qa_action ";
+    $sql .= "LEFT OUTER JOIN usr ru ON ( request_qa_action.action_by = ru.user_no ) ";
+    $sql .= "WHERE request_id = $this->request_id ";
+    $sql .= "ORDER BY request_id, action_on";
+    # Select the records
+    $q = new PgQuery($sql);
+    $q->Exec('WR::QAAction');
+    if ( $ef->editmode || $q->rows )
+      $html .= $ef->BreakLine("QA Actions");
+    if ( $q->rows ) {
+      $html .= '<tr><th class="prompt">&nbsp;</th><td><table width="100%" class="entry">'."\n";
+      $html .= '<tr><th class="pcol">Action By/On</th>';
+      $html .= '<th class="pcol">Details</th></tr>'."\n";
+      $line_format = '<tr class="row%d"><td class="entry" width="8%%" style="white-space: nowrap;">%s<br />%s</td>';
+      $line_format .= '<td class="entry">%s</td></tr>'."\n";
+      while( $row = $q->Fetch() ) {
+        $html .= sprintf( $line_format,
+                    ($q->rownum % 2), $row->qa_action_by, $row->qa_action_on, html_format($row->action_detail)
+                  );
+      }
+      $html .= '</table></td></tr>'."\n";
+    }
+
+    if ( $ef->editmode ) {
+      $html .= '<tr><th class="prompt">&nbsp;<br />Add QA Action</th>'."\n";
+
+      // Enter the description
+      $html .= '<td class="entry">';
+      $html .= $ef->DataEntryField( "", "textarea", "action_detail",
+                array("title" => "Enter the details of some QA activity that has happened for this WR.", "cols" => 70, "rows" => 4 ) );
+      $html .= '</td>';
+      $html .= "</tr>\n";
+
+    }
+    return $html;
+  }
+
+  /////////////////////////////////////////////////////////////
   // Display the notes + notes entry panel
   /////////////////////////////////////////////////////////////
   function RenderNotes( $ef ) {
@@ -1221,7 +1269,7 @@ class Request {
       $html .= '<tr><th class="prompt">&nbsp;<br />Add Note</th><td><table width="100%" class="entry"><tr>'."\n";
 
       // Enter the description
-      $html .= '<tr><td class="entry">';
+      $html .= '<td class="entry">';
       $html .= $ef->DataEntryField( "", "textarea", "note_detail",
                 array("title" => "Enter a note for this request", "cols" => 70, "rows" => 10 ) );
       $html .= '</td>';
@@ -1229,7 +1277,9 @@ class Request {
       $html .= '<td class="entry">';
       $html .= $ef->DataEntryField( "", "checkbox", "preserve_html",
                 array("title" => "Preserve the raw HTML so that it is inlined, and the HTML codes will not be visible" ) );
-      $html .= 'Preserve HTML</td></table>';
+      $html .= 'Preserve HTML</td>';
+
+      $html .= "</tr></table></td></tr>\n";
 
     }
     return $html;
@@ -1389,7 +1439,7 @@ class Request {
   // ones used for displaying the form.
   /////////////////////////////////////////////////////////////
   function Write( $ef ) {
-    global $client_messages, $request_id, $session;
+    global $client_messages, $request_id, $session, $schema_version;
     error_log("$system_name: WR::Write: Writing request details to database");
     $qry = new PgQuery("BEGIN");  $qry->Exec("WR::Write");
 
@@ -1427,6 +1477,12 @@ class Request {
 
         if ( !$db_errors && isset($_POST['note_detail']) && trim($_POST['note_detail']) != "" ) {
           $db_errors = ! $this->AddNote();
+        }
+
+        if ( $schema_version >= 1099.007 ) {
+          if ( !$db_errors && isset($_POST['action_detail']) && trim($_POST['action_detail']) != "" ) {
+            $db_errors = ! $this->AddQAAction();
+          }
         }
 
         if ( !$db_errors &&
@@ -2213,6 +2269,31 @@ EOX
     $client_messages[] = "Note added to request";
     $this->mail_message_data[]['html'] = "<h3>$session->fullname noted:</h3><p>".html_format($note_detail)."</p>\n";
     $this->mail_message_data[]['text'] = "$session->fullname noted that:\n$note_detail\n";
+
+    $this->send_an_email = true;
+
+    return true;
+  }
+
+  /////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////
+  function AddQAAction( ) {
+    global $session, $client_messages;
+    error_log( "$sysabbr Request::AddQAAction: DBG: QA Action added to request", 0);
+
+    $action_detail = $_POST['action_detail'];
+    $action_detail = htmlspecialchars($action_detail);
+
+    $sql = "INSERT INTO request_qa_action ( request_id, action_on, action_by, action_detail ) ";
+    $sql .= "VALUES( ?, current_timestamp, ?, ? );";
+    $qry = new PgQuery( $sql, $this->request_id, $session->user_no, $action_detail ) ;
+    if ( ! $qry->Exec('WR::NewQAAction') ) {
+      $client_messages[] = "$qry->errorstring";
+      return false;
+    }
+    $client_messages[] = "QA Action added to request";
+    $this->mail_message_data[]['html'] = "<h3>$session->fullname added QA action:</h3><p>".html_format($action_detail)."</p>\n";
+    $this->mail_message_data[]['text'] = "$session->fullname added QA action:\n$action_detail\n";
 
     $this->send_an_email = true;
 

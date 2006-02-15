@@ -263,5 +263,7 @@
       <openfolder url="scripts" />
       <openfolder url="scripts/patches" />
     </treestatus>
+    <item url="scripts/patches/patch-1.99.7.sql" uploadstatus="1" />
+    <annotations/>
   </project>
 </webproject>

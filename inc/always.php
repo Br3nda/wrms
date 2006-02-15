@@ -10,6 +10,12 @@ require_once("../config/config.php");
 require_once("PgQuery.php");
 require_once("html-format.php");
 
+$schema_version = 0;
+$qry = new PgQuery( "SELECT schema_major, schema_minor, schema_patch FROM wrms_revision ORDER BY schema_id DESC LIMIT 1;" );
+if ( $qry->Exec("always") && $row = $qry->Fetch() ) {
+  $schema_version = floatval( sprintf( "%d%03d.%03d", $row->schema_major, $row->schema_minor, $row->schema_patch) );
+}
+
 $left_panel = true;
 $right_panel = false;
 $hurl = "";
@@ -113,11 +119,6 @@ function awm_pgexec( $myconn, $query, $location="", $abort_on_fail=FALSE, $mydbg
   return $result;
 }
 
-
-//-----------------------------------------
-// Force inheirtance to 'off'
-//-----------------------------------------
-// awm_pgexec( $dbconn, "SET SQL_Inheritance TO OFF;", "always" );
 
 //-----------------------------------------
 // Handle nicer date formatting.  Note global call to set

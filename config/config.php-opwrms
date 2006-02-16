@@ -1,7 +1,7 @@
 <?php
 
-$dbconn = pg_Connect("dbname=opwrms user=general");
-$pg_version = 7.2;
+$dbconn = pg_Connect("host=dewey.db dbname=opwrms user=general");
+$pg_version = 7.4;
 
 $admin_email = "moodlehost@catalyst.net.nz";
 $basefont = "verdana,sans-serif";
@@ -58,6 +58,11 @@ $fonts = array( "tahoma",   // primary font
 // to all local routines for verbose printing.
 if ( !isset($debuglevel) ) $debuglevel = 2;
 
+if ( !function_exists('floatval') ) {
+  function floatval($x) {
+    return doubleval($x);
+  }
+}
 
 
 //-----------------------------------------

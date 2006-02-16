@@ -21,7 +21,7 @@ $base_dns = "http://$HTTP_HOST";
 $base_url = "";
 $external_base_url = "http://worms2.election.net.nz";
 $base_dir = $DOCUMENT_ROOT;
-$attachment_dir = "/home/worms/worms/html/attachments";
+$attachment_dir = "/home/worms/attachments";
 $module = "base";
 $images = "eecimg";
 $colors = array(
@@ -61,6 +61,12 @@ $fonts = array( "tahoma",   // primary font
 // Set the bebug variable initially to '0'. This variable is made available
 // to all local routines for verbose printing.
 if ( !isset($debuglevel) ) $debuglevel = 2;
+
+if ( !function_exists('floatval') ) {
+  function floatval($x) {
+    return doubleval($x);
+  }
+}
 
 function block_open(  $bgcolor="", $border_color="") {
   echo '<div class="block">';

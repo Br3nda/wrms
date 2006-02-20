@@ -130,7 +130,10 @@ function nice_date($str) {
   if ( $str == "" ) return "";
   // HH:MM, D/M/CCYY through D/M/YY and most of the variations in between
   if ( preg_match('#^([[:digit:]]{1,2}:[[:digit:]]{2},? ?)?[[:digit:]]{1,2}/[[:digit:]]{1,2}/[[:digit:]]{2,4}#', $str) ) return $str;
-  return substr($str, 11, 5) . ", " . substr($str, 8, 2) . "/" . substr($str, 5, 2) . "/" . substr($str, 0, 4);
+  $time = trim(substr($str, 11, 5));
+  if ( $time != "" ) $time .= ", ";
+  $date = $time . substr($str, 8, 2) . "/" . substr($str, 5, 2) . "/" . substr($str, 0, 4);
+  return $date;
 }
 
 

@@ -44,7 +44,7 @@ function send_headers() {
   echo "A:hover { color: $colors[hv1];  }\n";
   echo ".bmenu $linkstyle font: small-caps bold $fontsizes[1] $fonts[1]; background: $colors[bg3]; color: $colors[fg3]; padding: 0px 1px 1px; margin: 0px 1px; }
 .block    {font: $fontsizes[1] $fonts[block], sans-serif; color: $colors[blockfront]; }
-hr.block  {line-height: 9px; margin: 0px; padding: 0px; width: 130px; image: url(/$images/menuBreak.gif); }
+hr.block  {line-height: 9px; margin: 0px; padding: 0px; width: 130px; background: url(/$images/menuBreak.gif); }
 img.block {height: 9px; margin: 0px; padding: 0px; width: 130px; clear: both }
 td.sidebarleft { color: white; background-color: $colors[blockback]; }
 .sml {font: $fontsizes[1] $fonts[narrow], sans-serif; }

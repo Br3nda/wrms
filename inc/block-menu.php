@@ -86,6 +86,9 @@ function show_sidebar_menu() {
     menu_url_line("/requestrank.php?qs=complex", $tooltip, "Request Ranking" );
   }
 
+  if ( is_member_of('Admin', 'Support' ) ) {
+    menu_url_line("/statuspie.php", 'A pie chart of request statuses for a period / system / organisation', "Status Pie" );
+  }
   block_close();
 }
 

@@ -60,4 +60,12 @@
 /*
   include("footers.php");
 */
+  error_reporting(7);
+  if ( $debuglevel > 0 ) {
+    $total_query_time = sprintf( "%3.06lf", $total_query_time );
+    error_log( "$sysabbr total_query_ TQ: $total_query_time URI: $REQUEST_URI", 0);
+    $total_time = sprintf( "%3.06lf", duration( $begin_processing, microtime() ));
+    error_log( "$sysabbr process_time TT: $total_time      Agent: $HTTP_USER_AGENT Referrer: $HTTP_REFERER  ", 0);
+    error_log( "=============================================== Endof $PHP_SELF" );
+  }
 ?>

@@ -15,15 +15,13 @@ class PieChart {
     $this->margin = 10;
     $this->font_height = 12;
     $this->total = 0;
-    $this->colorSlice = array('#FF0000','#00FF00','#0000FF','#FFFF00','#FF00FF','#00FFFF',
+    $this->colorSlice = array('#ee0000','#00ee00','#0000ee','#eeee00','#ee00ee','#00eeee',
                               '#bb0000','#00bb00','#0000bb','#bbbb00','#bb00bb','#00bbbb',
                               '#880000','#008800','#000088','#888800','#880088','#008888',
                              );
   }
 
   function _CirclePoint($degrees, $radius) {
-    //avoid problems with doubles
-    $degrees += 0.0001;
     $x = cos(deg2rad($degrees)) * $radius;
     $y = sin(deg2rad($degrees)) * $radius;
     return (array($x, $y));
@@ -43,16 +41,7 @@ class PieChart {
     }
     return $this->qry->rows;
   }
-/*
-   <!--Testing/Signoff: 13 (of 16) 0 to 293 degrees in #FF0000-->
-   <svg:path d="M 309,160 A 140,140 0 1 1 218,21 L 160,160 z" style="fill:#c50000" id="path6"/>
-   <!--New request: 1 (of 16) 293 to 315 degrees in #00FF00-->
-   <svg:path d="M 160,160 L 218,21 C 235.91977,28.460475 252.22119,39.328089 266,53 L 160,160 z " style="fill:#00ff00" id="path8"/>
-   <!--Catalyst Testing: 1 (of 16) 315 to 338 degrees in #0000FF-->
-   <svg:path d="M 160,160 L 266,53 C 280.25019,67.278128 291.474,84.283905 299,103 L 160,160 z " style="fill:#0000ff" id="path10"/>
-   <!--In Progress: 1 (of 16) 338 to 360 degrees in #FFFF00-->
-   <svg:path d="M 160,160 L 299,103 C 306.00161,121.17078 309.39815,140.53102 309,160 L 160,160 z " style="fill:#ffff00" id="path12"/>
-*/
+
   function RenderSlice( $name, $offset, $value, $colour_index ) {
 
       $StartDegrees = round(($offset / $this->total) * 360);
@@ -72,8 +61,8 @@ class PieChart {
 
       $floodstyle = (( ($value * 2) > $this->total ) ? 1 : 0 );
 
-      print("M " .  floor($CenterX + $StartX) . "," .  floor($CenterY + $StartY) ." ");
-      print("A $this->radius,$this->radius 0 $floodstyle 1 " .  floor($CenterX + $EndX) . "," .  floor($CenterY + $EndY) ." ");
+      print("M " .  ($CenterX + $StartX) . "," .  ($CenterY + $StartY) ." ");
+      print("A $this->radius,$this->radius 0 $floodstyle 1 " .  ($CenterX + $EndX) . "," .  ($CenterY + $EndY) ." ");
 
       //finish at center of circle
       print("L $CenterX,$CenterY ");
@@ -113,7 +102,7 @@ class PieChart {
                     print('"http://www.w3.org/TR/2000/03/WD-SVG-20000303/DTD/' .  'svg-20000303-stylable.dtd">' . "\n");
 
     //start SVG document, set size in "user units"
-    print("<svg xmlns=\"http://www.w3.org/2000/svg\" xml:space=\"preserve\" width=\"5in\" height=\"5in\" viewBox=\"0 0 $Width $Height\">\n");
+    print("<svg xmlns=\"http://www.w3.org/2000/svg\" xml:space=\"preserve\" >\n");
 
     /*
     ** make background rectangle
@@ -162,8 +151,6 @@ class PieChart {
 
   }
 }
-
-
 
 
 ?>

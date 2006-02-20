@@ -1,6 +1,6 @@
 <!DOCTYPE webproject>
 <webproject>
-  <project usePreviewPrefix="0" preview="http://mywrms/" previewPrefix="file:file%3A" type="Local" newfiles="php" name="WRMS" encoding="iso 8859-1" >
+  <project usePreviewPrefix="0" preview="http://mywrms/" type="Local" previewPrefix="file:file%3A" newfiles="php" name="WRMS" encoding="iso 8859-1" >
     <upload/>
     <author>Andrew McMillan</author>
     <email>wrms@catalyst.net.nz</email>
@@ -104,7 +104,6 @@
     <item url="html/robots.txt" uploadstatus="0" />
     <item url="scripts/" uploadstatus="0" />
     <item url="scripts/backup_wrms.sh" uploadstatus="0" />
-    <item url=".cvsignore" uploadstatus="0" />
     <item url="config/wrms.vhost.kant" uploadstatus="0" />
     <item url="config/wrms.vhost.popper" uploadstatus="0" />
     <item url="html/js/" uploadstatus="0" />
@@ -248,11 +247,6 @@
     <item url="scripts/patches/patch-1.99.4.sql" uploadstatus="1" />
     <item url="scripts/patches/patch-1.99.5.sql" uploadstatus="1" />
     <item url="scripts/patches/patch-1.99.6.sql" uploadstatus="1" />
-    <projectview name="request" >
-      <viewitem url="inc/Request.class" />
-      <viewitem url="inc/getrequest.php" />
-      <viewitem url="inc/search_listing_functions.php" />
-    </projectview>
     <item url="html/wiki.php" uploadstatus="1" />
     <item url="html/eduforge.css" uploadstatus="1" />
     <treestatus>
@@ -265,8 +259,9 @@
     </treestatus>
     <item url="scripts/patches/patch-1.99.7.sql" uploadstatus="1" />
     <annotations/>
-    <item url="config/config.php-irkutsk" />
+    <item url="config/config.php-irkutsk" uploadstatus="1" />
+    <item url="inc/PieClass.php" uploadstatus="1" />
+    <item url="html/statuspie-svg.php" />
     <item url="html/statuspie.php" />
-    <item url="inc/PieClass.php" />
   </project>
 </webproject>

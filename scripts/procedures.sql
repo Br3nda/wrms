@@ -192,7 +192,8 @@ CREATE or REPLACE FUNCTION active_org_requests ( int4 ) RETURNS int4 AS '
   SELECT count(request_id)::int4 FROM request, usr
     WHERE usr.org_code = $1
       AND request.requester_id = usr.user_no
-      AND request.active;
+      AND request.active
+      AND last_status NOT IN (''F'', ''C'');
 ' LANGUAGE 'sql';
 
 CREATE or REPLACE FUNCTION check_wrms_revision( INT, INT, INT ) RETURNS BOOLEAN AS '

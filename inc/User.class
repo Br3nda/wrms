@@ -179,8 +179,8 @@ class User {
     $html = "";
     $html .= $ef->BreakLine("System Details");
 
-    $html .= $ef->DataEntryLine( "User Name", "%s", "text", "xxxxusername",
-              array( "size" => 20, "title" => "The name this user can log into the system with.") );
+    $html .= $ef->DataEntryLine( "User Name", $this->username, "text", "username",
+              array( "size" => 20, "title" => "The name this user can log into the system with."), 'xxxx' );
     if ( $ef->editmode && $this->AllowedTo('ChangePassword') ) {
       $this->new_password = '******';
       unset($_POST['new_password']);
@@ -437,7 +437,7 @@ SCRIPT;
 
     if ( isset($_POST) ) {
       $valid = true;
-      $_POST['status'] = ( isset($_POST['active']) ? 'A' : 'I' );
+      $_POST['status'] = ( isset($_POST['active']) && ($_POST['active'] != 'off') ? 'A' : 'I' );
 
       if ( trim($_POST['fullname']) == "" ) {
         $client_messages[] = "ERROR: The full name may not be blank.";
@@ -527,7 +527,7 @@ SCRIPT;
     if ( isset($_POST['group_member']) && is_array($_POST['group_member']) ) {
       $groups = "";
       foreach( $_POST['group_member'] AS $k => $v ) {
-        if ( $v ) {
+        if ( $v && $v != "off" ) {
           $groups .= ( "$groups" == "" ? "" : ", " );
           $groups .= qpg($k);
         }

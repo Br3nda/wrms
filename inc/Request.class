@@ -433,9 +433,9 @@ class Request {
     $html .= $this->RenderAttachments($ef);
     $html .= $this->RenderQuotations($ef);
     $html .= $this->RenderRelations($ef);
+    $html .= $this->RenderInterests($ef);
     $html .= $this->RenderAllocations($ef);
     $html .= $this->RenderTimesheets($ef);
-    $html .= $this->RenderInterests($ef);
     $html .= $this->RenderTags($ef);
     if ( $schema_version >= 1099.007 ) {
       $html .= $this->RenderQAActions($ef);

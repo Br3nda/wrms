@@ -7,6 +7,9 @@ $client_messages = array();
 
 error_log( "=============================================== Start $PHP_SELF" );
 require_once("../config/config.php");
+$c->admin_email = $admin_email;
+$c->system_name = $system_name;
+
 require_once("PgQuery.php");
 require_once("html-format.php");
 

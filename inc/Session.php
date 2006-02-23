@@ -1,52 +1,62 @@
 <?php
-// Session handling
-// - set up the session object
+/**
+* Session handling class and associated functions
+*
+* This subpackage provides some functions that are useful around web
+* application session management.
+*
+* The class is intended to be as lightweight as possible while holding
+* all session data in the database:
+*  - Session hash is not predictable.
+*  - No clear text information is held in cookies.
+*  - Passwords are generally salted MD5 hashes, but individual users may
+*    have plain text passwords set by an administrator.
+*  - Temporary passwords are supported.
+*  - Logout is supported
+*  - "Remember me" cookies are supported, and will result in a new
+*    Session for each browser session.
+*
+* @package   awl
+* @subpackage   Session
+* @author    Andrew McMillan <andrew@catalyst.net.nz>
+* @copyright Andrew McMillan
+* @license   http://gnu.org/copyleft/gpl.html GNU GPL v2
+*/
 
-include_once('PgQuery.php');
-
-if ( isset($logout) || (isset($M) && $M=='LO') )
-{
-  error_log("$sysname: Session: DBG: Logging out");
-  setcookie( 'sid', '', 0,'/');
-  unset($sid);
-
-  if ( isset($forget) ) {
-    setcookie( 'lsid', '', 0,'/');
-    unset($lsid);
-  }
-}
+/**
+* All session data is held in the database.
+*/
+require_once('PgQuery.php');
 
 
-if ( !isset($session) ) {
-  $session = new Session();
-
-  if ( isset($username) && isset($password) ) {
-    // Try and log in if we have a username and password
-    $session->Login( $username, $password );
-    if ( $debuggroups['Login'] )
-      $session->Log( "DBG: User $username - $session->fullname ($session->user_no) login status is $session->logged_in" );
-  }
-  else if ( !isset($sid) && isset($lsid) && $lsid != "" ) {
-    // Validate long-term session details
-    $session->LSIDLogin( $lsid );
-    if ( $debuggroups['Login'] )
-      $session->Log( "DBG: User $username - $session->fullname ($session->user_no) login status is $session->logged_in" );
-  }
-}
-
+/**
+* Make a salted MD5 string, given a string and (possibly) a salt.
+*
+* If no salt is supplied we will generate a random one.
+*
+* @param string $instr The string to be salted and MD5'd
+* @param string $salt Some salt to sprinkle into the string to be MD5'd so we don't get the same PW always hashing to the same value.
+* @return string The salt, a * and the MD5 of the salted string, as in SALT*SALTEDHASH
+*/
 function session_salted_md5( $instr, $salt = "" ) {
-  global $sysabbr, $debuggroups;
+  global $debuggroups, $session;
   if ( $salt == "" ) $salt = substr( md5(rand(100000,999999)), 2, 8);
   if ( $debuggroups['Login'] )
-    error_log( "$sysabbr: DBG: Making salted MD5: salt=$salt, instr=$instr, md5($salt$instr)=".md5($salt . $instr) );
+    $session->Log( "DBG: Making salted MD5: salt=$salt, instr=$instr, md5($salt$instr)=".md5($salt . $instr) );
   return ( sprintf("*%s*%s", $salt, md5($salt . $instr) ) );
 }
 
+/**
+* Checks what a user entered against the actual password on their account.
+* @param string $they_sent What the user entered.
+* @param string $we_have What we have in the database as their password.  Which may (or may not) be a salted MD5.
+* @return boolean Whether or not the users attempt matches what is already on file.
+*/
 function session_validate_password( $they_sent, $we_have ) {
-  global $system_name, $debuggroups;
+  global $debuggroups, $session;
 
   if ( $debuggroups['Login'] )
-    error_log( "$system_name: Session: DBG: Comparing they_sent=$they_sent with $we_have" );
+    $session->Log( "DBG: Comparing they_sent=$they_sent with $we_have" );
 
   // In some cases they send us a salted md5 of the password, rather
   // than the password itself (i.e. if it is in a cookie)
@@ -67,7 +77,7 @@ function session_validate_password( $they_sent, $we_have ) {
     $salt = $regs[1];
     $md5_sent = session_salted_md5( $they_sent, $salt ) ;
     if ( $debuggroups['Login'] )
-      error_log( "$system_name: Session-vpw: DBG: Salt=$salt, comparing=$md5_sent with $pwcompare or $we_have" );
+      $session->Log( "DBG: Salt=$salt, comparing=$md5_sent with $pwcompare or $we_have" );
     return ( $md5_sent == $pwcompare );
   }
 
@@ -79,27 +89,136 @@ function session_validate_password( $they_sent, $we_have ) {
   return ( $they_sent == $pwcompare || strtolower($they_sent) == strtolower($we_have) );
 }
 
+/**
+* Checks what a user entered against any currently valid temporary passwords on their account.
+* @param string $they_sent What the user entered.
+* @param int $user_no Which user is attempting to log on.
+* @return boolean Whether or not the user correctly guessed a temporary password within the necessary window of opportunity.
+*/
+function check_temporary_passwords( $they_sent, $user_no ) {
+  global $debuggroups, $session;
+
+  $sql = 'SELECT 1 AS ok FROM tmp_password WHERE user_no = ? AND password = ? AND valid_until > current_timestamp';
+  $qry = new PgQuery( $sql, $user_no, $they_sent );
+  if ( $qry->Exec('Session::check_temporary_passwords') ) {
+    $session->Log("DBG: Rows = $qry->rows");
+    if ( $row = $qry->Fetch() ) {
+      $session->Log("DBG: OK = $row->ok");
+      // Remove all the temporary passwords for that user...
+      $sql = 'DELETE FROM tmp_password WHERE user_no = ? ';
+      $qry = new PgQuery( $sql, $user_no );
+      $qry->Exec('Session::check_temporary_passwords');
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+* A class for creating and holding session information.
+*
+* @package   awl
+*/
 class Session
 {
-  var $user_no = 0;
-  var $session_id = 0;
-  var $username = 'guest';
-  var $fullname = 'Guest';
-  var $email = '';
+  /**#@+
+  * @access private
+  */
   var $roles;
-  var $logged_in = false;
   var $cause = '';
+  /**#@-*/
+
+  /**#@+
+  * @access public
+  */
+
+  /**
+  * The user_no of the logged in user.
+  * @var int
+  */
+  var $user_no;
+
+  /**
+  * A unique id for this user's logged-in session.
+  * @var int
+  */
+  var $session_id = 0;
+
+  /**
+  * The user's username used to log in.
+  * @var int
+  */
+  var $username = 'guest';
+
+  /**
+  * The user's full name from their usr record.
+  * @var int
+  */
+  var $full_name = 'Guest';
+
+  /**
+  * The user's email address from their usr record.
+  * @var int
+  */
+  var $email = '';
+
+  /**
+  * Whether this user has actually logged in.
+  * @var int
+  */
+  var $logged_in = false;
+
+  /**
+  * Whether the user logged in to view the current page.  Perhaps some details on the
+  * login form might pollute an editable form and result in an unplanned submit.  This
+  * can be used to program around such a problem.
+  * @var boolean
+  */
   var $just_logged_in = false;
 
-  function Session()
+  /**
+  * The date and time that the user logged on during their last session.
+  * @var string
+  */
+  var $last_session_start;
+
+  /**
+  * The date and time that the user requested their last page during their last
+  * session.
+  * @var string
+  */
+  var $last_session_end;
+  /**#@-*/
+
+  /**
+  * Create a new Session object.
+  *
+  * If a session identifier is supplied, or we can find one in a cookie, we validate it
+  * and consider the person logged in.  We read some useful session and user data in
+  * passing as we do this.
+  *
+  * The session identifier contains a random value, hashed, to provide validation. This
+  * could be hijacked if the traffic was sniffable so sites who are paranoid about security
+  * should only do this across SSL.
+  *
+  * A worthwhile enhancement would be to add some degree of external configurability to
+  * that read.
+  *
+  * @param string $sid A session identifier.
+  */
+  function Session( $sid="" )
   {
     global $sid, $sysname;
 
     $this->roles = array();
     $this->logged_in = false;
     $this->just_logged_in = false;
+    $this->login_failed = false;
 
-    if ( ! isset($sid) ) return;
+    if ( $sid == "" ) {
+      if ( ! isset($_COOKIE['sid']) ) return;
+      $sid = $_COOKIE['sid'];
+    }
 
     list( $session_id, $session_key ) = explode( ';', $sid, 2 );
 
@@ -123,7 +242,7 @@ class Session
     }
 
     $qry = new PgQuery($sql, $session_id, $session_key, $session_key);
-    if ( $qry->Exec('Session') && $qry->rows == 1 )
+    if ( $qry->Exec('Session') && 1 == $qry->rows )
     {
       $this->AssignSessionDetails( $qry->Fetch() );
       $qry = new PgQuery('UPDATE session SET session_end = current_timestamp WHERE session_id=?', $session_id);
@@ -138,6 +257,16 @@ class Session
     }
   }
 
+
+  /**
+  * Utility function to log stuff with printf expansion.
+  *
+  * This function could be expanded to log something identifying the session, but
+  * somewhat strangely this has not yet been done.
+  *
+  * @param string $whatever A log string
+  * @param mixed $whatever... Further parameters to be replaced into the log string a la printf
+  */
   function Log( $whatever )
   {
     global $sysabbr;
@@ -154,17 +283,25 @@ class Session
       }
       error_log( "$sysabbr: " . vsprintf($format,$args) );
     }
-    return true;
   }
 
-  function AllowedTo ( $whatever )
-  {
+  /**
+  * Checks whether a user is allowed to do something.
+  *
+  * The check is performed to see if the user has that role.
+  *
+  * @param string $whatever The role we want to know if the user has.
+  * @return boolean Whether or not the user has the specified role.
+  */
+  function AllowedTo ( $whatever ) {
     return ( $this->logged_in && isset($this->roles[$whatever]) && $this->roles[$whatever] );
   }
 
 
-  function GetRoles ()
-  {
+/**
+* Internal function used to get the user's roles from the database.
+*/
+  function GetRoles () {
     $this->roles = array();
     $qry = new PgQuery( 'SELECT group_name AS role_name FROM group_member m join ugroup g ON g.group_no = m.group_no WHERE user_no = ? ', $this->user_no );
     if ( $qry->Exec('Session::GetRoles') && $qry->rows > 0 )
@@ -187,8 +324,11 @@ class Session
   }
 
 
-  function AssignSessionDetails( $u )
-  {
+/**
+* Internal function used to assign the session details to a user's new session.
+* @param object $u The user+session object we (probably) read from the database.
+*/
+  function AssignSessionDetails( $u ) {
     $this->user_no = $u->user_no;
     $this->username = $u->username;
     $this->fullname = $u->fullname;
@@ -200,22 +340,35 @@ class Session
     $this->config_data = $u->config_data;
     $this->session_id = $u->session_id;
 
-    // $this->roles = explode( "|", $session_stuff->roles );
     $this->GetRoles();
     $this->logged_in = true;
   }
 
 
+/**
+* Attempt to perform a login action.
+*
+* This will validate the user's username and password.  If they are OK then a new
+* session id will be created and the user will be cookied with it for subsequent
+* pages.  A logged in session will be created, and the $_POST array will be cleared
+* of the username, password and submit values.  submit will also be cleared from
+* $_GET and $GLOBALS, just in case.
+*
+* @param string $username The user's login name, or at least what they entered it as.
+* @param string $password The user's password, or at least what they entered it as.
+* @return boolean Whether or not the user correctly guessed a temporary password within the necessary window of opportunity.
+*/
   function Login( $username, $password ) {
     global $sysname, $sid, $debuggroups, $client_messages, $remember;
+    $rc = false;
     if ( $debuggroups['Login'] )
       $this->Log( "DBG: Login: Attempting login for $username" );
 
     $sql = "SELECT * FROM usr WHERE lower(username) = ? ";
-    $qry = new PgQuery( $sql, strtolower($username), md5($password), $password );
-    if ( $qry->Exec('Session::UPWLogin') && $qry->rows == 1 ) {
+    $qry = new PgQuery( $sql, strtolower($username) );
+    if ( $qry->Exec('Session::UPWLogin',__LINE,__FILE__) && $qry->rows == 1 ) {
       $usr = $qry->Fetch();
-      if ( session_validate_password( $password, $usr->password ) ) {
+      if ( session_validate_password( $password, $usr->password ) || check_temporary_passwords( $password, $usr->user_no ) ) {
         // Now get the next session ID to create one from...
         $qry = new PgQuery( "SELECT nextval('session_session_id_seq')" );
         if ( $qry->Exec('Login') && $qry->rows == 1 ) {
@@ -224,6 +377,10 @@ class Session
           $session_key = md5( rand(1010101,1999999999) . microtime() );  // just some random shite
           if ( $debuggroups['Login'] )
             $this->Log( "DBG:: Login: Valid username/password for $username ($usr->user_no)" );
+
+          // Set the last_used timestamp to match the previous login.
+          $qry = new PgQuery('UPDATE usr SET last_accessed = (SELECT session_start FROM session WHERE session.user_no = ? ORDER BY session_id DESC LIMIT 1) WHERE user_no = ?;', $usr->user_no, $usr->user_no);
+          $qry->Exec('Session');
 
           // And create a session
           $sql = "INSERT INTO session (session_id, user_no, session_key) VALUES( ?, ?, ? )";
@@ -235,16 +392,23 @@ class Session
             //  Create a cookie for the sesssion
             setcookie('sid',$sid, 0,'/');
             // Recognise that we have started a session now too...
-            $this->Session();
+            $this->Session($sid);
             $this->Log( "DBG: Login: INFO: New session $session_id started for $username ($usr->user_no)" );
-            if ( isset($remember) && intval($remember) > 0 ) {
+            if ( isset($_POST['remember']) && intval($_POST['remember']) > 0 ) {
               $cookie .= md5( $this->user_no ) . ";";
               $cookie .= session_salted_md5($usr->user_no . $usr->username . $usr->password);
               setcookie( "lsid", $cookie, time() + (86400 * 3600), "$base_url/" );   // will expire in ten or so years
             }
             $this->just_logged_in = true;
+
+            // Unset all of the submitted values, so we don't accidentally submit an unexpected form.
+            unset($_POST['username']);
+            unset($_POST['password']);
+            unset($_POST['submit']);
+            unset($_GET['submit']);
             unset($GLOBALS['submit']);
-            return true;
+            $rc = true;
+            return $rc;
           }
    // else ...
           $this->cause = 'ERR: Could not create new session.';
@@ -270,13 +434,23 @@ class Session
     }
 
     $this->Log( "DBG: Login $this->cause" );
-    return false;
+    $this->login_failed = true;
+    $rc = false;
+    return $rc;
   }
 
 
 
+/**
+* Attempts to logs in using a long-term session ID
+*
+* This is all horribly insecure, but its hard not to be.
+*
+* @param string $lsid The user's value of the lsid cookie.
+* @return boolean Whether or not the user's lsid cookie got them in the door.
+*/
   function LSIDLogin( $lsid ) {
-    global $sysname, $debuggroups, $client_messages, $sid;
+    global $sysname, $debuggroups, $client_messages;
     if ( $debuggroups['Login'] )
       $this->Log( "DBG: Login: Attempting login for $lsid" );
 
@@ -306,7 +480,7 @@ class Session
             //  Create a cookie for the sesssion
             setcookie('sid',$sid, 0,'/');
             // Recognise that we have started a session now too...
-            $this->Session();
+            $this->Session($sid);
             $this->Log( "DBG: Login: INFO: New session $session_id started for $this->username ($usr->user_no)" );
             return true;
           }
@@ -339,13 +513,64 @@ class Session
   }
 
 
+/**
+* Renders some HTML for a basic login panel
+*
+* @return string The HTML to display a login panel.
+*/
+  function RenderLoginPanel() {
+    $action_target = htmlspecialchars(str_replace('?logout','',$_SERVER['REQUEST_URI']));
+    $this->Log("DBG: action_target='%s'", $action_target );
+    $html = <<<EOTEXT
+<div id="logon">
+<form action="$action_target" method="post">
+<table>
+<tr>
+<th class="prompt">User Name:</th>
+<td class="entry">
+<input class="text" type="text" name="username" size="12" /></td>
+</tr>
+<tr>
+<th class="prompt">Password:</th>
+<td class="entry">
+<input class="password" type="password" name="password" size="12" />
+ &nbsp;<label>forget&nbsp;me&nbsp;not: <input class="checkbox" type="checkbox" name="remember" value="1" /></label>
+</td>
+</tr>
+<tr>
+<th class="prompt">&nbsp;</th>
+<td class="entry">
+<input type="submit" value="GO!" alt="go" name="submit" class="submit" />
+</td>
+</tr>
+</table>
+<p>
+If you have forgotten your password then: <input type="submit" value="Help! I've forgotten my password!" alt="Enter a username, if you know it, and click here." name="lostpass" class="submit" />
+</p>
+</form>
+</div>
+
+EOTEXT;
+    return $html;
+  }
+
+
+/**
+* Checks that this user is logged in, and presents a login screen if they aren't.
+*
+* The function can optionally confirm whether they are a member of one of a list
+* of groups, and deny access if they are not a member of any of them.
+*
+* @param string $groups The list of groups that the user must be a member of one of to be allowed to proceed.
+* @return boolean Whether or not the user is logged in and is a member of one of the required groups.
+*/
   function LoginRequired( $groups = "" ) {
     global $system_name, $admin_email, $session, $images, $colors;
 
     if ( $this->logged_in && $groups == "" ) return;
     if ( ! $this->logged_in ) {
       $client_messages[] = "You must log in to use this system.";
-      include("headers.php");
+      include_once("headers.php");
       if ( function_exists("local_index_not_logged_in") ) {
         local_index_not_logged_in();
       }
@@ -363,13 +588,228 @@ EOTEXT;
       foreach( $valid_groups AS $k => $v ) {
         if ( $this->AllowedTo($v) ) return;
       }
-      include("headers.php");
       $client_messages[] = "You are not authorised to use this function.";
+      include_once("headers.php");
     }
 
     include("footers.php");
     exit;
   }
+
+
+
+/**
+* Sends a temporary password in response to a request from a user.
+*
+* This is probably only going to be called from somewhere internal, but perhaps
+* an application might want to decide when to call it.
+*
+* This function includes EMail.php to actually send the password.
+*/
+  function SendTemporaryPassword( ) {
+    global $c;
+
+    include("EMail.php");
+    $page_content = "";
+    $password_sent = false;
+    $where = "";
+    if ( isset($_POST['username']) && $_POST['username'] != "" ) {
+      $where = "WHERE status='A' AND usr.username = ". qpg($_POST['username'] );
+    }
+    if ( ! $password_sent && isset($_POST['email_address']) && $_POST['email_address'] != "" ) {
+      $where = "WHERE status='A' AND usr.email = ". qpg($_POST['email_address'] );
+    }
+
+    if ( $where != "" ) {
+      $tmp_passwd = "";
+      for ( $i=0; $i < 8; $i++ ) {
+        $tmp_passwd .= substr( "#.-=*%@0123456789abcdefghijklmnopqrstuvwxyz", rand(0,42), 1);
+      }
+      $sql = "SELECT * FROM usr $where";
+      $qry = new PgQuery( $sql );
+      $qry->Exec("Session::SendTemporaryPassword");
+      if ( $qry->rows > 0 ) {
+        $sql = "BEGIN;";
+
+        include_once("EMail.php");
+        $mail = new EMail( "Temporary Password for $c->system_name" );
+        $mail->SetFrom($c->admin_email );
+        $usernames = "";
+        while ( $row = $qry->Fetch() ) {
+          $sql .= "INSERT INTO tmp_password ( user_no, password) VALUES( $row->user_no, '$tmp_passwd');";
+          $mail->AddTo( "$row->fullname <$row->email>" );
+          $usernames .= "        $row->username\n";
+        }
+        if ( $mail->To != "" ) {
+          $sql .= "COMMIT;";
+          $qry = new PgQuery( $sql );
+          $qry->Exec("Session::SendTemporaryPassword");
+          $body = <<<EOTEXT
+A temporary password has been requested for $c->system_name.
+
+Temporary Password: $tmp_passwd
+
+This has been applied to the following usernames:
+$usernames
+and will be valid for 24 hours.
+
+If you have any problems, please contact the system administrator.
+
+EOTEXT;
+          $mail->SetBody($body);
+          $mail->Send();
+          $password_sent = true;
+        }
+      }
+    }
+
+    if ( ! $password_sent && ((isset($_POST['username']) && $_POST['username'] != "" )
+                              || (isset($_POST['email_address']) && $_POST['email_address'] != "" )) ) {
+      // Username or EMail were non-null, but we didn't find that user.
+
+      $page_content = <<<EOTEXT
+<div id="logon">
+<h1>Unable to Reset Password</h1>
+<p>We were unable to reset your password at this time.  Please contact
+<a href="mailto:$c->admin_email">$c->admin_email</a>
+to arrange for an administrator to reset your password.</p>
+<p>Thank you.</p>
+</div>
+EOTEXT;
+    }
+
+    if ( $password_sent ) {
+      $page_content = <<<EOTEXT
+<div id="logon">
+<h1>Temporary Password Sent</h1>
+<p>A temporary password has been e-mailed to you.  This password
+will be valid for 24 hours and you will be required to change
+your password after logging in.</p>
+<p><a href="/">Click here to return to the login page.</a></p>
+</div>
+EOTEXT;
+    }
+    else {
+      $page_content = <<<EOTEXT
+<div id="logon">
+<h1>Forgotten Password</h1>
+<form action="$action_target" method="post">
+<table>
+<tr>
+<th class="prompt">Enter your User Name:</th>
+<td class="entry"><input class="text" type="text" name="username" size="12" /></td>
+</tr>
+<tr>
+<th class="prompt">Or your EMail Address:</th>
+<td class="entry"><input class="text" type="text" name="email_address" size="50" /></td>
+</tr>
+<tr>
+<th class="prompt">and click on -></th>
+<td class="entry">
+<input class="submit" type="submit" value="Send me a temporary password" alt="Enter a username, or e-mail address, and click here." name="lostpass" />
+</td>
+</tr>
+</table>
+<p>Note: If you have multiple accounts with the same e-mail address, they will <em>all</em>
+be assigned a new temporary password, but only the one(s) that you use that temporary password
+on will have the existing password invalidated.</p>
+<p>Any temporary password will only be valid for 24 hours.</p>
+</form>
+</div>
+EOTEXT;
+    }
+    include_once("headers.php");
+    echo $page_content;
+    include_once("footers.php");
+    exit(0);
+  }
+
+  function _CheckLogout() {
+    if ( isset($_GET['logout']) ) {
+      error_log("$sysname: Session: DBG: Logging out");
+      setcookie( 'sid', '', 0,'/');
+      unset($_COOKIE['sid']);
+      unset($_COOKIE['lsid']); // Allow a cookied person to be un-logged-in for one page view.
+
+      if ( isset($_GET['forget']) ) setcookie( 'lsid', '', 0,'/');
+    }
+  }
+
+  function _CheckLogin() {
+    global $debuggroups;
+    if ( isset($_POST['lostpass']) ) {
+      if ( $debuggroups['Login'] )
+        $this->Log( "DBG: User '$_POST[username]' has lost the password." );
+
+      $this->SendTemporaryPassword();
+    }
+    else if ( isset($_POST['username']) && isset($_POST['password']) ) {
+      // Try and log in if we have a username and password
+      $this->Login( $_POST['username'], $_POST['password'] );
+      if ( $debuggroups['Login'] )
+        $this->Log( "DBG: User $_POST[username] - $this->fullname ($this->user_no) login status is $this->logged_in" );
+    }
+    else if ( !isset($_COOKIE['sid']) && isset($_COOKIE['lsid']) && $_COOKIE['lsid'] != "" ) {
+      // Validate long-term session details
+      $this->LSIDLogin( $_COOKIE['lsid'] );
+      if ( $debuggroups['Login'] )
+        $this->Log( "DBG: User $this->username - $this->fullname ($this->user_no) login status is $this->logged_in" );
+    }
+  }
+
+
+  /**
+  * Function to reformat an ISO date to something nicer and possibly more localised
+  * @param string $indate The ISO date to be formatted.
+  * @param string $type If 'timestamp' then the time will also be shown.
+  * @return string The nicely formatted date.
+  */
+  function FormattedDate( $indate, $type=date ) {
+    $out = "";
+    if ( preg_match( '#^\s*$#', $indate ) ) {
+      // Looks like it's empty - just return empty
+      return $indate;
+    }
+    if ( preg_match( '#^\d{1,2}[/-]\d{1,2}[/-]\d{2,4}#', $indate ) ) {
+      // Looks like it's nice already - don't screw with it!
+      return $indate;
+    }
+    $yr = substr($indate,0,4);
+    $mo = substr($indate,5,2);
+    $dy = substr($indate,8,2);
+    switch ( $this->date_format_type ) {
+      case 'U':
+        $out = sprintf( "%d/%d/%d", $mo, $dy, $yr );
+        break;
+      case 'J':
+        $out = sprintf( "%d/%d/%d", $yr, $mo, $dy );
+        break;
+      case 'E':
+        $out = sprintf( "%d/%d/%d", $dy, $mo, $yr );
+        break;
+      default:
+        $out = sprintf( "%d/%d/%d", $dy, $mo, $yr );
+        break;
+    }
+    if ( $type == 'timestamp' ) {
+      $out .= substr($indate,10,6);
+    }
+    return $out;
+  }
+
+}
+
+
+/**
+* @global resource $session
+* @name $session
+* The session object is global.
+*/
+
+if ( !isset($session) ) {
+  Session::_CheckLogout();
+  $session = new Session();
+  $session->_CheckLogin();
 }
 
 ?>

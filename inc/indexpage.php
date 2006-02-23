@@ -41,6 +41,35 @@ if ( ! $logged_on ) {
     print "$address\n";
   }
   echo "-->\n";
+
+  if ( $session->login_failed ) {
+    echo <<<EOHTML
+<hr>
+<h3>Forgotten Your Password?</h3>
+<form action="$action_target" method="post">
+  <table>
+    <tr>
+      <th class="prompt">User Name:</th>
+      <td class="entry"><input class="text" type="text" name="username" size="12" /></td>
+    </tr>
+    <tr>
+      <th class="prompt">or E-Mail:</th>
+      <td class="entry"><input class="text" type="text" name="email_address" size="50" /></td>
+    </tr>
+    <tr>
+      <th class="prompt">&nbsp;</th>
+      <td class="entry">
+        <input class="submit" type="submit" value="Send me a temporary password" alt="Enter a username, or e-mail address, and click here." name="lostpass" />
+      </td>
+    </tr>
+  </table>
+  <p>Note: If you have multiple accounts with the same e-mail address, they will <em>all</em>
+     be assigned a new temporary password, but only the one(s) that you use that temporary password
+     on will have the existing password invalidated.</p>
+  <p>Any temporary password will only be valid for 24 hours.</p>
+</form>
+EOHTML;
+  }
 }
 
 ?>

@@ -1,10 +1,8 @@
 <?php
-  if ( isset($E) ) $username = $E;
-  if ( isset($L) ) $password = $L;
 
   require_once("Session.php");
 
-  $logged_on = $session->logged_in;
+  $logged_on = $session->logged_in;  // FIXME: Compatibility with older code...
   $settings = new Setting( $session->config_data );
   while( list( $k, $v ) = each( $session->roles ) ) {
     $roles["wrms"]["$k"] = 1;

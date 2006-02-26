@@ -134,8 +134,14 @@
     $pie_url .= ( $i == 0 ? '?' : '&' ) . $pie_parms[$i] ;
   }
 
-  printf( '<object data="%s" type="image/svg+xml" width="100%%" height="600">You\'ll need to get a browser that supports SVG to see this graph.  Mozilla Firefox is such a browser.',
-                                         $pie_url );
+  echo <<<EOHTML
+<object data="$pie_url" type="image/svg+xml" width="100%%" height="600">
+You'll need to get a browser that supports SVG to see this graph.  Mozilla
+Firefox 1.5 is such a browser, or there is an Adobe plugin for Microsoft
+Internet Explorer that will also do the job.
+</object>
+
+EOHTML;
 
   include("footers.php");
 

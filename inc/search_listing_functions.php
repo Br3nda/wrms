@@ -48,6 +48,7 @@ function header_row() {
   echo "<tr>\n";
   reset($columns);
   while( list($k,$v) = each( $columns ) ) {
+    if ( $v == "0" || $v == "off" ) continue;
     $real_name = $v;
     if ( isset($nice_names[$v]) ) $real_name = $nice_names[$v];
     column_header($available_columns[$real_name], $real_name);
@@ -132,6 +133,7 @@ function data_row( $row, $rc ) {
   printf( "<tr class=row%1d>\n", $rc % 2);
   reset($columns);
   while( list($k,$v) = each( $columns ) ) {
+    if ( $v == "0" || $v == "off" ) continue;
     show_column_value($v,$row);
   }
   echo "</tr>\n";

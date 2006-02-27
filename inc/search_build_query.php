@@ -66,7 +66,7 @@
     $search_query .= " AND request_type.source_table='request' AND request_type.source_field='request_type' AND request.request_type = request_type.lookup_code";
     $search_query .= " AND request_urgency.source_table='request' AND request_urgency.source_field='urgency' AND request.urgency = request_urgency.lookup_code";
     $search_query .= " AND request_importance.source_table='request' AND request_importance.source_field='importance' AND request.importance = request_importance.lookup_code";
-    if ( "$inactive" == "" )        $search_query .= " AND request.active ";
+    if ( "$inactive" == "" || $inactive == 0 || $inactive == 'off')        $search_query .= " AND request.active ";
     if ( ! is_member_of('Admin', 'Support' ) ) {
       $search_query .= " AND usr.org_code = '$session->org_code' ";
     }
@@ -164,17 +164,17 @@
     if ( eregi("save", "$submit") && "$savelist" != "" ) {
       $saved_sort = "";
       $saved_seq  = "";
-      if ( isset($save_query_order) && $save_query_order ) {
+      if ( isset($save_query_order) && intval($save_query_order) > "0" ) {
         $saved_sort = $rlsort;
         $saved_seq = $rlseq;
       }
       $qparams   = qpg(serialize($_POST));
       $savelist = qpg($savelist);
       $qquery   = qpg($search_query);
-      $save_rlsort   = qpg($rlsort);
-      $save_rlseq    = qpg($rlseq);
-      $save_public   = qpg(intval($public)  > 0);
-      $save_in_menu  = qpg(intval($in_menu) > 0);
+      $save_rlsort   = qpg($saved_rlsort);
+      $save_rlseq    = qpg($saved_rlseq);
+      $save_public   = qpg(intval($save_public)  > 0);
+      $save_in_menu  = qpg(intval($save_hotlist) > 0);
       $search_query = "DELETE FROM saved_queries WHERE user_no = $session->user_no AND LOWER(query_name) = LOWER($savelist);
 INSERT INTO saved_queries (user_no, query_name, query_sql, maxresults, rlsort, rlseq, public, updated, in_menu, query_params)
   VALUES( $session->user_no, $savelist, $qquery, ".intval($maxresults).",

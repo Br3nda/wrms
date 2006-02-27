@@ -21,7 +21,7 @@
     if ( "$search_for" != "" ) $this_page .= "&search_for=" . urlencode($search_for);
     if ( "$org_code" != "" ) $this_page .= "&org_code=$org_code";
     if ( "$system_code" != "" ) $this_page .= "&system_code=$system_code";
-    if ( isset($inactive) ) $this_page .= "&inactive=$inactive";
+    if ( isset($inactive) && $inactive != 0 && $inactive != 'off' ) $this_page .= "&inactive=$inactive";
     if ( isset($requested_by) ) $this_page .= "&requested_by=$requested_by";
     if ( isset($interested_in) ) $this_page .= "&interested_in=$interested_in";
     if ( isset($allocated_to) ) $this_page .= "&allocated_to=$allocated_to";

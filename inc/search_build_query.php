@@ -153,7 +153,7 @@
     if ( isset($incstat) && is_array( $incstat ) ) {
       reset($incstat);
       while( list( $k, $v) = each( $incstat ) ) {
-        $search_query .= $k ;
+        if ( $v != 0 && $v != 'off' ) $search_query .= $k ;
       }
     }
     else {

@@ -31,7 +31,7 @@
     if ( isset($incstat) && is_array( $incstat ) ) {
       reset($incstat);
       while( list($k,$v) = each( $incstat ) ) {
-        $this_page .= "&incstat[$k]=$v";
+        if ( $v != 0 && $v != 'off' ) $this_page .= "&incstat[$k]=$v";
       }
     }
   }

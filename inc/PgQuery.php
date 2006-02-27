@@ -146,18 +146,17 @@ class PgQuery
     global $dbconn, $debuggroups;
     $this->location = trim($location);
     if ( $this->location == "" ) $this->location = substr($GLOBALS['PHP_SELF'],1);
+    $locn = sprintf( "%-12.12s", $this->location );
 
-    if ( isset($debuggroups['querystring']) )
-    {
-      log_error( $this->location, 'query', $this->querystring );
+    if ( isset($debuggroups['querystring']) ) {
+      log_error( $locn, 'query', $this->querystring );
     }
-//echo $this->querystring;
+
     $t1 = microtime();
     $this->result = pg_exec( $dbconn, $this->querystring );
     $this->rows = pg_numrows($this->result);
     $t2 = microtime();
     $this->execution_time = sprintf( "%2.06lf", duration( $t1, $t2 ));
-    $locn = sprintf( "%-12.12s", $this->location );
 
     if ( !$this->result )
     {

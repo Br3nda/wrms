@@ -19,6 +19,13 @@
 
   // First, we construct SQL with a two-column result set
   $sql = "SELECT status_lookup.lookup_desc, count(request.request_id) ";
+  $sql .= ", '/wrsearch.php?style=stripped&format=brief' ";
+  if ( isset($org_code) ) {
+    $org_code = intval($org_code);
+    $sql .= "|| '&org_code=$org_code' ";
+  }
+  $sql .= "|| '&incstat['||last_status||']=1' AS url_link ";
+
   $sql .= "FROM request JOIN request_status ON request.request_id=request_status.request_id AND status_code=last_status ";
   $sql .= "JOIN lookup_code status_lookup ON status_lookup.source_table='request' AND status_lookup.source_field='status_code' AND status_lookup.lookup_code=last_status ";
   if ( isset($allocated_to) ) {
@@ -30,7 +37,6 @@
     $sql .= "JOIN request_interested ON request.request_id=request_interested.request_id AND request_interested.user_no = $interested_in ";
   }
   if ( isset($org_code) ) {
-    $org_code = intval($org_code);
     $sql .= "JOIN usr ON request.requester_id=usr.user_no AND usr.org_code = $org_code ";
   }
   $sql .= "WHERE ((last_status IN ('F', 'C') AND status_on BETWEEN ".qpg($from_date)." AND ".qpg($to_date).") ";
@@ -47,10 +53,11 @@
     $requested_by = intval($requested_by);
     $sql .= "AND requester_id = $requested_by ";
   }
-  $sql .= "GROUP BY status_lookup.lookup_desc ";
+  $sql .= "GROUP BY status_lookup.lookup_desc, request.last_status ";
   $sql .= "ORDER BY 2 DESC;";
 
-//  echo "$sql";
+  // echo "$sql";
+  $debuggroups['PieChart'] = 1;
   $pie = new PieChart( $sql );
 
 /*

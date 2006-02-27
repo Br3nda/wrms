@@ -29,6 +29,7 @@ class PieChart {
 
   function Exec($location="PieChart") {
     $this->data = array();
+    $this->url = array();
 
     // Check for a number of rows first, otherwise Exec the query
     if ( $this->qry->rows > 0 || $this->qry->Exec($location) ) {
@@ -36,6 +37,7 @@ class PieChart {
       $this->rownum = -1;
       while( $row = $this->qry->Fetch(true) ) {
         $this->data[$row[0]] = $row[1];
+        if ( isset($row[2]) ) $this->url[$row[0]] = $row[2];
         $this->total += $row[1];
       }
     }
@@ -51,9 +53,9 @@ class PieChart {
       $CenterX = $this->radius + $this->margin;
       $CenterY = $this->radius + $this->margin;
 
-      print("<!--$name: $offset for $value (of $this->total) $StartDegrees to $EndDegrees degrees in $CurrentColor-->\n");
+      $h = "<!--$name: $offset for $value (of $this->total) $StartDegrees to $EndDegrees degrees in $CurrentColor-->\n";
 
-      print("<path d=\"");
+      $h .= "<path d=\"";
 
       //draw out to circle edge
       list($StartX, $StartY) = $this->_CirclePoint($StartDegrees, $this->radius);
@@ -61,16 +63,17 @@ class PieChart {
 
       $floodstyle = (( ($value * 2) > $this->total ) ? 1 : 0 );
 
-      print("M " .  ($CenterX + $StartX) . "," .  ($CenterY + $StartY) ." ");
-      print("A $this->radius,$this->radius 0 $floodstyle 1 " .  ($CenterX + $EndX) . "," .  ($CenterY + $EndY) ." ");
+      $h .= ("M " .  ($CenterX + $StartX) . "," .  ($CenterY + $StartY) ." ");
+      $h .= ("A $this->radius,$this->radius 0 $floodstyle 1 " .  ($CenterX + $EndX) . "," .  ($CenterY + $EndY) ." ");
 
       //finish at center of circle
-      print("L $CenterX,$CenterY ");
+      $h .= ("L $CenterX,$CenterY ");
 
       //close polygon
-      print("z\" ");
+      $h .= ("z\" ");
 
-      print("style=\"fill:$CurrentColor;\"/>\n");
+      $h .= ("style=\"fill:$CurrentColor;\"/>\n");
+      return $h;
   }
 
 
@@ -102,7 +105,7 @@ class PieChart {
                     print('"http://www.w3.org/TR/2000/03/WD-SVG-20000303/DTD/' .  'svg-20000303-stylable.dtd">' . "\n");
 
     //start SVG document, set size in "user units"
-    print("<svg xmlns=\"http://www.w3.org/2000/svg\" xml:space=\"preserve\" >\n");
+    print("<svg xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" xml:space=\"preserve\" >\n");
 
     /*
     ** make background rectangle
@@ -118,7 +121,13 @@ class PieChart {
     $index = 0;
 
     foreach($this->data as $Label=>$Value) {
-      $this->RenderSlice( $Label, $offset, $Value, $index++ );
+      if ( isset($this->url[$Label]) ) {
+        printf( '<a xlink:href="%s" xlink:show="parent">'."\n%s</a>\n", htmlentities($this->url[$Label]), $this->RenderSlice( $Label, $offset, $Value, $index ) );
+      }
+      else {
+        echo $this->RenderSlice( $Label, $offset, $Value, $index );
+      }
+      $index++;
       $offset += $Value;
     }
 

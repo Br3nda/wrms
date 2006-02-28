@@ -2,16 +2,22 @@
 /////////////////////////////////////////////////////////////
 //   C L A S S   F O R   AttachmentType
 /////////////////////////////////////////////////////////////
+function clean_type_code( $dirty ) {
+  return str_replace("'","",str_replace("\\","",trim("$dirty")));
+}
+
 class AttachmentType {
    var $type_code;
    var $new_record;
 
-   function AttachmentType( $id, $new_record = false ) {
+   function AttachmentType( $id ) {
      global $session;
      if ( !$session->logged_in ) return false;
      $loaded = false;
-     $id = str_replace("'","''",str_replace("\\","",trim("$id")));
-     if ( $new_record != true ) {
+     $this->new_record = true;
+
+     $id = clean_type_code("$id");
+     if ( $id != "" ) {
        // Try and load it from file
        $sql = "SELECT attachment_type.* ";
        $sql .= " FROM attachment_type ";
@@ -33,7 +39,7 @@ class AttachmentType {
        }
      }
      else {
-       $this->new_record = true;
+       $GLOBALS['edit'] = 1;
        $this->type_code = $id;
        // Assign some defaults because it looks like we're starting a new one
        if ( isset($_GET['attachment_type_template']) ) {
@@ -69,10 +75,11 @@ class AttachmentType {
      global $edit;
      $html = "";
 
-     $ef = new EntryForm( $REQUEST_URI, $this, $edit );
+     $uri = "/attachment_type.php?" . ($GLOBALS['edit']?'edit=1&':'') . "type_code=$this->type_code";
+     $ef = new EntryForm( $uri, $this, $edit );
      $ef->NoHelp();  // Prefer this style, for the moment
 
-     if ( $edit ) $html .= $ef->StartForm( array("autocomplete" => "off", "onsubmit" => "return CheckAttachmentTypeForm();" ) );
+     if ( $ef->editmode ) $html .= $ef->StartForm( array("autocomplete" => "off", "onsubmit" => "return CheckAttachmentTypeForm();" ) );
 
      $html .= "<table width=\"100%\" class=\"data\" cellspacing=\"0\" cellpadding=\"0\">\n";
 
@@ -112,7 +119,7 @@ class AttachmentType {
    }
 
 
-   function Validate( $ef ) {
+   function Validate( ) {
      global $session, $client_messages;
      error_log("$system_name: vpw: DBG: Validating attachment_type");
 
@@ -143,7 +150,7 @@ class AttachmentType {
      return false;
    }
 
-   function Write( $ef ) {
+   function Write( ) {
      global $client_messages;
      error_log("$system_name: vpw: DBG: Writing attachment_type form details to database");
      $client_messages[] = "Writing system details to database.";

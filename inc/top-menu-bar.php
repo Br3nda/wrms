@@ -55,6 +55,7 @@ function organisation_menus(&$tmnu,$org) {
 
 function system_menus(&$tmnu,$system) {
   global $session;
+  $session->Log("DBG: system_menus: %s", $system->system_code);
   if ( $system->system_code == "" ) return;
   if ( !$system->AllowedTo('view') ) return;
 
@@ -72,11 +73,12 @@ function system_menus(&$tmnu,$system) {
 }
 
 function attachment_type_menus(&$tmnu,$att) {
-  if ( "$att->type_code" != "" ) {
-    $tmnu->AddOption("$att->type_code","/attachment_type.php?type_code=$att->type_code","View the details for this Attachment Type");
-    $tmnu->AddOption("Edit","/attachment_type.php?edit=1&type_code=$att->type_code","Edit the details for this Attachment Type");
+  if ( isset($att) && "$att->type_code" != "" ) {
+    $tmnu->AddOption("$att->type_code","/attachment_type.php?type_code=$att->type_code","View the details for this Attachment Type" );
+    $tmnu->AddOption("Edit","/attachment_type.php?edit=1&type_code=$att->type_code","Edit the details for this Attachment Type",
+               isset($GLOBALS['edit']) && $GLOBALS['edit'] && ! $att->new_record );
   }
-  $tmnu->AddOption("New","/attachment_type.php","Create a new Attachment Type");
+  $tmnu->AddOption("New","/attachment_type.php","Create a new Attachment Type" );
   $tmnu->AddOption("List","/form.php?form=attachment_type","List the existing attachment types");
 }
 
@@ -104,6 +106,7 @@ function request_id_menus(&$tmnu, $request_id) {
 
 function org_code_menus(&$tmnu,$org_code) {
   global $session;
+  $session->Log("DBG: org_code_menus: $org_code");
   if ( intval("$org_code") == 0 ) return;
   $org_code = intval($org_code);
 
@@ -120,6 +123,7 @@ function org_code_menus(&$tmnu,$org_code) {
 
 function system_code_menus(&$tmnu,$system_code) {
   global $session;
+  $session->Log("DBG: system_code_menus: $system_code");
   if ( $system_code == "" ) return;
 
   $tmnu->AddOption($system_code,"/system.php?system_code=".urlencode($system_code),"View the details for this system");
@@ -136,6 +140,7 @@ function system_code_menus(&$tmnu,$system_code) {
 
 function user_no_menus(&$tmnu,$user_no) {
   global $session;
+  $session->Log("DBG: user_no_menus: $user_no");
   if ( intval("$user_no") == 0 ) return;
   $user_no = intval($user_no);
 
@@ -149,6 +154,7 @@ function user_no_menus(&$tmnu,$user_no) {
   }
 }
 
+$session->Log("DBG: top-menu-bar: %s, %s, %s, %s", $REQUEST_URI, $request_id, $user_no, $system_code);
 
 if ( strstr($REQUEST_URI,"/wr.php") )                   request_menus($tmnu,$wr);
 elseif ( isset($request_id) && $request_id > 0 )        request_id_menus($tmnu,$request_id);

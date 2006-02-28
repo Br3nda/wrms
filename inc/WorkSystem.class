@@ -110,14 +110,14 @@ class WorkSystem {
     if ( ! $this->AllowedTo('view') ) {
       return;
     }
+    $uri = "/system.php?" . ($GLOBALS['edit']?'edit=1&':'') . "system_code=$this->system_code";
 
-    $ef = new EntryForm( $REQUEST_URI, $this, $GLOBALS['edit'] );
+    $ef = new EntryForm( $uri, $this, $GLOBALS['edit'] );
     $ef->NoHelp();  // Prefer this style, for the moment
 
     $html = "";
     if ( $ef->editmode ) {
       $html .= $ef->StartForm( array( /*"onsubmit" => "return CheckWorkSystemForm();" */ ) );
-//      if ( $this->org_code > 0 ) $html .= $ef->HiddenField( "org_code", $this->org_code );
     }
 
     $html .= "<table width=\"100%\" class=\"data\" cellspacing=\"0\" cellpadding=\"0\">\n";
@@ -189,7 +189,7 @@ class WorkSystem {
          $html .= "<td width=\"33%\">";
          if ( $ef->editmode  && ($session->AllowedTo('Admin') || $session->AllowedTo('Support')) ) {
            $ef->record->applies[$row->org_code] = "$row->applies";
-           $html .= sprintf("<label style=\"color: %s\">", ( "$row->applies" == "t" ? "red" : "black") );
+           $html .= sprintf("<label style=\"color: %s\">", ( "$row->applies" == "t" || "$row->applies" == "on" || intval("$row->applies") != 0 ? "red" : "black") );
            $html .= $ef->DataEntryField( "", "checkbox", "applies[$row->org_code]",
                  array("title" => "Is this organisation active for this work_system?" ) );
            $html .= " $row->org_name</label>";
@@ -211,7 +211,7 @@ class WorkSystem {
    }
 
 
-   function Validate( $ef ) {
+   function Validate( ) {
      global $session, $client_messages;
      error_log("$system_name: vpw: DBG: Validating work_system");
 
@@ -241,8 +241,8 @@ class WorkSystem {
      return false;
    }
 
-   function Write( $ef ) {
-     global $client_messages;
+   function Write() {
+     global $client_messages, $session;
      global $old_system_code, $new_system_code;
      error_log("$system_name: vpw: DBG: Writing work_system form details to database");
      $client_messages[] = "Writing system details to database.";
@@ -250,26 +250,26 @@ class WorkSystem {
 
      $qry = new PgQuery("BEGIN");              $qry->Exec("Sys::Write");
 
-     $sql = sql_from_post( $this->chtype, "work_system", "WHERE system_code='$this->system_code'");
+     $sql = sql_from_post( $this->chtype, "work_system", "WHERE system_code='$old_system_code'");
      $qry = new PgQuery($sql);
      if ( !$qry->Exec("Sys::Write") )       $client_messages[] = "ERROR: $qry->errorstring";
      else if ( "create" == $this->chtype ) {
-       $this->system_code = clean_system_code($_POST['system_code']);
+       if ( isset($new_system_code) ) $this->system_code = $new_system_code;
        $GLOBALS['system_code'] = $this->system_code;
      }
      else if ( "update" == $this->chtype ) {
-       $this->system_code = $new_system_code;
+       if ( isset($new_system_code) ) $this->system_code = $new_system_code;
        $GLOBALS['system_code'] = $this->system_code;
      }
 
      $organisations = "";
      foreach( $_POST['applies'] AS $k => $v ) {
-       if ( $v ) {
+       if ( $v && $v != '0' && $v != 'off' ) {
          $organisations .= ( "$organisations" == "" ? "" : ", " );
          $organisations .= "'" . str_replace("'","''",str_replace('\\','', $k)) . "'";
        }
      }
-     if ( isset($old_system_code) ) {
+     if ( $old_system_code != $new_system_code ) {
        // The system code has changed, and we need to do stuff to make it work...
        $sql = "UPDATE org_system SET system_code = '$new_system_code' WHERE system_code = '$old_system_code'; ";
        $sql .= "UPDATE system_usr SET system_code = '$new_system_code' WHERE system_code = '$old_system_code'; ";
@@ -277,14 +277,14 @@ class WorkSystem {
        $qry = new PgQuery($sql);
        if ( !$qry->Exec("Sys::Write") ) $client_messages[] = "ERROR: $qry->errorstring";
      }
-     $sql = "DELETE FROM org_system WHERE system_code = '$this->system_code' AND org_code NOT IN ( $organisations ); ";
+     $sql = "DELETE FROM org_system WHERE system_code = '$new_system_code' AND org_code NOT IN ( $organisations ); ";
      $qry = new PgQuery($sql);
      if ( !$qry->Exec("Sys::Write") ) $client_messages[] = "ERROR: $qry->errorstring";
 
      $sql = "INSERT INTO org_system (system_code, org_code) ";
-     $sql .= "SELECT '$this->system_code' AS system_code, org_code ";
+     $sql .= "SELECT '$new_system_code' AS system_code, org_code ";
      $sql .= "FROM organisation WHERE org_code IN ( $organisations ) ";
-     $sql .= "AND NOT EXISTS( SELECT 1 FROM org_system WHERE system_code = '$this->system_code' ";
+     $sql .= "AND NOT EXISTS( SELECT 1 FROM org_system WHERE system_code = '$new_system_code' ";
      $sql .= "AND org_system.org_code = organisation.org_code); ";
      $qry = new PgQuery($sql);
      if ( !$qry->Exec("Sys::Write") ) $client_messages[] = "$qry->errorstring";

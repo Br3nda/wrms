@@ -1530,6 +1530,7 @@ class Request {
 
         if ( !$db_errors && is_array($_POST['ts_ok_to_charge']) ) {
           while( !$db_errors && list($k,$v) = each($_POST['ts_ok_to_charge']) ) {
+            if ( $v == "0" || $v == "off" ) continue;
             $db_errors = ! $this->UpdateInvoiceDetails($k);
           }
         }
@@ -2251,7 +2252,7 @@ EOX
     error_log( "$sysabbr Request::AddNote: DBG: Note added to request", 0);
 
     $note_detail = $_POST['note_detail'];
-    if ( ! isset($_POST['preserve_html']) || $_POST['preserve_html'] == '' ) {
+    if ( ! isset($_POST['preserve_html']) || $_POST['preserve_html'] == '' || $_POST['preserve_html'] == '0' || $_POST['preserve_html'] == 'off' ) {
       $note_detail = htmlspecialchars($note_detail);
     }
     else {

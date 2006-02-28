@@ -10,8 +10,9 @@
   require_once("authorisation-page.php");
 
 if ( !$session->logged_in ) {
-  // Very quiet
-  echo "Error: Not authorised";
+  include("headers.php");
+  echo "<h3>Please log on for access to attachments</h3>\n";
+  include("footers.php");
   exit;
 }
 

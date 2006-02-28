@@ -416,7 +416,7 @@ class Organisation {
 
       $systems = "";
       while( isset($_POST['applies']) && is_array($_POST['applies']) && list($k,$v) = each($_POST['applies']) ) {
-        if ( $v ) {
+        if ( $v && $v != '0' && $v != 'off' ) {
           $systems .= ( "$systems" == "" ? "" : ", " );
           $systems .= "'" . str_replace("'","''",str_replace('\\','', $k)) . "'";
         }

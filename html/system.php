@@ -11,28 +11,30 @@ if ( !$session->logged_in ) {
 require_once("maintenance-page.php");
 require_once("WorkSystem.class");
 
-if ( isset($_GET['system_code']) && isset($_POST['system_code']) ) {
-  if ( $_GET['system_code'] != "" AND $_POST['system_code'] != "" AND $_GET['system_code'] != $_POST['system_code'] ) {
-    $old_system_code = clean_system_code($_GET['system_code']);
-    $new_system_code = clean_system_code($_POST['system_code']);
-    $system_code = $old_system_code;
-  }
+// Since there is no unique ID for this table other than the short name
+// we need to do some further mucking around.
+if ( isset($_GET['system_code']) ) {
+  $old_system_code = clean_system_code($_GET['system_code']);
+  $system_code = $old_system_code;
+}
+if ( isset($_POST['system_code']) ) {
+  $new_system_code = clean_system_code($_POST['system_code']);
+  $system_code = $new_system_code;
 }
 
-$ws = new WorkSystem($system_code);
+$ws = new WorkSystem($old_system_code);
+
+if ( !$session->just_logged_in && $ws->AllowedTo("update") && isset($_POST['submit']) ) {
+  if ( $ws->Validate() ) {
+    $ws->Write();
+    $ws = new WorkSystem($new_system_code);
+  }
+}
 if ( $ws->system_code == "" ) {
-  unset( $system_code );
   $title = ( isset($GLOBALS['edit']) ? "System Unavailable" : "New System" );
 }
 else {
   $title = "$ws->system_code - $ws->system_desc";
-}
-
-if ( $M != "LC" && $ws->AllowedTo("update") && isset($_POST['submit']) ) {
-  if ( $ws->Validate($wsf) ) {
-    $ws->Write($wsf);
-    $ws = new WorkSystem($system_code);
-  }
 }
 
   require_once("top-menu-bar.php");

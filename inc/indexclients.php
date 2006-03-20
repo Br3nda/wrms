@@ -6,6 +6,7 @@ one of the recently modified requests from the list below.<br></p>";
   $query = "SELECT DISTINCT request.request_id, brief, fullname, email, last_activity, status.lookup_desc AS status_desc, ";
   $query .= "request.system_code, request_type.lookup_desc AS request_type_desc ";
   $query .= "FROM request ";
+  $query .= "JOIN request_interested USING (request_id) ";
   $query .= "JOIN work_system USING (system_code) ";
   $query .= "JOIN system_usr ON (work_system.system_code = system_usr.system_code AND system_usr.user_no = $session->user_no) ";
   $query .= ", usr, lookup_code AS status, lookup_code AS request_type ";

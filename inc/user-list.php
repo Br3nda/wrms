@@ -28,7 +28,7 @@ function get_user_list( $role="", $org="", $current ) {
       $user = pg_Fetch_Object( $rid, $i );
       $user_list .= "<OPTION VALUE=\"$user->user_no\"";
 
-      if ( (is_array($current) && array_search($user->user_no,$current) !== false) || ( "$user->user_no" == "$current" )) $user_list .= " selected=\"SELECTED\"";
+      if ( (is_array($current) && in_array($user->user_no,$current,true) ) || ( "$user->user_no" == "$current" )) $user_list .= " selected=\"SELECTED\"";
       $user->fullname = substr( $user->fullname, 0, 25) . " ($user->abbreviation)";
       $user_list .= ">$user->fullname";
     }

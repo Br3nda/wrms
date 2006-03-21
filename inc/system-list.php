@@ -25,7 +25,8 @@ function get_system_list( $access="", $current="", $maxwidth=50 ) {
     for ( $i=0; $i < $rows; $i++ ) {
       $system_code = pg_Fetch_Object( $rid, $i );
       $system_code_list .= "<option value=\"".urlencode($system_code->system_code)."\"";
-      if ( "$system_code->system_code" == "$current" ) $system_code_list .= " SELECTED";
+
+      if ( (is_array($current) && in_array($system_code->system_code,$current,true) ) || ("$system_code->system_code" == "$current" )) $system_code_list .= " SELECTED";
       $system_code->system_desc = substr( $system_code->system_desc, 0, $maxwidth);
       $system_code_list .= ">$system_code->system_desc</option>\n";
     }

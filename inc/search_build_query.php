@@ -67,7 +67,7 @@
     $search_query .= " AND request_urgency.source_table='request' AND request_urgency.source_field='urgency' AND request.urgency = request_urgency.lookup_code";
     $search_query .= " AND request_importance.source_table='request' AND request_importance.source_field='importance' AND request.importance = request_importance.lookup_code";
     if ( "$inactive" == "" || $inactive == 0 || $inactive == 'off')        $search_query .= " AND request.active ";
-    if ( ! is_member_of('Admin', 'Support' ) ) {
+    if ( ! is_member_of('Admin', 'Support', 'Contractor' ) ) {
       $search_query .= " AND usr.org_code = '$session->org_code' ";
     }
     else if ( isset($org_code) && intval($org_code) > 0 )

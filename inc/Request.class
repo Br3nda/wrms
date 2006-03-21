@@ -1366,27 +1366,25 @@ class Request {
   function _CheckNewRequester() {
     global $client_messages, $session;
 
+    if ( $this->chtype == 'update' && $_POST['requester_id'] == $this->requester_id ) return true;
+
     $new_system_code = str_replace("'","",str_replace("\\","",trim($_POST['system_code'])));
-    $failed = false;
-    if ( intval($_POST['requester_id']) == 0 ) {
-      $client_messages[] = "You must select someone as the person making this request.";
-      $failed = true;
-    }
-    if ( $new_system_code == '' ) {
-      $client_messages[] = "You must select a system which this request applies to.";
-      $failed = true;
-    }
-    if ( $failed ) return false;
     $_POST['system_code'] = $new_system_code;  // Assign the cleaned value back into the _POST array
 
-    // Some simple decisions
-    if ( $this->chtype == 'update' && $_POST['requester_id'] == $this->requester_id ) return true;
-    if ( $session->AllowedTo('Admin') || $session->AllowedTo('Support') ) return true;
+    if ( $new_system_code == '' ) {
+      $client_messages[] = "You must select a system which this request applies to.";
+      return false;
+    }
+    if ( intval($_POST['requester_id']) == 0 ) {
+      $client_messages[] = "You must select someone as the person making this request.";
+      unset($this->new_requester);
+      return false;
+    }
 
     $sql = "SELECT usr.user_no, usr.org_code, system_usr.role ";
     $sql .= "FROM usr JOIN org_system ON ( usr.org_code = org_system.org_code ) ";
-    $sql .= "JOIN system_usr ON ( usr.user_no = system_usr.user_no AND org_system.system_code = system_usr.system_code ) ";
-    $sql .= "WHERE org_system.system_code = ? AND usr.user_no = ? AND system_usr.role IN ('A', 'S', 'C', 'E', 'O'); ";
+    $sql .= "LEFT JOIN system_usr ON ( usr.user_no = system_usr.user_no AND org_system.system_code = system_usr.system_code ) ";
+    $sql .= "WHERE org_system.system_code = ? AND usr.user_no = ? ; ";
     $q = new PgQuery( $sql, $new_system_code, $_POST['requester_id'] );
     if ( !$q->Exec("WR::CheckNewOrgCode") ) {
       $client_messages[] = "There was a database error - please contact support.";
@@ -1397,13 +1395,24 @@ class Request {
       return false;
     }
     $requester = $q->Fetch();
+    $this->new_requester = $requester;
+
+    // Some simple decisions
+    if ( $session->AllowedTo('Admin') || $session->AllowedTo('Support') ) return true;
+
+    if ( ! strstr( '&ASCEO', $requester->role) > 0 ) {
+      $client_messages[] = "That person has no right to own requests for that system.";
+      return false;
+    }
 
     if ( ! $session->AllowedTo('Contractor') ) {
       if ( $requester->org_code == $session->org_code ) return true;
 
       $client_messages[] = "You may not create requests for that organisation.";
+      unset($this->new_requester);
       return false;
     }
+
     // But contractors are still allowed to do that as well...
     if ( $requester->org_code == $session->org_code ) return true;
 
@@ -1411,6 +1420,7 @@ class Request {
     if ( strpos("`SA",$session->system_roles[$new_system_code] ) == false ) {
       $session->Log("DBG: system role is not (S or A) for $session->username($session->user_no), $new_system_code - " . $session->system_roles[$new_system_code] );
       $client_messages[] = "You may not assign requests to that organisation for that system.";
+      unset($this->new_requester);
       return false;
     }
     // Must have appropriate system role
@@ -1421,10 +1431,12 @@ class Request {
     $q = new PgQuery( $sql, $new_system_code, $requester->org_code, $session->user_no );
     if ( !$q->Exec("WR::CheckNewOrgCode") ) {
       $client_messages[] = "There was a database error - please contact support.";
+      unset($this->new_requester);
       return false;
     }
     if ( $q->rows == 0 ) {
       $client_messages[] = "You may not assign requests to that organisation.";
+      unset($this->new_requester);
       return false;
     }
     $session->Log("DBG: $session->user_no may assign $new_system_code requests to Organisation $requester->org_code ");
@@ -1718,6 +1730,17 @@ EOX
       $this->mail_message_data[]['html'] = sprintf($hfmt, "New description: $_POST[brief]<br />(was: $this->brief)");
       $this->mail_message_data[]['text'] = sprintf($tfmt, "New description: $_POST[brief]\n   (was: $this->brief)");
       $this->send_an_email = true;
+    }
+
+    if ( intval($this->requester_id) != intval($_POST['requester_id']) ) {
+      // This was validated in ::Validate() so we can trust $this->new_requester to have what we need...
+      $session->Log("DBG: Old requester: $this->requester_id" );
+      $session->Log("DBG: New requester: ".$this->new_requester->user_no );
+      $session->Log("DBG: requester has changed to %s (%d) on W/R $this-request_id", $this->new_requester->fullname, $this->new_requester->user_no );
+      $this->mail_message_data[]['html'] = sprintf($hfmt, "New requester: %s  (was: %s)", $this->new_requester->fullname, $this->fullname );
+      $this->mail_message_data[]['text'] = sprintf($tfmt, "New requester: %s  (was: %s)", $this->new_requester->fullname, $this->fullname );
+      $this->send_an_email = true;
+      $this->org_code = $this->new_requester->org_code;
     }
 
     if ( isset($_POST['eta']) && "$this->eta" <> $_POST['eta'] )  {
@@ -2060,6 +2083,9 @@ EOX
     error_log( "$sysabbr Request::NewAllocations: DBG: Adding allocations: " . join(",", $_POST['new_allocations']), 0);
 
     $new_allocations = preg_replace( "/[^0-9,]/", "", join(",", $_POST['new_allocations']));
+    $new_allocations = preg_replace( "/,[^0-9]*,/", ",", $new_allocations);  // Single any double commas
+    $new_allocations = preg_replace( "/,[^0-9]*$/", "", $new_allocations);  // Trim any trailling comma
+    $new_allocations = preg_replace( "/^[^0-9]*,/", "", $new_allocations);  // Trim any leadling comma
 
     $sql = "SELECT fullname FROM usr WHERE user_no IN ( $new_allocations ) ";
     $sql .= "AND NOT EXISTS( SELECT 1 FROM request_allocated WHERE request_id = $this->request_id ";
@@ -2123,6 +2149,10 @@ EOX
     }
 
     $new_subscriptions = preg_replace( "/[^0-9,]/", "", join(",", $subscribers));
+    $new_subscriptions  = preg_replace( "/,[^0-9]*,/", ",", $new_subscriptions );  // Single any double commas
+    $new_subscriptions  = preg_replace( "/,[^0-9]*$/", "", $new_subscriptions );  // Trim any trailling comma
+    $new_subscriptions  = preg_replace( "/^[^0-9]*,/", "", $new_subscriptions );  // Trim any leadling comma
+
     $sql = "SELECT fullname FROM usr WHERE user_no IN ( $new_subscriptions ) ";
     $sql .= "AND NOT EXISTS( SELECT 1 FROM request_interested WHERE request_id = $this->request_id ";
     $sql .=                  "AND request_interested.user_no = usr.user_no) ";
@@ -2195,6 +2225,10 @@ EOX
     error_log( "$sysabbr Request::NewTags: DBG: Adding tags: " . join(",", $_POST['new_tags']), 0);
 
     $new_tags = preg_replace( "/[^0-9,]/", "", join(",", $_POST['new_tags']));
+    $new_tags  = preg_replace( "/,[^0-9]*,/", ",", $new_tags );  // Single any double commas
+    $new_tags  = preg_replace( "/,[^0-9]*$/", "", $new_tags );  // Trim any trailling comma
+    $new_tags  = preg_replace( "/^[^0-9]*,/", "", $new_tags );  // Trim any leadling comma
+
     $sql = "INSERT INTO request_tag ( tag_id, request_id, tagged_on ) ";
     $sql .= "SELECT tag_id, $this->request_id, current_timestamp ";
     $sql .= "FROM organisation_tag WHERE tag_id IN ( $new_tags ) ";

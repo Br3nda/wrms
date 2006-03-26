@@ -280,8 +280,11 @@ class User {
 
     $sql = "SELECT * FROM ugroup LEFT JOIN group_member ";
     $sql .= "ON (ugroup.group_no = group_member.group_no AND group_member.user_no = $this->user_no) ";
-    if ( ! $session->AllowedTo('Admin') ) {
+    if ( ! ($session->AllowedTo('Admin') || $session->AllowedTo('Support') ) ) {
       $sql .= "WHERE EXISTS(SELECT 1 from group_member gm WHERE gm.user_no=$session->user_no AND gm.group_no=ugroup.group_no) ";
+    }
+    else if ( ! $session->AllowedTo('Admin') ) {
+      $sql .= "WHERE ugroup.group_name != 'Admin' ";
     }
     $sql .= "ORDER BY ugroup.seq, ugroup.group_no";
 
@@ -346,10 +349,15 @@ class User {
       if ( isset($debuggroups['User']) && $debuggroups['User'] )
         $session->Log("DBG: Admin/Support maintains non Admin/Support person.  Org related systems only shown");
     }
-    else {
+    elseif ( $session->AllowedTo('OrgMgr') ) {
       $sql .= "AND EXISTS( SELECT 1 from org_system WHERE org_system.org_code = $session->org_code AND org_system.system_code = work_system.system_code) ";
       if ( isset($debuggroups['User']) && $debuggroups['User'] )
-        $session->Log("DBG: non Admin/Support maintains person.  Maintainer org related systems only shown");
+        $session->Log("DBG: OrgMgr maintains person.  Maintainer org related systems only shown");
+    }
+    else {
+      $sql .= "AND system_usr.user_no = $session->user_no ";
+      if ( isset($debuggroups['User']) && $debuggroups['User'] )
+        $session->Log("DBG: non Admin/Support/OrgMgr maintains person.  Only assigned systems shown");
     }
     $sql .= "ORDER BY lower(work_system.system_code)";
 

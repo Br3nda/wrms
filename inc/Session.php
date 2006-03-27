@@ -210,7 +210,7 @@ class Session
   */
   function Session( $sid="" )
   {
-    global $sid, $sysname;
+    global $sysname;
 
     $this->roles = array();
     $this->logged_in = false;

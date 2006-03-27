@@ -18,7 +18,7 @@ $debuggroups['querystring'] = 1;
 $debuggroups['Request'] = 1;
 //$debuggroups['WorkSystem'] = 1;
 
-$base_dns = "http://$HTTP_HOST";
+$base_dns = "https://$HTTP_HOST";
 $base_url = "";
 $external_base_url = $base_dns;
 $base_dir = $DOCUMENT_ROOT;

@@ -1,5 +1,5 @@
 <?php
-function get_user_list( $role="", $org="", $current ) {
+function get_user_list( $roles="", $org="", $current ) {
   global $dbconn;
   global $session;
   $user_list = "";
@@ -8,11 +8,17 @@ function get_user_list( $role="", $org="", $current ) {
   $query .= "FROM usr , organisation";
   $query .= " WHERE usr.status <> 'I' ";
   $query .= " AND usr.org_code = organisation.org_code ";
-  if( $role <> "" ) {
+  if( $roles <> "" ) {
+    $role_array = split( ',', $roles );
+    $in_roles = "";
+    foreach ( $role_array as $v ) {
+      $in_roles .= ($in_roles == "" ? "" : ",");
+      $in_roles .= "'$v'";
+    }
     $query .= "AND EXISTS (SELECT group_member.user_no FROM group_member, ugroup ";
     $query .= "WHERE group_member.user_no = usr.user_no ";
     $query .= "AND ugroup.group_no = group_member.group_no ";
-    $query .= "AND ugroup.group_name = '$role' )";
+    $query .= "AND ugroup.group_name IN ($in_roles) )";
   }
   if ( "$org" <> "" )         $query .= " AND usr.org_code='$org' ";
   $query .= " ORDER BY usr.fullname; ";

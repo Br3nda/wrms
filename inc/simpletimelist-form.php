@@ -28,7 +28,7 @@ function nice_time( $in_time ) {
     echo "<table border=0 cellpadding=0 cellspacing=2 align=center class=row0 style=\"border: 1px dashed #aaaaaa;\"><tr><td>\n";
 
     if ( is_member_of('Admin','Support') ) {
-      $user_list = "<option value=\"\">--- All Users ---</option>" . get_user_list( "Support", "", $user_no );
+      $user_list = "<option value=\"\">--- All Users ---</option>" . get_user_list( "Support,Contractor", "", $user_no );
     }
     echo "&nbsp;Work By:&nbsp;<select class=\"sml\" name=\"user_no\">$user_list</select>&nbsp;\n";
 
@@ -36,6 +36,9 @@ function nice_time( $in_time ) {
     $selected_1 = ( $date_restriction == 1 ) ? ' selected="selected"' : '';
     $selected_2 = ( $date_restriction == 2 ) ? ' selected="selected"' : '';
     $selected_3 = ( $date_restriction == 3 ) ? ' selected="selected"' : '';
+    $selected_4 = ( $date_restriction == 4 ) ? ' selected="selected"' : '';
+    $selected_5 = ( $date_restriction == 5 ) ? ' selected="selected"' : '';
+    $selected_6 = ( $date_restriction == 6 ) ? ' selected="selected"' : '';
     $selected_a = ( $date_restriction == 'any' ) ? ' selected="selected"' : '';
 
     echo "&nbsp;Show from:&nbsp;<select name=\"date_restriction\">
@@ -43,6 +46,9 @@ function nice_time( $in_time ) {
   <option value=\"1\"$selected_1>Last month</option>
   <option value=\"2\"$selected_2>2 months ago</option>
   <option value=\"3\"$selected_3>3 months ago</option>
+  <option value=\"4\"$selected_4>4 months ago</option>
+  <option value=\"5\"$selected_5>5 months ago</option>
+  <option value=\"6\"$selected_6>6 months ago</option>
   <option value=\"all\"$selected_a>No date restriction</option>
 </select>";
 
@@ -69,38 +75,49 @@ function nice_time( $in_time ) {
     switch ( $date_restriction )
     {
       case ( '0' ):
-    $from_date = date('Y/m/') . '1';
-    $query .= " AND request_timesheet.work_on::date >= '$from_date'::date";
-    break;
-  case ( '1' ):
-    $from_date = date('Y/m/', strtotime('-1 month')) . '1';
-    $to_date = date('Y/m/', strtotime('-1 month')) . date('j', strtotime('-1 month'));
-    $query .= " AND request_timesheet.work_on::date >= '$from_date'::date";
-    $query .= " AND request_timesheet.work_on::date <= '$to_date'::date + '23:59'::interval";
-    break;
-  case ( '2' ):
-    $from_date = date('Y/m/', strtotime('-2 months')) . '1';
-    $to_date = date('Y/m/', strtotime('-2 months')) . date('j', strtotime('-2 months'));
-    $query .= " AND request_timesheet.work_on::date >= '$from_date'::date";
-    $query .= " AND request_timesheet.work_on::date <= '$to_date'::date + '23:59'::interval";
-    break;
-  case ( '3' ):
-    $from_date = date('Y/m/', strtotime('-3 months')) . '1';
-    $to_date = date('Y/m/', strtotime('-3 months')) . date('j', strtotime('-3 months'));
-    $query .= " AND request_timesheet.work_on::date >= '$from_date'::date";
-    $query .= " AND request_timesheet.work_on::date <= '$to_date'::date + '23:59'::interval";
-    break;
-  default:
-    if ( isset($from_date) )
-    {
-      $query .= " AND request_timesheet.work_on::date >= '$from_date'::date";
-    }
-    if ( isset($to_date) )
-    {
-      $query .= " AND request_timesheet.work_on::date <= '$to_date'::date";
-    }
-    break;
-  }
+         $from_date = date('Y/m/') . '1';
+			$query .= " AND request_timesheet.work_on::date >= '$from_date'::date";
+			break;
+		case ( '1' ):
+    		$from_date = date('Y/m/', strtotime('-1 month')) . '1';
+    		$to_date = date('Y/m/', strtotime('-1 month')) . date('j', strtotime('-1 month'));
+    		$query .= " AND request_timesheet.work_on::date >= '$from_date'::date";
+    		$query .= " AND request_timesheet.work_on::date <= '$to_date'::date + '23:59'::interval";
+    		break;
+  		case ( '2' ):
+    		$from_date = date('Y/m/', strtotime('-2 months')) . '1';
+    		$to_date = date('Y/m/', strtotime('-2 months')) . date('j', strtotime('-2 months'));
+    		$query .= " AND request_timesheet.work_on::date >= '$from_date'::date";
+    		$query .= " AND request_timesheet.work_on::date <= '$to_date'::date + '23:59'::interval";
+    		break;
+ 		case ( '3' ):
+    		$from_date = date('Y/m/', strtotime('-3 months')) . '1';
+    		$to_date = date('Y/m/', strtotime('-3 months')) . date('j', strtotime('-3 months'));
+    		$query .= " AND request_timesheet.work_on::date >= '$from_date'::date";
+    		$query .= " AND request_timesheet.work_on::date <= '$to_date'::date + '23:59'::interval";
+    		break;
+  		case ( '3' ):
+    		$from_date = date('Y/m/', strtotime('-3 months')) . '1';
+    		$to_date = date('Y/m/', strtotime('-3 months')) . date('j', strtotime('-3 months'));
+    		$query .= " AND request_timesheet.work_on::date >= '$from_date'::date";
+    		$query .= " AND request_timesheet.work_on::date <= '$to_date'::date + '23:59'::interval";
+    		break;
+  		case ( '4' ):
+  		case ( '5' ):
+  		case ( '6' ):
+    		$from_date = date('Y/m/', strtotime("-$date_restriction months")) . '1';
+    		$to_date = date('Y/m/', strtotime("-$date_restriction months")) . date('j', strtotime("-$date_restriction months"));
+    		$query .= " AND request_timesheet.work_on::date >= '$from_date'::date";
+    		$query .= " AND request_timesheet.work_on::date <= '$to_date'::date + '23:59'::interval";
+  		default:
+    		if ( isset($from_date) ) {
+				$query .= " AND request_timesheet.work_on::date >= '$from_date'::date";
+    		}
+    		if ( isset($to_date) ) {
+				$query .= " AND request_timesheet.work_on::date <= '$to_date'::date";
+			}
+		   break;
+	}
 
     $query .= " ORDER BY $tlsort $tlseq ";
     if ( !isset($maxresults) || intval($maxresults) == 0 ) $maxresults = 1000;

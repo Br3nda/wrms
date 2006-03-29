@@ -35,7 +35,7 @@ function nice_time( $in_time ) {
     }
 
     if ( is_member_of('Admin','Support') ) {
-      $user_list = "<option value=\"\">--- All Users ---</option>" . get_user_list( "Support", "", $user_no );
+      $user_list = "<option value=\"\">--- All Users ---</option>" . get_user_list( "Support,Contractor", "", $user_no );
     }
     echo "<td class=smb align=right>&nbsp;&nbsp;Work&nbsp;By:</td><td class=sml><select class=sml name=user_no>$user_list</select></td>\n";
 

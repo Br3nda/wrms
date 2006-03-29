@@ -1737,8 +1737,8 @@ EOX
       $session->Log("DBG: Old requester: $this->requester_id" );
       $session->Log("DBG: New requester: ".$this->new_requester->user_no );
       $session->Log("DBG: requester has changed to %s (%d) on W/R $this-request_id", $this->new_requester->fullname, $this->new_requester->user_no );
-      $this->mail_message_data[]['html'] = sprintf($hfmt, "New requester: %s  (was: %s)", $this->new_requester->fullname, $this->fullname );
-      $this->mail_message_data[]['text'] = sprintf($tfmt, "New requester: %s  (was: %s)", $this->new_requester->fullname, $this->fullname );
+      $this->mail_message_data[]['html'] = sprintf($hfmt, sprintf("New requester: %s  (was: %s)", $this->new_requester->fullname, $this->fullname) );
+      $this->mail_message_data[]['text'] = sprintf($tfmt, sprintf("New requester: %s  (was: %s)", $this->new_requester->fullname, $this->fullname) );
       $this->send_an_email = true;
       $this->org_code = $this->new_requester->org_code;
     }

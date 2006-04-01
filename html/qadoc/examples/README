@@ -1,0 +1,6 @@
+This directory contains examples of quality assurance documents which
+have to be produced as part of QA processes. Examples which are specific
+to a particular QA phase are to be found in a sub-directory for the phase.
+
+Examples which are not specific to a phase are found in the current
+directory.

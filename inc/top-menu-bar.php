@@ -154,9 +154,66 @@ function user_no_menus(&$tmnu,$user_no) {
   }
 }
 
+function qams_menus(&$tmnu) {
+  global $session, $project, $qastep;
+  
+  // Safety-first.. 
+  $have_admin = false;
+  
+  // WRMS access to project master work request..
+  if (isset($project) && is_object($project)) {
+    $have_admin = $project->qa_process->have_admin;
+
+    // Master WRMS..    
+    $tmnu->AddOption(
+        "WR#$project->request_id",
+        "/wr.php?request_id=$project->request_id",
+        "Go to the master WRMS for this project"
+        );
+  
+    // QA Summary for project..
+    $tmnu->AddOption(
+        "Summary",
+        "/qams-project.php?request_id=$project->request_id",
+        "View the quality assurance summary for this project"
+        );
+        
+    // QA steps options.. 
+    if (isset($qastep)) {       
+      $tmnu->AddOption(
+          "Step Detail",
+          "/qams-step-detail.php?project_id=$project->request_id&step_id=$qastep->qa_step_id",
+          "View the detail page for the current QA step"
+          );
+    }
+    
+    // View/edit QA Plan..
+    $tmnu->AddOption(
+        "QA Plan",
+        "/qams-project.php?qa_action=qaplan&request_id=$project->request_id" . ($have_admin ? "&edit=1" : ""),
+        "View the quality assurance plan for this project"
+        );
+
+    // View/edit project details..
+    $tmnu->AddOption(
+        "Project",
+        "/qams-project.php?request_id=$project->request_id" . ($have_admin ? "&edit=1" : ""),
+        "View the QA project details"
+        );
+        
+    // View project status..
+    $tmnu->AddOption(
+        "Status",
+        "/qams-project-status.php?project_id=$project->request_id",
+        "View the project status report"
+        );
+  }
+} // qams_menus
+
 $session->Log("DBG: top-menu-bar: %s, %s, %s, %s", $REQUEST_URI, $request_id, $user_no, $system_code);
 
-if ( strstr($REQUEST_URI,"/wr.php") )                   request_menus($tmnu,$wr);
+if     ( strstr($REQUEST_URI,"qams") )                  qams_menus($tmnu,$wr);
+elseif ( strstr($REQUEST_URI,"/wr.php") )               request_menus($tmnu,$wr);
 elseif ( isset($request_id) && $request_id > 0 )        request_id_menus($tmnu,$request_id);
 elseif ( strstr($REQUEST_URI,"/org.php") )              organisation_menus($tmnu,$org);
 elseif ( strstr($REQUEST_URI,"/system.php") )           system_menus($tmnu,$ws);

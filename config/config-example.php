@@ -4,12 +4,13 @@ $dbconn = pg_Connect("dbname=wrms user=general");
 
 $admin_email = "wrmsadmin@catalyst.net.nz";
 $basefont = "verdana,sans-serif";
-$system_name = "Catalyst WRMS";
+$system_name = "Example WRMS";
 $sysabbr = "wrms";
 
 // Only admin/support can see the ranking report.
 $rank_report_anyone = 0;
 
+$qams_enabled = false;
 $base_dns = "http://$HTTP_HOST";
 $base_url = "";
 $external_base_url = $base_dns;

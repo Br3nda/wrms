@@ -151,7 +151,7 @@ class PieChart {
                   "style=\"fill:$CurrentColor; stroke:$colorBorder; stroke-width:1\" />\n");
 
       //draw label
-      print("<text x=\"40\" y=\"$LabelY\" style=\"file:$colorText; font-size:$this->font_height\">" .
+      print("<text x=\"40\" y=\"$LabelY\" style=\"fill:$colorText; font-size:$this->font_height"."px\">" .
         "$Label: $Value" .  "</text>\n");
     }
 

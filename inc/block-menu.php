@@ -65,7 +65,9 @@ function show_sidebar_menu() {
     if ( is_member_of('Admin', 'Support', 'Contractor' ) ) {
       menu_url_line("/timesheet.php", "", "Timesheet Entry", "head" );
     }
-    menu_url_line("/qams.php", "Go to the QAMS Quality Assurance Management System", "Quality System", "head" );
+    if ($qams_enabled ) {
+      menu_url_line("/qams.php", "Go to the QAMS Quality Assurance Management System", "Quality System", "head" );
+    }
     if ( isset($lsid) )
       menu_url_line("/?logout=1&forget=1$hurl", "Log me out and stop logging me in automatically", "Forget Me", "head" );
     else
@@ -130,6 +132,9 @@ function show_sidebar_menu() {
       $tooltip = "A ranked list of work requests, most important and urgent at the top";
       menu_url_line("/requestrank.php?qs=complex", $tooltip, "Request Ranking" );
     }
+  }
+  if ( is_member_of('Admin', 'Support' ) ) {
+    menu_url_line("/statuspie.php", 'A pie chart of request statuses for a period / system / organisation', "Status Pie" );
   }
   block_close();
 }

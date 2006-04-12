@@ -1,22 +1,48 @@
 <?php
 
-$dbconn = pg_Connect("dbname=wrms user=general");
+$dbconn = pg_Connect("dbname=example_wrms user=general");
 
 $admin_email = "wrmsadmin@catalyst.net.nz";
-$basefont = "verdana,sans-serif";
 $system_name = "Example WRMS";
-$sysabbr = "wrms";
+
+// To identify our logging lines 
+$sysabbr = "example";
 
 // Only admin/support can see the ranking report.
 $rank_report_anyone = 0;
 
+// is the Quality System component enabled 
 $qams_enabled = false;
+
+// Should all e-mail be sent to a debugging address 
+// $debug_email = 'andrew@catalyst.net.nz';
+
+// When searching, what are the default statuses to find 
+$default_search_statuses = '@NRILKTQADSPZU';
+
+// //////////////////// Enable for debugging...
+// $debuglevel = 5;
+// $debuggroups['Session'] = 1;
+// $debuggroups['Login'] = 1;
+// $debuggroups['querystring'] = 1;
+// $debuggroups['Request'] = 1;
+// $debuggroups['WorkSystem'] = 1;
+// $debuggroups['TimeSheet'] = 1;
+
 $base_dns = "http://$HTTP_HOST";
 $base_url = "";
 $external_base_url = $base_dns;
 $base_dir = $DOCUMENT_ROOT;
+
+// The directory where attachments are stored.
+// This should be created with mode 1777 as a 'temp' directory
+$attachment_dir = "/home/wrms/wrms/html/attachments";
 $module = "base";
+
 $images = "images";
+
+$stylesheet = "main.css";
+
 $colors = array(
 	"bg1" => "#ffffff", // primary background
 	"fg1" =>  "#000000", // text on primary background
@@ -47,6 +73,7 @@ $colors = array(
 		"blockextra" => "#660000"
 );
 
+$basefont = "verdana,sans-serif";
 $fonts = array( "tahoma",		// primary font
 		"verdana",	// secondary font
 		"help"	=> "times",		// help text

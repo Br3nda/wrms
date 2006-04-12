@@ -6,7 +6,7 @@
 
   if ( "$submit" <> "") {
     include("timesheet-valid.php");
-    if ( "$because" == "" ) include("timesheet-action.php");
+    if ( ! $invalid ) include("timesheet-action.php");
   }
 
   $title = "$system_name - Weekly Timesheet: $session->fullname";
@@ -131,7 +131,7 @@ function build_time_list( $name, $from, $current, $delta ) {
 
       // Normalise that to always start on a period boundary...
       $start_tod = $sod + $period_minutes * intval(( $start_tod - $sod ) / $period_minutes ) ;
-      // error_log( "timesheet: DBG: ts_start=$ts->started, start_tod=$start_tod, sod=$sod, period=$period_minutes" );
+      $session->Dbg( "TimeSheet", "ts_start=$ts->started, start_tod=$start_tod, sod=$sod, period=$period_minutes" );
 
       // Force time later than start of person's day
       if ( $start_tod < $sod ) {
@@ -142,7 +142,7 @@ function build_time_list( $name, $from, $current, $delta ) {
       //
       for ( $j = 0; $j < $duration; $j += $period_minutes ) {
         $tm[$our_dow][sprintf("m%d", $start_tod + $j)] = "$ts->request_id/$ts->work_description" . ("$ts->entry_details" == "$ts->request_id" ? "" : "@|@$sow" );
-        // error_log( "timesheet: DBG: \$" . "tm[$our_dow][" . sprintf("m%d", $start_tod + $j) . "] = $ts->request_id/$ts->work_description" . ("$ts->entry_details" == "$ts->request_id" ? "" : "@|@$sow" ) );
+        $session->Dbg( "TimeSheet", "\$" . "tm[$our_dow][" . sprintf("m%d", $start_tod + $j) . "] = $ts->request_id/$ts->work_description" . ("$ts->entry_details" == "$ts->request_id" ? "" : "@|@$sow" ) );
       }
     }
   }
@@ -196,7 +196,7 @@ EOHEADERS;
   echo "</tr>\n";
   echo "<tr><td><input type=hidden name=sow value=$sow><input type=hidden name=eod value=$eod></td><td align=center><input type=submit name=submit value=submit class=submit></td>";
   echo "<td colspan=6>Enter times as [WR#]/[Description], e.g. \"1537/Made the tea\".  Where you work on
-  the same thing for several periods, you need only enter the description against the first entry for each day.</td></tr>\n";
+  the same thing for several periods, you need only enter the description against the first period in the group (unless you want the descripion to change).</td></tr>\n";
   echo "</table>\n</form>\n";
 
   // Display a list of W/R's this person has worked on recently

@@ -153,7 +153,7 @@ th.cols, th.rows, a.cols  {font: small-caps bold $fontsizes[1] $fonts[0], sans-s
   if ( isset($client_messages) && is_array($client_messages) && count($client_messages) > 0 ) {
     echo "<div id=\"messages\"><ul class=\"messages\">\n";
     foreach( $client_messages AS $i => $msg ) {
-      // ##HelpTextKey## gets converted to a "/help.phph=HelpTextKey" link
+      // ##HelpTextKey## gets converted to a "/help.php?h=HelpTextKey" link
       $msg = preg_replace_callback("/##([^#]+)##/", "make_help_link", $msg);
       echo "<li class=\"messages\">$msg</li>\n";
     }

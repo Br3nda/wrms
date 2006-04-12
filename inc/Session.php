@@ -288,6 +288,40 @@ class Session
   }
 
   /**
+  * Utility function to log debug stuff with printf expansion, and the ability to
+  * enable it selectively.
+  *
+  * The enabling is done by setting a variable "$debuggroups[$group] = 1"
+  *
+  * @param string $group The name of an arbitrary debug group.
+  * @param string $whatever A log string
+  * @param mixed $whatever... Further parameters to be replaced into the log string a la printf
+  */
+  function Dbg( $whatever )
+  {
+    global $debuggroups, $sysabbr;
+
+    $argc = func_num_args();
+    $dgroup = func_get_arg(0);
+    
+    error_log( "Session::Dbg: DBG: dgroup=$dgroup" );
+    
+    if ( ! (isset($debuggroups[$dgroup]) && $debuggroups[$dgroup]) ) return;
+ 
+    $format = func_get_arg(1);
+    if ( $argc == 2 || ($argc == 3 && func_get_arg(2) == "0" ) ) {
+      error_log( "$sysabbr: DBG: $dgroup: $format" );
+    }
+    else {
+      $args = array();
+      for( $i=1; $i < $argc; $i++ ) {
+        $args[] = func_get_arg($i);
+      }
+      error_log( "$sysabbr: DBG: $dgroup: " . vsprintf($format,$args) );
+    }
+  }
+
+  /**
   * Checks whether a user is allowed to do something.
   *
   * The check is performed to see if the user has that role.

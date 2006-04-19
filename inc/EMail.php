@@ -205,9 +205,10 @@ class EMail
     if ( "$this->ReplyTo" != "" )  $additional_headers .= "Reply-To: $this->ReplyTo\r\n";
     if ( "$this->ErrorsTo" != "" ) $additional_headers .= "Errors-To: $this->ErrorsTo\r\n";
 
-    $additional_parameters = "";
-    if ( "$this->Sender" != "" ) $additional_parameters = "-f$this->Sender";
-    mail( $this->To, $this->Subject, $this->Body, $additional_headers, $additional_parameters );
+    if ( "$this->Sender" != "" )
+      mail( $this->To, $this->Subject, $this->Body, $additional_headers, "-f$this->Sender" );
+    else
+      mail( $this->To, $this->Subject, $this->Body, $additional_headers );
   }
 }
 ?>

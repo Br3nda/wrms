@@ -303,11 +303,11 @@ class Session
 
     $argc = func_num_args();
     $dgroup = func_get_arg(0);
-    
+
     error_log( "Session::Dbg: DBG: dgroup=$dgroup" );
-    
+
     if ( ! (isset($debuggroups[$dgroup]) && $debuggroups[$dgroup]) ) return;
- 
+
     $format = func_get_arg(1);
     if ( $argc == 2 || ($argc == 3 && func_get_arg(2) == "0" ) ) {
       error_log( "$sysabbr: DBG: $dgroup: $format" );
@@ -728,19 +728,19 @@ EOTEXT;
     else {
       $page_content = <<<EOTEXT
 <div id="logon">
-<h1>Forgotten Password</h1>
+<h1>Temporary Password</h1>
 <form action="$action_target" method="post">
 <table>
 <tr>
-<th class="prompt">Enter your User Name:</th>
+<th class="prompt" style="white-space: nowrap;">Enter your User Name:</th>
 <td class="entry"><input class="text" type="text" name="username" size="12" /></td>
 </tr>
 <tr>
-<th class="prompt">Or your EMail Address:</th>
+<th class="prompt" style="white-space: nowrap;">Or your EMail Address:</th>
 <td class="entry"><input class="text" type="text" name="email_address" size="50" /></td>
 </tr>
 <tr>
-<th class="prompt">and click on -></th>
+<th class="prompt" style="white-space: nowrap;">and click on -></th>
 <td class="entry">
 <input class="submit" type="submit" value="Send me a temporary password" alt="Enter a username, or e-mail address, and click here." name="lostpass" />
 </td>

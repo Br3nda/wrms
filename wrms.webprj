@@ -1,6 +1,6 @@
 <!DOCTYPE webproject>
 <webproject>
-  <project usePreviewPrefix="0" preview="http://mywrms/" previewPrefix="file:file%3A" type="Local" newfiles="php" name="WRMS" encoding="iso 8859-1" >
+  <project usePreviewPrefix="0" preview="http://mywrms/" type="Local" previewPrefix="file:file%3A" newfiles="php" name="WRMS" encoding="iso 8859-1" >
     <upload/>
     <author>Andrew McMillan</author>
     <email>wrms@catalyst.net.nz</email>
@@ -266,5 +266,15 @@
     <item url="scripts/patches/patch-1.99.8.sql" uploadstatus="1" />
     <item url="inc/BarClass.php" uploadstatus="1" />
     <item url="html/statusbar-svg.php" uploadstatus="1" />
+    <item url="scripts/patches/patch-1.99.9.sql" />
+    <item url="scripts/qamsdb/" />
+    <item url="scripts/qamsdb/qams_core.sql" />
+    <item url="scripts/qamsdb/qams_core_data.sql" />
+    <item url="scripts/qamsdb/wrms_to_qams.sql" />
+    <item url="scripts/patches/patch-1.99.10.sql" />
+    <item url="html/temppass.php" />
+    <item url="html/new_organisation.php" />
+    <item url="inc/OrganisationPlus.php" />
+    <item url="scripts/views.sql" />
   </project>
 </webproject>

@@ -121,7 +121,7 @@ class Request {
           $this->new_record = false;
           while( list($k,$v) = each($row) ) {
             if ( isset($debuggroups['Request']) && $debuggroups['Request'] ) {
-              $session->Log( "DBG: \$this->{'%-25.25s = %s", "$k'}", $v);
+              $session->Dbg( "Request", "\$this->{'%-25.25s = %s", "$k'}", $v);
             }
             $this->{$k} = $v;
           }
@@ -129,21 +129,21 @@ class Request {
         else {
           unset($this->org_code);
           unset($this->system_code);
-          $session->Log( "DBG: User %d cannot access request %d.", $session->user_no, $id);
+          $session->Dbg( "Request", "User %d cannot access request %d.", $session->user_no, $id);
           $client_messages[] = "Request $id is unavailable - do you have the number right?";
           $this->new_record = false;
         }
       }
       else {
         // Request not found that the user can read.
-        $session->Log( "DBG: User %d cannot access request %d.", $session->user_no, $id);
+        $session->Dbg( "Request", "User %d cannot access request %d.", $session->user_no, $id);
         $client_messages[] = "Request $id is unavailable - do you have the number right?";
         $this->new_record = false;
       }
     }
     else {
       // SQL is broken or something very wierd!
-      error_log( sprintf("%s: DBG: Can't create SQL PgQuery for '%s'", $sysabbr, $sql) );
+      $session->Dbg( "Request", "Can't create SQL PgQuery for '%s'", $sysabbr, $sql);
     }
   }
 
@@ -223,7 +223,7 @@ class Request {
     if ( isset($debuggroups['Request']) && $debuggroups['Request'] ) {
       $roles = "";
       foreach( $session->system_roles AS $k => $v ) { $roles .= "$k=$v~~"; }
-      $session->Log("WR::AllowedTo: action '%s' to %s, User-Org:%s, WR-Org:%s, System:%s, SysRole:%s, Roles:%s - result is: %d",
+      $session->Dbg( "Request", "action '%s' to %s, User-Org:%s, WR-Org:%s, System:%s, SysRole:%s, Roles:%s - result is: %d",
                         $action, $session->username, $session->org_code, $this->org_code,
                         $this->system_code, $session->system_roles[$this->system_code],
                         $roles, $answer );
@@ -259,7 +259,7 @@ class Request {
         $this->Disassociate(intval($GLOBALS['other_id']));
         break;
       default:
-        error_log("$sysabbr WR::Actions: ERROR: Unrecognised action: '$action'");
+        $session->Log("$sysabbr Request: ERROR: Unrecognised action: '$action'");
         $client_messages[] = "ERROR: Unrecognised action: '$action'";
     }
   }
@@ -445,7 +445,8 @@ class Request {
 
     if ( $ef->editmode ) {
       $html .= $ef->DataEntryLine( "Quiet update", "%s", "checkbox", "send_no_email",
-              array( "size" => 70, "title" => "Check the box if this update should not send e-mail notifications") );
+              array( "size" => 70, "title" => "Check the box if this update should not send e-mail notifications",
+                     "_label" => "(do not send email)") );
       $html .= '<tr><th class="prompt">&nbsp;</th><td class="entry">';
       $html .= "</td></tr>";
     }
@@ -668,26 +669,34 @@ class Request {
       else {
         $html .= '<th class="pcol">Approval</th>';
       }
+      $html .= '<th class="pcol">Inv.#</th>';
       $html .= '</tr>'."\n";
       $line_format = '<tr class="row%d"><td class="entry" width="5%%">%s<br />%s</td>';
       $line_format .= '<td class="entry" style="white-space: nowrap;">%s</td>';
       $line_format .= '<td class="entry">%s</td>';
       $line_format .= '<td class="entry" style="white-space: nowrap;">%s %s</td>';
       $line_format .= '<td class="entry" style="white-space: nowrap;">%s</td>';
+      $line_format .= '<td class="entry">%s</td>';
       $line_format .= '</tr>'."\n";
       $detail_format = '<tr class="row%d"><td class="entry">&nbsp;</td><td class="entry" colspan="4">%s</td></tr>'."\n";
       while( $row = $q->Fetch() ) {
         if ( $ef->editmode && $row->approved_by == "" ) {
           $approval = $ef->DataEntryField( "", "checkbox", "quote_approved[$row->quote_id]",
-                array("title" => "Check the box to approve this quote" ) );
-          $approval .= 'Approved';
+                array("title" => "Check the box to approve this quote", "_label" => "Approved" ) );
         }
         else {
           $approval = "$row->approved_by<br />$row->approved_on";
         }
+        if ( $ef->editmode && $row->invoice_no == "" ) {
+          $invoicing = $ef->DataEntryField( "", "text", "quote_invoice_no[$row->quote_id]",
+                array("title" => "Enter the invoice number which this quoted item was invoiced on.", "size" => "5" ) );
+        }
+        else {
+          $invoicing = "$row->invoice_no";
+        }
         $html .= sprintf( $line_format,
                     ($q->rownum % 2), $row->quote_type_desc, $row->quote_id, "$row->quote_by<br />$row->quoted_on", $row->quote_brief,
-                    $row->quote_amount, $row->quote_units, $approval
+                    $row->quote_amount, $row->quote_units, $approval, $invoicing
                   );
         if ( trim("$row->quote_details") != "" ) {
           $html .= sprintf( $detail_format,
@@ -985,14 +994,12 @@ class Request {
       $this->ts_ok_to_charge   = array();
       $this->ts_charged_amount = array();
       while( $row = $q->FetchBackwards() ) {
-//         error_log( "$sysabbr: DBG: work_rate:$row->work_rate, org_rate:$row->org_rate, worker_rate:$row->worker_rate, supplier_rate:$row->supplier_rate");
         $rate = ($row->work_rate > 0 ? $row->work_rate
                             : ($row->org_rate > 0 ? $row->org_rate
                                         : ($row->worker_rate > 0 ? $row->worker_rate : $row->supplier_rate ) ));
         $invoice_details = $row->charged_details;
         $amount_charged = sprintf("$%.2lf", $row->work_quantity * $rate );
         if ( $ef->editmode ) {
-          // error_log( "$sysabbr: DBG: Ok to charge = $row->ok_to_charge" );
           $bill_ok_options = array("title" => "Check this if it is OK to bill this work now." );
           if ( $row->ok_to_charge == 't' ) $this->ts_ok_to_charge["$row->timesheet_id"] = 't';
           if ( $row->work_charged != "" ) {
@@ -1047,7 +1054,7 @@ class Request {
                   array("_type" => "request_quote|quote_units", "style" => "width: 5em;",
                         "title" => "The type of units for this work" ) );
 
-      $session->Log( "DBG: org_rate:%s, worker_rate:%s, supplier_rate:%s", $this->work_rate, $session->base_rate, $session->work_rate);
+      $session->Dbg( "Request", "org_rate:%s, worker_rate:%s, supplier_rate:%s", $this->work_rate, $session->base_rate, $session->work_rate);
       $rate = ($this->work_rate > 0 ? $this->work_rate
                           : ($session->base_rate > 0 ? $session->base_rate : $session->work_rate ));
       $this->work_rate = $rate;
@@ -1276,8 +1283,9 @@ class Request {
 
       $html .= '<td class="entry">';
       $html .= $ef->DataEntryField( "", "checkbox", "preserve_html",
-                array("title" => "Preserve the raw HTML so that it is inlined, and the HTML codes will not be visible" ) );
-      $html .= 'Preserve HTML</td>';
+                array("title" => "Preserve the raw HTML so that it is inlined, and the HTML codes will not be visible",
+                      "_label" => "Preserve HTML" ) );
+      $html .= '</td>';
 
       $html .= "</tr></table></td></tr>\n";
 
@@ -1342,7 +1350,7 @@ class Request {
   /////////////////////////////////////////////////////////////
   function Validate( $ef ) {
     global $client_messages, $session;
-    $session->Log("DBG: WR::Validate: Validating request");
+    $session->Dbg( "Request", "Validate: Validating request");
 
     $this->chtype = strtolower($_POST['submit']);
 
@@ -1358,7 +1366,7 @@ class Request {
     // If we validated OK, make sure the request.last_status is synced with any submitted status.
     $_POST['last_status'] = $_POST['status_code'];
 
-    $session->Log("DBG: WR::Validate: Passed for $this->chtype by $session->username ($session->user_no)");
+    $session->Dbg( "Request", "Validate: Passed for $this->chtype by $session->username ($session->user_no)");
     return true;
   }
 
@@ -1418,7 +1426,7 @@ class Request {
 
     // Must be a contractor at this point
     if ( strpos("`SA",$session->system_roles[$new_system_code] ) == false ) {
-      $session->Log("DBG: system role is not (S or A) for $session->username($session->user_no), $new_system_code - " . $session->system_roles[$new_system_code] );
+      $session->Dbg( "Request", "system role is not (S or A) for $session->username($session->user_no), $new_system_code - " . $session->system_roles[$new_system_code] );
       $client_messages[] = "You may not assign requests to that organisation for that system.";
       unset($this->new_requester);
       return false;
@@ -1439,7 +1447,7 @@ class Request {
       unset($this->new_requester);
       return false;
     }
-    $session->Log("DBG: $session->user_no may assign $new_system_code requests to Organisation $requester->org_code ");
+    $session->Dbg( "Request", "$session->user_no may assign $new_system_code requests to Organisation $requester->org_code ");
     return true;
   }
 
@@ -1452,7 +1460,7 @@ class Request {
   /////////////////////////////////////////////////////////////
   function Write( $ef ) {
     global $client_messages, $request_id, $session, $schema_version;
-    error_log("$system_name: WR::Write: Writing request details to database");
+    $session->Dbg( "Request", "Write: Writing request details to database");
     $qry = new PgQuery("BEGIN");  $qry->Exec("WR::Write");
 
     $this->send_an_email = false;
@@ -1522,6 +1530,10 @@ class Request {
 
         if ( !$db_errors && trim($_POST['quote_brief']) != "" ) {
           $db_errors = ! $this->AddQuote();
+        }
+
+        if ( !$db_errors && is_array($_POST['quote_invoice_no']) ) {
+          $db_errors = ! $this->InvoiceQuotes($_POST['quote_invoice_no']);
         }
 
         if ( !$db_errors && isset($_POST['new_allocations']) ) {
@@ -1683,8 +1695,8 @@ EOX
     $mail->AltBody = $tbody;
 
     if ( !$mail->Send() ) {
-      error_log( "$sysabbr: ERR: Unable to send e-mail for WR #$this->request_id" );
-      error_log( "$sysabbr: ERR: $mail->ErrorInfo" );
+      $session->Log( "$sysabbr: ERR: Unable to send e-mail for WR #$this->request_id" );
+      $session->Log( "$sysabbr: ERR: $mail->ErrorInfo" );
     }
   }
 
@@ -1722,11 +1734,11 @@ EOX
 
     $tfmt = " * %s\n";
     $hfmt = "<p>%s</p>\n";
-    error_log( "$sysabbr: DBG: Detecting e-mail changes for '$this->chtype' change" );
+    $session->Dbg( "Request", "Detecting e-mail changes for '$this->chtype' change" );
     if ( $this->brief != "" && "$this->brief" != $_POST['brief'] ) {
-      $session->Log("DBG: Old brief: $this->brief" );
-      $session->Log("DBG: New brief: ".$_POST['brief'] );
-      $session->Log("DBG: description has changed on W/R $this-request_id" );
+      $session->Dbg( "Request", "Old brief: $this->brief" );
+      $session->Dbg( "Request", "New brief: ".$_POST['brief'] );
+      $session->Dbg( "Request", "description has changed on W/R $this-request_id" );
       $this->mail_message_data[]['html'] = sprintf($hfmt, "New description: $_POST[brief]<br />(was: $this->brief)");
       $this->mail_message_data[]['text'] = sprintf($tfmt, "New description: $_POST[brief]\n   (was: $this->brief)");
       $this->send_an_email = true;
@@ -1734,9 +1746,9 @@ EOX
 
     if ( intval($this->requester_id) != intval($_POST['requester_id']) ) {
       // This was validated in ::Validate() so we can trust $this->new_requester to have what we need...
-      $session->Log("DBG: Old requester: $this->requester_id" );
-      $session->Log("DBG: New requester: ".$this->new_requester->user_no );
-      $session->Log("DBG: requester has changed to %s (%d) on W/R $this-request_id", $this->new_requester->fullname, $this->new_requester->user_no );
+      $session->Dbg( "Request", "Old requester: $this->requester_id" );
+      $session->Dbg( "Request", "New requester: ".$this->new_requester->user_no );
+      $session->Dbg( "Request", "requester has changed to %s (%d) on W/R $this-request_id", $this->new_requester->fullname, $this->new_requester->user_no );
       $this->mail_message_data[]['html'] = sprintf($hfmt, sprintf("New requester: %s  (was: %s)", $this->new_requester->fullname, $this->fullname) );
       $this->mail_message_data[]['text'] = sprintf($tfmt, sprintf("New requester: %s  (was: %s)", $this->new_requester->fullname, $this->fullname) );
       $this->send_an_email = true;
@@ -1755,7 +1767,7 @@ EOX
     $current  = simplify_string($this->detailed);
     $detail_changed = ( $newdesc != $current );
     if ( $this->chtype == "update" && $detail_changed ) {
-      $session->Log("DBG: description has changed on W/R $this->request_id" );
+      $session->Dbg( "Request", "description has changed on W/R $this->request_id" );
       if ( strlen($current) != 0 && abs(strlen($current) - strlen($newdesc)) < 20
              && isset($debuggroups['Request']) && $debuggroups['Request'] ) {
         $datestamp = date("Y-m-d H:i:s") . " ============================\n";
@@ -1793,7 +1805,7 @@ EOX
   /////////////////////////////////////////////////////////////
   function AttachFile( $fname, $description ) {
     global $session, $client_messages, $attachment_dir;
-    error_log( "$sysabbr Request::AttachFile: DBG: Adding attachment: " . $_FILES[$fname]['name'], 0);
+    $session->Dbg( "Request", "Adding attachment: " . $_FILES[$fname]['name'], 0);
     $sql = "SELECT nextval('request_attachment_attachment_id_seq') AS id ;";
     $qry = new PgQuery( $sql );
     if ( ! $qry->Exec('WR::AttachFile') ) {
@@ -1834,7 +1846,7 @@ EOX
   /////////////////////////////////////////////////////////////
   function AddQuote( ) {
     global $session, $client_messages;
-    error_log( "$sysabbr Request::AddQuote: DBG: Adding quote: " . $_POST['quote_brief'], 0);
+    $session->Dbg( "Request", "Adding quote: " . $_POST['quote_brief'], 0);
     $sql = "SELECT nextval('request_quote_quote_id_seq') AS id ;";
     $qry = new PgQuery( $sql );
     if ( ! $qry->Exec('WR::AddQuote') ) {
@@ -1876,14 +1888,14 @@ EOX
 
         if ( !$this->AllowedTo('approvequotes') ) {
           $client_messages[] = "You are not authorised to approve quotes for this request.##AuthApproveQuotes##";
-          $session->Log( "DBG: WR::ApproveQuotes: Quote $quote_id may not be approved by $session->fullname" );
+          $session->Dbg( "Request", "ApproveQuotes: Quote $quote_id may not be approved by $session->fullname" );
           return false;
         }
 
         $sql .= "UPDATE request_quote SET approved_by_id = $session->user_no, approved_on = current_timestamp ";
         $sql .= "WHERE request_id = $this->request_id AND quote_id = $quote_id; ";
 
-        $session->Log( "DBG: WR::ApproveQuotes: Quote $quote_id approved by $session->fullname" );
+        $session->Dbg( "Request", "ApproveQuotes: Quote $quote_id approved by $session->fullname" );
 
         $messages[] = "Quote $quote_id approved.";
         $this->mail_message_data[]['html'] = "<h4>Quote $quote_id was approved by $session->fullname.</h4>\n";
@@ -1894,18 +1906,56 @@ EOX
     }
 
     if ( $sql != "" ) {
-/*
       $qry = new PgQuery( $sql ) ;
       if ( ! $qry->Exec('WR::ApproveQuotes') ) {
         $client_messages[] = "$qry->errorstring";
         return false;
       }
-*/
       $client_messages = $client_messages + $messages;
     }
 
     return true;
   }
+
+  /**
+  * Update an existing quote with the details of some invoicing.
+  */
+  function InvoiceQuotes( $invoices ) {
+    global $session, $client_messages;
+
+    $sql = "";
+    $messages = array();
+    foreach ( $invoices AS $quote_id => $invoice_no ) {
+      $quote_id = intval($quote_id);
+      $invoice_no = intval($invoice_no);
+      if ( $invoice_no > 0 ) {
+        if ( !$this->AllowedTo('invoicequotes') ) {
+          $client_messages[] = "You are not authorised to invoice quotes for this request.##AuthInvoiceQuotes##";
+          $session->Dbg( "InvoiceQuotes", "Quote $quote_id may not be invoiced by $session->fullname" );
+          return false;
+        }
+
+        $sql .= "UPDATE request_quote SET invoice_no = $invoice_no ";
+        $sql .= "WHERE request_id = $this->request_id AND quote_id = $quote_id; ";
+
+        $session->Dbg( "InvoiceQuotes", "Quote $quote_id invoiced by $session->fullname" );
+
+        $messages[] = "Quote $quote_id invoiced.";
+      }
+    }
+
+    if ( $sql != "" ) {
+      $qry = new PgQuery( $sql ) ;
+      if ( ! $qry->Exec('WR::InvoiceQuotes') ) {
+        $client_messages[] = "$qry->errorstring";
+        return false;
+      }
+      $client_messages = $client_messages + $messages;
+    }
+
+    return true;
+  }
+
 
   /////////////////////////////////////////////////////////////
   // Update the details of existing timesheets with invoicing
@@ -1966,7 +2016,7 @@ EOX
   /////////////////////////////////////////////////////////////
   function AddWork( ) {
     global $session, $client_messages;
-    error_log( "$sysabbr Request::AddWork: DBG: Adding work: " . $_POST['work_description'], 0);
+    $session->Dbg( "Request", "Adding work: " . $_POST['work_description'], 0);
     $sql = "SELECT nextval('request_timesheet_timesheet_id_seq') AS id ;";
     $qry = new PgQuery( $sql );
     if ( ! $qry->Exec('WR::AddWork') ) {
@@ -2000,7 +2050,7 @@ EOX
     $actions = $_POST['request_action'];
     $messages = "";
 
-    error_log("DBG: Checking for changes to request actions..." );
+    $session->Dbg( "Request", "Checking for changes to request actions..." );
 
     if ( !is_array($actions) ) return true;  // Silently succeed
 
@@ -2018,7 +2068,7 @@ EOX
 
     while( $row = $q->Fetch() ) {
       if ( $actions[$row->action_id] != $row->completed_on ) {
-        error_log("DBG: Examining action for $row->action_id" );
+        $session->Dbg( "Request", "Examining action for $row->action_id" );
         $completed = str_replace( "'","''",str_replace('\\','\\\\', $actions[$row->action_id]));
         if ( $row->completed_on == "" ) {
           $sql .= "INSERT INTO request_action (request_id, action_id, completed_on, updated_by_id) ";
@@ -2057,7 +2107,7 @@ EOX
     global $session, $client_messages;
 
     if ( $_POST['link_type'] == '' ) return true;  // Silently carry on...
-    error_log( "$sysabbr Request::AddParent: DBG: Adding parent: " . $_POST['parent_request_id'], 0);
+    $session->Dbg( "Request", "Adding parent: " . $_POST['parent_request_id'], 0);
 
     $sql = "INSERT INTO request_request ( request_id, to_request_id, link_type, link_data ) ";
     $sql .= "VALUES( ?, ?, ?, ? );";
@@ -2080,7 +2130,7 @@ EOX
   /////////////////////////////////////////////////////////////
   function NewAllocations( ) {
     global $session, $client_messages, $sysabbr;
-    error_log( "$sysabbr Request::NewAllocations: DBG: Adding allocations: " . join(",", $_POST['new_allocations']), 0);
+    $session->Dbg( "Request", "Adding allocations: " . join(",", $_POST['new_allocations']), 0);
 
     $new_allocations = preg_replace( "/[^0-9,]/", "", join(",", $_POST['new_allocations']));
     $new_allocations = preg_replace( "/,[^0-9]*,/", ",", $new_allocations);  // Single any double commas
@@ -2105,7 +2155,7 @@ EOX
       $people .= ( $people == "" ? "" : ", ") . $row->fullname;
     }
     if ( $people == "" ) {
-      error_log( "$sysabbr Request::NewAllocations: WARN: NewAllocations called for currently allocated people $new_allocations" );
+      $session->Log( "$sysabbr Request::NewAllocations: WARN: NewAllocations called for currently allocated people $new_allocations" );
       return true;  // So we don't cancel the transaction...
     }
 
@@ -2171,11 +2221,11 @@ EOX
       $people .= ( $people == "" ? "" : ", ") . $row->fullname;
     }
     if ( $people == "" ) {
-      error_log( "$sysabbr Request::NewSubscriptions: WARN: NewSubscriptions called for currently subscribed people $new_subscriptions" );
+      $session->Log( "$sysabbr Request::NewSubscriptions: WARN: NewSubscriptions called for currently subscribed people $new_subscriptions" );
       return true;  // So we don't cancel the transaction...
     }
 
-    error_log( "$sysabbr Request::NewSubscriptions: DBG: Adding subscriptions: $new_subscriptions", 0);
+    $session->Dbg( "Request", "Adding subscriptions: $new_subscriptions", 0);
 
     $sql = "INSERT INTO request_interested ( request_id, user_no, username ) ";
     $sql .= "SELECT $this->request_id, user_no, username ";
@@ -2222,7 +2272,7 @@ EOX
   /////////////////////////////////////////////////////////////
   function NewTags( ) {
     global $session, $client_messages;
-    error_log( "$sysabbr Request::NewTags: DBG: Adding tags: " . join(",", $_POST['new_tags']), 0);
+    $session->Dbg( "Request", "Adding tags: " . join(",", $_POST['new_tags']), 0);
 
     $new_tags = preg_replace( "/[^0-9,]/", "", join(",", $_POST['new_tags']));
     $new_tags  = preg_replace( "/,[^0-9]*,/", ",", $new_tags );  // Single any double commas
@@ -2251,7 +2301,7 @@ EOX
     global $session, $client_messages;
 
     if ( "create" == $this->chtype || $this->last_status != $_POST['status_code'] ) {
-      error_log( "$sysabbr Request::NewStatusCode: DBG: Status changed from '$this->last_status' to '" . $_POST['status_code']."'", 0);
+      $session->Dbg( "Request", "Status changed from '$this->last_status' to '" . $_POST['status_code']."'", 0);
 
       $sql = "INSERT INTO request_status ( request_id, status_on, status_by_id, status_code ) ";
       $sql .= "VALUES( ?, current_timestamp, ?, ? );";
@@ -2283,7 +2333,7 @@ EOX
   /////////////////////////////////////////////////////////////
   function AddNote( ) {
     global $session, $client_messages;
-    error_log( "$sysabbr Request::AddNote: DBG: Note added to request", 0);
+    $session->Dbg( "Request", "Note added to request", 0);
 
     $note_detail = $_POST['note_detail'];
     if ( ! isset($_POST['preserve_html']) || $_POST['preserve_html'] == '' || $_POST['preserve_html'] == '0' || $_POST['preserve_html'] == 'off' ) {
@@ -2314,7 +2364,7 @@ EOX
   /////////////////////////////////////////////////////////////
   function AddQAAction( ) {
     global $session, $client_messages;
-    error_log( "$sysabbr Request::AddQAAction: DBG: QA Action added to request", 0);
+    $session->Dbg( "Request", "QA Action added to request", 0);
 
     $action_detail = $_POST['action_detail'];
     $action_detail = htmlspecialchars($action_detail);

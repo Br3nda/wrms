@@ -168,8 +168,6 @@ function column_header( $ftext, $fname ) {
     Process_Brief_editable_Requests();
   }
 
-  if ( $system_code == "." ) $system_code = "";
-
   $title = "$system_name Request List";
 
   if ( !isset($rlsort) ) $rlsort = $settings->get('rlsort');
@@ -184,12 +182,13 @@ function column_header( $ftext, $fname ) {
   $settings->set('rlseq', $rlseq);
 
   if ( isset($org_code) ) $org_code = intval($org_code);
+  if ( isset($system_id) ) $system_id = intval($system_id);
 
   // Build up the column header cell, with %s gaps for the sort, sequence and sequence image
   $header_cell = "<th class=cols><a class=cols href=\"$PHP_SELF?rlsort=%s&rlseq=%s";
   if ( isset($qs) ) $header_cell .= "&qs=$qs";
-  if ( isset($org_code) ) $header_cell .= "&org_code=$org_code";
-  if ( $system_code != "" ) $header_cell .= "&system_code=$system_code";
+  if ( $org_code > 0 ) $header_cell .= "&org_code=$org_code";
+  if ( $system_id > 0 ) $header_cell .= "&system_id=$system_id";
   if ( isset($search_for) ) $header_cell .= "&search_for=$search_for";
   if ( isset($inactive) ) $header_cell .= "&inactive=$inactive";
   if ( isset($requested_by) ) $header_cell .= "&requested_by=$requested_by";

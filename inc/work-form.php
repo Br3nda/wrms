@@ -8,15 +8,15 @@ function nice_time( $in_time ) {
 ?>
 
 <?php
-  if ( "$search_for$system_code " != "" ) {
+  if ( "$search_for$system_id " != "" ) {
     if ( !isset($maxresults) || intval($maxresults) == 0 ) $maxresults = 200;
     $query = "SELECT request.*, organisation.*, request_timesheet.*, ";
     $query .= " worker.fullname AS worker_name, requester.fullname AS requester_name, ";
     $query .= " last_status_on(request.request_id) AS status_on, last_status AS status, get_status_desc(last_status) AS status_desc ";
     $query .= " FROM request ";
     if ( ! is_member_of('Admin', 'Support') ) {
-      $query .= "JOIN work_system USING (system_code) ";
-      $query .= "JOIN system_usr ON (work_system.system_code = system_usr.system_code AND system_usr.user_no = $session->user_no) ";
+      $query .= "JOIN work_system USING (system_id) ";
+      $query .= "JOIN system_usr ON (work_system.system_id = system_usr.system_id AND system_usr.user_no = $session->user_no) ";
     }
     $query .= ", usr AS worker, usr AS requester, organisation, request_timesheet ";
     $query .= " WHERE request_timesheet.request_id = request.request_id";
@@ -25,17 +25,17 @@ function nice_time( $in_time ) {
     $query .= " AND organisation.org_code = requester.org_code ";
 
     if ( "$user_no" <> "" ) {
-      $query .= " AND work_by_id=$user_no ";
+      $query .= " AND work_by_id=".intval($user_no);
     }
 
     if ( "$search_for" <> "" ) {
       $query .= " AND work_description ~* '$search_for' ";
     }
-    if ( "$system_code" <> "" ) {
-      $query .= " AND request.system_code='$system_code' ";
+    if ( "$system_id" <> "" ) {
+      $query .= " AND request.system_id=".intval($system_id);
     }
     if ( "$org_code" <> "" ) {
-      $query .= " AND requester.org_code='$org_code' ";
+      $query .= " AND requester.org_code=".intval($org_code);
     }
 
     if ( "$after" != "" )

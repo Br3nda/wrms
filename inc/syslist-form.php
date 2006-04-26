@@ -18,7 +18,7 @@
     if ( "$org_code" <> "" ) $query .= ", org_code ";
     $query .= "FROM work_system ";
     if ( ! is_member_of('Admin', 'Support') ) {
-      $query .= "JOIN system_usr ON (work_system.system_code = system_usr.system_code AND system_usr.user_no = $session->user_no) ";
+      $query .= "JOIN system_usr ON (work_system.system_id = system_usr.system_id AND system_usr.user_no = $session->user_no) ";
     }
     if ( "$org_code" <> "" ) $query .= ", org_system ";
 
@@ -32,7 +32,7 @@
       $query .= " OR system_desc ~* '$search_for' ) ";
     }
     if ( "$org_code" <> "" ) {
-      $query .= "AND work_system.system_code=org_system.system_code ";
+      $query .= "AND work_system.system_id=org_system.system_id ";
       $query .= "AND org_system.org_code='$org_code' ";
     }
     $query .= " ORDER BY work_system.system_code ";
@@ -62,16 +62,16 @@
 
         printf("<tr class=row%1d>", $i % 2);
 
-        echo "<td class=sml>&nbsp;<a href=\"system.php?system_code=".urlencode($thissystem->system_code)."\">$thissystem->system_code</a>&nbsp;</td>\n";
-        echo "<td class=sml>&nbsp;<a href=\"system.php?system_code=".urlencode($thissystem->system_code)."\">$thissystem->system_desc";
+        echo "<td class=sml>&nbsp;<a href=\"system.php?system_id=".urlencode($thissystem->system_id)."\">$thissystem->system_id</a>&nbsp;</td>\n";
+        echo "<td class=sml>&nbsp;<a href=\"system.php?system_id=".urlencode($thissystem->system_id)."\">$thissystem->system_desc";
         if ( "$thissystem->system_desc" == "" ) echo "-- no description --";
         echo "</a>&nbsp;</td>\n";
-        echo "<td class=sml><a class=submit href=\"requestlist.php?system_code=".urlencode($thissystem->system_code)."\">Requests</a>\n";
-        echo "<a class=submit href=\"usrsearch.php?system_code=$thissystem->system_code\">Users</a>\n";
+        echo "<td class=sml><a class=submit href=\"requestlist.php?system_id=".urlencode($thissystem->system_id)."\">Requests</a>\n";
+        echo "<a class=submit href=\"usrsearch.php?system_id=$thissystem->system_id\">Users</a>\n";
         if ( is_member_of('Admin','Support') ) {
-          echo "<a class=submit href=\"form.php?system_code=".urlencode($thissystem->system_code)."&form=timelist\">Work</a>\n";
-          echo "<a class=submit href=\"form.php?form=orglist&system_code=".urlencode($thissystem->system_code)."\">Organisations</a>\n";
-          echo "<a class=submit href=\"system_users.php?system_code=".urlencode($thissystem->system_code)."\">Roles</a>\n";
+          echo "<a class=submit href=\"form.php?system_id=".urlencode($thissystem->system_id)."&form=timelist\">Work</a>\n";
+          echo "<a class=submit href=\"form.php?form=orglist&system_id=".urlencode($thissystem->system_id)."\">Organisations</a>\n";
+          echo "<a class=submit href=\"system_users.php?system_id=".urlencode($thissystem->system_id)."\">Roles</a>\n";
         }
 
         echo "</td></tr>\n";

@@ -52,8 +52,8 @@
     if ( intval("$allocated_to") > 0 ) $search_query .= "request_allocated, ";
     $search_query .= "request ";
     if ( ! is_member_of('Admin', 'Support') ) {
-      $search_query .= "JOIN work_system USING (system_code) ";
-      $search_query .= "JOIN system_usr ON (work_system.system_code = system_usr.system_code AND system_usr.user_no = $session->user_no) ";
+      $search_query .= "JOIN work_system USING (system_id) ";
+      $search_query .= "JOIN system_usr ON (work_system.system_id = system_usr.system_id AND system_usr.user_no = $session->user_no) ";
     }
     $search_query .= ", usr";
     $search_query .= ", lookup_code AS status ";
@@ -71,7 +71,7 @@
       $search_query .= " AND usr.org_code = '$session->org_code' ";
     }
     else if ( isset($org_code) && intval($org_code) > 0 )
-      $search_query .= " AND usr.org_code='".intval($org_code)."' ";
+      $search_query .= " AND usr.org_code=".intval($org_code);
 
     if ( intval("$user_no") > 0 )
       $search_query .= " AND requester_id = " . intval($user_no);
@@ -89,7 +89,7 @@
       $search_query .= " OR detailed ~* '$search_for' ";
       $search_query .= " OR EXISTS(SELECT 1 FROM request_note WHERE request_id = request.request_id AND note_detail ~* '$search_for')) ";
     }
-    if ( "$system_code" != "" )     $search_query .= " AND request.system_code='$system_code' ";
+    if ( $system_id > 0 )     $search_query .= " AND request.system_id=".intval($system_id);
     if ( "$type_code" != "" )     $search_query .= " AND request_type=" . intval($type_code);
 
     if ( "$from_date" != "" )     $search_query .= " AND request.last_activity >= '$from_date' ";

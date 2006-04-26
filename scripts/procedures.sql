@@ -33,25 +33,26 @@ CREATE or REPLACE FUNCTION set_allocated (int4, int4) RETURNS int4 AS '
 ' LANGUAGE 'plpgsql';
 
 -- Set a user as having a particular system-related role
-CREATE or REPLACE FUNCTION set_system_role (int4, text, text ) RETURNS int4 AS '
+DROP FUNCTION set_system_role (int4, text, text );
+CREATE or REPLACE FUNCTION set_system_role (int4, int4, text ) RETURNS int4 AS '
    DECLARE
       u_no ALIAS FOR $1;
-      sys_code ALIAS FOR $2;
+      sys_id ALIAS FOR $2;
       new_role ALIAS FOR $3;
       curr_val TEXT;
    BEGIN
       SELECT role INTO curr_val FROM system_usr
-                      WHERE user_no = u_no AND system_code = sys_code;
+                      WHERE user_no = u_no AND system_id = sys_id;
       IF FOUND THEN
         IF curr_val = new_role THEN
           RETURN u_no;
         ELSE
           UPDATE system_usr SET role = new_role
-                      WHERE user_no = u_no AND system_code = sys_code;
+                      WHERE user_no = u_no AND system_id = sys_id;
         END IF;
       ELSE
-        INSERT INTO system_usr (user_no, system_code, role)
-                         VALUES( u_no, sys_code, new_role );
+        INSERT INTO system_usr (user_no, system_id, role)
+                         VALUES( u_no, sys_id, new_role );
       END IF;
       RETURN u_no;
    END;
@@ -159,12 +160,12 @@ CREATE or REPLACE FUNCTION user_votes (int4, int4, int4 ) RETURNS int4 AS '
       n_id ALIAS FOR $1;
       w_u_id ALIAS FOR $2;
       v_u_id ALIAS FOR $3;
-      RETURN plus_votes + minus_votes;
+      votes INT4;
     BEGIN
       SELECT vote_amount INTO votes FROM wu_vote
               WHERE node_id = n_id AND wu_by = w_u_id AND vote_by = v_u_id LIMIT 1;
       IF NOT FOUND THEN
-        votes = 0;
+        votes := 0;
       END IF;
       RETURN votes;
     END;

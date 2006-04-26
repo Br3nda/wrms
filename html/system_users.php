@@ -5,22 +5,23 @@
   require_once("maintenance-page.php");
   require_once("organisation-selectors-sql.php");
 
-function write_system_roles( $roles, $system_code ) {
+function write_system_roles( $roles, $system_id ) {
   global $client_messages, $session;
 
   $users = "";
   $role_update = "";
+  $system_id = intval($system_id);
   foreach( $roles AS $user_no => $role_code ) {
     if ( $role_code != "" ) {
       $user_no = intval($user_no);
       $users .= ( "$users" == "" ? "" : "," ) . $user_no;
-      $role_update .= "SELECT set_system_role($user_no,'$system_code',". qpg($role_code).");";
+      $role_update .= "SELECT set_system_role($user_no,$system_id,". qpg($role_code).");";
     }
   }
   if ( $users == "" )
-    $sql = "DELETE FROM system_usr WHERE system_code = '$system_code';";
+    $sql = "DELETE FROM system_usr WHERE system_id = $system_id;";
   else
-    $sql = "BEGIN; DELETE FROM system_usr WHERE system_code = '$system_code' AND user_no NOT IN ( $users ); $role_update COMMIT;";
+    $sql = "BEGIN; DELETE FROM system_usr WHERE system_id = $system_id AND user_no NOT IN ( $users ); $role_update COMMIT;";
 
     $q = new PgQuery($sql);
     if ( $q->Exec("SystemUsers::Write") )
@@ -30,11 +31,11 @@ function write_system_roles( $roles, $system_code ) {
 
 }
 
-  $system_code = str_replace( "'", "", str_replace("\\", "", $system_code ) );
+  $system_id = intval($system_id);
   $title = "$system_name System Users";
 
-  if ( "$system_code" == "" ) {
-    $client_messages[] = "System Code was not supplied.";
+  if ( "$system_id" == 0 ) {
+    $client_messages[] = "System ID was not supplied.";
     require_once("top-menu-bar.php");
     include("headers.php");
     include("footers.php");
@@ -42,7 +43,7 @@ function write_system_roles( $roles, $system_code ) {
   }
 
   if ( $M != "LC" && isset($_POST['submit']) && is_array($_POST['role']))
-    write_system_roles( $_POST['role'], $system_code );
+    write_system_roles( $_POST['role'], $system_id );
 
   require_once("top-menu-bar.php");
   include("headers.php");
@@ -70,7 +71,7 @@ function write_system_roles( $roles, $system_code ) {
   $sql .=                 "AND group_member.group_no IN (SELECT group_no FROM ugroup WHERE group_name IN ('Contractor'))) ";
   $sql .= "AS contractor_group ";
   $sql .= "FROM usr NATURAL JOIN organisation ";
-  $sql .= "LEFT JOIN system_usr ON (usr.user_no = system_usr.user_no AND system_usr.system_code = ?) ";
+  $sql .= "LEFT JOIN system_usr ON (usr.user_no = system_usr.user_no AND system_usr.system_id = ?) ";
   $sql .= "LEFT JOIN lookup_code roles ON (source_table='system_usr' AND source_field='role' AND lookup_code=system_usr.role) ";
   $sql .= "WHERE usr.status != 'I' ";
   if ( isset( $org_code ) || $org_code == "" )
@@ -78,7 +79,7 @@ function write_system_roles( $roles, $system_code ) {
   else
     $sql .= "AND organisation.active ";
 
-  $sql .= "AND ( EXISTS(SELECT 1 FROM org_system WHERE organisation.org_code = org_system.org_code AND org_system.system_code = ".qpg($system_code) .") ";
+  $sql .= "AND ( EXISTS(SELECT 1 FROM org_system WHERE organisation.org_code = org_system.org_code AND org_system.system_id = ".qpg($system_id) .") ";
   if ( ( $session->AllowedTo("Admin") || $session->AllowedTo("Support") ) ) {
     $sql .= "OR EXISTS(SELECT 1 FROM usr u JOIN group_member USING (user_no) JOIN ugroup USING (group_no) ";
     $sql .= "WHERE organisation.org_code = u.org_code AND ugroup.group_name = 'Support') ";
@@ -90,7 +91,7 @@ function write_system_roles( $roles, $system_code ) {
   }
 
   $sql .= " ORDER BY (1000 - lookup_seq), LOWER(fullname);";
-  $q = new PgQuery($sql, $system_code );
+  $q = new PgQuery($sql, $system_id );
 
 //  echo "<p>$q->querystring</p>";
 
@@ -168,7 +169,7 @@ SCRIPT;
 
       $html .= '<td class="entry" align="center">';
       $options = array_merge($roles, array("title" => "Select the default role people have in relation to this system"));
-      $this->role[$row->system_code] = $row->role;
+      $this->role[$row->system_id] = $row->role;
       $html .= $ef->DataEntryField( "", "select", "default_role", $options );
       $html .= "</td></tr>";
       echo $html;

@@ -1,87 +1,62 @@
 -- Views for WRMS
 
--- An insertable / updateable view that joins the organisation, work_system and usr tables
--- for the specific case of the designated primary representative and general work system
--- for the organisation.
+-- An insertable view that joins the organisation, work_system and usr tables
+-- for the specific case of creating an organisation, general work_system and
+-- primary user representative in one action.
 
+DROP VIEW organisation_plus CASCADE;
 CREATE OR REPLACE VIEW organisation_plus AS
-SELECT organisation.org_code, organisation.active, debtor_no, work_rate,
-       abbreviation, current_sla, admin_user_no,
-       work_system.system_code, work_system.active, system_desc, organisation_specific,
-       usr.user_no, status, email_ok, joined, last_update, last_accessed,
-       username, password, fullname, email,
-FROM organisation
-         LEFT JOIN work_system ON organisation.generic_system = work_system.system_code
-         LEFT JOIN usr ON organisation.admin_user_no = usr.user_no
+  SELECT organisation.org_code, organisation.active AS org_active, debtor_no, work_rate,
+      abbreviation, org_name, current_sla, admin_user_no, general_system,
+      work_system.system_id, work_system.system_code, work_system.active AS system_active, system_desc, organisation_specific,
+      usr.user_no, status, email_ok, joined, last_update,
+      username, password, fullname, email,
+      system_usr.role
+    FROM organisation
+      LEFT JOIN work_system ON organisation.general_system = work_system.system_id
+      LEFT JOIN usr ON organisation.admin_user_no = usr.user_no
+      LEFT JOIN system_usr ON system_usr.user_no = usr.user_no AND system_usr.system_id = work_system.system_id;
 
-CREATE or REPLACE RULE organisation_plus AS ON UPDATE TO organisation_plus
+CREATE or REPLACE RULE organisation_plus AS ON INSERT TO organisation_plus
 DO INSTEAD
 (
-  UPDATE organisation
-    SET
-      org_code = NEW.org_code,
-      active = NEW.active,
-      debtor_no = NEW.debtor_no,
-      work_rate = NEW.work_rate,
-      abbreviation = NEW.abbreviation,
-      current_sla = NEW.current_sla,
-      org_name = NEW.org_name
-    WHERE
-      org_code = OLD.org_code;
-
-  UPDATE usr
-    SET
-      org_code = NEW.org_code,
-      user_no = NEW.user_no,
-      active = NEW.active,
-      email_ok = NEW.email_ok,
-      joined = NEW.joined,
-      updated = NEW.updated,
-      last_used = NEW.last_used,
-      username = NEW.username,
-      password = NEW.password,
-      fullname = NEW.fullname,
-      email = NEW.email,
-      config_data = NEW.config_data
-    WHERE
-      user_no = OLD.user_no;
-
-  UPDATE work_system
-    SET
-      user_no = NEW.user_no,
-      bank_no = NEW.bank_no,
-      is_banker = NEW.is_banker,
-      other_shite = NEW.other_shite
-    WHERE
-      user_no = OLD.user_no;
-
-  UPDATE org_system
-    SET
-      org_code = NEW.org_code,
-      system_code = NEW.system_code
-    WHERE
-      org_code = OLD.org_code AND system_code = OLD.system_code;
-
-  UPDATE system_usr
-    SET
-      user_no = NEW.user_no,
-      system_code = NEW.system_code
-    WHERE
-      system_code = OLD.system_code AND user_no = OLD.user_no;
+  INSERT INTO organisation ( org_code, active, debtor_no, work_rate, abbreviation, org_name, current_sla, admin_user_no, general_system )
+    VALUES(
+      COALESCE( NEW.org_code, nextval('organisation_org_code_seq')),
+      COALESCE( NEW.org_active, TRUE),
+      NEW.debtor_no, NEW.work_rate, NEW.abbreviation, NEW.org_name,
+      COALESCE( NEW.current_sla, FALSE),
+      COALESCE( NEW.admin_user_no, nextval('usr_user_no_seq')),
+      COALESCE( NEW.general_system, nextval('work_system_system_id_seq'))
+    );
+  INSERT INTO work_system ( system_id, system_code, active, system_desc, organisation_specific )
+    VALUES(
+      COALESCE( NEW.system_id, currval('work_system_system_id_seq')),
+      COALESCE( NEW.system_code, lower( NEW.abbreviation || '-GEN') ),
+      COALESCE( NEW.system_active, TRUE),
+      COALESCE( NEW.system_desc, NEW.org_name || ' - General Work' ),
+      COALESCE( NEW.organisation_specific, TRUE)
+    );
+  INSERT INTO usr ( user_no, status, email_ok, joined, last_update, username, password, fullname, email )
+    VALUES(
+      COALESCE( NEW.user_no, currval('usr_user_no_seq')),
+      COALESCE( NEW.status, 'A'),
+      COALESCE( NEW.email_ok, TRUE ),
+      COALESCE( NEW.joined, current_timestamp),
+      COALESCE( NEW.last_update, current_timestamp),
+      NEW.username, NEW.password, NEW.fullname, NEW.email
+    );
+  INSERT INTO system_usr ( user_no, role, system_id )
+    VALUES(
+      COALESCE( NEW.user_no, currval('usr_user_no_seq')),
+      COALESCE( NEW.role, 'C' ),
+      COALESCE( NEW.system_id, currval('work_system_system_id_seq'))
+    );
+  INSERT INTO org_system ( org_code, system_id )
+    VALUES(
+      COALESCE( NEW.org_code, currval('organisation_org_code_seq')),
+      COALESCE( NEW.system_id, currval('work_system_system_id_seq'))
+    );
 );
 
-CREATE or REPLACE RULE usr_client_insert AS ON INSERT TO usr_client
-DO INSTEAD
-(
-  INSERT INTO usr ( user_no, active, email_ok, joined, updated, last_used, username, password, fullname, email, config_data, date_format_type )
-  VALUES( COALESCE( NEW.user_no, nextval('usr_user_no_seq')),
-  COALESCE( NEW.active, TRUE),
-  NEW.email_ok,
-  COALESCE( NEW.joined, current_timestamp),
-  NEW.updated, NEW.last_used, NEW.username, NEW.password, NEW.fullname, NEW.email, NEW.config_data, NEW.date_format_type );
-  INSERT INTO client ( user_no, bank_no, is_banker, other_shite )
-  VALUES( COALESCE( NEW.user_no, currval('usr_user_no_seq')),
-  NEW.bank_no, NEW.is_banker, NEW.other_shite );
-);
-
-GRANT SELECT, INSERT, UPDATE ON usr_client TO general;
+GRANT SELECT, INSERT ON organisation_plus TO general;

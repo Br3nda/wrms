@@ -17,17 +17,17 @@ see those currently active requests.
   // Should already be tested, but we might as well check again.
   if ( ! is_member_of('Admin','Support','Contractor') ) return;
 
-  $query = "SELECT s.system_code, lower(s.system_desc) AS lcname, s.system_desc, ";
+  $query = "SELECT s.system_id, lower(s.system_desc) AS lcname, s.system_desc, ";
   $query .= "to_char( max(r.request_on), 'D Mon YYYY') AS last_request_date, ";
   $query .= "count(r.request_id) AS active_sys_requests ";
   $query .= "FROM work_system s ";
-  $query .= "JOIN system_usr su ON s.system_code = su.system_code ";
-  $query .= "JOIN request r ON r.system_code = su.system_code ";
+  $query .= "JOIN system_usr su ON s.system_id = su.system_id ";
+  $query .= "JOIN request r ON r.system_id = su.system_id ";
   $query .= "WHERE su.user_no = $session->user_no AND s.active AND r.active ";
   $query .= "AND su.role IN ( 'A', 'S', 'C', 'E', 'O', 'V' ) ";
   $query .= "AND (r.last_activity > (current_timestamp - '30 days'::interval) ";
   $query .= "     OR r.last_status NOT IN ( 'F', 'C' ) ) ";
-  $query .= "GROUP BY lower(s.system_desc), s.system_code, s.system_desc ";
+  $query .= "GROUP BY lower(s.system_desc), s.system_id, s.system_desc ";
   $query .= "HAVING COUNT(r.request_id) > 0 ";
   $query .= "ORDER BY lower(s.system_desc) ";
   $result = awm_pgexec( $dbconn, $query, "indexsupport", false, 5 );
@@ -44,7 +44,7 @@ see those currently active requests.
 
       printf("<tr class=row%1d>", $i % 2);
 
-      echo "<td class=sml>&nbsp;<a href=\"requestlist.php?system_code=$this_system->system_code\">$this_system->system_desc";
+      echo "<td class=sml>&nbsp;<a href=\"requestlist.php?system_id=$this_system->system_id\">$this_system->system_desc";
       if ( "$this_system->system_desc" == "" ) echo "-- no description --";
       echo "</a>&nbsp;</td>\n";
 

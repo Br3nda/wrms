@@ -19,8 +19,8 @@
     if ( isset($saved_query) ) $usaved_query = str_replace('%','%%',urlencode($saved_query));
     if ( "$saved_query" != "" ) $this_page .= "&saved_query=$usaved_query";
     if ( "$search_for" != "" ) $this_page .= "&search_for=" . urlencode($search_for);
-    if ( "$org_code" != "" ) $this_page .= "&org_code=$org_code";
-    if ( "$system_code" != "" ) $this_page .= "&system_code=$system_code";
+    if ( $org_code > 0 ) $this_page .= "&org_code=$org_code";
+    if ( $system_id > 0 ) $this_page .= "&system_id=$system_id";
     if ( isset($inactive) && $inactive != 0 && $inactive != 'off' ) $this_page .= "&inactive=$inactive";
     if ( isset($requested_by) ) $this_page .= "&requested_by=$requested_by";
     if ( isset($interested_in) ) $this_page .= "&interested_in=$interested_in";
@@ -67,8 +67,8 @@
       if ( "$format" == "edit" ) {
 
         $thisrequest->editable = ( ($session->AllowedTo("Support") || $session->AllowedTo("Admin"))
-                || ( $this->org_code == $session->org_code && strpos("`SACEO",$session->system_roles[$this->system_code] ) )
-                || ( $session->AllowedTo("Contractor") && strpos("`SA",$session->system_roles[$this->system_code] ) ) ) ;
+                || ( $this->org_code == $session->org_code && strpos("`SACEO",$session->system_roles[$this->system_id] ) )
+                || ( $session->AllowedTo("Contractor") && strpos("`SA",$session->system_roles[$this->system_id] ) ) ) ;
       }
 
       if ( $show_details ) header_row();

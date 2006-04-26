@@ -4,8 +4,9 @@ require_once("MenuClass.php");
 $tmnu = new MenuSet('tmnu', 'tmnu', 'tmnu_active');
 
 function request_menus(&$tmnu, $wr) {
+  global $session;
 
-  error_log("DBG: request_menus - $wr->request_id");
+  $session->Dbg("Menus", "request_menus - $wr->request_id");
   if ( $wr->request_id > 0 ) {
     $tmnu->AddOption("WR#$wr->request_id","/wr.php?request_id=$wr->request_id","View the details for this work request");
     if ( $wr->AllowedTo('update') )
@@ -16,8 +17,8 @@ function request_menus(&$tmnu, $wr) {
 
   if ( $wr->org_code > 0 )
     $tmnu->AddOption("Organisation","/org.php?org_code=$wr->org_code&request_id=$wr->request_id","View the details for this organisation");
-  if ( $wr->system_code != "" )
-    $tmnu->AddOption("System","/system.php?system_code=".urlencode($wr->system_code)."&request_id=$wr->request_id","View the details for this system");
+  if ( $wr->system_id > 0 )
+    $tmnu->AddOption("System","/system.php?system_id=".urlencode($wr->system_id)."&request_id=$wr->request_id","View the details for this system");
   if ( $wr->user_no > 0 )
     $tmnu->AddOption("User","/user.php?user_no=$wr->user_no&request_id=$wr->request_id","View the details for the requesting user");
 }
@@ -55,24 +56,26 @@ function organisation_menus(&$tmnu,$org) {
 
 function system_menus(&$tmnu,$system) {
   global $session;
-  $session->Log("DBG: system_menus: %s", $system->system_code);
-  if ( $system->system_code == "" ) return;
+  $session->Dbg("Menus", "system_menus: %d - %s", $system->system_id, $system->system_code);
+  if ( $system->system_id == 0 ) return;
   if ( !$system->AllowedTo('view') ) return;
 
-  $tmnu->AddOption($system->system_code,"/system.php?system_code=".urlencode($system->system_code),"View the details for this system");
+  $tmnu->AddOption($system->system_id,"/system.php?system_id=".urlencode($system->system_id),"View the details for this system");
   if ( $system->AllowedTo('update') )
-    $tmnu->AddOption("Edit","/system.php?edit=1&system_code=".urlencode($system->system_code),"Edit the details for this system");
-  $tmnu->AddOption("Requests","/requestlist.php?system_code=".urlencode($system->system_code),"List current requests for this system");
-  $tmnu->AddOption("Organisations","/form.php?system_code=".urlencode($system->system_code)."&form=orglist","List organisations for this system");
-  $tmnu->AddOption("Users","/usrsearch.php?system_code=".urlencode($system->system_code),"List users associated with this system");
-  $tmnu->AddOption("Roles","/system_users.php?system_code=".urlencode($system->system_code),"Maintain roles of users associated with this system");
+    $tmnu->AddOption("Edit","/system.php?edit=1&system_id=".urlencode($system->system_id),"Edit the details for this system");
+  $tmnu->AddOption("Requests","/requestlist.php?system_id=".urlencode($system->system_id),"List current requests for this system");
+  $tmnu->AddOption("Organisations","/form.php?system_id=".urlencode($system->system_id)."&form=orglist","List organisations for this system");
+  $tmnu->AddOption("Users","/usrsearch.php?system_id=".urlencode($system->system_id),"List users associated with this system");
+  $tmnu->AddOption("Roles","/system_users.php?system_id=".urlencode($system->system_id),"Maintain roles of users associated with this system");
 
   if ( $session->AllowedTo('Admin') || $session->AllowedTo('Support') ) {
-    $tmnu->AddOption("Uncharged","/form.php?system_code=".urlencode($system->system_code)."&form=timelist&uncharged=1","List users for this system");
+    $tmnu->AddOption("Uncharged","/form.php?system_id=".urlencode($system->system_id)."&form=timelist&uncharged=1","List users for this system");
   }
 }
 
 function attachment_type_menus(&$tmnu,$att) {
+  global $session;
+  $session->Dbg("Menus", "attachment_type_menus - $att->type_code");
   if ( isset($att) && "$att->type_code" != "" ) {
     $tmnu->AddOption("$att->type_code","/attachment_type.php?type_code=$att->type_code","View the details for this Attachment Type" );
     $tmnu->AddOption("Edit","/attachment_type.php?edit=1&type_code=$att->type_code","Edit the details for this Attachment Type",
@@ -83,12 +86,12 @@ function attachment_type_menus(&$tmnu,$att) {
 }
 
 function request_id_menus(&$tmnu, $request_id) {
-  global $session, $org_code, $system_code;
+  global $session, $org_code, $system_id;
   if ( intval("$request_id") == 0 ) return;
   $request_id = intval($request_id);
 
 
-  error_log("DBG: request_menus - $request_id - $org_code - $system_code");
+  $session->Dbg("Menus", "request_id_menus - $request_id - $org_code - $system_id");
   if ( $request_id > 0 ) {
     $tmnu->AddOption("WR#$request_id","/wr.php?request_id=$request_id","View the details for this work request");
     $tmnu->AddOption("Edit Request","/wr.php?edit=1&request_id=$request_id","Edit the details for this work request");
@@ -98,15 +101,15 @@ function request_id_menus(&$tmnu, $request_id) {
     $tmnu->AddOption("Organisation","/org.php?org_code=$org_code&request_id=$request_id","View the details for this organisation");
     $tmnu->AddOption("Edit Organisation","/org.php?edit=1&org_code=$org_code","Edit the details for this organisation");
   }
-  if ( $system_code != "" ) {
-    $tmnu->AddOption("System","/system.php?system_code=".urlencode($system_code)."&request_id=$request_id","View the details for this system");
-    $tmnu->AddOption("Edit System","/system.php?edit=1&system_code=".urlencode($system_code),"Edit the details for this system");
+  if ( $system_id > 0 ) {
+    $tmnu->AddOption("System","/system.php?system_id=".urlencode($system_id)."&request_id=$request_id","View the details for this system");
+    $tmnu->AddOption("Edit System","/system.php?edit=1&system_id=".urlencode($system_id),"Edit the details for this system");
   }
 }
 
 function org_code_menus(&$tmnu,$org_code) {
   global $session;
-  $session->Log("DBG: org_code_menus: $org_code");
+  $session->Dbg("Menus", "org_code_menus: $org_code");
   if ( intval("$org_code") == 0 ) return;
   $org_code = intval($org_code);
 
@@ -121,26 +124,26 @@ function org_code_menus(&$tmnu,$org_code) {
   }
 }
 
-function system_code_menus(&$tmnu,$system_code) {
+function system_id_menus(&$tmnu,$system_id) {
   global $session;
-  $session->Log("DBG: system_code_menus: $system_code");
-  if ( $system_code == "" ) return;
+  $session->Dbg("Menus", "system_id_menus: $system_id");
+  if ( $system_id == 0 ) return;
 
-  $tmnu->AddOption($system_code,"/system.php?system_code=".urlencode($system_code),"View the details for this system");
-  $tmnu->AddOption("Edit","/system.php?edit=1&system_code=".urlencode($system_code),"Edit the details for this system");
-  $tmnu->AddOption("Requests","/requestlist.php?system_code=".urlencode($system_code),"List current requests for this system");
-  $tmnu->AddOption("Organisations","/form.php?system_code=".urlencode($system_code)."&form=orglist","List organisations for this system");
-  $tmnu->AddOption("Users","/usrsearch.php?system_code=".urlencode($system_code),"List users associated with this system");
-  $tmnu->AddOption("Roles","/system_users.php?system_code=".urlencode($system_code),"Maintain roles of users associated with this system");
+  $tmnu->AddOption($system_id,"/system.php?system_id=".urlencode($system_id),"View the details for this system");
+  $tmnu->AddOption("Edit","/system.php?edit=1&system_id=".urlencode($system_id),"Edit the details for this system");
+  $tmnu->AddOption("Requests","/requestlist.php?system_id=".urlencode($system_id),"List current requests for this system");
+  $tmnu->AddOption("Organisations","/form.php?system_id=".urlencode($system_id)."&form=orglist","List organisations for this system");
+  $tmnu->AddOption("Users","/usrsearch.php?system_id=".urlencode($system_id),"List users associated with this system");
+  $tmnu->AddOption("Roles","/system_users.php?system_id=".urlencode($system_id),"Maintain roles of users associated with this system");
 
   if ( $session->AllowedTo('Admin') || $session->AllowedTo('Support') ) {
-    $tmnu->AddOption("Uncharged","/form.php?system_code=".urlencode($system_code)."&form=timelist&uncharged=1","List users for this system");
+    $tmnu->AddOption("Uncharged","/form.php?system_id=".urlencode($system_id)."&form=timelist&uncharged=1","List users for this system");
   }
 }
 
 function user_no_menus(&$tmnu,$user_no) {
   global $session;
-  $session->Log("DBG: user_no_menus: $user_no");
+  $session->Dbg("Menus", "user_no_menus: $user_no");
   if ( intval("$user_no") == 0 ) return;
   $user_no = intval($user_no);
 
@@ -156,37 +159,37 @@ function user_no_menus(&$tmnu,$user_no) {
 
 function qams_menus(&$tmnu) {
   global $session, $project, $qastep;
-  
-  // Safety-first.. 
+
+  // Safety-first..
   $have_admin = false;
-  
+
   // WRMS access to project master work request..
   if (isset($project) && is_object($project)) {
     $have_admin = $project->qa_process->have_admin;
 
-    // Master WRMS..    
+    // Master WRMS..
     $tmnu->AddOption(
         "WR#$project->request_id",
         "/wr.php?request_id=$project->request_id",
         "Go to the master WRMS for this project"
         );
-  
+
     // QA Summary for project..
     $tmnu->AddOption(
         "Summary",
         "/qams-project.php?request_id=$project->request_id",
         "View the quality assurance summary for this project"
         );
-        
-    // QA steps options.. 
-    if (isset($qastep)) {       
+
+    // QA steps options..
+    if (isset($qastep)) {
       $tmnu->AddOption(
           "Step Detail",
           "/qams-step-detail.php?project_id=$project->request_id&step_id=$qastep->qa_step_id",
           "View the detail page for the current QA step"
           );
     }
-    
+
     // View/edit QA Plan..
     $tmnu->AddOption(
         "QA Plan",
@@ -200,7 +203,7 @@ function qams_menus(&$tmnu) {
         "/qams-project.php?request_id=$project->request_id" . ($have_admin ? "&edit=1" : ""),
         "View the QA project details"
         );
-        
+
     // View project status..
     $tmnu->AddOption(
         "Status",
@@ -210,7 +213,7 @@ function qams_menus(&$tmnu) {
   }
 } // qams_menus
 
-$session->Log("DBG: top-menu-bar: %s, %s, %s, %s", $REQUEST_URI, $request_id, $user_no, $system_code);
+$session->Dbg("Menus", "top-menu-bar: %s, %s, %s, %s", $REQUEST_URI, $request_id, $user_no, $system_id);
 
 if     ( strstr($REQUEST_URI,"qams") )                  qams_menus($tmnu,$wr);
 elseif ( strstr($REQUEST_URI,"/wr.php") )               request_menus($tmnu,$wr);
@@ -220,7 +223,7 @@ elseif ( strstr($REQUEST_URI,"/system.php") )           system_menus($tmnu,$ws);
 elseif ( strstr($REQUEST_URI,"/attachment_type.php") )  attachment_type_menus($tmnu,$att);
 elseif ( strstr($REQUEST_URI,"/user.php") )             user_menus($tmnu,$user);
 elseif ( isset($org_code) && $org_code > 0 )            org_code_menus($tmnu,$org_code);
-elseif ( isset($system_code) && $system_code != "" )    system_code_menus($tmnu,$system_code);
+elseif ( isset($system_id) && $system_id > 0 )          system_id_menus($tmnu,$system_id);
 elseif ( isset($user_no) && $user_no > 0 )              user_no_menus($tmnu,$user_no);
 
 ?>

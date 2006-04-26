@@ -336,7 +336,7 @@ class User {
     if ( intval("$this->user_no") == 0 ) return;
     $sql = "SELECT work_system.*, system_usr.role ";
     $sql .= "FROM work_system LEFT JOIN system_usr ";
-    $sql .= "ON (work_system.system_code = system_usr.system_code AND system_usr.user_no = $this->user_no) ";
+    $sql .= "ON (work_system.system_id = system_usr.system_id AND system_usr.user_no = $this->user_no) ";
     $sql .= "WHERE work_system.active ";
     if ( ($session->AllowedTo('Admin') || $session->AllowedTo('Support'))
                       && ($this->AllowedTo('Admin') || $this->AllowedTo('Support')) ) {
@@ -345,12 +345,12 @@ class User {
         $session->Log("DBG: Admin/Support maintains Admin/Support person.  All systems shown");
     }
     elseif ( $session->AllowedTo('Admin') || $session->AllowedTo('Support') ) {
-      $sql .= "AND EXISTS( SELECT 1 from org_system WHERE org_system.org_code = $this->org_code AND org_system.system_code = work_system.system_code) ";
+      $sql .= "AND EXISTS( SELECT 1 from org_system WHERE org_system.org_code = $this->org_code AND org_system.system_id = work_system.system_id) ";
       if ( isset($debuggroups['User']) && $debuggroups['User'] )
         $session->Log("DBG: Admin/Support maintains non Admin/Support person.  Org related systems only shown");
     }
     elseif ( $session->AllowedTo('OrgMgr') ) {
-      $sql .= "AND EXISTS( SELECT 1 from org_system WHERE org_system.org_code = $session->org_code AND org_system.system_code = work_system.system_code) ";
+      $sql .= "AND EXISTS( SELECT 1 from org_system WHERE org_system.org_code = $session->org_code AND org_system.system_id = work_system.system_id) ";
       if ( isset($debuggroups['User']) && $debuggroups['User'] )
         $session->Log("DBG: OrgMgr maintains person.  Maintainer org related systems only shown");
     }
@@ -359,7 +359,7 @@ class User {
       if ( isset($debuggroups['User']) && $debuggroups['User'] )
         $session->Log("DBG: non Admin/Support/OrgMgr maintains person.  Only assigned systems shown");
     }
-    $sql .= "ORDER BY lower(work_system.system_code)";
+    $sql .= "ORDER BY lower(work_system.system_desc)";
 
 
     # Select the records
@@ -407,7 +407,7 @@ SCRIPT;
 
         $html .= '<td class="entry">';
         $options = array_merge($roles, array("title" => "Select the role this person has in relation to this system"));
-        $this->role[$row->system_code] = $row->role;
+        $this->role[$row->system_id] = $row->role;
         $html .= $ef->DataEntryField( "", "select", "default_role", $options );
         $html .= "</td></tr>";
       }
@@ -416,15 +416,15 @@ SCRIPT;
         $html .= sprintf( '<tr class="row%d">', $q->rownum % 2);
         if ( trim($row->system_desc) == "" ) $row->system_desc = "&lt;&lt;&lt;unknown&gt;&gt;&gt;";
         $html .= '<td class="entry">';
-        $html .= "<a href=\"/system.php?system_code=$row->system_code\">$row->system_desc</a>";
+        $html .= "<a href=\"/system.php?system_id=$row->system_id\">$row->system_desc</a>";
         $html .= "</td>";
         $html .= '<td class="entry">';
         if ( $ef->editmode  && ($session->AllowedTo('Admin') || $session->AllowedTo('Support') ||
              ($session->AllowedTo('OrgMgr') && !($row->role == 'A' || $row->role == 'S') ) ) ) {
           $options = array_merge($roles, array("title" => "Select the role this person has in relation to this system"));
           $html .= sprintf("<span style=\"color: %s; white-space: normal;\">", ( "$row->role" == "" ? "black" : "red") );
-          $this->role[$row->system_code] = $row->role;
-          $html .= $ef->DataEntryField( "", "select", "role[$row->system_code]", $options );
+          $this->role[$row->system_id] = $row->role;
+          $html .= $ef->DataEntryField( "", "select", "role[$row->system_id]", $options );
           $html .= "</span>";
         }
         else {
@@ -568,7 +568,7 @@ SCRIPT;
       if ( $systems == "" )
         $sql = "DELETE FROM system_usr WHERE user_no = '$this->user_no';";
       else {
-        $sql = "DELETE FROM system_usr WHERE user_no = '$this->user_no' AND system_code NOT IN ( $systems ) ";
+        $sql = "DELETE FROM system_usr WHERE user_no = '$this->user_no' AND system_id NOT IN ( $systems ) ";
         if ( ! ($session->AllowedTo('Admin') || $session->AllowedTo('Support')) ) {
           $sql .= "AND role NOT IN ( 'A', 'S' ) ";
         }

@@ -3,22 +3,23 @@
 
   if ( ! $logged_on )
     $because .= "You must log on with a valid password and maintainer ID\n";
-  if ( "$fsystem_code" == "" ) {
-    if ( "$session->system_code" == "" )
-      $because .= "You must select a valid system_code\n";
+  $fsystem_id = intval("$fsystem_id");
+  if ( $fsystem_id == 0 ) {
+    if ( $session->system_id == 0 )
+      $because .= "You must select a valid system\n";
     else
-      $fsystem_code == $session->system_code;
+      $fsystem_id == $session->system_id;
   }
 
-  // Validate that they are only maintaining a request for a system_code they
+  // Validate that they are only maintaining a request for a system_id they
   if ( is_member_of('Admin') ) {
     // OK, they can do anything :-)
   }
-  else if ( $system_code_roles["$fsystem_code"] == "V" ) {
-    $because = "You may only view records for that system_code";
+  else if ( $system_id_roles["$fsystem_id"] == "V" ) {
+    $because = "You may only view records for that system";
   }
-  else if ( $system_code_roles["$fsystem_code"] == "H" || $system_code_roles["$fsystem_code"] == "M" ) {
-    // That's OK - this is their home system_code, or maintenance is enabled
+  else if ( $system_id_roles["$fsystem_id"] == "H" || $system_id_roles["$fsystem_id"] == "M" ) {
+    // That's OK - this is their home system_id, or maintenance is enabled
   }
   else {
     $because .= "You may only maintain requests from your organisation\n";

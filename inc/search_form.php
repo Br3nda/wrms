@@ -66,7 +66,7 @@ function RenderSearchForm( $target_url ) {
   }
 
   // System (within Organisation) drop-down
-  $html .= $ef->DataEntryLine( "System", "", "lookup", "system_code",
+  $html .= $ef->DataEntryLine( "System", "", "lookup", "system_id",
             array("_sql" => SqlSelectSystems($org_code),
                   "_null" => "-- All Systems --", "onchange" => "SystemChanged();",
                   "title" => "The business system that this request applies to.",

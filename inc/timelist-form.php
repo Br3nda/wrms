@@ -19,8 +19,10 @@ function nice_time( $in_time ) {
   $settings->set('tlsort', $tlsort);
   $settings->set('tlseq', $tlseq);
 
-  if ( isset($user_no) ) $user_no = intval($user_no);
-  if ( isset($work_for) ) $work_for = intval($work_for);
+  if ( isset($user_no) )   $user_no   = intval($user_no);
+  if ( isset($work_for) )  $work_for  = intval($work_for);
+  if ( isset($system_id) ) $system_id = intval($system_id);
+  if ( isset($org_code) )  $org_code  = intval($org_code);
 
   if (  "$style" != "stripped" ) {
     echo "<form method=get action=\"$base_url/form.php\">\n";
@@ -44,10 +46,10 @@ function nice_time( $in_time ) {
     echo "</tr></table></td>\n<tr><td><table border=0 cellpadding=0 cellspacing=0 width=100%>\n";
     include("system-list.php");
     if ( is_member_of('Admin','Support') )
-      $system_list = get_system_list( "", "$system_code", 35);
+      $system_list = get_system_list( "", "$system_id", 35);
     else
-      $system_list = get_system_list( "CES", "$system_code", 35);
-    echo "<td class=smb>System:</td><td class=sml><font size=1><select class=sml name=system_code><option value=\"\">--- All Systems ---</option>$system_list</select></font></td>\n";
+      $system_list = get_system_list( "CES", "$system_id", 35);
+    echo "<td class=smb>System:</td><td class=sml><font size=1><select class=sml name=system_id><option value=\"\">--- All Systems ---</option>$system_list</select></font></td>\n";
 
     if ( is_member_of('Admin','Support') ) {
       include( "organisation-list.php" );
@@ -74,7 +76,7 @@ function nice_time( $in_time ) {
   }
 
   $numcols = 7;
-  if ( "$search_for$system_code " != "" ) {
+  if ( "$search_for$system_id " != "" ) {
     $query = "SELECT request.*, organisation.*, request_timesheet.*, ";
     $query .= " worker.fullname AS worker_name, requester.fullname AS requester_name";
     $query .= " FROM request, usr AS worker, usr AS requester, organisation, request_timesheet ";
@@ -93,12 +95,12 @@ function nice_time( $in_time ) {
     if ( "$search_for" <> "" ) {
       $query .= " AND work_description ~* '$search_for' ";
     }
-    if ( "$system_code" <> "" ) {
-      $query .= " AND request.system_code='$system_code' ";
+    if ( isset($system_id) && $system_id > 0 ) {
+      $query .= " AND request.system_id=$system_id ";
     }
     if ( isset($org_code) && $org_code > 0 ) {
       $numcols--;  // No organisation column
-      $query .= " AND requester.org_code='$org_code' ";
+      $query .= " AND requester.org_code=$org_code ";
     }
     if ( "$from_date" != "" ) {
       $query .= " AND request_timesheet.work_on::date >= '$from_date'::date ";
@@ -121,12 +123,12 @@ function nice_time( $in_time ) {
 
       // Build up the column header cell, with %s gaps for the sort, sequence and sequence image
       $header_cell = "<th class=cols><a class=cols href=\"$PHP_SELF?f=$form&tlsort=%s&tlseq=%s";
-      if ( isset($org_code) ) $header_cell .= "&org_code=$org_code";
-      if ( isset($system_code) ) $header_cell .= "&system_code=$system_code";
+      if ( isset($org_code) && $org_code > 0 ) $header_cell .= "&org_code=$org_code";
+      if ( isset($system_id) && $system_id > 0 ) $header_cell .= "&system_id=$system_id";
       if ( isset($search_for) ) $header_cell .= "&search_for=$search_for";
       if ( isset($inactive) ) $header_cell .= "&inactive=$inactive";
       if ( isset($requested_by) ) $header_cell .= "&requested_by=$requested_by";
-      if ( isset($user_no) ) $header_cell .= "&user_no=$user_no";
+      if ( isset($user_no) && $user_no > 0 ) $header_cell .= "&user_no=$user_no";
       if ( isset($uncharged) ) $header_cell .= "&uncharged=$uncharged";
       if ( isset($from_date) ) $header_cell .= "&from_date=$from_date";
       if ( isset($to_date) ) $header_cell .= "&to_date=$to_date";
@@ -154,7 +156,7 @@ function nice_time( $in_time ) {
       function header_row() {
         echo "<tr>\n";
         column_header("Work For", "requester_name");
-        if ( "$GLOBALS[org_code]" == "" )
+        if ( isset($GLOBALS[org_code]) && $GLOBALS[org_code] > 0 )
           column_header("Org.", "abbreviation" );
         column_header("WR&nbsp;#", "request_timesheet.request_id" );
         column_header("Done On", "work_on" );
@@ -197,7 +199,7 @@ function nice_time( $in_time ) {
         printf( "<tr class=row%1d>\n", ($i % 2));
 
         echo "<td class=sml nowrap>$timesheet->requester_name</td>\n";
-        if ( "$GLOBALS[org_code]" == "" )
+        if ( isset($GLOBALS[org_code]) && $GLOBALS[org_code] > 0 )
           echo "<td class=sml nowrap>$timesheet->abbreviation</td>\n";
         echo "<td class=sml align=center nowrap><a href=\"$base_url/wr.php?request_id=$timesheet->request_id\">$timesheet->request_id</a></td>\n";
         echo "<td class=sml>" . substr( nice_date($timesheet->work_on), 7) . "</td>\n";
@@ -231,7 +233,7 @@ function nice_time( $in_time ) {
         echo "</form>\n";
       }
       printf( "<tr class=row%1d>\n", ($i % 2));
-      printf( "<td align=right colspan=" . ("$org_code" == "" ? "4" : "3" ) . ">%9.2f hours</td>\n", $total_hours);
+      printf( "<td align=right colspan=" . (isset($org_code) && $org_code > 0 ? "3" : "4" ) . ">%9.2f hours</td>\n", $total_hours);
       printf( "<th colspan=2 align=right>%9.2f</td>\n", $grand_total);
       echo "<td colspan=2>&nbsp;</td></tr>\n";
       echo "</table>\n";
@@ -243,10 +245,10 @@ function nice_time( $in_time ) {
       $this_page = "$PHP_SELF?f=$form&style=%s&format=%s";
       if ( "$qry" != "" ) $this_page .= "&qry=$qry";
       if ( "$search_for" != "" ) $this_page .= "&search_for=$search_for";
-      if ( "$org_code" != "" ) $this_page .= "&org_code=$org_code";
-      if ( "$system_code" != "" ) $this_page .= "&system_code=$system_code";
+      if ( isset($org_code) && $org_code > 0 ) $this_page .= "&org_code=$org_code";
+      if ( isset($system_id) && $system_id > 0 ) $this_page .= "&system_id=$system_id";
       if ( isset($requested_by) ) $this_page .= "&requested_by=$requested_by";
-      if ( isset($user_no) ) $this_page .= "&user_no=$user_no";
+      if ( isset($user_no) && $user_no > 0 ) $this_page .= "&user_no=$user_no";
       if ( isset($from_date) ) $this_page .= "&from_date=$from_date";
       if ( isset($to_date) ) $this_page .= "&to_date=$to_date";
       if ( isset($type_code) ) $this_page .= "&type_code=$type_code";

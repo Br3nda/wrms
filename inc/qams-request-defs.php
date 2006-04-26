@@ -24,7 +24,7 @@ class qams_request extends Request {
   /** List of allocated users */
   var $allocated = array();
   /** Whether to let WRMS do emails or not (default not) */
-  var $send_no_email = "on"; 
+  var $send_no_email = "on";
   /**
    * The names of database fields we are interested in
    * maintaining as part of the project definition. These
@@ -44,7 +44,7 @@ class qams_request extends Request {
         "importance",
         "requester_id",
         "org_code",
-        "system_code",
+        "system_id",
         "requested_by_date",
         "agreed_due_date"
         );
@@ -62,7 +62,7 @@ class qams_request extends Request {
       $this->new_request = true;
       $this->initialise();
     }
-    
+
   } // qams_request
   // .....................................................................
   /**
@@ -75,10 +75,10 @@ class qams_request extends Request {
     $this->request_type_desc = "Quality Assurance";
     $this->entered_by = $session->user_no;
     $this->last_activity = date("Y-m-d H:i:s");
-    $this->active = true;    
+    $this->active = true;
   } // initialise
   // .....................................................................
-  /** 
+  /**
    * Get a specific request ID from the database. Normally not required,
    * since the constructor usually reads the record for the given ID.
    * @param integer $id Request ID to read from database, 0=New request
@@ -144,13 +144,13 @@ class qams_request extends Request {
     foreach ($this->post_fields as $posted_name) {
       $_POST["$posted_name"] = $this->{$posted_name};
     }
-    
+
     // Whether to let WRMS do its e-mail thing. Normally we do
     // emails directly from QAMS..
     if ($this->send_no_email) {
       $_POST["send_no_email"] = "on";
     }
-    
+
     if ($this->Validate(true)) {
       $saved = $this->Write(true);
       if ($saved && $this->new_request) {
@@ -167,7 +167,7 @@ class qams_request extends Request {
     return $saved;
   } // save_request
 
-} // class qams_request   
+} // class qams_request
 
 // -----------------------------------------------------------------------
 ?>

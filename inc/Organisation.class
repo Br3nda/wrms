@@ -176,17 +176,17 @@ class Organisation {
 
     $html = "";
     $sql = "SELECT work_system.*, ";
-    $sql .= "exists( SELECT 1 from org_system WHERE org_system.system_code = work_system.system_code AND org_code = $this->org_code ) AS applies ";
+    $sql .= "exists( SELECT 1 from org_system WHERE org_system.system_id = work_system.system_id AND org_code = $this->org_code ) AS applies ";
     if ( $ef->editmode && ($session->AllowedTo('Admin') || $session->AllowedTo('Support')) ) {
       $sql .= "FROM work_system ";
       $sql .= "WHERE active ";
     }
     elseif ( $session->AllowedTo('Admin') || $session->AllowedTo('Support') ) {
-      $sql .= "FROM work_system JOIN org_system ON ( work_system.system_code = org_system.system_code ) ";
+      $sql .= "FROM work_system JOIN org_system ON ( work_system.system_id = org_system.system_id ) ";
       $sql .= "WHERE active AND org_system.org_code = $this->org_code ";
     }
     else {
-      $sql .= "FROM work_system JOIN org_system ON ( work_system.system_code = org_system.system_code ) ";
+      $sql .= "FROM work_system JOIN org_system ON ( work_system.system_id = org_system.system_id ) ";
       $sql .= "WHERE active AND org_system.org_code = $session->org_code ";
     }
     $sql .= "ORDER BY system_desc";
@@ -201,14 +201,14 @@ class Organisation {
         if ( $column % 3 == 0 ) $html .= "<tr>";
         $html .= "<td width=\"33%\">";
         if ( $ef->editmode  && ($session->AllowedTo('Admin') || $session->AllowedTo('Support')) ) {
-          $ef->record->applies[$row->system_code] = "$row->applies";
+          $ef->record->applies[$row->system_id] = "$row->applies";
           $html .= sprintf("<label style=\"color: %s\">", ( "$row->applies" == "t" ? "red" : "black") );
-          $html .= $ef->DataEntryField( "", "checkbox", "applies[$row->system_code]",
+          $html .= $ef->DataEntryField( "", "checkbox", "applies[$row->system_id]",
                 array("title" => "Is this system active for this organisation?" ) );
           $html .= " $row->system_desc</label>";
         }
         else {
-          $html .= "<a href=\"/system.php?system_code=$row->system_code\">$row->system_desc</a>";
+          $html .= "<a href=\"/system.php?system_id=$row->system_id\">$row->system_desc</a>";
         }
         $html .= "</td>";
         if ( ++$column % 3 == 0 ) $html .= "</tr>";
@@ -422,7 +422,7 @@ class Organisation {
         }
       }
 
-      $sql = "DELETE FROM org_system WHERE org_code = $this->org_code " . ($systems == "" ? "" : "AND system_code NOT IN ( $systems ); ");
+      $sql = "DELETE FROM org_system WHERE org_code = $this->org_code " . ($systems == "" ? "" : "AND system_id NOT IN ( $systems ); ");
       $qry = new PgQuery($sql);
       if ( !$qry->Exec("Org::Write") ) {
         $client_messages[] = "ERROR: $qry->errorstring";
@@ -473,11 +473,11 @@ class Organisation {
     }
 
     if ( !$db_errors && $systems != "" ) {
-      $sql = "INSERT INTO org_system (org_code, system_code) ";
-      $sql .= "SELECT $this->org_code AS org_code, system_code ";
-      $sql .= "FROM work_system WHERE system_code IN ( $systems ) ";
+      $sql = "INSERT INTO org_system (org_code, system_id) ";
+      $sql .= "SELECT $this->org_code AS org_code, system_id ";
+      $sql .= "FROM work_system WHERE system_id IN ( $systems ) ";
       $sql .= "AND NOT EXISTS( SELECT 1 FROM org_system WHERE org_code = $this->org_code ";
-      $sql .= "AND org_system.system_code = work_system.system_code); ";
+      $sql .= "AND org_system.system_id = work_system.system_id); ";
       $qry = new PgQuery($sql);
       if ( !$qry->Exec("Org::Write") ) {
         $client_messages[] = "ERROR: $qry->errorstring";

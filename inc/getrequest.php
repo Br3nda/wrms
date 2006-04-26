@@ -19,7 +19,7 @@
     $query .= " LEFT OUTER JOIN lookup_code AS urgency ON urgency.source_table='request' AND urgency.source_field='urgency' AND int4(urgency.lookup_code)=request.urgency";
     $query .= " LEFT OUTER JOIN lookup_code AS sla_response ON sla_response.source_table='request' AND sla_response.source_field='sla_response' AND sla_response.lookup_code=request_sla_code(sla_response_time,sla_response_type)";
     $query .= " LEFT OUTER JOIN lookup_code AS importance ON importance.source_table='request' AND importance.source_field='importance' AND int4(importance.lookup_code)=request.importance";
-    $query .= " LEFT OUTER JOIN work_system USING( system_code )";
+    $query .= " LEFT OUTER JOIN work_system USING( system_id )";
     $query .= " WHERE request.request_id = '$request_id'";
     if (! is_member_of('Admin','Support') ) $query .= " AND organisation.org_code = '$session->org_code' ";
 

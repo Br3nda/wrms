@@ -1,11 +1,11 @@
 <?php
   include("code-list.php");
-  $system_codes = get_code_list( "request", "system_code" );
+  $system_ids = get_code_list( "request", "system_id" );
   $courses = get_code_list( "request", "course_code" );
   $training = get_code_list( "request", "training_code" );
 
   include("system-list.php");
-  $system_codes = get_system_list("ECRS", "$request->system_code");
+  $system_ids = get_system_list("ECRS", "$request->system_id");
 ?>
 <FORM METHOD=POST ACTION="<?php echo "$SCRIPT_NAME?form=$form"; ?>">
 <table align=center><tr valign=middle>
@@ -17,22 +17,22 @@
 
 <?php
   if ( !is_member_of('Admin','Support') )  $org_code = $session->org_code;
-  if ( "$search_for$system_code " != "" ) {
+  if ( "$search_for$system_id " != "" ) {
     $query = "SELECT * FROM organisation ";
-    if ( "$system_code$org_code" <> "" ) $query .= ", org_system ";
+    if ( "$system_id$org_code" <> "" ) $query .= ", org_system ";
     $query .= sprintf("WHERE %s active ", ("I" == "$status" ? "NOT" : "") );
     if ( "$search_for" <> "" ) {
       $query .= " AND (org_code ~* '$search_for' ";
       $query .= " OR org_name ~* '$search_for' ) ";
     }
-    if ( "$system_code$org_code" <> "" ) {
+    if ( "$system_id$org_code" <> "" ) {
       $query .= " AND org_system.org_code = organisation.org_code ";
     }
-    if ( "$system_code" <> "" ) {
-      $query .= " AND org_system.system_code='$system_code' ";
+    if ( "$system_id" <> "" ) {
+      $query .= " AND org_system.system_id=".intval($system_id);
     }
     if ( "$org_code" <> "" ) {
-      $query .= " AND org_system.org_code = $org_code ";
+      $query .= " AND org_system.org_code =".intval($org_code);
     }
     $query .= " ORDER BY LOWER(organisation.org_name) ";
     $query .= " LIMIT 500 ";

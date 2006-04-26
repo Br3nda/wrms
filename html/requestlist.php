@@ -11,8 +11,8 @@
   if ( !isset($style) ) $style = "";
   if ( !isset($saved_query) ) $saved_query = "";
   if ( !isset($qs) ) $qs = "";
-  if ( !isset($org_code) ) $org_code = "";
-  if ( !isset($system_code) ) $system_code = "";
+  if ( !isset($org_code) ) $org_code = 0;
+  if ( !isset($system_id) ) $system_id = 0;
   if ( !isset($search_for) ) $search_for = "";
   if ( !isset($interested_in) ) $interested_in = "";
   if ( !isset($allocated_to) ) $allocated_to = "";
@@ -303,8 +303,6 @@ function data_row( $row, $rc ) {
      Process_Brief_editable_Requests();
   }
 
-  if ( $system_code == "." ) $system_code = "";
-
   $title = "$system_name Request List";
 
   if ( !isset($rlsort) ) $rlsort = $settings->get('rlsort');
@@ -318,13 +316,14 @@ function data_row( $row, $rc ) {
   $settings->set('rlsort', $rlsort);
   $settings->set('rlseq', $rlseq);
 
+  if ( isset($system_id) ) $system_id = intval($system_id);
   if ( isset($org_code) ) $org_code = intval($org_code);
 
   // Build up the column header cell, with %s gaps for the sort, sequence and sequence image
   $header_cell = "<th class=cols><a class=cols href=\"$PHP_SELF?rlsort=%s&rlseq=%s";
   if ( isset($qs) ) $header_cell .= "&qs=$qs";
-  if ( isset($org_code) ) $header_cell .= "&org_code=$org_code";
-  if ( $system_code != "" ) $header_cell .= "&system_code=$system_code";
+  if ( $org_code > 0 ) $header_cell .= "&org_code=$org_code";
+  if ( $system_id > 0 ) $header_cell .= "&system_id=$system_id";
   if ( isset($search_for) ) $header_cell .= "&search_for=$search_for";
   if ( isset($inactive) ) $header_cell .= "&inactive=$inactive";
   if ( isset($requested_by) ) $header_cell .= "&requested_by=$requested_by";
@@ -385,7 +384,7 @@ else {
     echo "</h3>\n";
 
     $systems = new PgQuery(SqlSelectSystems($org_code));
-    $system_list = $systems->BuildOptionList($system_code,"requestlist");
+    $system_list = $systems->BuildOptionList($system_id,"requestlist");
 
 
     echo "<table border=0 cellspacing=2 cellpadding=0 align=center class=row0 width=100% style=\"border: 1px dashed #aaaaaa;\">\n<tr>\n";
@@ -393,7 +392,7 @@ else {
     if ( "$qs" == "complex" )
       echo "<td class=smb>Find:</td><td class=sml><input class=sml type=text size=10 name=search_for value=\"$search_for\"></td>\n";
 
-    echo "<td class=smb>&nbsp;System:</td><td class=sml><select class=sml name=system_code><option value=\".\">--- All Systems ---</option>$system_list</select></td>\n";
+    echo "<td class=smb>&nbsp;System:</td><td class=sml><select class=sml name=system_id><option value=\".\">--- All Systems ---</option>$system_list</select></td>\n";
 
   if ( is_member_of('Admin', 'Support','Contractor') ) {
     $organisations = new PgQuery(SqlSelectOrganisations($org_code));
@@ -518,7 +517,7 @@ else {
   //
   /////////////////////////////////////////////////////////////////////////////////////////////////
 
-  // if ( "$saved_query$search_for$org_code$system_code" != "" ) {
+  // if ( "$saved_query$search_for$org_code$system_id" != "" ) {
     $query = "";
     if ( isset($saved_query) && "$saved_query" != "" ) {
       $qquery = "SELECT * FROM saved_queries WHERE user_no = '$session->user_no' AND query_name = ".qpg($saved_query).";";
@@ -554,8 +553,8 @@ else {
       if ( intval("$allocated_to") > 0 ) $query .= "request_allocated, ";
       $query .= "request ";
       if ( ! is_member_of('Admin', 'Support') ) {
-        $query .= "JOIN work_system USING (system_code) ";
-        $query .= "JOIN system_usr ON (work_system.system_code = system_usr.system_code AND system_usr.user_no = $session->user_no) ";
+        $query .= "JOIN work_system USING (system_id) ";
+        $query .= "JOIN system_usr ON (work_system.system_id = system_usr.system_id AND system_usr.user_no = $session->user_no) ";
       }
       $query .= ", usr";
       $query .= ", lookup_code AS status ";
@@ -586,7 +585,7 @@ else {
         $query .= " AND (brief ~* '$search_for' ";
         $query .= " OR detailed ~* '$search_for' ) ";
       }
-      if ( "$system_code" != "" )     $query .= " AND request.system_code='$system_code' ";
+      if ( $system_id > 0 )     $query .= " AND request.system_id=$system_id ";
       if ( "$type_code" != "" )     $query .= " AND request_type=" . intval($type_code);
 
       if ( "$from_date" != "" )     $query .= " AND request.last_activity >= '$from_date' ";
@@ -647,8 +646,8 @@ $query";
       if ( isset($saved_query) ) $uqry = str_replace('%','%%',urlencode($saved_query));
       if ( "$saved_query" != "" ) $this_page .= "&saved_query=$uqry";
       if ( "$search_for" != "" ) $this_page .= "&search_for=" . urlencode($search_for);
-      if ( "$org_code" != "" ) $this_page .= "&org_code=$org_code";
-      if ( "$system_code" != "" ) $this_page .= "&system_code=$system_code";
+      if ( $org_code > 0 ) $this_page .= "&org_code=$org_code";
+      if ( $system_id > 0 ) $this_page .= "&system_id=$system_id";
       if ( isset($inactive) ) $this_page .= "&inactive=$inactive";
       if ( isset($requested_by) ) $this_page .= "&requested_by=$requested_by";
       if ( isset($interested_in) ) $this_page .= "&interested_in=$interested_in";

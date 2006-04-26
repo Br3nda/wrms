@@ -17,10 +17,10 @@ require_once("authorisation-page.php");
   include("system-list.php");
 
   if ( is_member_of('Admin', 'Support' ) ) {
-    $system_list = get_system_list( "", "$system_code");
+    $system_list = get_system_list( "", "$system_id");
     }
   else {
-    $system_list = get_system_list( "CES", "$system_code");
+    $system_list = get_system_list( "CES", "$system_id");
     }
 
   include( "organisation-list.php" );
@@ -32,7 +32,7 @@ require_once("authorisation-page.php");
     <tr>
       <td class=smb>&nbsp;System:</td>
       <td class=sml>
-        <select class=sml name=system_code>
+        <select class=sml name=system_id>
           <option>(All)</option>
           <?php echo $system_list; ?>
         </select>
@@ -87,8 +87,8 @@ require_once("authorisation-page.php");
   $query .= "AND lcs.source_table = 'request' and lcs.source_field = 'status_code' AND lcs.lookup_code = r.last_status ";
   $query .= "AND lct.source_table = 'request' and lct.source_field = 'request_type' AND lct.lookup_code = r.request_type ";
 
-  if ( isset($org_code)    && "$org_code"    != "(All)" ) $query .= " AND org_code='$org_code' ";
-  if ( isset($system_code) && "$system_code" != "(All)" ) $query .= " AND system_code='$system_code' ";
+  if ( isset($org_code)    && "$org_code"    != "(All)" ) $query .= " AND org_code=".intval($org_code);
+  if ( isset($system_id) && "$system_id" != "(All)" ) $query .= " AND system_id=".intval($system_id);
 
   if ( isset($status) && is_array( $status ) ) {
         reset($status);
@@ -99,10 +99,10 @@ require_once("authorisation-page.php");
         $query .= "]') ";
   }
 
-  $query .= "ORDER BY ranking DESC ";
-  $query .= "LIMIT $maxresults";
+  $query .= " ORDER BY ranking DESC";
+  $query .= " LIMIT $maxresults";
 
-  $session->Log( "DBG: requestrank: 1-> $query");
+  $session->Dbg( "RequestRank", "Query: -> $query");
 
   $result = awm_pgexec( $dbconn, $query, "requestrank", false, 7 );
 

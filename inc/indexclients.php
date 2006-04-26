@@ -4,11 +4,11 @@ Please select an action from the menus at the top of the page, or select
 one of the recently modified requests from the list below.<br></p>";
 
   $query = "SELECT DISTINCT request.request_id, brief, fullname, email, last_activity, status.lookup_desc AS status_desc, ";
-  $query .= "request.system_code, request_type.lookup_desc AS request_type_desc ";
+  $query .= "request.system_id, request_type.lookup_desc AS request_type_desc ";
   $query .= "FROM request ";
   $query .= "JOIN request_interested USING (request_id) ";
-  $query .= "JOIN work_system USING (system_code) ";
-  $query .= "JOIN system_usr ON (work_system.system_code = system_usr.system_code AND system_usr.user_no = $session->user_no) ";
+  $query .= "JOIN work_system USING (system_id) ";
+  $query .= "JOIN system_usr ON (work_system.system_id = system_usr.system_id AND system_usr.user_no = $session->user_no) ";
   $query .= ", usr, lookup_code AS status, lookup_code AS request_type ";
   $query .= "WHERE request.request_id=request_interested.request_id ";
   $query .= "AND usr.org_code=$session->org_code ";
@@ -41,7 +41,7 @@ one of the recently modified requests from the list below.<br></p>";
       echo "</a></td>\n";
       echo "<td class=sml>$thisrequest->status_desc</td>\n";
       echo "<td class=sml>$thisrequest->request_type_desc</td>\n";
-      echo "<td class=sml>$thisrequest->system_code</td>\n";
+      echo "<td class=sml>$thisrequest->system_id</td>\n";
       echo "<td class=sml nowrap>" . nice_date($thisrequest->last_activity) . "</td>\n";
 
       echo "</tr>\n";

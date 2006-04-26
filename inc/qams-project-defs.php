@@ -53,7 +53,7 @@ class qa_project_set {
    */
   function qa_project_set($max_projects=50) {
     $this->max_projects  = $max_projects;
-    
+
   } // qa_project_set
   // .....................................................................
   /**
@@ -61,7 +61,7 @@ class qa_project_set {
    * @return integer The count of projects in our set.
    */
   function project_count() {
-    return count($this->projects);  
+    return count($this->projects);
   } // project_count
   // .....................................................................
   /**
@@ -72,15 +72,15 @@ class qa_project_set {
    */
   function get_projects($filtermode="my", $filtervalue="") {
     global $session;
-    
+
     // Allow for an optional filtering override..
     if ($filtermode  !== "") $this->filtermode  = $filtermode;
     if ($filtervalue !== "") $this->filtervalue = $filtervalue;
-    
+
     // Initialise..
     $this->projects = array();
-    $q = ""; 
-       
+    $q = "";
+
     switch($this->filtermode) {
       case "my":
         $this->filtervalue = $session->user_no;
@@ -91,7 +91,7 @@ class qa_project_set {
           $user_no = $this->filtervalue;
           if ($this->filtermode == "user") {
             $qry = new PgQuery("SELECT * FROM usr WHERE user_no=$this->filtervalue");
-            if ($qry->Exec("get_projects: filter") && $qry->rows == 1 && $row = $qry->Fetch()) {            
+            if ($qry->Exec("get_projects: filter") && $qry->rows == 1 && $row = $qry->Fetch()) {
               $this->filterdesc = $row->fullname;
             }
           }
@@ -104,7 +104,7 @@ class qa_project_set {
           $q .= "   AND status.lookup_code = r.last_status)";
           $q .= "  LEFT OUTER JOIN usr ON (usr.user_no=r.requester_id),";
           $q .= "  request_allocated ra, request_interested ri";
-          $q .= " WHERE r.request_id=rp.request_id"; 
+          $q .= " WHERE r.request_id=rp.request_id";
           $q .= "   AND r.request_type='90'";
           $q .= "   AND ra.request_id=r.request_id";
           $q .= "   AND ri.request_id=r.request_id";
@@ -117,7 +117,7 @@ class qa_project_set {
                     . ")";
         }
         break;
-      
+
       case "recent":
         $q  = "SELECT rp.*, p.qa_phase, usr.*, r.*,status.lookup_desc AS status_desc";
         $q .= " FROM";
@@ -129,11 +129,11 @@ class qa_project_set {
         $q .= "  LEFT OUTER JOIN usr ON (usr.user_no=r.requester_id)";
         $q .= " WHERE r.request_id=rp.request_id";
         $q .= "   AND request_type='90'";
-        break;    
-      
+        break;
+
     } // switch
 
-    // Only execute it if query was created above..    
+    // Only execute it if query was created above..
     if ($q != "") {
       $q .= " ORDER BY r.last_activity DESC";
       $q .= " LIMIT $this->max_projects";
@@ -152,10 +152,10 @@ class qa_project_set {
           $proj->new_record = false;
           $this->projects[$request_id] = $proj;
         } // while
-      }      
+      }
     }
   } // get_projects
-  
+
 } // project_set class
 
 // -----------------------------------------------------------------------
@@ -193,17 +193,17 @@ class qa_project extends qams_request {
     // This will read the record from the database, or
     // initialise the new object if the id is zero..
     $this->qams_request($id);
-    
-    // Local new record flag..    
+
+    // Local new record flag..
     if ($this->new_record) {
       $this->new_project = true;
     }
-    
+
     // Process any posted data..
     if ($this->POSTprocess()) {
       $this->save_project();
     }
-    
+
     // Retrieve QA project-specific data
     $this->get_project();
   } // qa_project
@@ -220,7 +220,7 @@ class qa_project extends qams_request {
       $q .= "  LEFT OUTER JOIN usr AS pm ON pm.user_no=rp.project_manager";
       $q .= "  LEFT OUTER JOIN usr AS qa ON qa.user_no=rp.qa_mentor";
       $q .= " WHERE rp.request_id=$this->request_id";
-      
+
       $qry = new PgQuery($q);
       if ($qry->Exec("qa_project::get_project") && $qry->rows > 0) {
         $row = $qry->Fetch();
@@ -232,11 +232,11 @@ class qa_project extends qams_request {
         $this->qa_mentor_email = $row->qa_email;
         $this->qa_model_id = $row->qa_model_id;
         $this->qa_phase = $row->qa_phase;
-        
+
         // This reads in the complete QA process for this project including
         // all of the QA steps, and the approvals for each one..
         $this->qa_process = new qa_process($this);
-        
+
         // Read allocations and interested users..
         $this->get_allocated();
         $this->get_interested();
@@ -248,10 +248,10 @@ class qa_project extends qams_request {
    * Save the  project records to the database.
    * @return boolean True if saved without problems.
    */
-  function save_project() {   
+  function save_project() {
     $this->status_code = "I"; // In Progress
     $ok = $this->save_request();
-    
+
     // If new project, create the project record..
     if ($ok && $this->new_project && $this->request_id > 0) {
       // Make sure model ID is set..
@@ -279,10 +279,10 @@ class qa_project extends qams_request {
         $ok = false;
       }
 
-      // Update these - need them further on..      
+      // Update these - need them further on..
       $this->get_allocated();
       $this->get_interested();
-      
+
       // Acquire the QA steps for this model..
       $q  = "SELECT m.*, s.*, p.*, doc.*";
       $q .= "  FROM qa_model m, qa_model_step ms,";
@@ -316,11 +316,11 @@ class qa_project extends qams_request {
     $res = false;
     if ($this->request_id > 0) {
       $ok = true;
-      
+
       // All in a single tranny..
       $qry = new PgQuery("BEGIN");
       $qry->Exec("qa_project::delete_project");
-            
+
       // Remove all the subordinate request records for each project step..
       $request_table_suffixes = array(
           "action", "allocated", "attachment", "history", "interested",
@@ -336,7 +336,7 @@ class qa_project extends qams_request {
           }
         }
       }
-      
+
       if ($ok) {
         $qry = new PgQuery("DELETE FROM qa_project_approval WHERE project_id=$this->request_id");
         $ok = $qry->Exec("qa_project::delete_project");
@@ -353,7 +353,7 @@ class qa_project extends qams_request {
         $qry = new PgQuery("DELETE FROM request_project WHERE request_id=$this->request_id");
         $ok = $qry->Exec("qa_project::delete_project");
       }
-  
+
       // Delete step request recs..
       foreach ($this->qa_process->qa_steps as $qa_step_id => $qastep) {
         if ($ok) {
@@ -456,7 +456,7 @@ class qa_project extends qams_request {
       // Standard subject line..
       $mail->Subject = "QAMS Project #"
                      . $this->request_id
-                     . " [".$this->system_code."/".$session->username . "] "
+                     . " [".$this->system_id."/".$session->username . "] "
                      . $this->brief
                      ;
     }
@@ -512,17 +512,17 @@ EOX
     // Link to project summary page..
     $href = $GLOBALS[base_dns] . "/qams-project.php?request_id=$this->request_id";
     $link = "<a href=\"$href\">$href</a>";
-    
+
     $hbody .= "<hr class=\"footerline\"><p class=\"footer\">Full details of the project, can be reviewed at:<br>"
             . "&nbsp;&nbsp;" . $link . "<br><br></p>";
     $tbody .= "\nFull details of the project, can be reviewed at:\n"
             . "  $href\n\n";
     $hbody .= "</body>\n</html>\n";
-    
+
     // Assign HTMl and plaintext parts..
     $mail->Body = $hbody;
     $mail->AltBody = $tbody;
-    
+
     // Attach any files..
     if ($attachfiles !== false) {
       foreach ($attachfiles as $path => $name) {
@@ -541,10 +541,10 @@ EOX
    */
   function project_details($edit=0) {
     $s = "";
-    
+
     $ef = new EntryForm($REQUEST_URI, $this, $edit);
     $ef->NoHelp();
-    
+
     if ($ef->editmode) {
       $s .= $ef->StartForm();
       if ( $this->request_id > 0 ) {
@@ -553,24 +553,24 @@ EOX
       }
       $s .= $ef->HiddenField( "post_action", "details_update" );
     }
-    // Just the things we want created/updated in QAMS..    
+    // Just the things we want created/updated in QAMS..
     $s .= "<table width=\"100%\" class=\"data\" cellspacing=\"0\" cellpadding=\"0\">\n";
     $s .= $this->RenderDetails($ef);
     if (!$ef->editmode) {
       $s .= $this->RenderQASummary($ef);
-    }    
+    }
     $s .= $this->RenderAllocations($ef);
     $s .= $this->RenderInterests($ef);
     $s .= "<tr><td height=\"15\" colspan=\"2\">&nbsp;</td></tr>";
     $s .= "</table>\n";
-    
+
     if ( $ef->editmode ) {
       $s .= $ef->SubmitButton( "submit", ($this->new_record ? "Create" : "Update") );
       $s .= $ef->EndForm();
-      $s .= "<script type=\"text/javascript\" src=\"/js/request.js\"></script>\n";      
+      $s .= "<script type=\"text/javascript\" src=\"/js/request.js\"></script>\n";
     }
     return $s;
-    
+
   } // project_details
   // .....................................................................
   /**
@@ -581,11 +581,11 @@ EOX
    */
   function RenderQAPlan($edit=1) {
     global $qa_action;
-    
+
     $s = "";
     $ef = new EntryForm($REQUEST_URI, $this, $edit);
     $ef->NoHelp();
-    
+
     if ($ef->editmode) {
       $s .= $ef->StartForm();
       if ( $this->request_id > 0 ) {
@@ -595,7 +595,7 @@ EOX
         $s .= $ef->HiddenField( "edit", "1" );
       }
     }
-    // Just the things we want created/updated in QAMS..    
+    // Just the things we want created/updated in QAMS..
     $s .= "<table width=\"100%\" class=\"data\" cellspacing=\"0\" cellpadding=\"0\">\n";
     if (isset($this->qa_process)) {
 
@@ -609,26 +609,26 @@ EOX
         $pmlink .= $this->project_manager_fullname;
         $pmlink .= "</a>";
         $s .= "<tr><td colspan=\"2\"><b>Project Manager:</b> " . $pmlink . "</td></tr>";
-      } 
+      }
       if ($this->qa_mentor_fullname != "") {
         $qalink  = "<a href=\"/user.php?user_no=$this->qa_mentor\">";
         $qalink .= $this->qa_mentor_fullname;
         $qalink .= "</a>";
         $s .= "<tr><td colspan=\"2\"><b>QA Mentor:</b> " . $qalink . "</td></tr>";
-      } 
+      }
       $s .= "<tr><td height=\"15\" colspan=\"2\">&nbsp;</td></tr>";
       $s .= "<tr><td colspan=\"2\">" . $this->qa_process->QAPlan() . "</td></tr>";
     }
     $s .= "<tr><td height=\"15\" colspan=\"2\">&nbsp;</td></tr>";
     $s .= "</table>\n";
-    
+
     $qaplan_status = $this->qa_process->overall_approval_status(STEP_ID_QAPLAN);
     if ( $ef->editmode && $qaplan_status != "y" && $qaplan_status != "p") {
       $s .= $ef->SubmitButton( "submit", "Update" );
       $s .= $ef->EndForm();
     }
     return $s;
-    
+
   } // RenderQAPlan
   // .....................................................................
   /**
@@ -641,19 +641,19 @@ EOX
       $html .= $ef->BreakLine("Quality Assurance Status");
       if ($this->project_manager_fullname != "") {
         $href = "/user.php?user_no=$this->project_manager";
-        $link = "<a href=\"$href\">" . $this->project_manager_fullname . "</a>"; 
+        $link = "<a href=\"$href\">" . $this->project_manager_fullname . "</a>";
         $html .= "<tr><td colspan=\"2\"><b>Project Manager:</b> " . $link . "</td></tr>";
-      } 
+      }
       if ($this->qa_mentor_fullname != "") {
         $href = "/user.php?user_no=$this->qa_mentor";
-        $link = "<a href=\"$href\">" . $this->qa_mentor_fullname . "</a>"; 
+        $link = "<a href=\"$href\">" . $this->qa_mentor_fullname . "</a>";
         $html .= "<tr><td colspan=\"2\"><b>QA Mentor:</b> " . $link . "</td></tr>";
-      } 
+      }
       $html .= "<p>&nbsp;</p>";
       $html .= "<tr><td colspan=\"2\">" . $this->qa_process->QASummary() . "</td></tr>";
     }
     return $html;
-    
+
   } // RenderQASummary
   // .....................................................................
   /** Overridden method from Request, just so we display the subset of
@@ -663,7 +663,7 @@ EOX
     global $session, $bigboxcols, $bigboxrows;
     $html = "";
     $html .= $ef->BreakLine("Project Details");
-    
+
     if (!$this->new_record) {
       $html .= $ef->DataEntryLine(
                      "W/R #",
@@ -680,18 +680,18 @@ EOX
               array("_sql" => "SELECT * FROM qa_model",
                     "_null" => "--- choose a model ---",
                     "title" => "The QA model most appropriate to this project"));
-      
+
       // PROJECT ROLES
       // These are specific important roles to be assigned to the project for QA
       // purposes. Note, we also consider that anyone who has been ALLOCATED to
       // this project is a valid QA Reviewer (client or internal).
-      
+
       // Project Manager
       $html .= $ef->DataEntryLine( "Project Mgr", "$this->fullname", "lookup", "project_manager",
               array("_sql" => SqlSelectRequesters($session->org_code),
                     "_null" => "--- select a person ---",
                     "title" => "The project manager in charge of this project."));
-                    
+
       // QA Mentor
       $html .= $ef->DataEntryLine( "QA Mentor", "$this->fullname", "lookup", "qa_mentor",
               array("_sql" => SqlSelectRequesters($session->org_code),
@@ -721,7 +721,7 @@ EOX
                     "title" => "The client who is requesting this, or who is in charge of ensuring it happens."));
 
     // System (within Organisation) drop-down
-    $html .= $ef->DataEntryLine( "System", "$this->system_desc", "lookup", "system_code",
+    $html .= $ef->DataEntryLine( "System", "$this->system_desc", "lookup", "system_id",
               array("_sql" => SqlSelectSystems($this->org_code),
                     "_null" => "--- select a system ---", "onchange" => "SystemChanged();",
                     "title" => "The business system that this project applies to."));
@@ -784,7 +784,7 @@ EOX
         // This will trigger a save..
         $processed = true;
         break;
-        
+
       // Posted project QA Plan form. This contains possible mods
       // to the required approvals per QA step..
       case "config_update":
@@ -805,13 +805,13 @@ EOX
               $q .= " AND qa_step_id=$step_id";
               $up = new PgQuery($q);
               $up->Exec("qa_project::POSTprocess");
-            } 
+            }
           }
-        }          
+        }
 
         // Process changes to approval types required..
         $this->POSTprocess_approval_updates();
-        
+
         // Process removal of QA steps..
         global $step_removals;
         if (isset($step_removals) && count($step_removals) > 0) {
@@ -858,7 +858,7 @@ EOX
         }
         break;
     } // switch
-     
+
     global $action;
     if ( isset($action) ) {
       // Actions are usually activated by clickable links. Eg. removing
@@ -866,7 +866,7 @@ EOX
       // make any DB mods it needs to make..
       $this->Actions(true);
     }
-            
+
     return $processed;
   } // POSTprocess
   // .....................................................................
@@ -891,7 +891,7 @@ EOX
       }
       $qry = new PgQuery($q);
       if ($qry->Exec("qa_project::POSTprocess_approval_updates") && $qry->rows > 0) {
-        while($row = $qry->Fetch()) {          
+        while($row = $qry->Fetch()) {
           // Can only change if in 'not started' status..
           $status = $row->last_approval_status;
           $step_id = $row->qa_step_id;
@@ -967,10 +967,10 @@ class qa_process {
    * as a pointer to the complete project object, since we make
    * use of some of its data and methods.
    * @param mixed $project Reference to the project to get QA process for.
-   */  
+   */
   function qa_process(&$project) {
     global $session;
-    
+
     $this->project = $project;
     $this->project_id = $project->request_id;
     $this->get_qa_steps();
@@ -997,7 +997,7 @@ class qa_process {
       $q .= " ORDER BY qap.qa_phase_order, qas.qa_step_order";
       $qry = new PgQuery($q);
       if ($qry->Exec("qa_process::get_qa_steps") && $qry->rows > 0) {
-        while( $row = $qry->Fetch(true) ) {          
+        while( $row = $qry->Fetch(true) ) {
           $qa_step_id = $row["qa_step_id"];
           $request_id = $row["request_id"];
           $qa_step = new qa_project_step($this->project_id, $request_id, $row);
@@ -1045,7 +1045,7 @@ class qa_process {
     if ($qaplan_status == "") {
       $qaplan_status = "Unapproved";
     }
-    
+
     // For display of the approval status of this QA Plan..
     $thisplan = "This Quality Assurance Plan is";
     switch ($qaplan_status) {
@@ -1059,7 +1059,7 @@ class qa_process {
         $qaplan_status_display = "<span style=\"color:orange;font-size:12pt\">$thisplan Currently Seeking Approval</span>";
     } // switch
 
-    // Main QA Plan table..      
+    // Main QA Plan table..
     $s  = "";
     $s .= "<table cellspacing=\"2\" cellpadding=\"0\" width=\"100%\">\n";
     $s .= "<tr>";
@@ -1068,7 +1068,7 @@ class qa_process {
     $s .= "<tr><td height=\"15\" colspan=\"2\">&nbsp;</td></tr>\n";
     $s .= "<tr>";
     $s .= "<th style=\"text-align:left;font-weight:bold;border-bottom:solid black 1px;padding-left:3px\">Step</th>\n";
-    $s .= "<th valign=\"top\">";   
+    $s .= "<th valign=\"top\">";
     $s .= " <table cellspacing=\"0\" cellpadding=\"0\" width=\"100%\">";
     $s .= " <tr>";
     $s .= "  <th width=\"80%\" style=\"text-align:left;font-weight:bold;border-bottom:solid black 1px\">Approval type</th>\n";
@@ -1077,17 +1077,17 @@ class qa_process {
     $s .= " </table>\n";
     $s .= "</th>\n";
     $s .= "</tr>\n";
-    
+
     $rowclass = "row1";
     $last_phase = "";
-    
+
     // We have to do ALL QA steps possible..
     $q  = "SELECT * FROM qa_step s, qa_phase p";
     $q .= " WHERE p.qa_phase=s.qa_phase";
     $q .= " ORDER BY qa_phase_order, qa_step_order";
     $qry = new PgQuery($q);
     if ($qry->Exec("qa_process::configuration") && $qry->rows > 0) {
-      while( $row = $qry->Fetch(true) ) {          
+      while( $row = $qry->Fetch(true) ) {
         $phase = $row["qa_phase_desc"];
         $qa_step_id = $row["qa_step_id"];
         if (isset($this->qa_steps[$qa_step_id])) {
@@ -1109,38 +1109,38 @@ class qa_process {
           }
         }
 
-        // Row styling - required steps are dark..       
+        // Row styling - required steps are dark..
         $rowclass = ($step_required) ? "row1" : "row0";
-        
+
         if ($phase != $last_phase) {
           $s .= "<tr class=\"cols\">";
           $s .= "<td colspan=\"2\" height=\"20\" valign=\"bottom\" style=\"font-weight:bold;color:white;padding-left:3px\">" . strtoupper($phase) . " PHASE</td>";
           $s .= "</tr>\n";
           $last_phase = $phase;
         }
-        
+
         $s .= "<tr class=\"$rowclass\">";
-        
+
         // Step description
         $step_desc = $qastep->qa_step_desc;
         if ($step_required) {
           // Bold the step description..
           $step_desc = "<b>$step_desc</b>";
         }
-        
+
         // Clickable action links..
         $acts = array();
-        
+
         // Snapshot statuses of this step..
         $overall_step_status = $qastep->overall_approval_status();
         $step_status = qa_status_coloured($overall_step_status);
-        
+
         // Friendlier overall step status..
         $overall_step_status = qa_approval_status($overall_step_status);
         if ($overall_step_status == "") {
           $overall_step_status = "Unapproved";
         }
-        
+
         if ($step_required) {
           if ($overall_step_status != "Unapproved") {
             $acts[] = $step_status;
@@ -1153,10 +1153,10 @@ class qa_process {
             $label = "[detail]";
             $title = "Go to the detail screen for this QA step";
             $link = "<a href=\"$href\" title=\"$title\">$label</a>";
-            
+
             // Step description..
             $step_desc = "<b>$step_desc</b>&nbsp;&nbsp" . $link;
-            
+
             // Only have actions if not fully approved..
             if ($overall_step_status != "Approved") {
               // Assignment action link..
@@ -1177,7 +1177,7 @@ class qa_process {
                 $link = "<a href=\"$href\" title=\"$title\">$label</a>";
                 $acts[] = "$link $fullname";
               }
-          
+
               // Seek action link..
               $href  = "/qams-request-approval.php";
               $href .= "?project_id=$qastep->project_id";
@@ -1186,7 +1186,7 @@ class qa_process {
               $title = "Seek approval for this QA step from someone";
               $link = "<a href=\"$href\" title=\"$title\">$label</a>";
               $acts[] = $link;
-              
+
               // Remove action link..
               if ($qastep->mandatory) {
                 $acts[] = "(mandatory)";
@@ -1199,7 +1199,7 @@ class qa_process {
                           . " title=\"Tag this step for removal from the QA process\""
                           . " value=\"$qastep->qa_step_id\""
                           . ">"
-                          ; 
+                          ;
                   $acts[] = $remchk . "&nbsp;Remove";
                 }
               }
@@ -1224,18 +1224,18 @@ class qa_process {
                     . " name=\"step_additions[]\""
                     . " title=\"Tag this step for adding to the QA process\""
                     . " value=\"$qastep->qa_step_id\""
-                    . ">"; 
+                    . ">";
             $acts[] = $addchk . "&nbsp;Add";
           }
         }
-        
-        // Render the description and any action links..        
+
+        // Render the description and any action links..
         $allacts = implode("<br>&nbsp;&nbsp;", $acts);
         if ($allacts != "") {
           $step_desc .= "<br>&nbsp;&nbsp;" . $allacts;
         }
         $s .= "<td width=\"50%\" valign=\"top\" style=\"padding-left:3px\">$step_desc</td>";
-        
+
         // Approvals lists..
         if ($step_required) {
           $s .= "<td width=\"50%\" valign=\"top\">";
@@ -1244,13 +1244,13 @@ class qa_process {
                     && $qaplan_status == "Unapproved"
                     //&& $overall_step_status == "Unapproved"
                     );
-          $s .= "<br></td>"; 
+          $s .= "<br></td>";
         }
         else {
           $s .= "<td width=\"50%\">&nbsp;</td>";
         }
         $s .= "</tr>\n";
-        
+
         // Special notes..
         if ($step_required) {
           if ($this->have_admin && $qaplan_status == "Unapproved") {
@@ -1259,14 +1259,14 @@ class qa_process {
             $F .= "</textarea>";
             $s .= "<tr class=\"$rowclass\">";
             $s .= "<td align=\"center\" valign=\"top\" colspan=\"2\" style=\"padding-bottom:3px\">";
-            
+
             $s .= "<table cellspacing=\"2\" cellpadding=\"0\" width=\"100%\" align=\"center\">\n";
-            $s .= "<tr>";          
+            $s .= "<tr>";
             $s .= "<td width=\"20%\" align=\"right\" valign=\"top\">Special notes:</td>";
             $s .= "<td width=\"80%\" valign=\"top\">" . $F . "</td>";
             $s .= "</tr>\n";
             $s .= "</table>\n";
-            
+
             $s .= "</td></tr>\n";
           }
           elseif ($qastep->special_notes != "") {
@@ -1279,12 +1279,12 @@ class qa_process {
           }
           $s .= "<tr><td style=\"border-top:solid grey 1px;\" colspan=\"2\" height=\"6\">&nbsp;</td></tr>\n";
         }
-        
+
       } // while
     }
     $s .= "</table>\n";
     return $s;
-    
+
   } // QAPlan
   // .....................................................................
   /**
@@ -1301,12 +1301,12 @@ class qa_process {
       $s .= "<th width=\"15%\" style=\"text-align:left;font-weight:bold;border-bottom:solid black 1px\">Status</th>";
       $s .= "<th width=\"20%\" style=\"text-align:left;font-weight:bold;border-bottom:solid black 1px\">Actions</th>";
       $s .= "</tr>\n";
-      
+
       $rowclass = "row1";
       foreach ($this->qa_steps as $qa_step_id => $qastep) {
         $rowclass = ($rowclass == "row0") ? "row1" : "row0";
         $s .= "<tr class=\"$class\">";
-        
+
         // Step description..
         $desc = $qastep->qa_step_desc;
         if ($qastep->mandatory) {
@@ -1316,7 +1316,7 @@ class qa_process {
 
         // Assignment..
         $s .= "<td valign=\"top\">$qastep->responsible_fullname</td>";
-                
+
         // Status of this step..
         $oas = $qastep->overall_approval_status();
         $status = qa_status_coloured($qastep->overall_approval_status());
@@ -1324,15 +1324,15 @@ class qa_process {
           $status = "<span style=\"color:grey\">Assigned</span>";
         }
         $s .= "<td valign=\"top\">$status</td>";
-        
-        // WRMS link..                
+
+        // WRMS link..
         $acts = array();
         $href  = "/wr.php?request_id=$qastep->request_id";
         $label = "W/R";
         $title = "Go to the WRMS record for this QA step (new window)";
         $link = "<a href=\"$href\" title=\"$title\" target=\"_new\">$label</a>";
         $acts[] = $link;
-        
+
         // Step detail link..
         $href  = "/qams-step-detail.php";
         $href .= "?project_id=$qastep->project_id";
@@ -1341,9 +1341,9 @@ class qa_process {
         $title = "View details for this QA step";
         $link = "<a href=\"$href\" title=\"$title\">$label</a>";
         $acts[] = $link;
-        
+
         $s .= "<td valign=\"top\">" . implode("&nbsp;&nbsp;", $acts) . "</td>";
-        
+
         $s .= "</tr>\n";
       }
       $s .= "</table>\n";
@@ -1353,7 +1353,7 @@ class qa_process {
     }
     return $s;
   } // QASummary
-    
+
 } // class qa_process
 
 // -----------------------------------------------------------------------
@@ -1389,13 +1389,13 @@ class qa_step {
     if ($row !== false) {
       $this->assign_from_row($row);
       $this->valid = true;
-    }    
+    }
   } // qa_step
   // .....................................................................
   /**
    * Assign the core object variables from database record array.
    * @param array $row Database record array.
-   */  
+   */
   function assign_from_row($row) {
     if (is_array($row)) {
       $this->qa_step_id        = $row["qa_step_id"];
@@ -1427,7 +1427,7 @@ class qa_step {
     $q .= " ORDER BY p.qa_phase_order, s.qa_step_order";
     $qry = new PgQuery($q);
     if ($qry->Exec("qa_step::get_step_data") && $qry->rows > 0) {
-      $row = $qry->Fetch(true);          
+      $row = $qry->Fetch(true);
       $this->qa_step_id = $qa_step_id;
       $this->assign_from_row($row);
       $this->valid = true;
@@ -1460,9 +1460,9 @@ class qa_step {
               ($this->mandatory ? "t" : "f"),
               ($this->enabled ? "t" : "f")
               );
-      $res = $qry->Exec("qa_step::save");      
+      $res = $qry->Exec("qa_step::save");
     }
-    return $res;    
+    return $res;
   } // save
 } // class qa_step
 
@@ -1498,7 +1498,7 @@ class qa_project_step extends qa_step {
   /** Array containing the approval types configured
    * as being required for this project QA step */
   var $approvals_required;
-  /** Array containing the approval types which form 
+  /** Array containing the approval types which form
    * the default set for this QA step */
   var $approvals_default;
   /** Array containing the last approval status for the
@@ -1525,13 +1525,13 @@ class qa_project_step extends qa_step {
     if ($row !== false) {
       $this->assign_from_row($row);
       $this->valid = true;
-    }    
+    }
   } // qa_step
   // .....................................................................
   /**
    * Assign the core object variables from database record array.
    * @param array $row Database record array.
-   */  
+   */
   function assign_from_row($row) {
     if (is_array($row)) {
       parent::assign_from_row($row);
@@ -1564,7 +1564,7 @@ class qa_project_step extends qa_step {
     $q .= " ORDER BY p.qa_phase_order, s.qa_step_order";
     $qry = new PgQuery($q);
     if ($qry->Exec("qa_project_step::get") && $qry->rows > 0) {
-      $row = $qry->Fetch(true);          
+      $row = $qry->Fetch(true);
       $this->project_id = $row["project_id"];
       $this->request_id = $row["request_id"];
       $this->assign_from_row($row);
@@ -1589,16 +1589,16 @@ class qa_project_step extends qa_step {
       $q .= " WHERE project_id=$this->project_id";
       $q .= "   AND qa_step_id=$this->qa_step_id";
       $qry = new PgQuery($q);
-      $res = $qry->Exec("qa_project_step::save");      
+      $res = $qry->Exec("qa_project_step::save");
     }
-    return $res;    
+    return $res;
   } // save
   // .....................................................................
   /**
    * Insert this QA step into the given project. When this is called the
    * basic QA step data will already be in place, and all we need is the
    * project to create it for.
-   * @param object $project Reference to project object to insert the step for 
+   * @param object $project Reference to project object to insert the step for
    */
   function insert_into_project(&$project) {
     // Create a WRMS request for this step..
@@ -1606,30 +1606,30 @@ class qa_project_step extends qa_step {
     $wrms->chtype = "create";
     $_POST["submit"] = "create";
     $_POST['send_no_email'] = "on"; // Stop WRMS spam
-    
+
     // Some settings always in common with master project..
     $wrms->org_code     = $project->org_code;
-    $wrms->system_code  = $project->system_code;
+    $wrms->system_id    = $project->system_id;
     $wrms->requester_id = $project->requester_id;
     $wrms->last_status  = $project->last_status;
     $wrms->urgency      = $project->urgency;
     $wrms->importance   = $project->importance;
     $wrms->entered_by   = $project->entered_by;
     $wrms->status_code  = "I"; // In Progress
-    
+
     // Give it our brief, plus the step decription..
     $wrms->brief = "$project->brief: $this->qa_step_desc";
-    
+
     // Assemble the detailed blurb..
     $s = "";
-    
+
     // Condign notes pertaining to this QA step. Hopefully the
     // QA gurus will have populated the database with some very
     // useful guidance here (hint, hint!) ;-)
     if ($this->qa_step_notes != "") {
       $s .= "$this->qa_step_notes";
     }
-    
+
     // Para covering the document requirement..
     if ($this->qa_document_title != "") {
       $s .= "\n\nThis QA step is concerned with a document entitled '$this->qa_document_title'. "
@@ -1640,40 +1640,40 @@ class qa_project_step extends qa_step {
         $s .= " $this->qa_document_desc";
       }
     }
-    
+
     // Boilerplate gumph..
     $s .= "\n\nThis work request has been automatically created by QAMS, to "
         . "facilitate the '$this->qa_step_desc' quality assurance step, in the "
         . "'$this->qa_phase_desc' phase of the project."
         ;
-    
+
     $wrms->detailed = $s;
-    
+
     // Save our newly built QA step request..
     $wrms->save_request();
-            
+
     if ($wrms->request_id > 0) {
       $this->request_id = $wrms->request_id;
       $wrms->chtype = "update";
       $_POST["submit"] = "update";
-      
+
       // Now link it to our main project WRMS..
       $_POST["link_type"] = "P"; // Precedes
       $_POST["parent_request_id"] = $project->request_id;
       $wrms->AddParent();
-      
+
       // Make sure allocations are the same..
       if (count($project->allocated) > 0) {
         $_POST["new_allocations"] = array_keys($project->allocated);
         $wrms->NewAllocations();
       }
-      
+
       // Make sure interested users are the same..
       if (count($project->interested) > 0) {
         $_POST["new_subscription"] = array_keys($project->interested);
         $wrms->NewSubscriptions();
       }
-    
+
       // Finally, create the project step record itself..
       $q  = "INSERT INTO qa_project_step (";
       $q .= " project_id, qa_step_id, request_id ";
@@ -1686,8 +1686,8 @@ class qa_project_step extends qa_step {
                 $this->request_id
                 );
       $qry->Exec("qa_project_step::insert_into_project");
-      
-      
+
+
       // And its default project step approval records too..
       foreach ($this->approvals_default() as $qa_type_id => $qa_type_desc) {
         $q  = "INSERT INTO qa_project_step_approval (";
@@ -1702,13 +1702,13 @@ class qa_project_step extends qa_step {
                   );
         $qry->Exec("qa_project_step::insert_into_project");
       } // foreach
-      
+
       // The data is now valid..
       $this->valid = true;
-    }        
+    }
     // Clear out for next step..
     $_POST = array();
-    
+
   } // insert_into_project
   // .....................................................................
   /**
@@ -1787,7 +1787,7 @@ class qa_project_step extends qa_step {
    * Remove a required approval type from this QA step. We delete the
    * appropriate database records. Note that this is a fairly low
    * level method which will also remove any approvals associated
-   * with this type. 
+   * with this type.
    * @param integer $ap_type_id The ID of the approval type to add.
    * @return boolean True if approval type was removed ok.
    */
@@ -1837,7 +1837,7 @@ class qa_project_step extends qa_step {
    * Note: this will only do anything if the local class variable
    * 'approvals' is unset.
    * @param boolean $force If true we re-read the data regardless
-   */  
+   */
   function get_approvals($force=false) {
     if ($force || (!isset($this->approvals) && isset($this->project_id) && isset($this->qa_step_id))) {
       $this->approvals = array();
@@ -1854,7 +1854,7 @@ class qa_project_step extends qa_step {
       $q .= " ORDER BY pa.approval_datetime, pa.assigned_datetime";
       $qry = new PgQuery($q);
       if ($qry->Exec("qa_process_step::get_approvals") && $qry->rows > 0) {
-        while($row = $qry->Fetch(true)) {          
+        while($row = $qry->Fetch(true)) {
           $ap_type_id = $row["qa_approval_type_id"];
           $approval = new qa_project_approval(
                             $this->project_id,
@@ -1862,7 +1862,7 @@ class qa_project_step extends qa_step {
                             );
           // Store the full approval histories..
           $this->approvals_history[$ap_type_id][] = $approval;
-          
+
           // Store the most recent approval for each type. Since we
           // query above in ascending date order this ends up right..
           $this->approvals[$ap_type_id] = $approval;
@@ -1892,7 +1892,7 @@ class qa_project_step extends qa_step {
    * QA step. This is the list of all approval types which have to be
    * actioned, as opposed to the approval records themselves.
    * @param boolean $force If true we re-read the data regardless
-   */  
+   */
   function get_approvals_required($force=false) {
     if ($force || (!isset($this->approvals_required) && isset($this->qa_step_id))) {
       $this->approvals_required = array();
@@ -1903,7 +1903,7 @@ class qa_project_step extends qa_step {
       $q .= "   AND apt.qa_approval_type_id=psa.qa_approval_type_id";
       $qry = new PgQuery($q);
       if ($qry->Exec("qa_process_step::get_approvals_required") && $qry->rows > 0) {
-        while($row = $qry->Fetch()) {          
+        while($row = $qry->Fetch()) {
           $ap_type_id = $row->qa_approval_type_id;
           $this->approvals_required[$ap_type_id] = $row->qa_approval_type_desc;
           $this->last_approval_status[$ap_type_id] = $row->last_approval_status;
@@ -1933,7 +1933,7 @@ class qa_project_step extends qa_step {
    * QA step. This is the list of all approval types which are to be
    * initially assigned when the step is created.
    * @param boolean $force If true we re-read the data regardless
-   */  
+   */
   function get_approvals_default($force=false) {
     if ($force || (!isset($this->approvals_default) && isset($this->qa_step_id))) {
       $this->approvals_default = array();
@@ -1942,7 +1942,7 @@ class qa_project_step extends qa_step {
       $q .= "   AND apt.qa_approval_type_id=ap.qa_approval_type_id";
       $qry = new PgQuery($q);
       if ($qry->Exec("qa_process_step::get_approvals_default") && $qry->rows > 0) {
-        while($row = $qry->Fetch()) {          
+        while($row = $qry->Fetch()) {
           $ap_type_id = $row->qa_approval_type_id;
           $ap_type_desc = $row->qa_approval_type_desc;
           $this->approvals_default[$ap_type_id] = $ap_type_desc;
@@ -1993,7 +1993,7 @@ class qa_project_step extends qa_step {
         } // switch
       }
     } // foreach
-    
+
     // Determine status..
     if ($totreqd > 0) {
       if ($refused > 0) {
@@ -2032,12 +2032,12 @@ class qa_project_step extends qa_step {
       foreach ($this->approvals_history[$ap_type_id] as $approval) {
         if ($approval->approval_status == "y") {
           $approved[$ap_type_id] = datetime_to_timestamp($approval->approval_datetime);
-          break;           
+          break;
         }
       } // foreach
     } // foreach
 
-    // Set to false if not all approval types set, else max timestamp..    
+    // Set to false if not all approval types set, else max timestamp..
     foreach ($this->approvals_required() as $ap_type_id => $ap_desc) {
       if (isset($approved[$ap_type_id])) {
         if ($approved[$ap_type_id] > $res) {
@@ -2049,10 +2049,10 @@ class qa_project_step extends qa_step {
         break;
       }
     } // foreach
-    
-    // Return timestamp or false..    
+
+    // Return timestamp or false..
     return $res;
-    
+
   } // first_approved_timestamp
   // .....................................................................
   /**
@@ -2061,7 +2061,7 @@ class qa_project_step extends qa_step {
    * we return false otherwise we return true. NB: if this hasn't been
    * approved yet, we return false.
    * @return boolean True if this QA Step was override-approved
-   */  
+   */
   function approval_overridden($ap_type_id) {
     $res = false;
     if (isset($this->approvals[$ap_type_id])) {
@@ -2077,7 +2077,7 @@ class qa_project_step extends qa_step {
   /**
    * Request approval for the given approval type for this QA step. This
    * creates a new 'in-progress' 'qa_project_approval' record, with the
-   * given user as the assigned person.  
+   * given user as the assigned person.
    * @param integer $ap_type_id Approval type to approve for this step.
    * @param integer $user_no User being requested to submit approval.
    * @return boolean True if request for approval succeeded
@@ -2091,7 +2091,7 @@ class qa_project_step extends qa_step {
       // Can't use it if already been approved..
       if ($approval->approval_datetime != "") {
         $approval = new qa_project_approval($this->project_id);
-      }  
+      }
     }
     else {
       $approval = new qa_project_approval($this->project_id);
@@ -2108,7 +2108,7 @@ class qa_project_step extends qa_step {
     $approval->approval_by_usr = "";
     $approval->approval_datetime = "";
     $approval->comment = "";
-    
+
     // Now save it. This will insert a new record if necessary..
     $qry = new PgQuery("BEGIN");
     $ok = $qry->Exec("qa_project_step::request_approval");
@@ -2124,7 +2124,7 @@ class qa_project_step extends qa_step {
         $q .= "   AND qa_approval_type_id=$ap_type_id";
         $qry = new PgQuery($q);
         $ok = $qry->Exec("qa_project_step::request_approval");
-      }    
+      }
       if ($ok) {
         // Save current QA phase to project record..
         $q  = "UPDATE request_project SET";
@@ -2132,7 +2132,7 @@ class qa_project_step extends qa_step {
         $q .= " WHERE request_id=$this->project_id";
         $qry = new PgQuery($q);
         $ok = $qry->Exec("qa_project_step::request_approval");
-      }      
+      }
       $qry = new PgQuery(($ok ? "COMMIT;" : "ROLLBACK;"));
       $res = $qry->Exec("qa_project_step::request_approval");
 
@@ -2141,7 +2141,7 @@ class qa_project_step extends qa_step {
       $this->get_approvals_required(true);
     }
     return $res;
-    
+
   } // request_approval
   // .....................................................................
   /**
@@ -2149,7 +2149,7 @@ class qa_project_step extends qa_step {
    * this method also also allows the user ID as a parameter, but normally this
    * will be the logged-in user doing the approval. To perform this we first
    * look at the latest approval record, and use it IF the 'approval_datetime'
-   * field is still blank. Otherwise we create a new approval record.   
+   * field is still blank. Otherwise we create a new approval record.
    * @param integer $ap_type_id Approval type to approve for this step.
    * @param string $status Status to store in approval record.
    * @param string $comment Comment to add to this approval
@@ -2169,7 +2169,7 @@ class qa_project_step extends qa_step {
       // Can't use it if already been approved..
       if ($approval->approval_datetime != "") {
         $approval = new qa_project_approval($this->project_id);
-      }  
+      }
     }
     else {
       $approval = new qa_project_approval($this->project_id);
@@ -2199,7 +2199,7 @@ class qa_project_step extends qa_step {
       $approval->approval_datetime = timestamp_to_datetime();
       $approval->comment = addslashes($comment);
     }
-    
+
     $qry = new PgQuery("BEGIN");
     $ok = $qry->Exec("qa_project_step::approve");
     if ($ok) {
@@ -2214,7 +2214,7 @@ class qa_project_step extends qa_step {
         $q .= "   AND qa_approval_type_id=$ap_type_id";
         $qry = new PgQuery($q);
         $ok = $qry->Exec("qa_project_step::approve");
-      }      
+      }
       if ($ok) {
         // Save current phase to project record..
         $q  = "UPDATE request_project SET";
@@ -2222,16 +2222,16 @@ class qa_project_step extends qa_step {
         $q .= " WHERE request_id=$this->project_id";
         $qry = new PgQuery($q);
         $ok = $qry->Exec("qa_project_step::approve");
-      }      
+      }
       $qry = new PgQuery(($ok ? "COMMIT;" : "ROLLBACK;"));
       $res = $qry->Exec("qa_project_step::approve");
-      
+
       // Forced-refresh locally..
       $this->get_approvals(true);
       $this->get_approvals_required(true);
     }
     return $res;
-     
+
   } // approve
   // .....................................................................
   /**
@@ -2243,9 +2243,9 @@ class qa_project_step extends qa_step {
    * a new record with blank (nullstring) status to be created.
    */
   function reapprove() {
-    $comment = "Set to In Progress status for re-approval."; 
+    $comment = "Set to In Progress status for re-approval.";
     foreach ($this->approvals_required() as $ap_type_id => $ap_type_desc) {
-      $this->approve($ap_type_id, "", $comment); 
+      $this->approve($ap_type_id, "", $comment);
     } // foreach
   } // reapprove
   // .....................................................................
@@ -2266,7 +2266,7 @@ class qa_project_step extends qa_step {
                 "email"    => $this->responsible_email
                 );
       }
-    } 
+    }
     return $res;
   } // assigned
   // .....................................................................
@@ -2290,7 +2290,7 @@ class qa_project_step extends qa_step {
    * Acquire the QA step document paths. These are the paths to the template
    * and example documents (if any) defined for our QA Step, and for the
    * QA model chosen when this project was created.
-   */  
+   */
   function get_documents() {
     if (isset($this->qa_document_id) && $this->qa_document_id != "") {
       $q  = "SELECT * FROM request_project rp, qa_model_documents md, qa_document d";
@@ -2299,7 +2299,7 @@ class qa_project_step extends qa_step {
       $q .= "   AND md.qa_document_id=$this->qa_document_id";
       $qry = new PgQuery($q);
       if ($qry->Exec("qa_process_step::get_documents") && $qry->rows > 0) {
-        $row = $qry->Fetch();          
+        $row = $qry->Fetch();
         $this->path_to_template = $row->path_to_template;
         $this->path_to_example  = $row->path_to_example;
       }
@@ -2317,8 +2317,8 @@ class qa_project_step extends qa_step {
    */
   function render_approval_types($have_admin=false, $summary=false, $aptypeid=false) {
     $s = "";
-    
-    // Inner table containing rows - all approval types..    
+
+    // Inner table containing rows - all approval types..
     $s .= "<table cellspacing=\"2\" cellpadding=\"0\" width=\"100%\">\n";
 
     foreach ($this->approvals_required() as $ap_type_id => $ap_type_desc) {
@@ -2346,7 +2346,7 @@ class qa_project_step extends qa_step {
       }
       $desc = qa_status_coloured($last_approval_status, $ap_type_desc, $suffix);
       $s .= "<td width=\"70%\">$desc</td>";
-      
+
       if ($summary === false) {
         $link = "&nbsp;";
         if ($have_admin) {
@@ -2357,31 +2357,31 @@ class qa_project_step extends qa_step {
           $label = "[Approve]";
           $title = "Post a decision on this approval type";
           $link  = "<a href=\"$href\" title=\"$title\">$label</a>";
-        } 
+        }
         $s .= "<td width=\"15%\" align=\"center\" style=\"text-align:center\">$link</td>";
-        
+
         $chk = "<input type=\"checkbox\""
              . " name=\"step_approval_types[]\""
              . " value=\"" . $this->qa_step_id . "|" . $ap_type_id . "\""
              . " checked"
              . (($last_approval_status == "" && $have_admin) ? "" : " disabled")
              . ">"
-             ; 
+             ;
         $s .= "<td width=\"15%\" align=\"center\" style=\"text-align:center\">" . $chk . "</td>";
       }
     }
     $s .= "</tr>\n";
-    
+
     if ($summary === false && $have_admin) {
       // Get all approval types not assigned to this step yet..
       $q = "SELECT * FROM qa_approval_type";
       $reqd_ap_ids = array_keys($this->approvals_required());
       if (is_array($reqd_ap_ids) && count($reqd_ap_ids > 0)) {
-        $reqd_ap_sql = implode(",", $reqd_ap_ids); 
+        $reqd_ap_sql = implode(",", $reqd_ap_ids);
         if ($reqd_ap_sql != "") {
           $q .= " WHERE qa_approval_type_id NOT IN ($reqd_ap_sql)";
         }
-      } 
+      }
       $qry = new PgQuery($q);
       if ($qry->Exec("qa_project_step::render_approval_types") && $qry->rows > 0) {
         while($row = $qry->Fetch()) {
@@ -2395,7 +2395,7 @@ class qa_project_step extends qa_step {
                . " value=\"" . $this->qa_step_id . "|" . $ap_type_id . "\""
                . ($have_admin ? "" : " disabled")
                . ">"
-               ; 
+               ;
           $s .= "<td align=\"center\" style=\"text-align:center\">" . $chk . "</td>";
           $s .= "</tr>\n";
         } // while
@@ -2403,7 +2403,7 @@ class qa_project_step extends qa_step {
     }
     $s .= "</table>\n";
     return $s;
-    
+
   } // render_approval_types
   // .....................................................................
   /**
@@ -2418,7 +2418,7 @@ class qa_project_step extends qa_step {
     $this->get_approvals();
     if (count($this->approvals_history) > 0) {
       $s .= "<table cellspacing=\"2\" cellpadding=\"0\" width=\"100%\">\n";
-      
+
       // Some headings..
       $s .= "<tr>";
       $s .= "<th width=\"25%\" class=\"cols\">Type of approval</th>";
@@ -2426,7 +2426,7 @@ class qa_project_step extends qa_step {
       $s .= "<th width=\"34%\" class=\"cols\">Approval</th>";
       $s .= "<th width=\"16%\" class=\"cols\">Status</th>";
       $s .= "</tr>\n";
-      
+
        foreach ($this->approvals_history as $approvals) {
         $appcnt = count($approvals);
         $cnt = 0;
@@ -2435,7 +2435,7 @@ class qa_project_step extends qa_step {
           $status = $approval->approval_status;
           $rowclass = ($cnt == $appcnt) ? "row1" : "row0";
           $s .= "<tr class=\"$rowclass\">";
-          
+
           // Description..
           $s .= "<td valign=\"top\" style=\"border-top:dotted lightgrey 1px\">";
           $s .= $approval->qa_approval_type_desc;
@@ -2443,7 +2443,7 @@ class qa_project_step extends qa_step {
             $s .= "<br>(current status)";
           }
           $s .= "</td>";
-          
+
           // Assignment..
           if ($approval->assigned_datetime != "") {
             $ass = $approval->assigned_fullname . "<br>";
@@ -2453,7 +2453,7 @@ class qa_project_step extends qa_step {
             $ass = "&nbsp;";
           }
           $s .= "<td valign=\"top\" style=\"border-top:dotted lightgrey 1px\">$ass</td>";
-  
+
           // Approval..
           $app = "";
           if ($approval->approval_datetime != "") {
@@ -2477,20 +2477,20 @@ class qa_project_step extends qa_step {
             $app = "&nbsp;";
           }
           $s .= "<td valign=\"top\" style=\"border-top:dotted lightgrey 1px\">$app</td>";
-          
+
           // Status..
           $s .= "<td valign=\"top\" style=\"border-top:dotted lightgrey 1px\">" . qa_status_coloured($status) . "</td>";
           $s .= "</tr>\n";
         } // foreach
-        
+
       } // foreach
-      
+
       $s .= "</table>\n";
     }
     return $s;
-    
+
   } // render_approvals
-  
+
 } // class qa_project_step
 
 // -----------------------------------------------------------------------
@@ -2517,7 +2517,7 @@ class qa_project_approval {
    * of data from a database row.
    * @param integer $project_id The ID of the project the step is in
    * @param array $row Database record array.
-   */  
+   */
   function qa_project_approval($project_id, $row=false) {
     $this->project_id = $project_id;
     if ($row !== false) {
@@ -2530,7 +2530,7 @@ class qa_project_approval {
    * everything submitted in the $row variable, avoiding any duplicated
    * numeric elements present in DB row vars.
    * @param array $row Database record array.
-   */  
+   */
   function assign_from_row($row) {
     // Store each row property locally..
     foreach ($row as $name => $val) {
@@ -2568,14 +2568,14 @@ class qa_project_approval {
    */
   function save() {
     $ok = false;
-    
+
     // Fields which we want to NULL if not set, or nullstring..
     $assigned_to_usr   = (isset($this->assigned_to_usr)   && $this->assigned_to_usr != "")   ? $this->assigned_to_usr : "NULL";
     $approval_by_usr   = (isset($this->approval_by_usr)   && $this->approval_by_usr != "")   ? $this->approval_by_usr : "NULL";
     $assigned_datetime = (isset($this->assigned_datetime) && $this->assigned_datetime != "") ? "'$this->assigned_datetime'" : "NULL";
     $approval_datetime = (isset($this->approval_datetime) && $this->approval_datetime != "") ? "'$this->approval_datetime'" : "NULL";
     $approval_status   = (isset($this->approval_status)   && $this->approval_status != "")   ? "'$this->approval_status'" : "NULL";
-      
+
     if ($this->qa_approval_id == 0) {
       // New record - grab next sequence value..
       $qry = new PgQuery("SELECT NEXTVAL('seq_qa_approval_id')");
@@ -2583,7 +2583,7 @@ class qa_project_approval {
         $row = $qry->Fetch(true);
         $this->qa_approval_id = $row[0];
       }
-      
+
       // Create new approval..
       $q  = "INSERT INTO qa_project_approval (";
       $q .= " qa_approval_id, project_id, qa_step_id, qa_approval_type_id,";
@@ -2605,7 +2605,7 @@ class qa_project_approval {
       $qry = new PgQuery($q);
       $ok = $qry->Exec("qa_project_approval::save");
     }
-    else { 
+    else {
       // Existing record update..
       $q  = "UPDATE qa_project_approval SET ";
       $q .= " project_id=$this->project_id,";
@@ -2623,7 +2623,7 @@ class qa_project_approval {
     }
     return $ok;
   } // save
-  
+
 } // class qa_project_approval
 
 // -----------------------------------------------------------------------
@@ -2667,7 +2667,7 @@ function qa_approval_colour($code) {
  */
 function qa_status_coloured($code, $label="", $suffix="") {
   $status = qa_approval_status($code);
-  
+
   $title = $status;
   if ($label == "") {
     $label = $status;

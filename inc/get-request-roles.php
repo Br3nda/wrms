@@ -22,7 +22,7 @@
   $query = "SELECT * FROM system_usr WHERE system_usr.user_no=$session->user_no";
   $query .= " AND system_usr.role ~ '[CS]' ";
   if ( $is_request )
-    $query .= " AND system_usr.system_code = '$request->system_code' ";
+    $query .= " AND system_usr.system_id = '$request->system_id' ";
   $rid = awm_pgexec( $dbconn, $query, "req-roles2");
   if ( ! $rid ) {
     $error_loc = "get-request-roles.php";

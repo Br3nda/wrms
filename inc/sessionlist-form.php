@@ -7,7 +7,7 @@
 
 <?php
   if ( ! is_member_of('Admin','Support') ) $session_id = $session->session_id;
-  if ( "$search_for$system_code " != "" ) {
+  if ( "$search_for " != "" ) {
     $query = "SELECT *, (session_end - session_start)::interval AS duration FROM usr, session ";
     $query .= "WHERE usr.user_no = session.user_no ";
     if ( "$search_for" <> "" )

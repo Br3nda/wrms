@@ -3,6 +3,9 @@
   require_once("authorisation-page.php");
   require_once("maintenance-page.php");
 
+  if ( isset($system_id) ) $system_id = intval($system_id);
+  if ( isset($org_code) )  $org_code  = intval($org_code);
+
   $title = "$system_name User Search";
   require_once("top-menu-bar.php");
   include("headers.php");
@@ -23,22 +26,22 @@
     }
     if ( is_member_of('Admin','Support','Manage') ) {
       include( "system-list.php" );
-      $syslist = "<option value=\"\">--- All Systems ---</option>\n" . get_system_list( "VOECS", "$system_code", 20 );
-      echo "<td class=smb><b>Type:</b></td><td><select class=sml name=\"system_code\">\n$syslist</select></td>\n";
+      $syslist = "<option value=\"\">--- All Systems ---</option>\n" . get_system_list( "VOECS", "$system_id", 20 );
+      echo "<td class=smb><b>Type:</b></td><td><select class=sml name=\"system_id\">\n$syslist</select></td>\n";
       echo "<td class=smb>&nbsp;<b><label id=status>Inactive:</label></b></td><td><input id=status class=sml type=\"checkbox\" name=status value=I" . ("$status" == "I" ? " checked" : "") . "></td>\n";
     }
 
     echo "<td><input type=submit class=submit alt=go value=\"GO>>\" name=submit></td>\n";
     echo "</tr></table>\n</form>\n";
 
-    if ( "$search_for$org_code$system_code$status " != "" ) {
+    if ( "$search_for$org_code$system_id$status " != "" ) {
 
       $query = "SELECT *, to_char( last_update, 'dd/mm/yyyy' ) AS last_update, to_char( last_accessed, 'dd/mm/yyyy' ) AS last_accessed ";
       $query .= "FROM usr, organisation";
 
-      if ( isset( $system_code ) && $system_code <> "" ) $query .= ", system_usr, lookup_code";
+      if ( isset( $system_id ) && $system_id > 0 ) $query .= ", system_usr, lookup_code";
       $query .= " WHERE usr.org_code=organisation.org_code ";
-      if ( !isset( $org_code ) || $org_code == "" )
+      if ( !isset( $org_code ) || $org_code == 0 )
         $query .= "AND organisation.active ";
       if ( !isset( $status ) || $status <> "I" )
         $query .= "AND usr.status != 'I' ";
@@ -51,12 +54,12 @@
       if ( is_member_of('Manage') && ! is_member_of('Admin','Support') ) {
         $query .= " AND usr.org_code='$session->org_code' ";
       }
-      else if ( isset( $org_code ) && $org_code != "" ) {
-        $query .= " AND usr.org_code='$org_code' ";
+      else if ( isset( $org_code ) && $org_code > 0 ) {
+        $query .= " AND usr.org_code=$org_code";
       }
 
-      if ( isset( $system_code ) && $system_code <> ""  ) {
-        $query .= " AND system_usr.system_code='$system_code'";
+      if ( isset( $system_id ) && $system_id > 0 ) {
+        $query .= " AND system_usr.system_id=$system_id";
         $query .= " AND system_usr.user_no=usr.user_no";
         $query .= " AND lookup_code.source_table='system_usr' AND lookup_code.source_field='role' AND lookup_code.lookup_code=system_usr.role ";
       }
@@ -69,10 +72,10 @@
         echo "<p>&nbsp;" . pg_NumRows($result) . " users found</p>";
         echo "<table border=\"0\" cellpadding=2 cellspacing=1 align=center width=100%>\n<tr>\n";
         echo "<th class=cols>User&nbsp;ID</th><th class=cols>Full Name</th>\n";
-        if ( "$org_code" == "" )
+        if ( isset($org_code) && $org_code > 0 )
           echo "<th class=cols>Organisation</th>\n";
         echo "<th class=cols>Email</th>\n";
-        if ( isset( $system_code )  && $system_code <> "")
+        if ( isset( $system_id )  && $system_id > 0 )
           echo "<th class=cols>User Role</th>\n";
         echo "<th class=cols>Accessed</th>\n";
         echo "<th class=cols>Actions</th>\n";
@@ -85,10 +88,10 @@
 
         echo "<td class=sml><a href=\"user.php?user_no=$thisusr->user_no\">$thisusr->username</a></td>\n";
         echo "<td class=sml><a href=\"user.php?user_no=$thisusr->user_no\">$thisusr->fullname</a></td>\n";
-        if ( "$org_code" == "" )
+        if ( !isset($org_code) || $org_code == 0 )
           echo "<td class=sml><a href=\"org.php?org_code=$thisusr->org_code\">$thisusr->org_name</a></td>\n";
         echo "<td class=sml><a href=\"mailto:$thisusr->email\">$thisusr->email</a>&nbsp;</td>\n";
-        if ( isset( $system_code ) && $system_code <> "" )
+        if ( isset( $system_id ) && $system_id > 0 )
           echo "<td class=sml>$thisusr->lookup_desc ($thisusr->role)&nbsp;</td>\n";
         echo "<td class=sml>$thisusr->last_accessed&nbsp;</td>\n";
 

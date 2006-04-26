@@ -17,11 +17,11 @@ function SqlSelectOrganisations( $org_code = 0 ) {
     $sql .= "OR organisation.org_code = $org_code ";
   }
   $sql .= ") AND abbreviation !~ '^ *$' ";
-  $sql .= "AND EXISTS(SELECT work_system.system_code FROM org_system JOIN work_system ON (org_system.system_code = work_system.system_code) WHERE org_system.org_code = organisation.org_code AND work_system.active) ";
+  $sql .= "AND EXISTS(SELECT work_system.system_id FROM org_system JOIN work_system ON (org_system.system_id = work_system.system_id) WHERE org_system.org_code = organisation.org_code AND work_system.active) ";
   if ( $session->AllowedTo("Contractor") && ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) ) {
     //  They could make requests for organisations that use systems they are Allocatable/Support for...
     $sql .= "AND ( EXISTS (SELECT 1 FROM org_system ";
-    $sql .= "JOIN system_usr USING (system_code) ";
+    $sql .= "JOIN system_usr USING (system_id) ";
     $sql .= "WHERE system_usr.role IN ('A','S') ";
     $sql .= "AND system_usr.user_no = $session->user_no ";
     $sql .= "AND org_system.org_code = organisation.org_code) ";
@@ -55,14 +55,14 @@ function SqlSelectRequesters( $org_code = 0 ) {
     if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support")) ) {
 /*
       $sql .= "AND EXISTS (SELECT 1 FROM org_system ";
-      $sql .= "JOIN system_usr USING (system_code) ";
+      $sql .= "JOIN system_usr USING (system_id) ";
       $sql .= "WHERE system_usr.role IN ('A','S') ";
       $sql .= "AND system_usr.user_no = $session->user_no ";
       $sql .= "AND org_system.org_code = organisation.org_code) ";
 */
     //  It could be for organisations that use systems they are Allocatable/Support for...
     $sql .= "AND ( EXISTS (SELECT 1 FROM org_system ";
-    $sql .= "JOIN system_usr USING (system_code) ";
+    $sql .= "JOIN system_usr USING (system_id) ";
     $sql .= "WHERE system_usr.role IN ('A','S') ";
     $sql .= "AND system_usr.user_no = $session->user_no ";
     $sql .= "AND org_system.org_code = $org_code) ";
@@ -90,7 +90,7 @@ function SqlSelectSubscribers( $org_code = 0 ) {
   $sql = "SELECT usr.user_no, fullname || ' (' || abbreviation || ')' AS name, lower(fullname) ";
   $sql .= "FROM usr JOIN organisation USING(org_code) ";
   $sql .= "WHERE EXISTS(SELECT 1 FROM system_usr su ";
-  $sql .=          "JOIN system_usr me USING(system_code) ";
+  $sql .=          "JOIN system_usr me USING(system_id) ";
   $sql .=          "WHERE me.user_no = $session->user_no AND su.user_no = usr.user_no AND su.role IN ('S','A') ) ";
   $sql .= "AND usr.status != 'I' ";
   $sql .= "UNION ";
@@ -119,7 +119,7 @@ function SqlSelectOrgTags( $org_code = 0 ) {
   if ( $org_code != 0 && ($session->AllowedTo("Admin") || $session->AllowedTo("Support") || $session->AllowedTo("Contractor") ) )
     $sql .= "AND organisation.org_code = $org_code ";
   else if ( ($session->AllowedTo("Contractor") ) ) {
-    $sql .= "AND EXISTS( SELECT 1 FROM system_usr me JOIN org_system USING(system_code) ";
+    $sql .= "AND EXISTS( SELECT 1 FROM system_usr me JOIN org_system USING(system_id) ";
     $sql .=         "WHERE me.user_no=$session->user_no AND me.role='S' ";
     $sql .=           "AND org_system.org_code = organisation.org_code) ";
   }
@@ -139,13 +139,13 @@ function SqlSelectOrgTags( $org_code = 0 ) {
 function SqlSelectSystems( $org_code = 0 ) {
   global $session;
 
-  $sql = "SELECT work_system.system_code, system_desc ";
+  $sql = "SELECT work_system.system_id, system_desc ";
   $sql .= "FROM work_system ";
   if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) ) {
-    $sql .= "JOIN system_usr ON (work_system.system_code=system_usr.system_code AND system_usr.user_no=$session->user_no) ";
+    $sql .= "JOIN system_usr ON (work_system.system_id=system_usr.system_id AND system_usr.user_no=$session->user_no) ";
   }
   $sql .= "WHERE active ";
-  $sql .= "AND EXISTS (SELECT 1 FROM org_system WHERE org_system.system_code = work_system.system_code ";
+  $sql .= "AND EXISTS (SELECT 1 FROM org_system WHERE org_system.system_id = work_system.system_id ";
   if ( $org_code != 0 && ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) )
     $sql .= "AND org_system.org_code = $org_code ";
   else if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") ) )

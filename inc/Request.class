@@ -100,8 +100,8 @@ class Request {
     $sql .= " LEFT OUTER JOIN lookup_code AS urgency ON urgency.source_table='request' AND urgency.source_field='urgency' AND int4(urgency.lookup_code)=request.urgency";
     $sql .= " LEFT OUTER JOIN lookup_code AS sla_response ON sla_response.source_table='request' AND sla_response.source_field='sla_response' AND sla_response.lookup_code=request_sla_code(sla_response_time,sla_response_type)";
     $sql .= " LEFT OUTER JOIN lookup_code AS importance ON importance.source_table='request' AND importance.source_field='importance' AND int4(importance.lookup_code)=request.importance";
-    $sql .= " LEFT OUTER JOIN work_system USING( system_code )";
-    $sql .= " LEFT OUTER JOIN system_usr ON $session->user_no = system_usr.user_no AND request.system_code = system_usr.system_code ";
+    $sql .= " LEFT OUTER JOIN work_system USING( system_id )";
+    $sql .= " LEFT OUTER JOIN system_usr ON $session->user_no = system_usr.user_no AND request.system_id = system_usr.system_id ";
     $sql .= " WHERE request.request_id = '$id' ";
 //    echo "<p>$sql<p>";
 
@@ -111,7 +111,7 @@ class Request {
 
         // We need these assigned first as they are used for permissions
         $this->org_code = $row->org_code;
-        $this->system_code = $row->system_code;
+        $this->system_id = $row->system_id;
 
         if ( $this->AllowedTo('view') ) {
           if ( isset($GLOBALS['edit']) && !$this->AllowedTo('update') ) {
@@ -128,7 +128,7 @@ class Request {
         }
         else {
           unset($this->org_code);
-          unset($this->system_code);
+          unset($this->system_id);
           $session->Dbg( "Request", "User %d cannot access request %d.", $session->user_no, $id);
           $client_messages[] = "Request $id is unavailable - do you have the number right?";
           $this->new_record = false;
@@ -172,11 +172,11 @@ class Request {
           $answer = true;   // Support can always update
         }
         else if ( $this->org_code == $session->org_code ) {
-          $answer = isset($session->system_roles[$this->system_code]);
+          $answer = isset($session->system_roles[$this->system_id]);
         }
         else if ( $session->AllowedTo("Contractor") ) {
           // A contractor will need specific access to this System
-          $answer = isset($session->system_roles[$this->system_code]);
+          $answer = isset($session->system_roles[$this->system_id]);
         }
         break;
 
@@ -186,11 +186,11 @@ class Request {
           $answer = true;   // Support can always update
         }
         else if ( $this->org_code == $session->org_code ) {
-          $answer = ( strpos("`SACEO",$session->system_roles[$this->system_code] ) != false );
+          $answer = ( strpos("`SACEO",$session->system_roles[$this->system_id] ) != false );
         }
         else if ( $session->AllowedTo("Contractor") ) {
           // A contractor will need specific Support/Allocate access to this System
-          $answer = ( strpos("`SA",$session->system_roles[$this->system_code] ) != false );
+          $answer = ( strpos("`SA",$session->system_roles[$this->system_id] ) != false );
         }
         break;
 
@@ -206,11 +206,11 @@ class Request {
           $answer = true;   // Support can always update
         }
         else if ( $this->org_code == $session->org_code ) {
-          $answer = ( strpos("`SAC",$session->system_roles[$this->system_code] ) != false );
+          $answer = ( strpos("`SAC",$session->system_roles[$this->system_id] ) != false );
         }
         else if ( $session->AllowedTo("Contractor") ) {
           // A contractor will need specific Support/Allocate access to this System
-          $answer = ( strpos("`SA",$session->system_roles[$this->system_code] ) != false );
+          $answer = ( strpos("`SA",$session->system_roles[$this->system_id] ) != false );
         }
         break;
 
@@ -225,7 +225,7 @@ class Request {
       foreach( $session->system_roles AS $k => $v ) { $roles .= "$k=$v~~"; }
       $session->Dbg( "Request", "action '%s' to %s, User-Org:%s, WR-Org:%s, System:%s, SysRole:%s, Roles:%s - result is: %d",
                         $action, $session->username, $session->org_code, $this->org_code,
-                        $this->system_code, $session->system_roles[$this->system_code],
+                        $this->system_id, $session->system_roles[$this->system_id],
                         $roles, $answer );
     }
     return $answer;
@@ -499,7 +499,7 @@ class Request {
                     "title" => "The client who is requesting this, or who is in charge of ensuring it happens." ) );
 
     // System (within Organisation) drop-down
-    $html .= $ef->DataEntryLine( "System", "$this->system_desc", "lookup", "system_code",
+    $html .= $ef->DataEntryLine( "System", "$this->system_desc", "lookup", "system_id",
               array("_sql" => SqlSelectSystems($this->org_code),
                     "_null" => "--- select a system ---", "onchange" => "SystemChanged();",
                     "title" => "The business system that this request applies to.") );
@@ -1354,8 +1354,8 @@ class Request {
 
     $this->chtype = strtolower($_POST['submit']);
 
-    // We do some special sanitisation of the system_code
-    $_POST['system_code'] = str_replace("'","",str_replace("\\", "", $_POST['system_code'] ));
+    // Sanitise the system_id
+    $_POST['system_id'] = intval($_POST['system_id']);
 
     if ( ! $this->_CheckNewRequester() ) return false;
 
@@ -1376,10 +1376,10 @@ class Request {
 
     if ( $this->chtype == 'update' && $_POST['requester_id'] == $this->requester_id ) return true;
 
-    $new_system_code = str_replace("'","",str_replace("\\","",trim($_POST['system_code'])));
-    $_POST['system_code'] = $new_system_code;  // Assign the cleaned value back into the _POST array
+    $new_system_id = intval($_POST['system_id']);
+    $_POST['system_id'] = $new_system_id;  // Assign the cleaned value back into the _POST array
 
-    if ( $new_system_code == '' ) {
+    if ( $new_system_id == 0 ) {
       $client_messages[] = "You must select a system which this request applies to.";
       return false;
     }
@@ -1391,9 +1391,9 @@ class Request {
 
     $sql = "SELECT usr.user_no, usr.org_code, system_usr.role ";
     $sql .= "FROM usr JOIN org_system ON ( usr.org_code = org_system.org_code ) ";
-    $sql .= "LEFT JOIN system_usr ON ( usr.user_no = system_usr.user_no AND org_system.system_code = system_usr.system_code ) ";
-    $sql .= "WHERE org_system.system_code = ? AND usr.user_no = ? ; ";
-    $q = new PgQuery( $sql, $new_system_code, $_POST['requester_id'] );
+    $sql .= "LEFT JOIN system_usr ON ( usr.user_no = system_usr.user_no AND org_system.system_id = system_usr.system_id ) ";
+    $sql .= "WHERE org_system.system_id = ? AND usr.user_no = ? ; ";
+    $q = new PgQuery( $sql, $new_system_id, $_POST['requester_id'] );
     if ( !$q->Exec("WR::CheckNewOrgCode") ) {
       $client_messages[] = "There was a database error - please contact support.";
       return false;
@@ -1425,8 +1425,8 @@ class Request {
     if ( $requester->org_code == $session->org_code ) return true;
 
     // Must be a contractor at this point
-    if ( strpos("`SA",$session->system_roles[$new_system_code] ) == false ) {
-      $session->Dbg( "Request", "system role is not (S or A) for $session->username($session->user_no), $new_system_code - " . $session->system_roles[$new_system_code] );
+    if ( strpos("`SA",$session->system_roles[$new_system_id] ) == false ) {
+      $session->Dbg( "Request", "system role is not (S or A) for $session->username($session->user_no), $new_system_id - " . $session->system_roles[$new_system_id] );
       $client_messages[] = "You may not assign requests to that organisation for that system.";
       unset($this->new_requester);
       return false;
@@ -1434,9 +1434,9 @@ class Request {
     // Must have appropriate system role
 
     // Have to resort to SQL at this point...
-    $sql = 'SELECT 1 FROM org_system JOIN system_usr USING (system_code) ';
-    $sql .= 'WHERE org_system.system_code = ? AND org_code = ? AND user_no = ? LIMIT 1;';
-    $q = new PgQuery( $sql, $new_system_code, $requester->org_code, $session->user_no );
+    $sql = 'SELECT 1 FROM org_system JOIN system_usr USING (system_id) ';
+    $sql .= 'WHERE org_system.system_id = ? AND org_code = ? AND user_no = ? LIMIT 1;';
+    $q = new PgQuery( $sql, $new_system_id, $requester->org_code, $session->user_no );
     if ( !$q->Exec("WR::CheckNewOrgCode") ) {
       $client_messages[] = "There was a database error - please contact support.";
       unset($this->new_requester);
@@ -1447,7 +1447,7 @@ class Request {
       unset($this->new_requester);
       return false;
     }
-    $session->Dbg( "Request", "$session->user_no may assign $new_system_code requests to Organisation $requester->org_code ");
+    $session->Dbg( "Request", "$session->user_no may assign $new_system_id requests to Organisation $requester->org_code ");
     return true;
   }
 
@@ -1613,7 +1613,7 @@ class Request {
     }
 
 
-    $mail->Subject = 'WR #' . $this->request_id . ' ['.$this->system_code.'/'.$session->username.'] '.$this->chtype.'d: '
+    $mail->Subject = 'WR #' . $this->request_id . ' ['.$this->system_id.'/'.$session->username.'] '.$this->chtype.'d: '
                       . $this->brief;
 
     $tbody  = "Request No:  $this->request_id\n"
@@ -2142,7 +2142,7 @@ EOX
     $sql .=                  "AND request_allocated.allocated_to_id = usr.user_no) ";
     $sql .= "AND (usr.org_code IN ( $this->org_code, $session->org_code ) ";
     $sql .= "OR EXISTS(SELECT 1 FROM system_usr su ";
-    $sql .=          "JOIN system_usr me USING(system_code) ";
+    $sql .=          "JOIN system_usr me USING(system_id) ";
     $sql .=          "WHERE me.user_no = $session->user_no AND su.user_no = usr.user_no AND su.role IN ('S','A') ) )";
     $sql .= " AND usr.status != 'I' ";
     $qry = new PgQuery($sql);
@@ -2166,7 +2166,7 @@ EOX
     $sql .=                  "AND request_allocated.allocated_to_id = usr.user_no) ";
     $sql .= "AND (usr.org_code IN ( $this->org_code, $session->org_code ) ";
     $sql .= "OR EXISTS(SELECT 1 FROM system_usr su ";
-    $sql .=          "JOIN system_usr me USING(system_code) ";
+    $sql .=          "JOIN system_usr me USING(system_id) ";
     $sql .=          "WHERE me.user_no = $session->user_no AND su.user_no = usr.user_no AND su.role IN ('S','A') ) )";
     $sql .= " AND usr.status != 'I' ";
     $qry = new PgQuery($sql);
@@ -2208,7 +2208,7 @@ EOX
     $sql .=                  "AND request_interested.user_no = usr.user_no) ";
     $sql .= "AND (usr.org_code IN ( $this->org_code, $session->org_code ) ";
     $sql .= "OR EXISTS(SELECT 1 FROM system_usr su ";
-    $sql .=          "JOIN system_usr me USING(system_code) ";
+    $sql .=          "JOIN system_usr me USING(system_id) ";
     $sql .=          "WHERE me.user_no = $session->user_no AND su.user_no = usr.user_no AND su.role IN ('S','A') ) )";
     $sql .= " AND usr.status != 'I' ";
     $qry = new PgQuery($sql);
@@ -2234,7 +2234,7 @@ EOX
     $sql .=                  "AND request_interested.user_no = usr.user_no) ";
     $sql .= "AND (usr.org_code IN ( $this->org_code, $session->org_code ) ";
     $sql .= "OR EXISTS(SELECT 1 FROM system_usr su ";
-    $sql .=          "JOIN system_usr me USING(system_code) ";
+    $sql .=          "JOIN system_usr me USING(system_id) ";
     $sql .=          "WHERE me.user_no = $session->user_no AND su.user_no = usr.user_no AND su.role IN ('S','A') ) )";
     $sql .= " AND usr.status != 'I'; ";
     if ( $this->chtype == 'create' ) {
@@ -2253,8 +2253,8 @@ EOX
       $sql .= "AND u.user_no NOT IN ( $new_subscriptions ) ";
       $sql .= "AND NOT EXISTS( SELECT 1 FROM request_interested WHERE request_id = $this->request_id ";
       $sql .=                  "AND request_interested.user_no = u.user_no) ";
-      $sql .= "AND ((s.system_code = '$this->system_code' AND s.role = 'C' AND u.org_code = $this->org_code) ";
-      $sql .= "OR (s.system_code = '$this->system_code' AND s.role = 'S')); ";
+      $sql .= "AND ((s.system_id = '$this->system_id' AND s.role = 'C' AND u.org_code = $this->org_code) ";
+      $sql .= "OR (s.system_id = '$this->system_id' AND s.role = 'S')); ";
 
     }
     $qry = new PgQuery($sql);

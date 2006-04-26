@@ -1,6 +1,6 @@
 <?php
 $because = "<TABLE BORDER=1 WIDTH=50% ALIGN=CENTER>";
-$because .= "<TR><TH ALIGN=RIGHT>System:</TH><TD> $fsystem_code</TD></TR>\n";
+$because .= "<TR><TH ALIGN=RIGHT>System:</TH><TD> $fsystem_id</TD></TR>\n";
 $because .= "<TR><TH ALIGN=RIGHT>UserName:</TH><TD> $session->fullname ($session->username)</TD></TR>\n";
 $because .= "<TR><TH ALIGN=RIGHT>UserPassword:</TH><TD> *** validated ***</TD></TR>\n";
 $because .= "<TR><TH ALIGN=RIGHT>User Email:</TH><TD> $session->email</TD></TR>\n";

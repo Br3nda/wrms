@@ -203,9 +203,9 @@ EOHDR;
     echo '<span class="entry"><input class="search_for" type="text" name="search_for" value="'.$GLOBALS['search_for'].'"/></span>';
 
     $systems = new PgQuery(SqlSelectSystems($GLOBALS['org_code']));
-    $system_list = $systems->BuildOptionList($GLOBALS['system_code'],'Config::LocPgHdr');
+    $system_list = $systems->BuildOptionList($GLOBALS['system_id'],'Config::LocPgHdr');
     echo '<span class="prompt" style="vertical-align: 0%;">Systems:</span>';
-    echo '<span class="entry"><select name="system_code" class="search_for"><option value="">-- select --</option>'.$system_list;
+    echo '<span class="entry"><select name="system_id" class="search_for"><option value="">-- select --</option>'.$system_list;
     echo '</select></span>';
     echo '<span class="entry""><input type="submit" alt="go" class="fsubmit" value="Search" /></span>';
     echo '</form>';
@@ -265,7 +265,7 @@ function xxx_local_page_header() {
 <?php
    $sql = "SELECT * FROM work_system WHERE active ";
    if ( ! is_member_of('Admin','Support') ) {
-     $sql .= " AND EXISTS (SELECT system_usr.system_code FROM system_usr WHERE system_usr.system_code=work_system.system_code";
+     $sql .= " AND EXISTS (SELECT system_usr.system_id FROM system_usr WHERE system_usr.system_id=work_system.system_id";
      $sql .= " AND user_no=$session->user_no)";
    }
    $sql .= "ORDER BY system_desc;";
@@ -273,10 +273,10 @@ function xxx_local_page_header() {
    $qry = new PgQuery( $sql );
    if ( $qry->Exec('Config::LocPgHdr') && $qry->rows > 0 ) {
      echo '<td width="10%" align="center" nowrap="nowrap">or Systems</td>
-          <td width="20%" align="right"> <select name="system_code" size="1">
+          <td width="20%" align="right"> <select name="system_id" size="1">
            <option value="0">-- select --</option>';
      while( $row = $qry->Fetch() ) {
-       echo "<option value=\"$row->system_code\">$row->system_desc</option>";
+       echo "<option value=\"$row->system_id\">$row->system_desc</option>";
      }
      echo '</select></td>';
    }

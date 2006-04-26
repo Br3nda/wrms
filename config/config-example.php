@@ -5,19 +5,19 @@ $dbconn = pg_Connect("dbname=example_wrms user=general");
 $admin_email = "wrmsadmin@catalyst.net.nz";
 $system_name = "Example WRMS";
 
-// To identify our logging lines 
+// To identify our logging lines
 $sysabbr = "example";
 
 // Only admin/support can see the ranking report.
 $rank_report_anyone = 0;
 
-// is the Quality System component enabled 
+// is the Quality System component enabled
 $qams_enabled = false;
 
-// Should all e-mail be sent to a debugging address 
+// Should all e-mail be sent to a debugging address
 // $debug_email = 'andrew@catalyst.net.nz';
 
-// When searching, what are the default statuses to find 
+// When searching, what are the default statuses to find
 $default_search_statuses = '@NRILKTQADSPZU';
 
 // //////////////////// Enable for debugging...
@@ -83,8 +83,8 @@ $fonts = array( "tahoma",		// primary font
 		"block"	=> "tahoma"); 	// block font
 
 
-// Set the bebug variable initially to '0'. This variable is made available 
-// to all local routines for verbose printing. 
+// Set the bebug variable initially to '0'. This variable is made available
+// to all local routines for verbose printing.
 if ( !isset($debuglevel) ) $debuglevel = 2;
 
 

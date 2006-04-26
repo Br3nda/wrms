@@ -23,10 +23,10 @@ if ( !isset($to_date) )   $to_date   = date('d/m/y',mktime(0, 0, 0, date("m"), 0
 if ( !isset($break_columns) ) $break_columns = 2;
 
 if ( is_member_of('Admin', 'Support' ) ) {
-    $system_list = get_system_list( "", $system_code);
+    $system_list = get_system_list( "", $system_id);
     $user_list   = get_user_list( "Support", "", $users );
 }
-else $system_list = get_system_list( "CES", $system_code);
+else $system_list = get_system_list( "CES", $system_id);
 
 
 $organisation_list = get_organisation_list($organisation_code);
@@ -34,7 +34,7 @@ $request_types     = get_code_list( "request", "request_type", "$request_type" )
 $quote_types       = get_code_list( "request_quote", "quote_type", "$quote_type" );
 $period_total="week";
 
-$select_columns=array(""=>"","Organisation"=>"o.org_name","System"=>"r.system_code","WR#"=>"r.request_id","Work By"=>"rtu.fullname","Request Brief"=>"r.brief","Request Status"=>"r.last_status");
+$select_columns=array(""=>"","Organisation"=>"o.org_name","System"=>"r.system_id","WR#"=>"r.request_id","Work By"=>"rtu.fullname","Request Brief"=>"r.brief","Request Status"=>"r.last_status");
 
 
 function buildSelect($name, $key_values, $current ) {
@@ -161,10 +161,10 @@ function insert_period_totals() {
           </select>
       </td>
 
-      <td class=sml><label class="sml" for="system_code">System</label></td>
+      <td class=sml><label class="sml" for="system_id">System</label></td>
       <td class=sml>
-        <select class=sml name="system_code[]" id="system_code" size="6" multiple="true">
-          <option value=""<?php if (isset($system_code) && array_search("",$system_code) !== false) echo " selected=\"selected\""?>>(All)</option>
+        <select class=sml name="system_id[]" id="system_id" size="6" multiple="true">
+          <option value=""<?php if (isset($system_id) && array_search("",$system_id) !== false) echo " selected=\"selected\""?>>(All)</option>
           <?php echo $system_list; ?>
         </select>
       </td>
@@ -209,10 +209,10 @@ function insert_period_totals() {
 if  ( !($session->AllowedTo("Admin") || $session->AllowedTo("Support"))) $users[]=$session->user_no;
 
 if ( isset($organisation_code )) $organisation_code=array_filter($organisation_code);
-if ( isset($system_code)) $system_code=array_filter($system_code);
+if ( isset($system_id)) $system_id=array_filter($system_id);
 if (isset($users)) $users=array_filter($users);
 
-if ( isset($organisation_code) || isset($system_code) || isset($users)) {
+if ( isset($organisation_code) || isset($system_id) || isset($users)) {
     $columns=array_filter($columns);
 
     if (! array_search("WR#",$columns)) $columns[]="WR#" ;  // Always needs to be selected so subselects will work
@@ -241,7 +241,7 @@ if ( isset($organisation_code) || isset($system_code) || isset($users)) {
 
     // Build WHERE clause
     if ( count($organisation_code) > 0 ) $where .= " AND o.org_code IN (" . implode(",",$organisation_code) . ") ";
-    if ( count($system_code) > 0 ) $where .= " AND r.system_code IN ('" . implode("','",$system_code) . "') ";
+    if ( count($system_id) > 0 ) $where .= " AND r.system_id IN ('" . implode("','",$system_id) . "') ";
     if ( count($users) > 0 ) $where .= " AND rt.work_by_id IN (" . implode(",",$users) . ") ";
 
     if ( "$from_date" != "" ) $where .= " AND rt.work_on >= '$from_date' ";

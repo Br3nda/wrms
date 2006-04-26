@@ -208,7 +208,7 @@ SELECT rt.request_id, abbreviation, system_desc, brief, sum(work_quantity) AS wo
  JOIN request ON (request.request_id = rt.request_id)
  JOIN usr ON (request.requester_id = usr.user_no)
  JOIN organisation USING (org_code)
- JOIN work_system USING (system_code)
+ JOIN work_system USING (system_id)
  WHERE rt.work_by_id = $ts_user
    AND work_on >= '$ts_from'
    AND work_on < '$ts_until'

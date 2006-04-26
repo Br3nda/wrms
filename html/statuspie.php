@@ -42,7 +42,7 @@
     }
 
     // System (within Organisation) drop-down
-    $html .= $ef->DataEntryLine( "System", "", "lookup", "system_code",
+    $html .= $ef->DataEntryLine( "System", "", "lookup", "system_id",
               array("_sql" => SqlSelectSystems($org_code),
                     "_null" => "-- All Systems --", "onchange" => "SystemChanged();",
                     "title" => "The business system that this request applies to.",
@@ -121,7 +121,7 @@
 
   $pie_parms = array();
   if ( isset($org_code) && intval($org_code) > 0 )  array_push( $pie_parms, "org_code=$org_code");
-  if ( isset($system_code) && $system_code != "" )  array_push( $pie_parms, "system_code=$system_code");
+  if ( isset($system_id) && $system_id != "" )  array_push( $pie_parms, "system_id=$system_id");
   if ( isset($requested_by) && intval($requested_by) > 0 )   array_push( $pie_parms, "requested_by=$requested_by");
   if ( isset($interested_in) && intval($interested_in) > 0 ) array_push( $pie_parms, "interested_in=$interested_in");
   if ( isset($allocated_to) && intval($allocated_to) > 0 )   array_push( $pie_parms, "allocated_to=$allocated_to");

@@ -61,7 +61,7 @@ switch ($qa_action) {
         $href .= "&step_id=$qastep->qa_step_id";
         $link = "<a href=\"$href\">$href</a>";
         
-        $subject = "QAMS Re-Approval: $qastep->qa_step_desc [$project->system_code/$session->username]";
+        $subject = "QAMS Re-Approval: $qastep->qa_step_desc [$project->system_id/$session->username]";
         $s  = "<p>The QA Step '$qastep->qa_step_desc' has now been 'Unapproved' so that it can ";
         $s .= "go through the approval process once again.</p>";
         $s .= "<p>The summary link for this step is provided here:<br>";

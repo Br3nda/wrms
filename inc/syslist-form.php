@@ -35,7 +35,7 @@
       $query .= "AND work_system.system_id=org_system.system_id ";
       $query .= "AND org_system.org_code='$org_code' ";
     }
-    $query .= " ORDER BY work_system.system_code ";
+    $query .= " ORDER BY lower(work_system.system_desc) ";
     $query .= " LIMIT $maxresults ";
     $result = awm_pgexec( $dbconn, $query, "syslist", false, 7 );
     if ( ! $result ) {

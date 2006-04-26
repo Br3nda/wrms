@@ -40,7 +40,7 @@ if ( isset($org_code) ) {
   $qry = new PgQuery( SqlSelectSystems($org_code) );
   if ( $qry->Exec('js::System') ) {
     while( $row = $qry->Fetch() ) {
-      echo "System: <option value=\"$row->system_code\">$row->system_desc</option>\n";
+      echo "System: <option value=\"$row->system_id\">$row->system_desc</option>\n";
     }
   }
 
@@ -56,7 +56,7 @@ if ( isset($org_code) ) {
 else if ( isset($person_id) ) {
   $person_id = intval($person_id);
 }
-else if ( isset( $system_code ) ) {
+else if ( isset( $system_id ) ) {
 }
 else {
   echo "Error: Unrecognised request";

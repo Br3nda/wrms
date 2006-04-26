@@ -210,7 +210,7 @@ if (isset($qastep)) {
         // Approver email..
         $approver_email = $row->email;
         $approver_fullname = $row->fullname;
-        $subject = "QAMS Approval Request: $qastep->qa_step_desc [$project->system_code/$project->username]";
+        $subject = "QAMS Approval Request: $qastep->qa_step_desc [$project->system_id/$project->username]";
         $recipients = array($approver_email => $approver_fullname);
 
         // First of all, let's sort out the database..

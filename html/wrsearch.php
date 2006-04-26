@@ -17,7 +17,7 @@
   if ( !isset($savedquery) ) $savedquery = "";
   if ( !isset($qs) ) $qs = "";
   if ( !isset($org_code) ) $org_code = "";
-  if ( !isset($system_code) ) $system_code = "";
+  if ( !isset($system_id) ) $system_id = "";
   if ( !isset($search_for) ) $search_for = "";
   if ( !isset($interested_in) ) $interested_in = "";
   if ( !isset($allocated_to) ) $allocated_to = "";

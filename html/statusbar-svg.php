@@ -35,9 +35,9 @@
   }
   $sql .= "WHERE ((last_status IN ('F', 'C') AND status_on BETWEEN ".qpg($from_date)." AND ".qpg($to_date).") ";
   $sql .= "OR last_status NOT IN ('F','C')) ";
-  if ( isset($system_code) ) {
-    $system_code = qpg($system_code);
-    $sql .= "AND request.system_code=$system_code ";
+  if ( isset($system_id) ) {
+    $system_id = qpg($system_id);
+    $sql .= "AND request.system_id=$system_id ";
   }
   if ( isset($request_type) ) {
     $request_type = qpg($request_type);

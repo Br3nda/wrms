@@ -20,10 +20,10 @@
   
 
   if ( is_member_of('Admin', 'Support' ) ) {
-    $system_list = get_system_list( "", "$system_code");
+    $system_list = get_system_list( "", "$system_id");
     }
   else {
-    $system_list = get_system_list( "CES", "$system_code");
+    $system_list = get_system_list( "CES", "$system_id");
     }
 
     $request_types = get_code_list( "request", "request_type", "$request_type" );
@@ -37,7 +37,7 @@
     <tr>
       <td class=smb>System</td>
       <td class=sml>
-        <select class=sml name=system_code>
+        <select class=sml name=system_id>
           <option>(All)</option>
           <?php echo $system_list; ?>
         </select>
@@ -98,11 +98,11 @@
 
 <?php
 
-    if ( isset($system_code) || isset($request_type) || isset($quote_type) ) {
+    if ( isset($system_id) || isset($request_type) || isset($quote_type) ) {
 
   $query  = "SELECT";
   $query .= "  r.request_id                         AS \"id\"" ;
-  $query .= ", r.system_code                        AS system" ;
+  $query .= ", r.system_id                        AS system" ;
   $query .= ", SUBSTR(r.brief,1,40)                 AS \"request brief\"";
   $query .= ", lc.lookup_desc                       AS \"request type\"";
   $query .= ", lcs.lookup_desc                       AS \"status\"";
@@ -123,7 +123,7 @@
   $query .= " LEFT OUTER JOIN usr ON usr.user_no = rq.approved_by_id ";
 
   // Build WHERE clause
-        if ( isset($system_code)    && "$system_code"    != "(All)" ) $where .= " AND r.system_code='$system_code' ";
+        if ( isset($system_id)    && "$system_id"    != "(All)" ) $where .= " AND r.system_id='$system_id' ";
         if ( isset($request_type) && "$request_type" != "(All)" ) $where .= " AND r.request_type='$request_type' ";
         if ( isset($quote_type) && "$quote_type" != "(All)" ) $where .= " AND rq.quote_type='$quote_type' ";
 
@@ -139,7 +139,7 @@
   }
 
   // Build ORDER BY clause
-  $query .= " ORDER BY r.system_code, r.request_id ;";
+  $query .= " ORDER BY r.system_id, r.request_id ;";
 
   // Execute query
 

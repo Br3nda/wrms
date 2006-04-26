@@ -316,7 +316,7 @@ if (isset($qastep)) {
               // Assignee email..
               $assignee_email = $row->email;
               $assignee_fullname = $row->fullname;
-              $subject = "QAMS Assignment: $qastep->qa_step_desc [$project->system_code/$project->username]";
+              $subject = "QAMS Assignment: $qastep->qa_step_desc [$project->system_id/$project->username]";
               $recipients = array($assignee_email => $assignee_fullname);
           
               // Assemble body for assignee..

@@ -21,7 +21,7 @@
     }
     // Select the user's system_role for each such system
     $sql = "SELECT request.request_id, system_usr.role ";
-    $sql .= "FROM request LEFT OUTER JOIN system_usr ON request.system_code = system_usr.system_code AND system_usr.user_no=? ";
+    $sql .= "FROM request LEFT OUTER JOIN system_usr ON request.system_id = system_usr.system_id AND system_usr.user_no=? ";
     $sql .= "WHERE request_id IN (" . implode( ",", $request_ids ) . ");";
     $qry = new PgQuery( $sql, $session->user_no );
     if ( $qry->Exec("TimeSheet") ) {

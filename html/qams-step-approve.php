@@ -188,7 +188,7 @@ if (isset($qastep)) {
       
       $s = "";
       $display_status = strtoupper(qa_approval_status($new_approval_status));
-      $subject = "QAMS Approval: $qastep->qa_step_desc [$display_status/$project->system_code/$session->username]";
+      $subject = "QAMS Approval: $qastep->qa_step_desc [$display_status/$project->system_id/$session->username]";
       
       // Assemble body for approver..
       $s .= "<p>The Quality Assurance Step '$qastep->qa_step_desc' has had an Approval ";

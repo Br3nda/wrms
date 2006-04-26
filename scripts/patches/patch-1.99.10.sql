@@ -73,6 +73,22 @@ ALTER TABLE organisation ADD COLUMN general_system INT REFERENCES work_system(sy
 -- And finally commit that to make it a logical unit...
 COMMIT;
 
+
+-- We are less fussed about whether this all succeeds or fails.
+
+-- Delete some pointless / old indexes
+DROP INDEX xak0_request;
+DROP INDEX xak1_request;
+DROP INDEX xak2_request;
+DROP INDEX xak3_request;
+DROP INDEX xak4_request;
+
+-- Speed up some stuff with a couple of new indexes
+CREATE INDEX request_sk0 ON request(request_id) WHERE active;
+CREATE INDEX request_sk1 ON request(requester_id) WHERE active;
+CREATE INDEX request_sk2 ON request(system_id) WHERE active;
+CREATE INDEX request_sk3 ON request(last_status) WHERE active;
+
 VACUUM FULL organisation;
 VACUUM FULL work_system;
 CLUSTER system_usr;

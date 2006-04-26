@@ -179,14 +179,14 @@ CREATE or REPLACE FUNCTION last_org_request ( int4 ) RETURNS timestamp AS '
       out_date TIMESTAMP;
    BEGIN
       SELECT request_on INTO out_date FROM request, usr
-                WHERE usr.org_code = in_org_code AND request.requester_id = usr.user_no
+                WHERE request.requester_id = usr.user_no AND usr.org_code = in_org_code AND request.active
                 ORDER BY request.request_on DESC LIMIT 1;
       IF NOT FOUND THEN
         RETURN NULL;
       END IF;
       RETURN out_date;
    END;
-' LANGUAGE 'plpgsql';
+' LANGUAGE 'plpgsql' STABLE;
 
 -- The number of requests active for a particular organisation
 CREATE or REPLACE FUNCTION active_org_requests ( int4 ) RETURNS int4 AS '
@@ -195,7 +195,7 @@ CREATE or REPLACE FUNCTION active_org_requests ( int4 ) RETURNS int4 AS '
       AND request.requester_id = usr.user_no
       AND request.active
       AND last_status NOT IN (''F'', ''C'');
-' LANGUAGE 'sql';
+' LANGUAGE 'sql' STABLE;
 
 CREATE or REPLACE FUNCTION check_wrms_revision( INT, INT, INT ) RETURNS BOOLEAN AS '
    DECLARE
@@ -221,7 +221,7 @@ CREATE or REPLACE FUNCTION check_wrms_revision( INT, INT, INT ) RETURNS BOOLEAN 
       END IF;
       RETURN TRUE;
    END;
-' LANGUAGE 'plpgsql';
+' LANGUAGE 'plpgsql' STABLE;
 
 CREATE or REPLACE FUNCTION new_wrms_revision( INT, INT, INT, TEXT ) RETURNS BOOLEAN AS '
    DECLARE

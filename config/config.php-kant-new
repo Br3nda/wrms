@@ -1,7 +1,7 @@
 <?php
 
-if ( ! $dbconn = pg_Connect("port=5432 dbname=wrms user=general") ) {
-  if ( ! $dbconn = pg_Connect("port=5433 dbname=wrms user=general") ) {
+if ( ! $dbconn = pg_Connect("port=5433 dbname=wrms user=general") ) {
+  if ( ! $dbconn = pg_Connect("port=5432 dbname=wrms user=general") ) {
     echo "<html><head><title>Database Error</title></head><body>
 <h1>Database Error</h1>
 <h3>Could not connect to PGPool or to Postgres</h3>
@@ -15,16 +15,16 @@ $admin_email = "andrew@catalyst.net.nz";
 $basefont = "verdana,sans-serif";
 $system_name = "Andrew's WRMS ";
 $sysabbr = "wrms";
-$debuglevel = 5;
+$debuglevel = 3;
 $debug_email = 'andrew@catalyst.net.nz';
 
 // //////////////////// Enable for debugging...
-$debuggroups['Session'] = 1;
-$debuggroups['Login'] = 1;
-$debuggroups['querystring'] = 1;
+// $debuggroups['Session'] = 1;
+// $debuggroups['Login'] = 1;
+// $debuggroups['querystring'] = 1;
 $debuggroups['Request'] = 1;
-$debuggroups['WorkSystem'] = 1;
-$debuggroups['TimeSheet'] = 1;
+// $debuggroups['WorkSystem'] = 1;
+// $debuggroups['TimeSheet'] = 1;
 
 $default_search_statuses = '@NRILKTQADSPZU';
 $qams_enabled = true;

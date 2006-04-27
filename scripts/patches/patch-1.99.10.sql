@@ -18,7 +18,11 @@ ALTER TABLE org_system DROP COLUMN admin_user_no;
 ALTER TABLE org_system DROP COLUMN support_user_no;
 
 -- Add a numeric ID to work_system which we will eventually use everywhere
-ALTER TABLE work_system ADD COLUMN system_id SERIAL;
+-- Unfortunately "ALTER TABLE work_system ADD COLUMN system_id SERIAL;"
+-- won't work with 7.4.x ...
+CREATE SEQUENCE work_system_system_id_seq;
+ALTER TABLE work_system ADD system_id integer;
+ALTER TABLE work_system ALTER COLUMN system_id SET default nextval('work_system_system_id_seq');
 UPDATE work_system SET system_id = nextval('work_system_system_id_seq');
 ALTER TABLE work_system ALTER COLUMN system_id SET NOT NULL;
 CREATE UNIQUE INDEX work_system_pk1 ON work_system(system_id);

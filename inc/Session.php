@@ -349,12 +349,14 @@ class Session
     }
 
     $this->system_roles = array();
-    $qry = new PgQuery( 'SELECT system_id, role FROM system_usr WHERE user_no = ? ', $this->user_no );
+    $this->system_codes = array();
+    $qry = new PgQuery( 'SELECT system_usr.system_id, role, system_code FROM system_usr JOIN work_system USING (system_id) WHERE user_no = ? ', $this->user_no );
     if ( $qry->Exec('Session::GetRoles') && $qry->rows > 0 )
     {
       while( $role = $qry->Fetch() )
       {
         $this->system_roles[$role->system_id] = $role->role;
+        $this->system_codes[$role->system_id] = $role->system_code;
       }
     }
   }

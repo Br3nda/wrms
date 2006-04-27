@@ -1447,7 +1447,7 @@ class Request {
       unset($this->new_requester);
       return false;
     }
-    $session->Dbg( "Request", "$session->user_no may assign $new_system_id requests to Organisation $requester->org_code ");
+    $session->Dbg( "Request", "$session->user_no may assign system ".$session->system_codes[$new_system_id]." ($new_system_id) requests to Organisation $requester->org_code ");
     return true;
   }
 
@@ -1613,7 +1613,7 @@ class Request {
     }
 
 
-    $mail->Subject = 'WR #' . $this->request_id . ' ['.$this->system_id.'/'.$session->username.'] '.$this->chtype.'d: '
+    $mail->Subject = 'WR #' . $this->request_id . ' ['.$session->system_codes[$this->system_id].'/'.$session->username.'] '.$this->chtype.'d: '
                       . $this->brief;
 
     $tbody  = "Request No:  $this->request_id\n"
@@ -1629,6 +1629,9 @@ class Request {
 <title>$mail->Subject</title>
 <link rel='stylesheet' type='text/css' href='$GLOBALS[base_dns]/email.css' />
 <style type="text/css"><!--
+EOX;
+    $hbody .= file_get_contents($GLOBALS['base_dir'].'/email.css');
+    $hbody .= <<<EOX
 A {color: navy; text-decoration:underline;  }
 body, input {font: 13px  tahoma, sans-serif; color: #000000; margin: 0.3em; }
 p, td { margin: 0 2em 0.5em; }

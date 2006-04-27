@@ -456,7 +456,7 @@ class qa_project extends qams_request {
       // Standard subject line..
       $mail->Subject = "QAMS Project #"
                      . $this->request_id
-                     . " [".$this->system_id."/".$session->username . "] "
+                     . " [".$session->system_codes[$this->system_id]."/".$session->username . "] "
                      . $this->brief
                      ;
     }

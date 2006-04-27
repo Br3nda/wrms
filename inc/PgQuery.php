@@ -55,7 +55,7 @@ function duration( $t1, $t2 )                   // Enter two times from microtim
 
       while( strlen( $string ) > 0 )
          {
-            error_log( "$sysname $locn $tag: " . substr( $string, 0, 240), 0 );
+            error_log( "$sysname: $tag: $locn: " . substr( $string, 0, 240), 0 );
             $string = substr( "$string", 240 );
          }
 
@@ -146,7 +146,8 @@ class PgQuery
     global $dbconn, $debuggroups;
     $this->location = trim($location);
     if ( $this->location == "" ) $this->location = substr($GLOBALS['PHP_SELF'],1);
-    $locn = sprintf( "%-12.12s", $this->location );
+    // $locn = sprintf( "%-12.12s", $this->location );
+    $locn = $this->location;
 
     if ( isset($debuggroups['querystring']) ) {
       log_error( $locn, 'query', $this->querystring );

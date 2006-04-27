@@ -20,7 +20,7 @@ class User {
       $this->ReadUser($id);
     }
     if ( $this->user_no == 0 ) {
-      $session->Log("DBG: Initialising new user values");
+      $session->Dbg("User", "Initialising new user values");
       $GLOBALS['edit'] = 1;
       $this->new_record = true;
 
@@ -45,7 +45,7 @@ class User {
   // ReadUser - Can the user do that?
   /////////////////////////////////////////////////////////////
   function ReadUser ( $id ) {
-    global $session, $debuggroups;
+    global $session;
 
     // Try and load it from file
     $sql = "SELECT usr.*, organisation.org_name ";
@@ -63,11 +63,10 @@ class User {
               && $qry->rows == 1 && $row = $qry->Fetch() ) {
         $this->new_record = false;
         while( list($k,$v) = each($row) ) {
-          if ( isset($debuggroups['User']) && $debuggroups['User'] ) {
-            $session->Log("DBG: \$this->{'%-25.25s = %s", "$k'}", $v);
-          }
+          $session->Dbg("User", "\$this->{'%-25.25s = %s", "$k'}", $v);
           $this->{$k} = $v;
         }
+        $this->GetRoles();
 
         // Load the settings data
         $this->settings = new Setting( $this->config_data );
@@ -113,6 +112,7 @@ class User {
         break;
 
       default:
+        $session->Dbg("User","AllowedTo: '%s' - %d >>%s<<", $whatever, isset($this->roles[$whatever]), $this->roles[$whatever] );
         return ( isset($this->roles[$whatever]) && $this->roles[$whatever] );
     }
     // By default, they ain't allowed...
@@ -317,19 +317,27 @@ class User {
 
 
   function RenderSystemRoles( $ef ) {
-    global $session, $debuggroups;
+    global $session;
     $html = "";
 
     $sql = "SELECT lookup_code, lookup_desc FROM lookup_code ";
     $sql .= "WHERE source_table = 'system_usr' AND source_field = 'role' ORDER BY lookup_seq;";
     $q = new PgQuery($sql);
     if ( $q && $q->Exec("User::RenderSystemRoles1") && $q->rows ) {
-      $roles = array('_' => '-- No Access --');
+      if ( $this->AllowedTo('Admin') || $this->AllowedTo('Support') )
+        $roles = array();  // There is no 'No Access' option for such people...
+      else
+        $roles = array('_' => '-- No Access --');
       while( $row = $q->Fetch() ) {
         $display_roles["_$row->lookup_code"] = $row->lookup_desc;
-        if ( !($session->AllowedTo('Admin') || $session->AllowedTo('Support'))
-                && ($row->lookup_code == 'A' || $row->lookup_code == 'S') ) continue;
-        $roles["_$row->lookup_code"] = $row->lookup_desc;
+        if ( $this->AllowedTo('Admin') || $this->AllowedTo('Support')  || $this->AllowedTo('Contractor') ) {
+          if ( $row->lookup_code == 'A' || $row->lookup_code == 'S' || $row->lookup_code == 'E' )
+            $roles["_$row->lookup_code"] = $row->lookup_desc;
+        }
+        else {
+          if ( ! ($row->lookup_code == 'A' || $row->lookup_code == 'S') )
+            $roles["_$row->lookup_code"] = $row->lookup_desc;
+        }
       }
     }
 
@@ -341,23 +349,19 @@ class User {
     if ( ($session->AllowedTo('Admin') || $session->AllowedTo('Support'))
                       && ($this->AllowedTo('Admin') || $this->AllowedTo('Support')) ) {
       // Actually, we do nothing in this case...
-      if ( isset($debuggroups['User']) && $debuggroups['User'] )
-        $session->Log("DBG: Admin/Support maintains Admin/Support person.  All systems shown");
+      $session->Dbg("User", "Admin/Support maintains Admin/Support person.  All systems shown");
     }
     elseif ( $session->AllowedTo('Admin') || $session->AllowedTo('Support') ) {
       $sql .= "AND EXISTS( SELECT 1 from org_system WHERE org_system.org_code = $this->org_code AND org_system.system_id = work_system.system_id) ";
-      if ( isset($debuggroups['User']) && $debuggroups['User'] )
-        $session->Log("DBG: Admin/Support maintains non Admin/Support person.  Org related systems only shown");
+      $session->Dbg("User", "Admin/Support maintains non Admin/Support person.  Org related systems only shown");
     }
     elseif ( $session->AllowedTo('OrgMgr') ) {
       $sql .= "AND EXISTS( SELECT 1 from org_system WHERE org_system.org_code = $session->org_code AND org_system.system_id = work_system.system_id) ";
-      if ( isset($debuggroups['User']) && $debuggroups['User'] )
-        $session->Log("DBG: OrgMgr maintains person.  Maintainer org related systems only shown");
+      $session->Dbg("User", "OrgMgr maintains person.  Maintainer org related systems only shown");
     }
     else {
       $sql .= "AND system_usr.user_no = $session->user_no ";
-      if ( isset($debuggroups['User']) && $debuggroups['User'] )
-        $session->Log("DBG: non Admin/Support/OrgMgr maintains person.  Only assigned systems shown");
+      $session->Dbg("User", "non Admin/Support/OrgMgr maintains person.  Only assigned systems shown");
     }
     $sql .= "ORDER BY lower(work_system.system_desc)";
 
@@ -441,7 +445,7 @@ SCRIPT;
 
   function Validate( $ef ) {
     global $session, $client_messages;
-    $session->Log("DBG: User::Validate: Validating user");
+    $session->Dbg("User", "User::Validate: Validating user");
 
     if ( isset($_POST) ) {
       $valid = true;
@@ -474,7 +478,7 @@ SCRIPT;
   function Write( $ef ) {
     global $session, $client_messages;
 
-    $session->Log("DBG: User::Write: Writing usr form details to database");
+    $session->Dbg("User", "Writing usr form details to database");
 
     $this->chtype = strtolower($_POST['submit']);
     if ( ! $this->AllowedTo($this->chtype) ) {
@@ -498,7 +502,7 @@ SCRIPT;
       if ( $_POST['new_password'] != '******' && $_POST['new_password'] == $_POST['confirm_password'] ) {
         $newpw = session_salted_md5($_POST['new_password']);
         $_POST['password'] = $newpw;
-        $session->Log("DBG: New salted password = $newpw");
+        $session->Dbg("User", "New salted password = $newpw");
       }
       else if ( $_POST['new_password'] != '******' && $_POST['new_password'] != $_POST['confirm_password'] ) {
         $client_messages[] = "WARNING: Confirmation password does not match - the password was not changed.";

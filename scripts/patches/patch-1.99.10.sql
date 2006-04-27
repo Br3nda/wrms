@@ -69,7 +69,8 @@ ALTER TABLE org_system DROP COLUMN system_code CASCADE;
 ALTER TABLE request DROP COLUMN system_code CASCADE;
 
 -- Allow us to write code that marks a system as specific to one organisation
-ALTER TABLE work_system ADD COLUMN organisation_specific BOOLEAN DEFAULT FALSE;
+ALTER TABLE work_system ADD organisation_specific BOOLEAN;
+ALTER TABLE work_system ALTER COLUMN organisation_specific SET DEFAULT FALSE;
 
 -- Allow us to specify a generic system on the organisation
 ALTER TABLE organisation ADD COLUMN general_system INT REFERENCES work_system(system_id);

@@ -304,8 +304,6 @@ class Session
     $argc = func_num_args();
     $dgroup = func_get_arg(0);
 
-    error_log( "Session::Dbg: DBG: dgroup=$dgroup" );
-
     if ( ! (isset($debuggroups[$dgroup]) && $debuggroups[$dgroup]) ) return;
 
     $format = func_get_arg(1);

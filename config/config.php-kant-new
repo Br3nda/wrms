@@ -17,15 +17,16 @@ $system_name = "Andrew's WRMS ";
 $sysabbr = "wrms";
 $debuglevel = 3;
 $debug_email = 'andrew@catalyst.net.nz';
+$pg_version = 8.1;
 
 // //////////////////// Enable for debugging...
 // $debuggroups['Session'] = 1;
 // $debuggroups['Login'] = 1;
 // $debuggroups['querystring'] = 1;
-$debuggroups['Request'] = 1;
-$debuggroups['User'] = 1;
+// $debuggroups['Request'] = 1;
+// $debuggroups['User'] = 1;
 // $debuggroups['WorkSystem'] = 1;
-// $debuggroups['TimeSheet'] = 1;
+$debuggroups['TimeSheet'] = 1;
 
 $default_search_statuses = '@NRILKTQADSPZU';
 $qams_enabled = true;

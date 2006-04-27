@@ -11,6 +11,7 @@ if ( ! $dbconn = pg_Connect("port=5433 dbname=wrms user=general") ) {
   }
 }
 
+$pg_version = 7.4;
 $admin_email = "helpdesk@plumbing-world.co.nz";
 $basefont = "verdana,sans-serif";
 $system_name = "Plumbing World WRMS";
@@ -22,7 +23,7 @@ $rank_report_anyone = 0;
 // //////////////////// Enable for debugging...
 // $debuggroups['Session'] = 1;
 // $debuggroups['Login'] = 1;
-$debuggroups['querystring'] = 1;
+// $debuggroups['querystring'] = 1;
 // $debuggroups['Request'] = 1;
 // $debuggroups['WorkSystem'] = 1;
 

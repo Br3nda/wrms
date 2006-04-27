@@ -1583,7 +1583,7 @@ class Request {
   /////////////////////////////////////////////////////////////
   function NotifyEmail ()
   {
-    global $base_dns, $session, $sysabbr, $system_name, $admin_email, $debug_email;
+    global $session, $sysabbr, $system_name, $admin_email, $debug_email;
 
     if ( $_POST['send_no_email'] == 'on' ) {
       // The user has asked for it to be quiet.
@@ -1648,34 +1648,34 @@ hr.footerline {line-height: 1em; margin: 1em; padding: 2px; height: 2px; width: 
 --></style>
 </head>\n<body>
 <table>
-<tr><th align='left' class='eth'>Request No</th><td class='etd'>$this->request_id</td></tr>
-<tr><th align='left' class='eth'>Overview</th><td class='etd'>$this->brief</td></tr>
-<tr><th align='left' class='eth'>Type</th><td class='etd'>$this->request_type_desc</td></tr>
-<tr><th align='left' class='eth'>Status</th><td class='etd'>$this->status_desc</td></tr>
-<tr><th align='left' class='eth'>Importance</th><td class='etd'>$this->importance_desc</td></tr>
-<tr><th align='left' class='eth'>Urgency</th><td class='etd'>$this->urgency_desc</td></tr>
-EOX
-;
+<tr><th align="left" class="eth">Request No</th><td class="etd">$this->request_id</td></tr>
+<tr><th align="left" class="eth">Overview</th><td class="etd">$this->brief</td></tr>
+<tr><th align="left" class="eth">Type</th><td class="etd">$this->request_type_desc</td></tr>
+<tr><th align="left" class="eth">Status</th><td class="etd">$this->status_desc</td></tr>
+<tr><th align="left" class="eth">Importance</th><td class="etd">$this->importance_desc</td></tr>
+<tr><th align="left" class="eth">Urgency</th><td class="etd">$this->urgency_desc</td></tr>
+EOX;
 
+    $hfmt = '<tr><th align="left" class="eth">%s</th><td class="etd">%s</td></tr>'."\n";
     if ( $this->chtype == "update" ) {
       $tbody .= "Request On:  $this->request_on\n";
-      $hbody .= "<tr><th align='left' class='eth'>Request On</th><td class='etd'>$this->request_on</td></tr>\n";
+      $hbody .= sprintf( $hfmt, "Request On", $this->request_on);
     }
 
     $tbody .= ucfirst($this->chtype) . "d by:  $session->fullname\n";
-    $hbody .= "<tr><th align='left' class='eth'>".ucfirst($this->chtype)."d by</th><td class='etd'>$session->fullname</td></tr>\n";
+    $hbody .= sprintf( $hfmt, ucfirst($this->chtype)."d by", $session->fullname);
 
     if ( $requsr->user_no <> $session->user_no && $this->chtype != "update" ) {
       $tbody .= ucfirst($this->chtype) . "d for: $this->fullname\n";
-      $hbody .= "<tr><th align='left' class='eth'>".ucfirst($this->chtype)."d for</th><td class='etd'>$this->fullname</td></tr>\n";
+      $hbody .= sprintf( $hfmt, ucfirst($this->chtype)."d for", $this->fullname);
     }
 
     $tbody .= ucfirst($this->chtype) . "d on:  " . date( "D d M H:i:s Y" ) . "\n";
-    $hbody .= "<tr><th align='left' class='eth'>".ucfirst($this->chtype)."d on</th><td class='etd'>". date( "D d M H:i:s Y" ) ."</td></tr>\n";
+    $hbody .= sprintf( $hfmt, ucfirst($this->chtype)."d on", date( "D d M H:i:s Y" ) );
 
     if ( isset($debug_email) ) {
       $tbody .= "Debug To:    $debug_to\n";
-      $hbody .= "<tr><th align='left' class='eth'>Debug To</th><td class='etd'>$debug_to</td></tr>\n";
+      $hbody .= sprintf( $hfmt, "Debug To", $debug_to);
     }
     $tbody .= "\n\n";
     $hbody .= "</table>\n";
@@ -1686,9 +1686,15 @@ EOX
       $tbody .= $thing['text'];
     }
 
-    $hbody .= "<hr class='footerline'>\n<p class='footer'>Full details of the request, with all changes and notes, can be reviewed and changed at:<br />"
-            . ' &nbsp; &nbsp; <a href="'.$GLOBALS['base_dns'].'/wr.php?request_id='.$this->request_id.'">'
-            . $GLOBALS['base_dns'].'/wr.php?request_id='.$this->request_id.'</a><br /> <br /></p>';
+    $hbody .= <<<EOX
+<hr class="footerline">
+<p class="footer">Full details of the request, with all changes and notes, can be reviewed and changed at:<br />
+ &nbsp; &nbsp; <a href="$GLOBALS[base_dns]/wr.php?request_id=$this->request_id">$GLOBALS[base_dns]/wr.php?request_id=$this->request_id</a><br />
+<br /></p>
+</body>
+</html>
+
+EOX;
     $tbody .= "\nFull details of the request, with all changes and notes, can be reviewed and changed at:\n"
             . "    <".$GLOBALS['base_dns']."/wr.php?request_id=".$this->request_id.">\n\n";
 
@@ -1698,8 +1704,8 @@ EOX
     $mail->AltBody = $tbody;
 
     if ( !$mail->Send() ) {
-      $session->Log( "$sysabbr: ERR: Unable to send e-mail for WR #$this->request_id" );
-      $session->Log( "$sysabbr: ERR: $mail->ErrorInfo" );
+      $session->Log( "ERR: Unable to send e-mail for WR #$this->request_id" );
+      $session->Log( "ERR: $mail->ErrorInfo" );
     }
   }
 

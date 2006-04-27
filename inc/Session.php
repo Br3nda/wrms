@@ -314,7 +314,7 @@ class Session
     }
     else {
       $args = array();
-      for( $i=1; $i < $argc; $i++ ) {
+      for( $i=2; $i < $argc; $i++ ) {
         $args[] = func_get_arg($i);
       }
       error_log( "$sysabbr: DBG: $dgroup: " . vsprintf($format,$args) );

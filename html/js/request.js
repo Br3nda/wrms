@@ -1,7 +1,7 @@
 
 var organisation_id = -1;
 var person_id = -1;
-var system_code = "";
+var system_id = "";
 
 var popt_rx = /^Person: <option value="(.+)">(.+)<\/option>/i
 var sopt_rx = /^System: <option value="(.+)">(.+)<\/option>/i
@@ -51,7 +51,7 @@ function CleanSelectOptions( sel ) {
 function OrganisationChanged() {
   var new_org_id = document.forms.form.org_code.value;
   per_sel = document.forms.form.requester_id;
-  sys_sel = document.forms.form.system_code;
+  sys_sel = document.forms.form.system_id;
   alloc_sel = document.forms.form.allocatable;
   subsc_sel = document.forms.form.subscribable;
   orgtag_sel = document.forms.form.orgtaglist;
@@ -64,7 +64,7 @@ function OrganisationChanged() {
         var rsp = xmlhttp.responseText;
         var lines = rsp.split("\n");
         var old_person_id = per_sel.value;
-        var old_system_code = sys_sel.value;
+        var old_system_id = sys_sel.value;
         CleanSelectOptions(per_sel);
         CleanSelectOptions(sys_sel);
         CleanSelectOptions(alloc_sel);
@@ -78,7 +78,7 @@ function OrganisationChanged() {
         if ( orgtag_ok )
           orgtag_sel.options[0] = new Option( "--- select a tag ---", "" );
         person_id = -1;
-        system_code = "";
+        system_id = "";
         for ( var i=0; i < lines.length; i++ ) {
           if ( lines[i].match( popt_rx ) ) {
             per_sel.options[per_sel.options.length] = new Option( lines[i].replace( popt_rx, "$2"), lines[i].replace( popt_rx, "$1") )
@@ -88,7 +88,7 @@ function OrganisationChanged() {
           }
           else if ( lines[i].match( /^System:/ ) ) {
             sys_sel.options[sys_sel.options.length] = new Option( lines[i].replace( sopt_rx, "$2"), lines[i].replace( sopt_rx, "$1") )
-            if ( sys_sel.options[sys_sel.options.length - 1].value == old_system_code ) {
+            if ( sys_sel.options[sys_sel.options.length - 1].value == old_system_id ) {
               sys_sel.options.selectedIndex = sys_sel.options.length - 1;
             }
           }
@@ -132,8 +132,8 @@ function PersonChanged() {
 
 function SystemChanged() {
   // Force the organisation to match...
-  sys_sel = document.forms.form.system_code;
-  system_code = sys_sel.value;
+  sys_sel = document.forms.form.system_id;
+  system_id = sys_sel.value;
 }
 
 function ValidNumber( num_value ) {
@@ -179,14 +179,14 @@ function CheckNumber(objField,min,max)
 }
 
 function CheckRequestForm() {
-  if ( person_id < 0 || system_code == "" || organisation_id < 0 ) {
+  if ( person_id < 0 || system_id == "" || organisation_id < 0 ) {
     per_sel = document.forms.form.requester_id;
     person_id = per_sel.value;
     org_sel = document.forms.form.org_code;
     organisation_id = org_sel.value;
-    sys_sel = document.forms.form.system_code;
-    system_code = sys_sel.value;
-    if ( person_id <= 0 || system_code == "" || organisation_id <= 0 ) {
+    sys_sel = document.forms.form.system_id;
+    system_id = sys_sel.value;
+    if ( person_id <= 0 || system_id == "" || organisation_id <= 0 ) {
       alert("You must select appropriate organisation,\nperson and system details!" );
       return false;
     }

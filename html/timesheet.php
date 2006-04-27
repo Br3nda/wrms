@@ -85,34 +85,24 @@ function build_time_list( $name, $from, $current, $delta ) {
   // The funky "AT TIME ZONE 'GMT'" weirdness is required from the switch to 7.4.1
   // although now we're doing this, the CAST ... could be removed.
   //    $pg_version should be in the config.php
+  $session->Dbg("TimeSheet", "PostgreSQL version is %s", $pg_version );
   $at_time_zone = ( isset($pg_version) && $pg_version >= 7.4 ? "AT TIME ZONE 'GMT'" : "" );
   $ts_user = intval($session->user_no);
-  $query = "SELECT *, EXTRACT( EPOCH FROM CAST ( work_on $at_time_zone AS TIMESTAMP WITHOUT TIME ZONE ) ) AS started, ";
-  $query .= "EXTRACT( EPOCH FROM CAST ( (work_on $at_time_zone + work_duration) AS TIMESTAMP WITHOUT TIME ZONE ) ) AS finished, ";
-  $query .= "EXTRACT( DOW FROM work_on ) AS dow, 0 AS offset ";
-  $query .= "FROM request_timesheet WHERE work_by_id = $ts_user ";
-  $query .= "AND work_on >= '" . date( 'Y-M-d', $sow ) . "' ";
-  $query .= "AND work_on < '" . date( 'Y-M-d', $sow + (7 * 86400) ) . "' ";
-  $query .= "ORDER BY work_on ASC; ";
+  $sql = "SELECT *, EXTRACT( EPOCH FROM CAST ( work_on $at_time_zone AS TIMESTAMP WITHOUT TIME ZONE ) ) AS started, ";
+  $sql .= "EXTRACT( EPOCH FROM CAST ( (work_on $at_time_zone + work_duration) AS TIMESTAMP WITHOUT TIME ZONE ) ) AS finished, ";
+  $sql .= "EXTRACT( DOW FROM work_on ) AS dow, 0 AS offset ";
+  $sql .= "FROM request_timesheet WHERE work_by_id = $ts_user ";
+  $sql .= "AND work_on >= '" . date( 'Y-M-d', $sow ) . "' ";
+  $sql .= "AND work_on < '" . date( 'Y-M-d', $sow + (7 * 86400) ) . "' ";
+  $sql .= "ORDER BY work_on ASC; ";
+  $qry = new PgQuery( $sql );
 
-  // The query above requires 7.2, so the below (including hacks with $ts->offset) works with 7.0
-  // currently in production...
-  // $query = "SELECT *, date_part( 'epoch', work_on ) AS started, ";
-  // $query .= "date_part( 'epoch', (work_on + work_duration)) AS finished, ";
-  // $query .= "date_part( 'dow', work_on ) AS dow, ";
-  // $query .= "date_part( 'epoch', '1970-1-1'::timestamp) AS offset ";
-  // $query .= "FROM request_timesheet WHERE work_by_id = $ts_user ";
-  // $query .= "AND work_on >= '" . date( 'Y-M-d', $sow ) . "' ";
-  // $query .= "AND work_on < '" . date( 'Y-M-d', $sow + (7 * 86400) ) . "' ";
-  // $query .= "ORDER BY work_on ASC; ";
-  $result = awm_pgexec( $dbconn, $query, 'timesheet' );
-  if ( $result && pg_NumRows($result) ) {
+  if ( $qry->Exec("TimeSheet") && $qry->rows > 0 ) {
 
     // Construct timesheet entries from all of our existing work data for the week
     // Entries before the start of the day, or after the end of the day are forced within
     // the work period.
-    for( $i = 0; $i < pg_NumRows($result); $i++ ) {
-      $ts = pg_Fetch_Object( $result, $i );
+    while( $ts = $qry->Fetch() ) {
       $our_dow = ($ts->dow + 6) % 7;
       $start_tod = intval( (($ts->started + $ts->offset) % 86400) / 60 );
       $finish_tod = intval( (($ts->finished + $ts->offset) % 86400) / 60 );
@@ -147,15 +137,14 @@ function build_time_list( $name, $from, $current, $delta ) {
     }
   }
 
-  $query = "SELECT *, date_part( 'dow', note_date ) AS dow FROM timesheet_note ";
-  $query .= "WHERE note_by_id = $ts_user ";
-  $query .= "AND note_date >= '" . date( 'Y-M-d', $sow ) . "' ";
-  $query .= "AND note_date < '" . date( 'Y-M-d', $sow + (7 * 86400) ) . "' ";
-  $query .= "ORDER BY note_date ASC; ";
-  $result = awm_pgexec( $dbconn, $query, 'timesheet' );
-  if ( $result && pg_NumRows($result) ) {
-    for( $i = 0; $i < pg_NumRows($result); $i++ ) {
-      $tn = pg_Fetch_Object( $result, $i );
+  $sql = "SELECT *, date_part( 'dow', note_date ) AS dow FROM timesheet_note ";
+  $sql .= "WHERE note_by_id = $ts_user ";
+  $sql .= "AND note_date >= '" . date( 'Y-M-d', $sow ) . "' ";
+  $sql .= "AND note_date < '" . date( 'Y-M-d', $sow + (7 * 86400) ) . "' ";
+  $sql .= "ORDER BY note_date ASC; ";
+  $qry = new PgQuery($sql);
+  if ( $qry->Exec("TimeSheet") && $qry->rows > 0 ) {
+    while( $tn = $qry->Fetch() ) {
       $tnote[$tm->dow] = $tn->note_detail ;
     }
   }
@@ -202,27 +191,26 @@ EOHEADERS;
   // Display a list of W/R's this person has worked on recently
   $ts_from  = date( 'Y-M-d', $sow - (56 * 86400) );
   $ts_until = date( 'Y-M-d', $sow + (14 * 86400) );
-  $query = <<<EOQRY
+  $sql = <<<EOQRY
 SELECT rt.request_id, abbreviation, system_desc, brief, sum(work_quantity) AS work_quantity
  FROM request_timesheet rt
  JOIN request ON (request.request_id = rt.request_id)
  JOIN usr ON (request.requester_id = usr.user_no)
  JOIN organisation USING (org_code)
  JOIN work_system USING (system_id)
- WHERE rt.work_by_id = $ts_user
-   AND work_on >= '$ts_from'
-   AND work_on < '$ts_until'
+ WHERE rt.work_by_id = ?
+   AND work_on >= ?
+   AND work_on < ?
  GROUP BY rt.request_id, abbreviation, system_desc, brief
  ORDER BY rt.request_id ASC;
 EOQRY;
 
-  $result = awm_pgexec( $dbconn, $query, 'timesheet' );
-  if ( $result && pg_NumRows($result) ) {
+  $qry = new PgQuery($sql, $ts_user, $ts_from, $ts_until );
+  if ( $qry->Exec("TimeSheet") && $qry->rows > 0 ) {
     echo "<h3>Recent Requests You Have Worked On</h3>\n";
     echo '<table width="100%" border="0" cellpadding="1" cellspacing="2">';
     echo "<tr class=row1><th class=cols>WR #</th><th class=cols align=left>For</th><th class=cols align=left>System</th><th class=cols align=left>Request</th></tr>\n";
-    for( $i=0; $i < pg_NumRows($result); $i++ ) {
-      $wr = pg_Fetch_Object( $result, $i );
+    while( $wr = $qry->Fetch() ) {
       echo "<tr class=row" . $i%2 . ">";
       echo "<th><a href=request.php?request_id=$wr->request_id>$wr->request_id</a></th>";
       echo "<td>$wr->abbreviation</td>";

@@ -250,7 +250,7 @@ class PgQuery
       while( $row = $this->Fetch(true) )
       {
         if (is_array($current)) $selected = ( ( in_array($row[0],$current,true) || in_array($row[1],$current,true)) ? ' selected="selected"' : '' );
-        else $selected = ( ( $row[0] == $current || $row[1] == $current ) ? ' selected="selected"' : '' );
+        else $selected = ( ( "$row[0]" == "$current" || "$row[1]" == "$current" ) ? ' selected="selected"' : '' );
         $nextrow = "<option value=\"$row[0]\"$selected>$row[1]</option>";
         if ( preg_match('/&/', $nextrow) ) $nextrow = preg_replace( '/&/', '&amp;', $nextrow);
         $result .= $nextrow;

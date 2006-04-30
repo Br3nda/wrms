@@ -36,43 +36,47 @@
 
     if ( "$search_for$org_code$system_id$status " != "" ) {
 
-      $query = "SELECT *, to_char( last_update, 'dd/mm/yyyy' ) AS last_update, to_char( last_accessed, 'dd/mm/yyyy' ) AS last_accessed ";
-      $query .= "FROM usr, organisation";
+      $sql = "SELECT *, to_char( last_update, 'dd/mm/yyyy' ) AS last_update, to_char( last_accessed, 'dd/mm/yyyy' ) AS last_accessed ";
+      $sql .= "FROM usr JOIN organisation USING ( org_code ) ";
 
-      if ( isset( $system_id ) && $system_id > 0 ) $query .= ", system_usr, lookup_code";
-      $query .= " WHERE usr.org_code=organisation.org_code ";
+      if ( isset( $system_id ) && $system_id > 0 ) {
+        $sql .= "JOIN system_usr USING ( user_no ) ";
+        $sql .= "JOIN lookup_code ON source_table='system_usr' AND source_field='role' AND lookup_code=role ";
+      }
+
+      $sql .= "WHERE TRUE ";
       if ( !isset( $org_code ) || $org_code == 0 )
-        $query .= "AND organisation.active ";
+        $sql .= "AND organisation.active ";
       if ( !isset( $status ) || $status <> "I" )
-        $query .= "AND usr.status != 'I' ";
+        $sql .= "AND usr.status != 'I' ";
 
       if ( "$search_for" != "" ) {
-        $query .= " AND (fullname ~* '$search_for' ";
-        $query .= " OR username ~* '$search_for' ";
-        $query .= " OR email ~* '$search_for' )";
+        $search_for = qpg($search_for);
+        $sql .= " AND (fullname ~* $search_for ";
+        $sql .= " OR username ~* $search_for ";
+        $sql .= " OR email ~* $search_for )";
       }
       if ( is_member_of('Manage') && ! is_member_of('Admin','Support') ) {
-        $query .= " AND usr.org_code='$session->org_code' ";
+        $sql .= " AND usr.org_code='$session->org_code' ";
       }
       else if ( isset( $org_code ) && $org_code > 0 ) {
-        $query .= " AND usr.org_code=$org_code";
+        $sql .= " AND usr.org_code=$org_code";
       }
 
       if ( isset( $system_id ) && $system_id > 0 ) {
-        $query .= " AND system_usr.system_id=$system_id";
-        $query .= " AND system_usr.user_no=usr.user_no";
-        $query .= " AND lookup_code.source_table='system_usr' AND lookup_code.source_field='role' AND lookup_code.lookup_code=system_usr.role ";
+        $sql .= " AND system_usr.system_id=$system_id";
       }
 
-      $query .= " ORDER BY LOWER(fullname);";
+      $sql .= " ORDER BY LOWER(fullname);";
 
-      $result = awm_pgexec( $dbconn, $query, 'usrsearch' );
-      if ( $result ) {
-      // Build table of usrs found
-        echo "<p>&nbsp;" . pg_NumRows($result) . " users found</p>";
+      $qry = new PgQuery($sql);
+      $result = awm_pgexec( $dbconn, $sql, 'usrsearch' );
+      if ( $qry->Exec("UsrSearch") ) {
+        // Build table of usrs found
+        echo "<p>&nbsp;" . $qry->rows . " users found</p>";
         echo "<table border=\"0\" cellpadding=2 cellspacing=1 align=center width=100%>\n<tr>\n";
         echo "<th class=cols>User&nbsp;ID</th><th class=cols>Full Name</th>\n";
-        if ( isset($org_code) && $org_code > 0 )
+        if ( !isset($org_code) || $org_code == 0 )
           echo "<th class=cols>Organisation</th>\n";
         echo "<th class=cols>Email</th>\n";
         if ( isset( $system_id )  && $system_id > 0 )
@@ -81,32 +85,30 @@
         echo "<th class=cols>Actions</th>\n";
         echo "</tr>\n";
 
-      for ( $i=0; $i < pg_NumRows($result); $i++ ) {
-        $thisusr = pg_Fetch_Object( $result, $i );
+        while( $thisusr = $qry->Fetch() ) {
+          printf("<tr class=row%1d>\n", $qry->rownum % 2);
 
-        printf("<tr class=row%1d>\n", $i % 2);
+          echo "<td class=sml><a href=\"user.php?user_no=$thisusr->user_no\">$thisusr->username</a></td>\n";
+          echo "<td class=sml><a href=\"user.php?user_no=$thisusr->user_no\">$thisusr->fullname</a></td>\n";
+          if ( !isset($org_code) || $org_code == 0 )
+            echo "<td class=sml><a href=\"org.php?org_code=$thisusr->org_code\">$thisusr->org_name</a></td>\n";
+          echo "<td class=sml><a href=\"mailto:$thisusr->email\">$thisusr->email</a>&nbsp;</td>\n";
+          if ( isset( $system_id ) && $system_id > 0 )
+            echo "<td class=sml>$thisusr->lookup_desc ($thisusr->role)&nbsp;</td>\n";
+          echo "<td class=sml>$thisusr->last_accessed&nbsp;</td>\n";
 
-        echo "<td class=sml><a href=\"user.php?user_no=$thisusr->user_no\">$thisusr->username</a></td>\n";
-        echo "<td class=sml><a href=\"user.php?user_no=$thisusr->user_no\">$thisusr->fullname</a></td>\n";
-        if ( !isset($org_code) || $org_code == 0 )
-          echo "<td class=sml><a href=\"org.php?org_code=$thisusr->org_code\">$thisusr->org_name</a></td>\n";
-        echo "<td class=sml><a href=\"mailto:$thisusr->email\">$thisusr->email</a>&nbsp;</td>\n";
-        if ( isset( $system_id ) && $system_id > 0 )
-          echo "<td class=sml>$thisusr->lookup_desc ($thisusr->role)&nbsp;</td>\n";
-        echo "<td class=sml>$thisusr->last_accessed&nbsp;</td>\n";
-
-        echo "<td class=sml><a class=submit href=\"requestlist.php?user_no=$thisusr->user_no\">Requested</a>\n";
-        if ( is_member_of('Admin','Support') ) {
-          echo "<a class=submit href=\"requestlist.php?allocated_to=$thisusr->user_no\">Allocated</a>\n";
-          echo "<a class=submit href=\"form.php?user_no=$thisusr->user_no&form=timelist&uncharged=1\">Work</a>\n";
+          echo "<td class=sml><a class=submit href=\"requestlist.php?user_no=$thisusr->user_no\">Requested</a>\n";
+          if ( is_member_of('Admin','Support') ) {
+            echo "<a class=submit href=\"requestlist.php?allocated_to=$thisusr->user_no\">Allocated</a>\n";
+            echo "<a class=submit href=\"form.php?user_no=$thisusr->user_no&form=timelist&uncharged=1\">Work</a>\n";
+          }
+          echo "</td></tr>\n";
         }
-        echo "</td></tr>\n";
+        echo "</table>\n";
       }
-      echo "</table>\n";
     }
-  }
 
-} /* The end of the else ... clause waaay up there! */
+  } /* The end of the else ... clause waaay up there! */
 
   include("footers.php");
 ?>

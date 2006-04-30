@@ -1,5 +1,11 @@
 <?php
-$begin_processing = microtime();
+/**
+* @global object $c Holds the variable configuration data for the application
+*/
+$c = (object) 'Configuration Data';
+$c->started = microtime();
+$c->messages = array();
+
 $error_loc = "";
 $error_msg = "";
 $warn_msg = "";
@@ -7,6 +13,7 @@ $client_messages = array();
 
 error_log( "=============================================== Start $PHP_SELF" );
 require_once("../config/config.php");
+$c->sysabbr = $sysabbr;
 $c->admin_email = $admin_email;
 $c->system_name = $system_name;
 

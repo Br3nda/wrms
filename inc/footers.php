@@ -1,7 +1,7 @@
 <?php
 function send_footers() {
   global $style, $left_panel, $right_panel, $colors, $images, $settings;
-  global $session, $dbconn, $total_query_time, $begin_processing, $debuglevel, $sysabbr;
+  global $c, $session, $dbconn, $total_query_time, $debuglevel;
   global $REQUEST_URI, $HTTP_USER_AGENT, $HTTP_REFERER, $PHP_SELF;
 
   if ( isset($style) && "$style" != "stripped" ) {
@@ -56,9 +56,9 @@ if ( is_object ( $settings ) && $settings->is_modified() ) {
   error_reporting(7);
   if ( $debuglevel > 0 ) {
     $total_query_time = sprintf( "%3.06lf", $total_query_time );
-    error_log( "$sysabbr total_query_ TQ: $total_query_time URI: $REQUEST_URI", 0);
-    $total_time = sprintf( "%3.06lf", duration( $begin_processing, microtime() ));
-    error_log( "$sysabbr process_time TT: $total_time      Agent: $HTTP_USER_AGENT Referrer: $HTTP_REFERER  ", 0);
+    error_log( $c->sysabbr." total_query_ TQ: $total_query_time URI: $REQUEST_URI", 0);
+    $total_time = sprintf( "%3.06lf", duration( $c->started, microtime() ));
+    error_log( $c->sysabbr." process_time TT: $total_time      Agent: $HTTP_USER_AGENT Referrer: $HTTP_REFERER  ", 0);
     error_log( "=============================================== Endof $PHP_SELF" );
   }
 

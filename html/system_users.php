@@ -6,7 +6,7 @@
   require_once("organisation-selectors-sql.php");
 
 function write_system_roles( $roles, $system_id ) {
-  global $client_messages, $session;
+  global $c, $session;
 
   $users = "";
   $role_update = "";
@@ -25,9 +25,9 @@ function write_system_roles( $roles, $system_id ) {
 
     $q = new PgQuery($sql);
     if ( $q->Exec("SystemUsers::Write") )
-      $client_messages[] = "System Roles updated.";
+      $c->messages[] = "System Roles updated.";
     else
-      $client_messages[] = "There was a system problem writing to the database and no changes were made.";
+      $c->messages[] = "There was a system problem writing to the database and no changes were made.";
 
 }
 
@@ -35,7 +35,7 @@ function write_system_roles( $roles, $system_id ) {
   $title = "$system_name System Users";
 
   if ( "$system_id" == 0 ) {
-    $client_messages[] = "System ID was not supplied.";
+    $c->messages[] = "System ID was not supplied.";
     require_once("top-menu-bar.php");
     include("headers.php");
     include("footers.php");

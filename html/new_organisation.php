@@ -12,14 +12,14 @@
   // form submitted
   if ( isset($_POST['submit']) ) {
     $session->Dbg( "OrgPlus", "Record %s write type is %s.", $org->Table, "insert" );
-    $reg->PostToValues();
-    if ( $reg->Validate() ) {
-      $reg->Write();
+    $org->PostToValues();
+    if ( $org->Validate() ) {
+      $org->Write();
     }
   }
-  include("page-header.php");
+  include("headers.php");
 
   echo $org->Render();
 
-  include("page-footer.php");
+  include("footers.php");
 ?>

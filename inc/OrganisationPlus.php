@@ -60,22 +60,32 @@ class OrganisationPlus extends DBRecord {
     $keys['org_code'] = 0;
 
     // Initialise the record
-    $this->Initialise('org_plus_system_plus_usr',$keys);
-    $this->Read();
+    $this->Initialise('organisation_plus',$keys);
 
-    $session->Log("DBG: Initialising new registration values");
+    if ( $this->org_code > 0 ) {
+      $this->Read();
+    }
+    else {
+      $this->new_record = true;
+      $this->org_code = 0;
+
+      // Assign some defaults because it looks like we're starting a new one
+      if ( isset($_GET['org_template']) ) {
+        // Oh goody, we could get some defaults from a saved template :-)
+      }
+    }
+
+    $session->Dbg("OrganisationPlus", "Initialising new organisation values");
 
     // Initialise to standard default values
 
     // Validation rules for the form fields.
-    $this->validation = new Validation("registration_validation");
+    $this->validation = new Validation("organisation_validation");
     // field name, error message, function name
     $this->validation->AddRule("username", "You have not entered a user name.", "not_empty");
     $this->validation->AddRule("fullname", "You have not entered a full name.", "not_empty");
     $this->validation->AddRule("email", "You have not entered an email address.", "not_empty");
     $this->validation->AddRule("email", "Your email address is invalid.", "valid_email_format");
-    $this->validation->AddRule("bank_name", "You have not entered a bank name.", "not_empty");
-    $this->validation->AddRule("bank_abbr", "You have not entered a bank abbreviation.", "not_empty");
   }
 
   /**
@@ -86,7 +96,7 @@ class OrganisationPlus extends DBRecord {
     global $session;
 
     $html = "";
-    $session->Log("DBG: OrganisationPlus::Render: type=insert" );
+    $session->Dbg("OrganisationPlus", "Render: type=insert" );
 
     $ef = new EntryForm( $REQUEST_URI, $this->Values, true );
     $ef->NoHelp();  // Prefer this style, for the moment
@@ -94,33 +104,11 @@ class OrganisationPlus extends DBRecord {
     $onsubmit = $this->validation->func_name; // retrieve the name of the onsubmit javascript function
     $html .= $ef->StartForm( array("autocomplete" => "off", "onsubmit" => "return $onsubmit(this)" ) );
 
-    $html .= "<table class=\"data\" cellspacing=\"0\" cellpadding=\"0\">\n";
+    $html .= "<table class=\"data\" cellspacing=\"0\" cellpadding=\"0\" width=\"100%\">\n";
 
-    $html .= $ef->BreakLine("OrganisationPlus Details");
-
-    $html .= $ef->DataEntryLine( "User Name", "%s", "text", "username",
-              array( "size" => 20, "title" => "The name this user can log into the system with."));
-
-    $this->Set('new_password','******');
-    unset($_POST['new_password']);
-    $html .= $ef->DataEntryLine( "Password", "%s", "password", "new_password",
-              array( "size" => 20, "title" => "The user's password for logging in."));
-    $this->Set('confirm_password', '******');
-    unset($_POST['confirm_password']);
-    $html .= $ef->DataEntryLine( "Confirm Password", "%s", "password", "confirm_password",
-              array( "size" => 20, "title" => "Confirm the new password.") );
-
-    $html .= $ef->DataEntryLine( "Full Name", "%s", "text", "fullname",
-              array( "size" => 50, "title" => "The description of the system."));
-
-    $html .= $ef->DataEntryLine( "Email", "%s", "text", "email",
-              array( "size" => 50, "title" => "The user's e-mail address."));
-
-    $html .= $ef->DataEntryLine( "Bank Name", "%s", "text", "bank_name",
-              array( "size" => 50, "title" => "The name of your bank."));
-
-    $html .= $ef->DataEntryLine( "Bank Abbreviation", "%s", "text", "bank_abbr",
-              array( "size" => 8, "title" => "The abbreviated name of your bank.", "maxlength" => "8"));
+    $html .= $this->RenderOrganisationDetails($ef);
+    $html .= $this->RenderDefaultSystem($ef);
+    $html .= $this->RenderPrimaryUser($ef);
 
     // Render the Javascript validation rules for the form
     $html .= $this->validation->RenderJavascript();
@@ -136,12 +124,107 @@ class OrganisationPlus extends DBRecord {
 
 
   /**
+  * Render the Organisational Details part of the form
+  * @return string An HTML fragment to display in the page.
+  */
+  function RenderOrganisationDetails( $ef ) {
+    global $session;
+
+    $html = $ef->BreakLine("New Organisation Details");
+
+    if ( !$this->new_record ) {
+      $html .= $ef->DataEntryLine( "Org. Code", "$this->org_code");
+    }
+
+    // Name
+    $html .= $ef->DataEntryLine( "Name", "%s", "text", "org_name",
+              array( "size" => 70, "title" => "The name of the organisation.") );
+
+    // Abbreviation
+    $html .= $ef->DataEntryLine( "Abbrev", $this->abbreviation, "text", "abbreviation",
+              array("size" => "8", "title" => "A short abbreviation for the organisation.") );
+
+    $html .= $ef->DataEntryLine( "SLA?", ($this->current_sla == 't' ? "Current SLA" : "No SLA"), "checkbox", "current_sla",
+              array("title" => "Does this organisation have an SLA?") );
+
+    $html .= $ef->DataEntryLine( "Debtor #", $this->debtor_no, "integer", "debtor_no",
+              array("size" => "5", "title" => "The code for this organisation in the accounting system.") );
+
+    $html .= $ef->DataEntryLine( "Hourly Rate", $this->work_rate, "numeric", "work_rate",
+              array("size" => "8", "title" => "The default hourly rate for this organisation.") );
+
+    return $html;
+  }
+
+
+  /**
+  * Render the Organisational Details part of the form
+  * @return string An HTML fragment to display in the page.
+  */
+  function RenderDefaultSystem( $ef ) {
+    global $session;
+
+    $html = $ef->BreakLine("Default System");
+
+    $html .= $ef->DataEntryLine( "System Name", "%s", "text", "system_desc",
+              array( "size" => 50, "title" => "The name of the general system that this organisation will log requests against."));
+
+    $html .= $ef->DataEntryLine( "Short Name", "%s", "text", "fullname",
+              array( "size" => 12, "title" => "A short abbreviated name for the system."));
+
+    return $html;
+  }
+
+
+
+  /**
+  * Render the User Details part of the form
+  * @return string An HTML fragment to display in the page.
+  */
+  function RenderPrimaryUser( $ef ) {
+    global $session;
+
+    $html = $ef->BreakLine("Primary User Details");
+
+    $html .= $ef->DataEntryLine( "User Name", "%s", "text", "username",
+              array( "size" => 20, "title" => "The name this user can log into the system with."));
+
+    $this->Set('new_password','******');
+    unset($_POST['new_password']);
+    $html .= $ef->DataEntryLine( "Password", "%s", "password", "new_password",
+              array( "size" => 20, "title" => "The user's password for logging in."));
+    $this->Set('confirm_password', '******');
+    unset($_POST['confirm_password']);
+    $html .= $ef->DataEntryLine( "Confirm Password", "%s", "password", "confirm_password",
+              array( "size" => 20, "title" => "Confirm the new password.") );
+
+    $html .= $ef->DataEntryLine( "Full Name", "%s", "text", "fullname",
+              array( "size" => 50, "title" => "The full name of the user."));
+
+    $html .= $ef->DataEntryLine( "Email", "%s", "text", "email",
+              array( "size" => 50, "title" => "The user's e-mail address."));
+
+    $html .= $ef->DataEntryLine( "Location", "%s", "text", "location",
+              array( "size" => 50, "title" => "The user's normal location within their organisation.") );
+
+    $html .= $ef->DataEntryLine( "Phone", "%s", "text", "phone",
+              array( "size" => 20, "title" => "The user's normal phone number during business hours.") );
+
+    $html .= $ef->DataEntryLine( "Mobile", "%s", "text", "mobile",
+              array( "size" => 20, "title" => "The user's mobile phone number.") );
+
+    return $html;
+  }
+
+
+
+  /**
   * Validate the information the user submitted
   * @return boolean Whether the form data validated OK.
   */
   function Validate( ) {
     global $session, $c;
-    $session->Log("DBG: OrganisationPlus::Validate: Validating registration");
+    $session->Dbg("OrganisationPlus", "Validate: Validating registration");
 
     $valid = $this->validation->Validate($this);
 
@@ -156,10 +239,14 @@ class OrganisationPlus extends DBRecord {
       }
     }
 
-    $this->Set("is_banker", true );
-    $this->Set("active", false );
+    $this->Set("role", 'C' );  // This user will always have coordinate role to start with
+    $this->Set("email_ok", true );
+    $this->Set("status", 'A' );  // Active
+    $this->Set("organisation_specific", true );
+    $this->Set("system_active", true );
+    $this->Set("org_active", true );
 
-    $session->Log("DBG: OrganisationPlus::Validate: OrganisationPlus %s validation", ($valid ? "passed" : "failed"));
+    $session->Dbg("OrganisationPlus", "Validate: OrganisationPlus %s validation", ($valid ? "passed" : "failed"));
     return $valid;
   }
 
@@ -171,7 +258,7 @@ class OrganisationPlus extends DBRecord {
 
     if( parent::Write() ) {
 
-      $qry = new PgQuery( "SELECT currval('usr_org_code_seq');" );
+      $qry = new PgQuery( "SELECT currval('organisation_org_code_seq');" );
       $qry->Exec("OrganisationPlus::Write: Retrieve org_code");
       $sequence_value = $qry->Fetch(true);  // Fetch as an array
       $org_code = $sequence_value[0];

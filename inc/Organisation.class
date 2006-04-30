@@ -155,7 +155,7 @@ class Organisation {
 
     // Active?
     $html .= $ef->DataEntryLine( "Active?", ($this->active == 't' ? "Active" : "Inactive"), "checkbox", "active",
-              array("title" => "Does this organisation have an SLA?") );
+              array("title" => "Is this organisation still active?") );
 
     if ( $this->AllowedTo('adminfields') ) {
       $html .= $ef->DataEntryLine( "SLA?", ($this->current_sla == 't' ? "Current SLA" : "No SLA"), "checkbox", "current_sla",

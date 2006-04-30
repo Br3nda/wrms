@@ -155,7 +155,7 @@ class WorkSystem {
 
     // Active?
     $html .= $ef->DataEntryLine( "Active?", ($this->active == 't' ? "Active" : "Inactive"), "checkbox", "active",
-              array("title" => "Does this work_system have an SLA?") );
+              array("title" => "Is this system active?") );
 
     return $html;
   }

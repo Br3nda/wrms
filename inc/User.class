@@ -177,7 +177,7 @@ class User {
   function RenderDetails( $ef ) {
     global $session;
     $html = "";
-    $html .= $ef->BreakLine("System Details");
+    $html .= $ef->BreakLine("User Details");
 
     $html .= $ef->DataEntryLine( "User Name", $this->username, "text", "username",
               array( "size" => 20, "title" => "The name this user can log into the system with."), 'xxxx' );

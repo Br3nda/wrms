@@ -1356,6 +1356,10 @@ class Request {
 
     // Sanitise the system_id
     $_POST['system_id'] = intval($_POST['system_id']);
+    $sql = 'SELECT system_code FROM work_system WHERE system_id = ?';
+    $qry = new PgQuery($sql, $_POST['system_id'] );
+    if ( $qry->Exec("Request") && $qry->rows == 1 && $syscode = $qry->Fetch() )
+      $this->system_code = $syscode->system_code;
 
     if ( ! $this->_CheckNewRequester() ) return false;
 
@@ -1613,7 +1617,7 @@ class Request {
     }
 
 
-    $mail->Subject = 'WR #' . $this->request_id . ' ['.$session->system_codes[$this->system_id].'/'.$session->username.'] '.$this->chtype.'d: '
+    $mail->Subject = 'WR #' . $this->request_id . ' ['.$this->system_code.'/'.$session->username.'] '.$this->chtype.'d: '
                       . $this->brief;
 
     $tbody  = "Request No:  $this->request_id\n"
@@ -1629,9 +1633,6 @@ class Request {
 <title>$mail->Subject</title>
 <link rel='stylesheet' type='text/css' href='$GLOBALS[base_dns]/email.css' />
 <style type="text/css"><!--
-EOX;
-    $hbody .= file_get_contents($GLOBALS['base_dir'].'/email.css');
-    $hbody .= <<<EOX
 A {color: navy; text-decoration:underline;  }
 body, input {font: 13px  tahoma, sans-serif; color: #000000; margin: 0.3em; }
 p, td { margin: 0 2em 0.5em; }

@@ -12,7 +12,7 @@
 
 <?php
   if ( ! is_member_of('Admin','Support') ) $org_code = $session->org_code;
-  if ( "$search_for$org_code " != ""  && is_member_of('Admin','Support', 'Manage') ) {
+  if ( "$search_for$org_code " != ""  && is_member_of('Admin','Support', 'Manage', 'OrgMgr') ) {
     $maxresults = ( isset($maxresults) && intval($maxresults) > 0 ? intval($maxresults) : 500 );
     $query = "SELECT work_system.* ";
     if ( "$org_code" <> "" ) $query .= ", org_code ";
@@ -31,9 +31,12 @@
       $query .= "AND (system_code ~* '$search_for' ";
       $query .= " OR system_desc ~* '$search_for' ) ";
     }
-    if ( "$org_code" <> "" ) {
+    if ( isset($org_code) && $org_code > 0 ) {
       $query .= "AND work_system.system_id=org_system.system_id ";
       $query .= "AND org_system.org_code='$org_code' ";
+    }
+    else {
+      $query .= "AND NOT organisation_specific ";
     }
     $query .= " ORDER BY lower(work_system.system_desc) ";
     $query .= " LIMIT $maxresults ";
@@ -52,8 +55,9 @@
         echo "</small>";
       }
       echo "<table border=\"0\" align=center><tr>\n";
-      echo "<th class=cols>System</th>";
-      echo "<th class=cols align=left>&nbsp;Full Name</th>";
+      echo "<th class=cols>ID</th>";
+      echo "<th class=cols>Code</th>";
+      echo "<th class=cols align=left>&nbsp;System Name</th>";
       echo "<th class=cols align=center>Actions</th></tr>";
 
       // Build table of systems found
@@ -63,6 +67,7 @@
         printf("<tr class=row%1d>", $i % 2);
 
         echo "<td class=sml>&nbsp;<a href=\"system.php?system_id=".urlencode($thissystem->system_id)."\">$thissystem->system_id</a>&nbsp;</td>\n";
+        echo "<td class=sml>&nbsp;<a href=\"system.php?system_id=".urlencode($thissystem->system_id)."\">$thissystem->system_code</a>&nbsp;</td>\n";
         echo "<td class=sml>&nbsp;<a href=\"system.php?system_id=".urlencode($thissystem->system_id)."\">$thissystem->system_desc";
         if ( "$thissystem->system_desc" == "" ) echo "-- no description --";
         echo "</a>&nbsp;</td>\n";
@@ -76,7 +81,7 @@
 
         echo "</td></tr>\n";
       }
-      echo "<tr><td class=mand colspan=3 align=center><a class=submit href=\"system.php\">Add A New System</a>";
+      echo "<tr><td class=mand colspan=\"4\" align=center><a class=submit href=\"system.php\">Add A New System</a>";
       echo "</table>\n";
     }
   }

@@ -1,6 +1,6 @@
 <?php
 global $PHP_SELF;
-  
+
 block_open();
 
 if ($qams_enabled && strstr($PHP_SELF, "qams")) {
@@ -28,7 +28,7 @@ function show_sidebar_menu() {
     else {
     }
   }
-  
+
 
   if ($qams_enabled && strstr($PHP_SELF, "qams")) {
     menu_break_line();
@@ -49,12 +49,12 @@ function show_sidebar_menu() {
               'Enter a Project Number and press [Enter] to go to it directly.', $GLOBALS['request_id'] );
     echo "</form><br />";
     menu_break_line();
-    
+
     menu_url_line("/qams.php?filter=my", "Show projects I am involved in", "My Projects");
     menu_url_line("/qams.php?filter=recent", "Show the most recent projects", "Recent Projects");
-    
+
     menu_break_line();
-    
+
     menu_url_line("/qams-refdoc-index.php", "Quality Assurance Documents Index", "Documents");
   }
   else {
@@ -72,13 +72,13 @@ function show_sidebar_menu() {
       menu_url_line("/?logout=1&forget=1$hurl", "Log me out and stop logging me in automatically", "Forget Me", "head" );
     else
       menu_url_line("/?logout=1$hurl", "Au revoir!", "Log Off", "head" );
-  
+
     menu_break_line();
     echo '<form method="get" action="/wr.php" name="quickwr" id="quickwr" style="display:inline">';
     printf('&nbsp;<b>W/R:</b><input type="text" size="7" title="%s" value="%d" name="request_id">',
               'Enter a W/R number and press [Enter] to go to it directly.', $GLOBALS['request_id'] );
     echo "</form><br />";
-  
+
     $tooltip = "Run this saved search";
     $tooltip2 = "Edit this saved search";
     $qry = new PgQuery( "SELECT * FROM saved_queries WHERE user_no = '$session->user_no' ORDER BY query_name" );
@@ -92,13 +92,13 @@ function show_sidebar_menu() {
         echo "<br />\n";
       }
     }
-  
+
     menu_break_line();
     menu_url_line($help_url, "Help on this screen", "Help" );
     $tooltip = "Maintain your name, phone and e-mail details, or change your password";
     menu_url_line("user.php?edit=1&user_no=$session->user_no", $tooltip, "Edit My Info" );
-  
-  
+
+
     if ( is_member_of('Admin', 'Support', 'OrgMgr') ) {
   //    menu_break_line();
       $tooltip = "Review and update details about your organisation.";
@@ -115,11 +115,12 @@ function show_sidebar_menu() {
         menu_url_line("/form.php?form=sessionlist", "", "Sessions" );
       }
     }
-  
+
     if ( is_member_of('Admin', 'Support' ) ) {
       menu_break_line();
       menu_url_line("/form.php?f=orglist", "", "All Organisations" );
       menu_url_line("/form.php?f=syslist", "", "All Systems" );
+      menu_url_line("/new_organisation.php", "Add a new organisation, with a general system and primary user", "New Organisation" );
       menu_url_line("/form.php?user_no=$session->user_no&form=timelist&uncharged=1", "", "My Uncharged Work" );
       menu_url_line("/form.php?f=timelist&uncharged=1", "", "All Work" );
       menu_url_line("/form.php?f=simpletimelist", "", "Work by Person" );
@@ -127,7 +128,7 @@ function show_sidebar_menu() {
       $tooltip = "A report showing the activity in the WRMS.";
       menu_url_line("/requestchange.php", $tooltip, "WRMS Activity" );
     }
-  
+
     if ( is_member_of('Admin', 'Support') || $GLOBALS['rank_report_anyone'] ) {
       $tooltip = "A ranked list of work requests, most important and urgent at the top";
       menu_url_line("/requestrank.php?qs=complex", $tooltip, "Request Ranking" );

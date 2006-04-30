@@ -50,14 +50,14 @@ class OrganisationPlus extends DBRecord {
   /**
   * The constructor initialises a new record.
   */
-  function OrganisationPlus() {
+  function OrganisationPlus( $id ) {
     global $session;
 
     // Call the parent constructor
     $this->DBRecord();
 
-    $this->org_code = 0;
-    $keys['org_code'] = 0;
+    $this->org_code = $id;
+    $keys['org_code'] = $this->org_code;
 
     // Initialise the record
     $this->Initialise('organisation_plus',$keys);
@@ -256,7 +256,7 @@ class OrganisationPlus extends DBRecord {
   function Write() {
     global $c;
 
-    if( parent::Write() ) {
+    if( parent::Write() && $this->new_record ) {
 
       $qry = new PgQuery( "SELECT currval('organisation_org_code_seq');" );
       $qry->Exec("OrganisationPlus::Write: Retrieve org_code");

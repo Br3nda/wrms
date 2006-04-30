@@ -70,6 +70,7 @@
         echo "<a class=submit href=\"form.php?org_code=$thisorganisation->org_code&form=syslist\">Systems</a>";
         if ( is_member_of('Admin','Support') ) {
           echo "<a class=submit href=\"form.php?org_code=$thisorganisation->org_code&form=timelist&uncharged=1\">Work</a>";
+          echo "<a class=submit href=\"new_organisation.php?id=$thisorganisation->org_code\">OrgPlus</a>";
         }
 
         echo "</td></tr>\n";

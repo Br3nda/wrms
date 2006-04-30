@@ -1,9 +1,13 @@
 <?php
   require_once("always.php");
+  require_once("authorisation-page.php");
+  $session->LoginRequired();
+  require_once("maintenance-page.php");
 
   require_once("OrganisationPlus.php");
 
-  $org = new OrganisationPlus();
+  if ( isset($id) ) $id = intval($id);
+  $org = new OrganisationPlus($id);
 
   $c->page_title = "Organisation";
 

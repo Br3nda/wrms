@@ -27,6 +27,9 @@ UPDATE work_system SET system_id = nextval('work_system_system_id_seq');
 ALTER TABLE work_system ALTER COLUMN system_id SET NOT NULL;
 CREATE UNIQUE INDEX work_system_pk1 ON work_system(system_id);
 
+GRANT SELECT, UPDATE ON work_system_system_id_seq TO general;
+
+
 -- Add a system for DEFUNCT work request attachments
 INSERT INTO work_system ( system_code, system_desc, active )
     VALUES( 'zDEFUNCT', 'DEFUNCT Attachments', FALSE );
@@ -93,6 +96,9 @@ CREATE INDEX request_sk0 ON request(request_id) WHERE active;
 CREATE INDEX request_sk1 ON request(requester_id) WHERE active;
 CREATE INDEX request_sk2 ON request(system_id) WHERE active;
 CREATE INDEX request_sk3 ON request(last_status) WHERE active;
+
+-- Force usernames to be unique, regardless of case.
+CREATE UNIQUE INDEX usr_pk2 ON usr ( lower(username) );
 
 VACUUM FULL organisation;
 VACUUM FULL work_system;

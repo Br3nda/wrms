@@ -9,9 +9,7 @@
   if ( isset($id) ) $id = intval($id);
   $org = new OrganisationPlus($id);
 
-  $c->page_title = "Organisation";
-
-  $show = 0;
+//  $show = 0;
 
   // form submitted
   if ( isset($_POST['submit']) ) {

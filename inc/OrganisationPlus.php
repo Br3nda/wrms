@@ -51,7 +51,7 @@ class OrganisationPlus extends DBRecord {
   * The constructor initialises a new record.
   */
   function OrganisationPlus( $id ) {
-    global $session;
+    global $c, $session;
 
     // Call the parent constructor
     $this->DBRecord();
@@ -64,10 +64,12 @@ class OrganisationPlus extends DBRecord {
 
     if ( $this->org_code > 0 ) {
       $this->Read();
+      $c->page_title = $this->Get("org_name");
     }
     else {
       $this->new_record = true;
       $this->org_code = 0;
+      $c->page_title = "New Organisation";
 
       // Assign some defaults because it looks like we're starting a new one
       if ( isset($_GET['org_template']) ) {
@@ -93,7 +95,7 @@ class OrganisationPlus extends DBRecord {
   * @return string An HTML fragment to display in the page.
   */
   function Render( ) {
-    global $session;
+    global $c, $session;
 
     $html = "";
     $session->Dbg("OrganisationPlus", "Render: type=insert" );
@@ -119,6 +121,16 @@ class OrganisationPlus extends DBRecord {
     $html .= '</div>';
     $html .= $ef->EndForm();
 
+$html .= <<<EOSCRIPT
+<script language="JavaScript">
+function InviteChanged(invite) {
+  invite.form.new_password.disabled = invite.checked;
+  invite.form.confirm_password.disabled = invite.form.new_password.disabled;
+  return true;
+}
+</script>
+EOSCRIPT;
+
     return $html;
   }
 
@@ -128,9 +140,9 @@ class OrganisationPlus extends DBRecord {
   * @return string An HTML fragment to display in the page.
   */
   function RenderOrganisationDetails( $ef ) {
-    global $session;
+    global $c, $session;
 
-    $html = $ef->BreakLine("New Organisation Details");
+    $html = $ef->BreakLine( $c->page_title . " Details");
 
     if ( !$this->new_record ) {
       $html .= $ef->DataEntryLine( "Org. Code", "$this->org_code");
@@ -169,7 +181,7 @@ class OrganisationPlus extends DBRecord {
     $html .= $ef->DataEntryLine( "System Name", "%s", "text", "system_desc",
               array( "size" => 50, "title" => "The name of the general system that this organisation will log requests against."));
 
-    $html .= $ef->DataEntryLine( "Short Name", "%s", "text", "fullname",
+    $html .= $ef->DataEntryLine( "Short Name", "%s", "text", "system_code",
               array( "size" => 12, "title" => "A short abbreviated name for the system."));
 
     return $html;
@@ -189,14 +201,23 @@ class OrganisationPlus extends DBRecord {
     $html .= $ef->DataEntryLine( "User Name", "%s", "text", "username",
               array( "size" => 20, "title" => "The name this user can log into the system with."));
 
+    $this->Set('invite',true);
+    $html .= $ef->DataEntryLine( "Send Invite", "%s", "checkbox", "invite",
+              array( "size" => 20,
+                     "id" => "invite",
+                     "title" => "E-mail the user an invitation to log on.",
+                     "onchange" => "InviteChanged(this);",
+                     "_label" => "Send an invitation with a temporary password"
+                    ));
+
     $this->Set('new_password','******');
-    unset($_POST['new_password']);
+    // unset($_POST['new_password']);
     $html .= $ef->DataEntryLine( "Password", "%s", "password", "new_password",
-              array( "size" => 20, "title" => "The user's password for logging in."));
+              array( "size" => 20, "title" => "The user's password for logging in.", "disabled" => "true"));
     $this->Set('confirm_password', '******');
-    unset($_POST['confirm_password']);
-    $html .= $ef->DataEntryLine( "Confirm Password", "%s", "password", "confirm_password",
-              array( "size" => 20, "title" => "Confirm the new password.") );
+    // unset($_POST['confirm_password']);
+    $html .= $ef->DataEntryLine( "Confirm Pw", "%s", "password", "confirm_password",
+              array( "size" => 20, "title" => "Confirm the new password.", "disabled" => "true") );
 
     $html .= $ef->DataEntryLine( "Full Name", "%s", "text", "fullname",
               array( "size" => 50, "title" => "The full name of the user."));

@@ -34,8 +34,10 @@ class Organisation {
     global $session, $client_messages, $debuggroups;
 
     // Try and load it from file
-    $sql = "SELECT organisation.* ";
+    $sql = "SELECT organisation.*, usr.fullname AS admin_user_fullname, work_system.system_desc AS general_system_name ";
     $sql .= " FROM organisation ";
+    $sql .= "LEFT JOIN usr ON usr.user_no = organisation.admin_user_no ";
+    $sql .= "LEFT JOIN work_system ON work_system.system_id = organisation.general_system ";
     $sql .= " WHERE organisation.org_code = '$id'";
     if ( !($session->AllowedTo('Admin') || $session->AllowedTo('Support')) )
       $sql .= " AND organisation.org_code = '$session->org_code' ";
@@ -166,6 +168,18 @@ class Organisation {
 
       $html .= $ef->DataEntryLine( "Hourly Rate", $this->work_rate, "numeric", "work_rate",
                 array("size" => "8", "title" => "The default hourly rate for this organisation.") );
+
+      $sql = SqlSelectRequesters($this->org_code);
+      $html .= $ef->DataEntryLine( "Primary User", "$this->admin_user_fullname", "lookup", "admin_user_no",
+                array("_sql" => $sql,
+                      "_null" => "--- select person ---",
+                      "title" => "The person who is the primary contact for this organisation." ) );
+
+      $sql = SqlSelectSystems($this->org_code);
+      $html .= $ef->DataEntryLine( "Default System", "$this->general_system_name", "lookup", "general_system",
+                array("_sql" => $sql,
+                      "_null" => "--- select system ---",
+                      "title" => "The system for general requests for this organisation." ) );
     }
 
     return $html;
@@ -175,26 +189,27 @@ class Organisation {
     global $session;
 
     $html = "";
-    $sql = "SELECT work_system.*, ";
-    $sql .= "exists( SELECT 1 from org_system WHERE org_system.system_id = work_system.system_id AND org_code = $this->org_code ) AS applies ";
+    $sql = "SELECT DISTINCT work_system.*, lower(system_desc) AS lower_desc, ";
+    $sql .= "EXISTS( SELECT 1 FROM org_system WHERE org_system.system_id = work_system.system_id AND org_code = $this->org_code ) AS applies ";
     if ( $ef->editmode && ($session->AllowedTo('Admin') || $session->AllowedTo('Support')) ) {
-      $sql .= "FROM work_system ";
+      $sql .= "FROM work_system LEFT JOIN org_system USING ( system_id ) ";
       $sql .= "WHERE active ";
+      $sql .= "AND (org_system.org_code = $this->org_code OR work_system.organisation_specific = FALSE) ";
     }
     elseif ( $session->AllowedTo('Admin') || $session->AllowedTo('Support') ) {
-      $sql .= "FROM work_system JOIN org_system ON ( work_system.system_id = org_system.system_id ) ";
+      $sql .= "FROM work_system JOIN org_system USING ( system_id ) ";
       $sql .= "WHERE active AND org_system.org_code = $this->org_code ";
     }
     else {
-      $sql .= "FROM work_system JOIN org_system ON ( work_system.system_id = org_system.system_id ) ";
+      $sql .= "FROM work_system JOIN org_system USING ( system_id ) ";
       $sql .= "WHERE active AND org_system.org_code = $session->org_code ";
     }
-    $sql .= "ORDER BY system_desc";
+    $sql .= "ORDER BY lower(system_desc)";
 
     # Select the records
     $q = new PgQuery($sql);
     $column = 0;
-    if ( $q && $q->Exec() && $q->rows ) {
+    if ( $q && $q->Exec("Organisation") && $q->rows ) {
       $html .= $ef->BreakLine("Active Systems");
       $html .= '<tr><td class="entry" colspan="2"><table width="100%" class="entry">'."\n";
       while( $row = $q->Fetch() ) {

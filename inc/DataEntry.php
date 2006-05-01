@@ -540,10 +540,10 @@ class EntryForm
       $fname = $real_fname;
     }
 */
-      $session->Log( "DBG: fmt='%s', fname='%s', fvalue='%s'", $format, $fname, $this->record->{$fname} );
+      $session->Dbg( "DataEntry", "fmt='%s', fname='%s', fvalue='%s'", $format, $fname, $this->record->{$fname} );
     if ( !$this->editmode ) {
       // Displaying editable values when we are not editing
-      $session->Log( "DBG: fmt='%s', fname='%s', fvalue='%s'", $format, $fname, $this->record->{$fname} );
+      $session->Dbg( "DataEntry", "fmt='%s', fname='%s', fvalue='%s'", $format, $fname, $this->record->{$fname} );
       return sprintf($format, $this->record->{$fname} );
     }
 

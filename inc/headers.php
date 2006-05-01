@@ -11,6 +11,8 @@ function send_headers() {
   Header("Cache-Control: private");
   Header("Pragma: no-cache");
 
+  if ( isset($c->page_title) ) $title = $c->page_title;
+
   // Standard headers included everywhere.
   echo "<!DOC"."TYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\" \"http://www.w3.org/TR/REC-html40/loose.dtd\">\n";
   echo "<html>\n<head>\n<title>$title</title>\n";

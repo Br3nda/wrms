@@ -437,7 +437,7 @@ class Request {
     $html .= $this->RenderAllocations($ef);
     $html .= $this->RenderTimesheets($ef);
     $html .= $this->RenderTags($ef);
-    if ( $schema_version >= 1099.007 ) {
+    if ( $schema_version >= 1099.007 ) {  // Schema >= 1.99.7
       $html .= $this->RenderQAActions($ef);
     }
     $html .= $this->RenderNotes($ef);

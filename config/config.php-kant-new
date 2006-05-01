@@ -26,7 +26,10 @@ $pg_version = 8.1;
 // $debuggroups['Request'] = 1;
 // $debuggroups['User'] = 1;
 // $debuggroups['WorkSystem'] = 1;
-$debuggroups['TimeSheet'] = 1;
+// $debuggroups['TimeSheet'] = 1;
+$debuggroups['OrganisationPlus'] = 1;
+// $debuggroups['Organisation'] = 1;
+// $debuggroups['DataEntry'] = 1;
 
 $default_search_statuses = '@NRILKTQADSPZU';
 $qams_enabled = true;

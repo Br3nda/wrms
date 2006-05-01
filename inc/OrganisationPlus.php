@@ -121,13 +121,15 @@ class OrganisationPlus extends DBRecord {
     $html .= '</div>';
     $html .= $ef->EndForm();
 
-$html .= <<<EOSCRIPT
+    // We have a small script here to toggle enablement of the password fields vs. invite field.
+    $html .= <<<EOSCRIPT
 <script language="JavaScript">
 function InviteChanged(invite) {
   invite.form.new_password.disabled = invite.checked;
   invite.form.confirm_password.disabled = invite.form.new_password.disabled;
   return true;
 }
+InviteChanged(document.getElementById('id_invite'));
 </script>
 EOSCRIPT;
 
@@ -204,7 +206,6 @@ EOSCRIPT;
     $this->Set('invite',true);
     $html .= $ef->DataEntryLine( "Send Invite", "%s", "checkbox", "invite",
               array( "size" => 20,
-                     "id" => "invite",
                      "title" => "E-mail the user an invitation to log on.",
                      "onchange" => "InviteChanged(this);",
                      "_label" => "Send an invitation with a temporary password"
@@ -213,11 +214,11 @@ EOSCRIPT;
     $this->Set('new_password','******');
     // unset($_POST['new_password']);
     $html .= $ef->DataEntryLine( "Password", "%s", "password", "new_password",
-              array( "size" => 20, "title" => "The user's password for logging in.", "disabled" => "true"));
+              array( "size" => 20, "title" => "The user's password for logging in.")); //, "disabled" => "true"));
     $this->Set('confirm_password', '******');
     // unset($_POST['confirm_password']);
     $html .= $ef->DataEntryLine( "Confirm Pw", "%s", "password", "confirm_password",
-              array( "size" => 20, "title" => "Confirm the new password.", "disabled" => "true") );
+              array( "size" => 20, "title" => "Confirm the new password.")); // , "disabled" => "true") );
 
     $html .= $ef->DataEntryLine( "Full Name", "%s", "text", "fullname",
               array( "size" => 50, "title" => "The full name of the user."));
@@ -275,14 +276,52 @@ EOSCRIPT;
   *
   */
   function Write() {
-    global $c;
+    global $c, $session;
 
-    if( parent::Write() && $this->new_record ) {
+    if( parent::Write() ) {
 
-      $qry = new PgQuery( "SELECT currval('organisation_org_code_seq');" );
-      $qry->Exec("OrganisationPlus::Write: Retrieve org_code");
-      $sequence_value = $qry->Fetch(true);  // Fetch as an array
-      $org_code = $sequence_value[0];
+      if ( $this->new_record ) {
+
+        $qry = new PgQuery( "SELECT currval('organisation_org_code_seq');" );
+        $qry->Exec("OrganisationPlus::Write: Retrieve org_code");
+        $sequence_value = $qry->Fetch(true);  // Fetch as an array
+        $org_code = $sequence_value[0];
+
+        $c->messages[] = "Organisation, System and User records created.";
+
+        if ( isset($_POST['invite']) && $_POST['invite'] == 'on' ) {
+          $username = $this->Get('username');
+          $invitation_template = <<<EOINVITE
+
+Welcome to @@system_name@@.
+
+Your access has now been configured by $session->fullname with the
+following details:
+
+    User:     $username
+    Password: @@password@@
+
+This is a temporary password which will be valid for 24 hours.  To log
+on, please visit:
+
+    $base_dns
+
+If you have any problems, please contact $session->fullname or the
+system administrator.
+
+
+EOINVITE;
+          $session->Dbg("OrganisationPlus", "Inviting '%s' to join.", $username);
+          $session->EmailTemporaryPassword( $username, null, $invitation_template );
+          $c->messages[] = "Invitation and password sent to ".$username;
+        }
+        else {
+          $session->Dbg("OrganisationPlus", "Invite is >>%s<<", $_POST['invite']);
+        }
+      }
+      else {
+        $c->messages[] = "Organisation, System and User details updated.";
+      }
     }
   }
 }

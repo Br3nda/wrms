@@ -635,40 +635,38 @@ EOTEXT;
 
 
 /**
-* Sends a temporary password in response to a request from a user.
+* E-mails a temporary password in response to a request from a user.
 *
-* This is probably only going to be called from somewhere internal, but perhaps
-* an application might want to decide when to call it.
+* This could be called from somewhere within the application that allows
+* someone to set up a user and invite them.
 *
 * This function includes EMail.php to actually send the password.
 */
-  function SendTemporaryPassword( ) {
+  function EmailTemporaryPassword( $username, $email_address, $body_template="" ) {
     global $c;
 
-    include("EMail.php");
-    $page_content = "";
     $password_sent = false;
     $where = "";
-    if ( isset($_POST['username']) && $_POST['username'] != "" ) {
-      $where = "WHERE status='A' AND usr.username = ". qpg($_POST['username'] );
+    if ( isset($username) && $username != "" ) {
+      $where = "WHERE status='A' AND usr.username = ". qpg($username );
     }
-    if ( ! $password_sent && isset($_POST['email_address']) && $_POST['email_address'] != "" ) {
-      $where = "WHERE status='A' AND usr.email = ". qpg($_POST['email_address'] );
+    else if ( isset($email_address) && $email_address != "" ) {
+      $where = "WHERE status='A' AND usr.email = ". qpg($email_address );
     }
 
     if ( $where != "" ) {
       $tmp_passwd = "";
       for ( $i=0; $i < 8; $i++ ) {
-        $tmp_passwd .= substr( "#.-=*%@0123456789abcdefghijklmnopqrstuvwxyz", rand(0,42), 1);
+        $tmp_passwd .= substr( "ABCDEFGHIJKLMNOPQRSTUVWXYZ+#.-=*%@0123456789abcdefghijklmnopqrstuvwxyz", rand(0,69), 1);
       }
       $sql = "SELECT * FROM usr $where";
       $qry = new PgQuery( $sql );
-      $qry->Exec("Session::SendTemporaryPassword");
+      $qry->Exec("Session::EmailTemporaryPassword");
       if ( $qry->rows > 0 ) {
         $sql = "BEGIN;";
 
         include_once("EMail.php");
-        $mail = new EMail( "Temporary Password for $c->system_name" );
+        $mail = new EMail( "Access to $c->system_name" );
         $mail->SetFrom($c->admin_email );
         $usernames = "";
         while ( $row = $qry->Fetch() ) {
@@ -680,24 +678,45 @@ EOTEXT;
           $sql .= "COMMIT;";
           $qry = new PgQuery( $sql );
           $qry->Exec("Session::SendTemporaryPassword");
-          $body = <<<EOTEXT
-A temporary password has been requested for $c->system_name.
+          if ( !isset($body_template) || $body_template == "" ) {
+            $body_template = <<<EOTEXT
+A temporary password has been requested for @@system_name@@.
 
-Temporary Password: $tmp_passwd
+Temporary Password: @@password@@
 
 This has been applied to the following usernames:
-$usernames
+
+@@usernames@@
 and will be valid for 24 hours.
 
 If you have any problems, please contact the system administrator.
 
 EOTEXT;
+          }
+          $body = str_replace( '@@system_name@@', $c->system_name, $body_template);
+          $body = str_replace( '@@password@@', $tmp_passwd, $body);
+          $body = str_replace( '@@usernames@@', $usernames, $body);
           $mail->SetBody($body);
           $mail->Send();
           $password_sent = true;
         }
       }
     }
+    return $password_sent;
+  }
+
+
+/**
+* Sends a temporary password in response to a request from a user.
+*
+* This is probably only going to be called from somewhere internal.  An external
+* caller will probably just want the e-mail, without the HTML that this displays.
+*
+*/
+  function SendTemporaryPassword( ) {
+    global $c;
+
+    $password_sent = EmailTemporaryPassword( $_POST['username'], $_POST['email_address'] );
 
     if ( ! $password_sent && ((isset($_POST['username']) && $_POST['username'] != "" )
                               || (isset($_POST['email_address']) && $_POST['email_address'] != "" )) ) {

@@ -1,9 +1,4 @@
 <?php
-  include("code-list.php");
-  $system_ids = get_code_list( "request", "system_id" );
-  $courses = get_code_list( "request", "course_code" );
-  $training = get_code_list( "request", "training_code" );
-
   include("system-list.php");
   $system_ids = get_system_list("ECRS", "$request->system_id");
 ?>
@@ -70,12 +65,14 @@
         echo "<a class=submit href=\"form.php?org_code=$thisorganisation->org_code&form=syslist\">Systems</a>";
         if ( is_member_of('Admin','Support') ) {
           echo "<a class=submit href=\"form.php?org_code=$thisorganisation->org_code&form=timelist&uncharged=1\">Work</a>";
-          echo "<a class=submit href=\"new_organisation.php?id=$thisorganisation->org_code\">OrgPlus</a>";
+          if ( is_member_of('Admin') ) {
+            echo "<a class=submit href=\"new_organisation.php?id=$thisorganisation->org_code\">OrgPlus</a>";
+          }
         }
 
         echo "</td></tr>\n";
       }
-      echo "<tr><td class=mand colspan=4 align=center><a class=submit href=\"org.php\">Add A New Organisation</a>";
+//      echo "<tr><td class=mand colspan=4 align=center><a class=submit href=\"new_organisation.php\">Add A New Organisation</a>";
       echo "</table>\n";
     }
   }

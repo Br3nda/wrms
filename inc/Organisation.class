@@ -1,7 +1,14 @@
 <?php
-/////////////////////////////////////////////////////////////
-//   C L A S S   F O R   O R G A N I S A T I O N S
-/////////////////////////////////////////////////////////////
+/**
+* Class for maintaining and displaying Organisation records.
+* @package wrms
+* @author    Andrew McMillan <andrew@catalyst.net.nz>
+* @copyright Catalyst .Net Ltd
+* @license   GPLv2
+*/
+
+include_once("organisation-selectors-sql.php");
+
 class Organisation {
   var $org_code;
   var $new_record;

@@ -15,3 +15,24 @@ Update the README.Debian
 Write some installation and configuration instructions.
 
 Get some more creative comments for the package description.
+
+Reimplement some of the more trivial listing reports using
+the Browser class from libawl-php.  Especially syslist,
+orglist, usrsearch and so forth.
+
+Provide a postinst facility to automatically upgrade the
+databases of all configured WRMSs.  Note that the user
+that the website connects as usually doesn't have the
+privileges for this action, so if the database is remote
+it might be impossible from this server.  Deal with it. At
+least we can advise which patches need to be applied.
+
+Automate the detection of a database in need of updating
+by manipulating a $recommended_schema_version to enable
+nagging.
+
+Add Debconf support, and ask some basic questions so we can
+configure a VHost for Apache.
+
+Add lots more questions so we can configure the whole darn
+application with Debconf.

@@ -1,9 +1,0 @@
-This directory holds all of the Catalyst Quality Assurance documentation.
-
-Subdirectories:
-
-  reference - Contains the QA reference manuals.
-  templates - Templates for QA documents which have to be produced.
-  examples  - QA documents already filled out, provided as examples.
-
-

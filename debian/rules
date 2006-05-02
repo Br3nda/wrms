@@ -23,12 +23,16 @@ binary-indep: checkroot build
 	# dh_installdebconf
 	install -d $(dt) $(dt)/DEBIAN $(dt)/etc/$(package) \
 		$(dt)/usr/share/$(package) $(dt)/usr/share/doc/$(package)
+		$(dt)/var/lib/$(package)
 	cp -a html $(dt)/usr/share/$(package)
+	-rm $(dt)/usr/share/$(package)/html/attachments
+	cd $(dt)/usr/share/$(package)/html/attachments && ln -s /var/lib/wrms/attachments
 	cp -a scripts $(dt)/usr/share/$(package)
 	cp -a inc $(dt)/usr/share/$(package)
 	# cp -a admin $(dt)/usr/share/$(package)
 	dh_installdocs
 	dh_fixperms
+	install -m 1777 -d $(dt)/var/lib/$(package)/attachments
 	dh_installdeb
 	dpkg-gencontrol -P$(dt)
 	dpkg --build $(dt) ..

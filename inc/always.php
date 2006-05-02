@@ -33,7 +33,7 @@ require_once("html-format.php");
 $schema_version = 0;
 $qry = new PgQuery( "SELECT schema_major, schema_minor, schema_patch FROM wrms_revision ORDER BY schema_id DESC LIMIT 1;" );
 if ( $qry->Exec("always") && $row = $qry->Fetch() ) {
-  $schema_version = floatval( sprintf( "%d%03d.%03d", $row->schema_major, $row->schema_minor, $row->schema_patch) );
+  $schema_version = doubleval( sprintf( "%d%03d.%03d", $row->schema_major, $row->schema_minor, $row->schema_patch) );
 }
 
 $left_panel = true;

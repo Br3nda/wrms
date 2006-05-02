@@ -11,11 +11,21 @@ $error_msg = "";
 $warn_msg = "";
 $client_messages = array();
 
-error_log( "=============================================== Start $PHP_SELF" );
-require_once("../config/config.php");
-$c->sysabbr = $sysabbr;
+error_log( "=============================================== Start $PHP_SELF for $HTTP_HOST" );
+if ( file_exists("/etc/wrms/".$HTTP_HOST."-conf.php") ) {
+  include_once("/etc/wrms/".$HTTP_HOST."-conf.php");
+}
+else if ( file_exists("../config/config.php") ) {
+  include_once("../config/config.php");
+}
+else {
+  include_once("wrms_configuration_missing.php");
+  exit;
+}
+$c->sysabbr     = $sysabbr;
 $c->admin_email = $admin_email;
 $c->system_name = $system_name;
+$c->base_dns    = $base_dns;
 
 require_once("PgQuery.php");
 require_once("html-format.php");

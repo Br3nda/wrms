@@ -1,0 +1,44 @@
+Source: wrms
+Section: catalyst
+Priority: extra
+Maintainer: Andrew McMillan <andrew@catalyst.net.nz>
+Standards-Version: 3.5.9
+Build-Depends: debhelper
+
+Package: wrms
+Architecture: all
+Depends: debconf (>= 1.0.32), php4 (>= 4:4.1), php4-pgsql(>= 3:4.1.0), postgresql-client (>= 7.2.1) | postgresql-client-8.0 | postgresql-client-8.1, libawl-php (>=0.1-1)
+Description: Work Request Management System
+ The Work Request Management System is a system designed to assist
+ managing of project, problem and enhancement requests through to
+ their resolution.
+ .
+ Features include:
+  - Timesheets either through individual requests or weekly.
+  - Multiple organisations, multiple systems.
+  - Handles external contractors.
+  - Integrated Quality Management processes.
+  - Proven use for over six years and three major revisions.
+  - Easy and configurable searching.
+  - Automatic subscription of designated system / organisation
+    representatives.
+  - Quotes, Notes, Attachments, Linked requests, Notes, Status
+    records, QA actions and many more.
+  - But not too much to learn to use fairly quickly.
+ .
+ Faint praise received from users of the system includes such
+ gems as:
+ .
+    "There's always a timesheeting system.  It's always a
+     pain, but WRMS is the least pain ever inflicted on me
+     by one of these $%&%# things."  -- S.V., Wellington
+ .
+    "Encouraging people to do their timesheets has to be
+     one of the shittiest jobs on the planet.  With WRMS
+     I can tell exactly who needs encouragement, but it
+     is so good that about 50% of the people do it even
+     without the beatings!"  -- J.S., Wellington
+ .
+    "WRMS is really quite good." -- C.H. Palmerston Nth.
+ .
+ So there you have it.  Can't say fairer than that!

@@ -1,0 +1,32 @@
+WRMS for Debian
+---------------
+
+This is a Work Request Management System.  Originally written
+about 7 years ago as a personal To Do list, which has slowly
+expanded to become kind of a what-people-want-us-to-do-and-
+what-got-done list for the whole company.
+
+And then some other people looked upon it (clients who it was
+inflicted on by virtue of their being clients, mainly) and
+wanted to use it too.  So we let them.
+
+Then some ex staff moved to other organisations and convinced
+those people that they should use it, and some ex contractors
+started their own companies and wanted one as well.  So we
+got a few more installations.
+
+Meanwhile, Catalyst IT had grown to 60 staff or so, and I
+_really_ had better things to do than coordinate the installs
+that were starting to multiply.
+
+So I packaged it for Debian, to make my life slightly easier.
+
+Of course now, to really make my life easier I need to:
+ - Write better documentation for it.
+ - Bring the database installation and setup into
+   the new millenium.
+ - Convert it to use libawl-php, which is my web application
+   libraries that have co-evolved with this application and
+   several others.
+
+Andrew McMillan <andrew@catalyst.net.nz>, Tue.  2 May 2006 07:11:22 +1200

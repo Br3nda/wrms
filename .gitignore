@@ -1,10 +1,4 @@
-sizes
-last
-*.log
-*~
-toolbars
-templates
-ChangeLog
-wrms.pgdump
-wrms.session
+build
 wrms.bfproject
+wrms.session
+wrms.pgdump

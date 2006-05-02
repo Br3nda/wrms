@@ -1,0 +1,17 @@
+
+Write better documentation.
+
+Bring the database installation and setup into the new millenium.
+
+Convert it to use libawl-php, which is my web application libraries
+that have co-evolved with this application and several others.
+
+Provide better handling for themes.
+
+Provide packaging for themes as separate items.
+
+Update the README.Debian
+
+Write some installation and configuration instructions.
+
+Get some more creative comments for the package description.

@@ -13,7 +13,7 @@ if ( ! $dbconn = pg_Connect("port=5433 dbname=wrms user=general") ) {
 
 $admin_email = "andrew@catalyst.net.nz";
 $basefont = "verdana,sans-serif";
-$system_name = "Andrew's WRMS ";
+$system_name = "Andrew's WRMS";
 $sysabbr = "wrms";
 $debuglevel = 3;
 $debug_email = 'andrew@catalyst.net.nz';

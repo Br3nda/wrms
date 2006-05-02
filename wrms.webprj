@@ -277,5 +277,6 @@
     <item url="inc/OrganisationPlus.php" uploadstatus="1" />
     <item url="scripts/views.sql" uploadstatus="1" />
     <item url="scripts/patches/patch-1.99.11.sql" />
+    <item url="inc/wrms_configuration_missing.php" />
   </project>
 </webproject>

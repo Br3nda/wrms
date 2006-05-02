@@ -16,7 +16,10 @@
     $session->Dbg( "OrgPlus", "Record %s write type is %s.", $org->Table, "insert" );
     $org->PostToValues();
     if ( $org->Validate() ) {
-      $org->Write();
+      if ( $org->Write() ) {
+        // Reread the record, if it worked
+        $org = new OrganisationPlus($id);
+      }
     }
   }
   include("headers.php");

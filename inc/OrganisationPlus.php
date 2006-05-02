@@ -286,29 +286,36 @@ EOSCRIPT;
         $qry->Exec("OrganisationPlus::Write: Retrieve org_code");
         $sequence_value = $qry->Fetch(true);  // Fetch as an array
         $org_code = $sequence_value[0];
+        $GLOBALS['id'] = $org_code;
 
         $c->messages[] = "Organisation, System and User records created.";
 
         if ( isset($_POST['invite']) && $_POST['invite'] == 'on' ) {
           $username = $this->Get('username');
+          $fullname = $this->Get('fullname');
           $invitation_template = <<<EOINVITE
+Hi $fullname,
 
-Welcome to @@system_name@@.
+Welcome to @@system_name@@!
 
 Your access has now been configured by $session->fullname with the
 following details:
 
-    User:     $username
+    Username: $username
     Password: @@password@@
 
-This is a temporary password which will be valid for 24 hours.  To log
-on, please visit:
+This is a temporary password which will be valid for 24 hours.  To
+log on, please visit:
 
-    $base_dns
+    $c->base_dns/
+
+Once you have logged on, you will need to use the "Edit My Info"
+option to set a permanent password.
 
 If you have any problems, please contact $session->fullname or the
 system administrator.
 
+Thanks.
 
 EOINVITE;
           $session->Dbg("OrganisationPlus", "Inviting '%s' to join.", $username);
@@ -322,7 +329,9 @@ EOINVITE;
       else {
         $c->messages[] = "Organisation, System and User details updated.";
       }
+      return true;
     }
+    return false;  // Looks like we screwed up somewhere
   }
 }
 

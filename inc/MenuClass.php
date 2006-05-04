@@ -81,7 +81,7 @@ class MenuOption {
   * @param string $style A base class name for this option.
   * @param int $sortkey An (optional) value to allow option ordering.
   */
-  function MenuOption( $label, $target, $title="", $style="menu", $sortkey=1000 ) {
+  function MenuOption( $label, $target, $title="", $style="menu", $sortkey=0 ) {
     $this->label  = $label;
     $this->target = $target;
     $this->title  = $title;
@@ -98,8 +98,8 @@ class MenuOption {
   * @return string The HTML fragment for the menu option.
   */
   function Render( ) {
-    $r = sprintf('<a href="%s" class="%s" title="%s"%s>%s</a>',
-            $this->target, $this->style, htmlentities($this->title), "%%attributes%%",
+     $r = sprintf('<span class="%s_left"></span><a href="%s" class="%s" title="%s"%s>%s</a><span class="%s_right"></span>',
+            $this->style, $this->target, $this->style, htmlentities($this->title), "%%attributes%%",
             htmlentities($this->label), $this->style );
 
     // Now process the generic attributes
@@ -157,7 +157,7 @@ class MenuOption {
   */
   function _CompareMenuSequence( $a, $b ) {
     global $session;
-    $session->Log("Comparing %d with %d", $a->sortkey, $b->sortkey);
+    $session->Dbg("MenuSet", "Comparing %d with %d", $a->sortkey, $b->sortkey);
     return ($a->sortkey - $b->sortkey);
   }
 
@@ -236,9 +236,16 @@ class MenuSet {
   /**
   * Will be set to true or false when we link active sub-menus, but will be
   * unset until we do that.
-  * @var reference
+  * @var boolean
   */
   var $has_active_options;
+
+  /**
+  * An incrementing value to use for default sort options so they all get
+  * different values.
+  * @var integer
+  */
+  var $default_sortkey;
   /**#@-*/
 
   /**
@@ -252,6 +259,7 @@ class MenuSet {
     $this->main_class = $main_class;
     $this->active_class = $active_class;
     $this->div_id = $div_id;
+    $this->default_sortkey = 91625;
   }
 
   /**
@@ -265,9 +273,11 @@ class MenuSet {
   * @param int $sortkey An (optional) value to allow option ordering.
   * @return mixed A reference to the MenuOption that was added, or false if none were added.
   */
-  function &AddOption( $label, $target, $title="", $active=false, $sortkey=1000 ) {
+  function &AddOption( $label, $target, $title="", $active=false, $sortkey=107965 ) {
     $new_option = false;
     if ( $this->_OptionExists( $label ) ) return $new_option;
+
+    if ( $sortkey == 107965 ) $sortkey = $this->default_sortkey++;
 
     $new_option =& new MenuOption( $label, $target, $title, $this->main_class, $sortkey );
     array_push( $this->options, &$new_option );
@@ -296,7 +306,8 @@ class MenuSet {
   * @param int $sortkey An (optional) value to allow option ordering.
   * @return mixed A reference to the MenuOption that was added, or false if none were added.
   */
-  function &AddSubMenu( &$submenu_set, $label, $target, $title="", $active=false, $sortkey=1000 ) {
+  function &AddSubMenu( &$submenu_set, $label, $target, $title="", $active=false, $sortkey=107965 ) {
+    if ( $sortkey == 107965 ) $sortkey = $this->default_sortkey++;
     $new_option =& $this->AddOption( $label, $target, $title, $active, $sortkey );
     $submenu_set->parent = &$new_option ;
     $new_option->AddSubmenu( &$submenu_set );
@@ -364,18 +375,6 @@ class MenuSet {
     }
   }
 
-  /**
-  * _CompareSequence is used in sorting the menu options into the sequence order
-  *
-  * @param objectref $a The first menu option
-  * @param objectref $b The second menu option
-  * @return int ( $a == b ? 0 ( $a > b ? 1 : -1 ))
-  */
-  function _CompareSequence( $a, $b ) {
-    global $session;
-    $session->Log("Comparing %d with %d", $a->sortkey, $b->sortkey);
-    return ($a->sortkey - $b->sortkey);
-  }
 
   /**
   * Render the menu tree to an HTML fragment.
@@ -392,7 +391,7 @@ class MenuSet {
     $options = $this->options;
     usort($options,"_CompareMenuSequence");
     $render_sub_menus = false;
-    $r = "<div id=\"$this->div_id\">\n";
+    $r = "<div id=\"$this->div_id\" class=\"$this->div_id\">\n";
     foreach( $options AS $k => $v ) {
       $r .= $v->Render();
       if ( $v->IsActive() && isset($v->submenu_set) ) {
@@ -408,4 +407,5 @@ class MenuSet {
     return $r;
   }
 }
+
 ?>

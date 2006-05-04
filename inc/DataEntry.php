@@ -2,10 +2,10 @@
 /**
 * Classes to handle entry and viewing of field-based data.
 *
-* @package   AWL
+* @package   awl
 * @subpackage   DataEntry
 * @author    Andrew McMillan <andrew@catalyst.net.nz>
-* @copyright Andrew McMillan
+* @copyright Catalyst IT Ltd
 * @license   http://gnu.org/copyleft/gpl.html GNU GPL v2
 */
 
@@ -32,7 +32,7 @@
 * field interface, but want to intimately control the layout (or parts of the layout),
 * otherwise you should be using {@link EntryForm} as the main class.
 *
-* @package AWL
+* @package awl
 */
 class EntryField
 {
@@ -203,8 +203,9 @@ class EntryField
         break;
 
       case "date":
-        if ( !isset($this->attributes['size']) || $this->attributes['size'] == "" ) $size = " size=12";
-        $r .= "input type=\"text\" name=\"$this->fname\"$size value=\"".htmlentities($this->current)."\"%%attributes%%>";
+      case "timestamp":
+        if ( !isset($this->attributes['size']) || $this->attributes['size'] == "" ) $size = " size=" . ($this->ftype == 'date' ? "12" : "18");
+        $r .= "input type=\"text\" name=\"$this->fname\"$size value=\"".$session->FormattedDate(htmlentities($this->current))."\"%%attributes%%>";
         break;
 
       case "checkbox":
@@ -287,7 +288,7 @@ class EntryField
 * layout of non-editable content (for viewing), with a simple switch to flip from
 * view mode to edit mode.
 *
-* @package AWL
+* @package awl
 */
 class EntryForm
 {
@@ -543,6 +544,9 @@ class EntryForm
       $session->Dbg( "DataEntry", "fmt='%s', fname='%s', fvalue='%s'", $format, $fname, $this->record->{$fname} );
     if ( !$this->editmode ) {
       // Displaying editable values when we are not editing
+      // If it is a date, then format it according to the current user's date format type
+      if ($ftype == "date" || $ftype == "timestamp")
+        return sprintf($format, $session->FormattedDate($this->record->{$fname}) );
       $session->Dbg( "DataEntry", "fmt='%s', fname='%s', fvalue='%s'", $format, $fname, $this->record->{$fname} );
       return sprintf($format, $this->record->{$fname} );
     }
@@ -576,7 +580,8 @@ class EntryForm
         $currval = $this->record->{"$fname"};
       }
     }
-    if ( $ftype == "date" ) $currval = nice_date($currval);
+    if ( $ftype == "date" ) $currval = $session->FormattedDate($currval);
+    else if ( $ftype == "timestamp" ) $currval = $session->FormattedDate($currval, $ftype);
 
     // Now build the entry field and render it
     $field = new EntryField( $ftype, $fname, $this->_ParseAttributes($ftype,$attributes), $currval );

@@ -350,7 +350,7 @@ class User {
                       && ($this->AllowedTo('Admin') || $this->AllowedTo('Support')) ) {
       // Actually, we do nothing in this case...
       $session->Dbg("User", "Admin/Support maintains Admin/Support person.  Almost all systems shown");
-      $sql .= "AND (NOT organisation_specific OR EXISTS( SELECT 1 from org_system WHERE org_system.org_code = $this->org_code AND org_system.system_id = work_system.system_id)) ";
+//      $sql .= "AND (NOT organisation_specific OR EXISTS( SELECT 1 from org_system WHERE org_system.org_code = $this->org_code AND org_system.system_id = work_system.system_id)) ";
     }
     elseif ( $session->AllowedTo('Admin') || $session->AllowedTo('Support') ) {
       $sql .= "AND EXISTS( SELECT 1 from org_system WHERE org_system.org_code = $this->org_code AND org_system.system_id = work_system.system_id) ";

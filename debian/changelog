@@ -1,3 +1,16 @@
+wrms (2.2.2-0) unstable; urgency=low
+
+  * Fix bug in system roles for users.
+
+ -- Andrew McMillan <debian@mcmillan.net.nz>  Fri,  5 May 2006 08:38:46 +1200
+
+wrms (2.2.1-0) unstable; urgency=low
+
+  * Various merges with libawl-php
+  * Added QA process documentation from Paul Waite
+
+ -- Andrew McMillan <debian@mcmillan.net.nz>  Thu,  4 May 2006 22:28:34 +1200
+
 wrms (2.2.0-2) unstable; urgency=low
 
   * Create the /etc/wrms directory.

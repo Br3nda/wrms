@@ -8,7 +8,7 @@
   if ( is_member_of('Admin') ) {
     // OK, they can do anything :-)
   }
-  else
+  else {
     $because .= "Only administrators have access to this function.\n";
   }
 

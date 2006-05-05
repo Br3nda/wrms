@@ -19,10 +19,14 @@ include_once("Request.class");
 class qams_request extends Request {
   /** Local, independent flag of newness.. */
   var $new_request = false;
-  /** List of interested users */
+  /** List of interested users: user_no and full name */
   var $interested = array();
-  /** List of allocated users */
+  /** List of allocated users: user_no and full name  */
   var $allocated = array();
+  /** List of interested email recipients: user_no and email */
+  var $interested_email = array();
+  /** List of allocated email recipients: user_no and email  */
+  var $allocated_email = array();
   /** Whether to let WRMS do emails or not (default not) */
   var $send_no_email = "on";
   /**
@@ -108,8 +112,8 @@ class qams_request extends Request {
     if ($qry->Exec("qams_request::get_interested") && $qry->rows > 0) {
       while( $row = $qry->Fetch() ) {
         $user_no = $row->user_no;
-        $fullname = $row->fullname;
-        $this->interested[$user_no] = $fullname;
+        $this->interested[$user_no] = $row->fullname;
+        $this->interested_email[$row->email] = $row->fullname;
       }
     }
   } // get_interested
@@ -127,8 +131,8 @@ class qams_request extends Request {
     if ($qry->Exec("qams_request::get_allocated") && $qry->rows > 0) {
       while( $row = $qry->Fetch() ) {
         $user_no = $row->user_no;
-        $fullname = $row->fullname;
-        $this->allocated[$user_no] = $fullname;
+        $this->allocated[$user_no] = $row->fullname;
+        $this->allocated_email[$row->email] = $row->fullname;;
       }
     }
   } // get_allocated

@@ -409,6 +409,22 @@ class qa_project extends qams_request {
     return $qa_actions;
   } // PermittedActions
   // .....................................................................
+  /** Acquire the array of recipient email addresses for this project.
+   * @return array Array of recipients email => full name
+   */
+  function GetRecipients() {
+    $this->get_interested();
+    $this->get_allocated();
+    $recips = array_merge($this->allocated_email, $this->interested_email);
+    if ($this->project_manager_email != "") {
+      $recips[$this->project_manager_email] = $this->project_manager_fullname;
+    }
+    if ($this->qa_mentor_email != "") {
+      $recips[$this->qa_mentor_email] = $this->qa_mentor_fullname;
+    }
+    return $recips;    
+  } // GetRecipients
+  // .....................................................................
   /**
    * Send an e-mail to everyone on the project, plus interested users.
    * @param string $desc Description of this e-mail; what it is for

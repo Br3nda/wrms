@@ -49,7 +49,7 @@
     else {
       if ( $result && pg_NumRows($result) > 0 ) {
         echo "\n<small>";
-        echo pg_NumRows($result) . " requests found";
+        echo pg_NumRows($result) . " systems found";
         if ( pg_NumRows($result) == $maxresults ) echo " (limit reached)";
         if ( isset($saved_query) && $saved_query != "" ) echo " for <b>$saved_query</b>";
         echo "</small>";

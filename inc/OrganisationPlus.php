@@ -121,8 +121,9 @@ class OrganisationPlus extends DBRecord {
     $html .= '</div>';
     $html .= $ef->EndForm();
 
-    // We have a small script here to toggle enablement of the password fields vs. invite field.
-    $html .= <<<EOSCRIPT
+    if ( $this->new_record ) {
+      // We have a small script here to toggle enablement of the password fields vs. invite field.
+      $html .= <<<EOSCRIPT
 <script language="JavaScript">
 function InviteChanged(invite) {
   invite.form.new_password.disabled = invite.checked;
@@ -132,6 +133,7 @@ function InviteChanged(invite) {
 InviteChanged(document.getElementById('id_invite'));
 </script>
 EOSCRIPT;
+    }
 
     return $html;
   }
@@ -203,22 +205,24 @@ EOSCRIPT;
     $html .= $ef->DataEntryLine( "User Name", "%s", "text", "username",
               array( "size" => 20, "title" => "The name this user can log into the system with."));
 
-    $this->Set('invite',true);
-    $html .= $ef->DataEntryLine( "Send Invite", "%s", "checkbox", "invite",
-              array( "size" => 20,
-                     "title" => "E-mail the user an invitation to log on.",
-                     "onchange" => "InviteChanged(this);",
-                     "_label" => "Send an invitation with a temporary password"
-                    ));
+    if ( $this->new_record ) {
+      $this->Set('invite',true);
+      $html .= $ef->DataEntryLine( "Send Invite", "%s", "checkbox", "invite",
+                array( "size" => 20,
+                        "title" => "E-mail the user an invitation to log on.",
+                        "onchange" => "InviteChanged(this);",
+                        "_label" => "Send an invitation with a temporary password"
+                      ));
 
-    $this->Set('new_password','******');
-    // unset($_POST['new_password']);
-    $html .= $ef->DataEntryLine( "Password", "%s", "password", "new_password",
-              array( "size" => 20, "title" => "The user's password for logging in.")); //, "disabled" => "true"));
-    $this->Set('confirm_password', '******');
-    // unset($_POST['confirm_password']);
-    $html .= $ef->DataEntryLine( "Confirm Pw", "%s", "password", "confirm_password",
-              array( "size" => 20, "title" => "Confirm the new password.")); // , "disabled" => "true") );
+      $this->Set('new_password','******');
+      // unset($_POST['new_password']);
+      $html .= $ef->DataEntryLine( "Password", "%s", "password", "new_password",
+                array( "size" => 20, "title" => "The user's password for logging in.")); //, "disabled" => "true"));
+      $this->Set('confirm_password', '******');
+      // unset($_POST['confirm_password']);
+      $html .= $ef->DataEntryLine( "Confirm Pw", "%s", "password", "confirm_password",
+                array( "size" => 20, "title" => "Confirm the new password.")); // , "disabled" => "true") );
+    }
 
     $html .= $ef->DataEntryLine( "Full Name", "%s", "text", "fullname",
               array( "size" => 50, "title" => "The full name of the user."));

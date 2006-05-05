@@ -1,6 +1,6 @@
 <!DOCTYPE webproject>
 <webproject>
-  <project usePreviewPrefix="0" preview="http://mywrms/" type="Local" previewPrefix="file:file%3A" newfiles="php" name="WRMS" encoding="iso 8859-1" >
+  <project usePreviewPrefix="0" preview="http://mywrms/" previewPrefix="file:file%3A" type="Local" newfiles="php" name="WRMS" encoding="iso 8859-1" >
     <upload/>
     <author>Andrew McMillan</author>
     <email>wrms@catalyst.net.nz</email>
@@ -48,7 +48,6 @@
     <item modified_time="1065339507" url="inc/sidebarright.php" uploadstatus="0" />
     <item url="inc/error.php" uploadstatus="0" />
     <item url="inc/help-action.php" uploadstatus="0" />
-    <item modified_time="1112051094" url="inc/PgQuery.php" uploadstatus="0" />
     <item url="inc/lookhead.php" uploadstatus="0" />
     <item url="inc/.cvsignore" uploadstatus="0" />
     <item url="inc/looklist.php" uploadstatus="0" />
@@ -116,8 +115,6 @@
     <item modified_time="1109702493" url="inc/authorisation-page.php" uploadstatus="0" />
     <item modified_time="1125285789" url="inc/maintenance-page.php" uploadstatus="0" />
     <item modified_time="1125387422" url="inc/DataEntry.php" uploadstatus="0" />
-    <item modified_time="1114577112" url="inc/DataUpdate.php" uploadstatus="0" />
-    <item url="inc/FormHandler.php" uploadstatus="0" />
     <item modified_time="1109840677" url="inc/MenuClass.php" uploadstatus="0" />
     <item modified_time="1125431507" url="inc/Session.php" uploadstatus="0" />
     <item modified_time="1125446510" url="inc/Request.class" uploadstatus="0" />
@@ -276,7 +273,8 @@
     <item url="html/new_organisation.php" uploadstatus="1" />
     <item url="inc/OrganisationPlus.php" uploadstatus="1" />
     <item url="scripts/views.sql" uploadstatus="1" />
-    <item url="scripts/patches/patch-1.99.11.sql" />
-    <item url="inc/wrms_configuration_missing.php" />
+    <item url="scripts/patches/patch-1.99.11.sql" uploadstatus="1" />
+    <item url="inc/wrms_configuration_missing.php" uploadstatus="1" />
+    <item url="html/saved_searches.php" />
   </project>
 </webproject>

@@ -157,6 +157,11 @@ class WorkSystem {
     $html .= $ef->DataEntryLine( "Active?", ($this->active == 't' ? "Active" : "Inactive"), "checkbox", "active",
               array("title" => "Is this system active?") );
 
+    // Organisation Specific?
+    $html .= $ef->DataEntryLine( "Specific Org?", ($this->organisation_specific == 't' ? "Specific" : "General"), "checkbox", "organisation_specific",
+              array("title" => "Is this system specific to a particular organisation?",
+                    "_label" => "This system applies to one particular organisation only") );
+
     return $html;
   }
 

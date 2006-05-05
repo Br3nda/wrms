@@ -19,7 +19,7 @@
 * @package   awl
 * @subpackage   Session
 * @author    Andrew McMillan <andrew@catalyst.net.nz>
-* @copyright Andrew McMillan
+* @copyright Catalyst IT Ltd
 * @license   http://gnu.org/copyleft/gpl.html GNU GPL v2
 */
 
@@ -210,7 +210,7 @@ class Session
   */
   function Session( $sid="" )
   {
-    global $sysname;
+    global $sid, $sysname;
 
     $this->roles = array();
     $this->logged_in = false;
@@ -271,19 +271,19 @@ class Session
   */
   function Log( $whatever )
   {
-    global $sysabbr;
+    global $c;
 
     $argc = func_num_args();
     $format = func_get_arg(0);
     if ( $argc == 1 || ($argc == 2 && func_get_arg(1) == "0" ) ) {
-      error_log( "$sysabbr: $format" );
+      error_log( "$c->sysabbr: $format" );
     }
     else {
       $args = array();
       for( $i=1; $i < $argc; $i++ ) {
         $args[] = func_get_arg($i);
       }
-      error_log( "$sysabbr: " . vsprintf($format,$args) );
+      error_log( "$c->sysabbr: " . vsprintf($format,$args) );
     }
   }
 
@@ -299,7 +299,7 @@ class Session
   */
   function Dbg( $whatever )
   {
-    global $debuggroups, $sysabbr;
+    global $debuggroups, $c;
 
     $argc = func_num_args();
     $dgroup = func_get_arg(0);
@@ -308,14 +308,14 @@ class Session
 
     $format = func_get_arg(1);
     if ( $argc == 2 || ($argc == 3 && func_get_arg(2) == "0" ) ) {
-      error_log( "$sysabbr: DBG: $dgroup: $format" );
+      error_log( "$c->sysabbr: DBG: $dgroup: $format" );
     }
     else {
       $args = array();
       for( $i=2; $i < $argc; $i++ ) {
         $args[] = func_get_arg($i);
       }
-      error_log( "$sysabbr: DBG: $dgroup: " . vsprintf($format,$args) );
+      error_log( "$c->sysabbr: DBG: $dgroup: " . vsprintf($format,$args) );
     }
   }
 
@@ -365,16 +365,10 @@ class Session
 * @param object $u The user+session object we (probably) read from the database.
 */
   function AssignSessionDetails( $u ) {
-    $this->user_no = $u->user_no;
-    $this->username = $u->username;
-    $this->fullname = $u->fullname;
-    $this->email = $u->email;
-    $this->org_code = $u->org_code;
-    $this->org_name = $u->org_name;
-    $this->base_rate = $u->base_rate;
-    $this->work_rate = $u->work_rate;
-    $this->config_data = $u->config_data;
-    $this->session_id = $u->session_id;
+    // Assign each field in the selected record to the object
+    foreach( $u AS $k => $v ) {
+      $this->{$k} = $v;
+    }
 
     $this->GetRoles();
     $this->logged_in = true;
@@ -395,7 +389,7 @@ class Session
 * @return boolean Whether or not the user correctly guessed a temporary password within the necessary window of opportunity.
 */
   function Login( $username, $password ) {
-    global $sysname, $sid, $debuggroups, $client_messages, $remember;
+    global $c, $debuggroups;
     $rc = false;
     if ( $debuggroups['Login'] )
       $this->Log( "DBG: Login: Attempting login for $username" );
@@ -433,7 +427,7 @@ class Session
             if ( isset($_POST['remember']) && intval($_POST['remember']) > 0 ) {
               $cookie .= md5( $this->user_no ) . ";";
               $cookie .= session_salted_md5($usr->user_no . $usr->username . $usr->password);
-              setcookie( "lsid", $cookie, time() + (86400 * 3600), "$base_url/" );   // will expire in ten or so years
+              setcookie( "lsid", $cookie, time() + (86400 * 3600), "/" );   // will expire in ten or so years
             }
             $this->just_logged_in = true;
 
@@ -443,6 +437,20 @@ class Session
             unset($_POST['submit']);
             unset($_GET['submit']);
             unset($GLOBALS['submit']);
+
+            if ( function_exists('local_session_sql') ) {
+              $sql = local_session_sql();
+            }
+            else {
+              $sql = "SELECT session.*, usr.* FROM session JOIN usr USING ( user_no )";
+            }
+            $sql .= " WHERE session.session_id = ? AND (md5(session.session_start::text) = ? OR session.session_key = ?) ORDER BY session.session_start DESC LIMIT 2";
+
+            $qry = new PgQuery($sql, $session_id, $session_key, $session_key);
+            if ( $qry->Exec('Session') && 1 == $qry->rows ) {
+              $this->AssignSessionDetails( $qry->Fetch() );
+            }
+
             $rc = true;
             return $rc;
           }
@@ -454,7 +462,7 @@ class Session
         }
       }
       else {
-        $client_messages[] = 'Invalid username or password.';
+        $c->messages[] = 'Invalid username or password.';
         if ( $debuggroups['Login'] )
           $this->cause = 'WARN: Invalid password.';
         else
@@ -462,14 +470,14 @@ class Session
       }
     }
     else {
-    $client_messages[] = 'Invalid username or password.';
+    $c->messages[] = 'Invalid username or password.';
     if ( $debuggroups['Login'] )
       $this->cause = 'WARN: Invalid username.';
     else
       $this->cause = 'WARN: Invalid username or password.';
     }
 
-    $this->Log( "DBG: Login $this->cause" );
+    $this->Log( "Login failure: $this->cause" );
     $this->login_failed = true;
     $rc = false;
     return $rc;
@@ -601,22 +609,24 @@ EOTEXT;
 * @return boolean Whether or not the user is logged in and is a member of one of the required groups.
 */
   function LoginRequired( $groups = "" ) {
-    global $system_name, $admin_email, $session, $images, $colors;
+    global $c, $session;
 
     if ( $this->logged_in && $groups == "" ) return;
     if ( ! $this->logged_in ) {
-      $client_messages[] = "You must log in to use this system.";
+      $c->messages[] = "You must log in to use this system.";
       include_once("headers.php");
       if ( function_exists("local_index_not_logged_in") ) {
         local_index_not_logged_in();
       }
       else {
-        echo <<<EOTEXT
-<H4>For access to the $system_name you should log on with
-the username and password that have been issued to you.</H4>
+        echo <<<EOHTML
+<h1>Log On Please</h1>
+<p>For access to the $c->system_name you should log on with
+the username and password that have been issued to you.</p>
 
-<h4>If you would like to request access, please e-mail $admin_email.</h4>
-EOTEXT;
+<p>If you would like to request access, please e-mail $c->admin_email.</p>
+EOHTML;
+        echo $this->RenderLoginPanel();
       }
     }
     else {
@@ -624,7 +634,7 @@ EOTEXT;
       foreach( $valid_groups AS $k => $v ) {
         if ( $this->AllowedTo($v) ) return;
       }
-      $client_messages[] = "You are not authorised to use this function.";
+      $c->messages[] = "You are not authorised to use this function.";
       include_once("headers.php");
     }
 
@@ -799,10 +809,10 @@ EOTEXT;
       $this->SendTemporaryPassword();
     }
     else if ( isset($_POST['username']) && isset($_POST['password']) ) {
+      $_username = $_POST['username'];
       // Try and log in if we have a username and password
       $this->Login( $_POST['username'], $_POST['password'] );
-      if ( $debuggroups['Login'] )
-        $this->Log( "DBG: User $_POST[username] - $this->fullname ($this->user_no) login status is $this->logged_in" );
+      $this->Dbg( "Login", "User %s(%s) - %s (%d) login status is %d", $_POST['username'], $_username, $this->fullname, $this->user_no, $this->logged_in );
     }
     else if ( !isset($_COOKIE['sid']) && isset($_COOKIE['lsid']) && $_COOKIE['lsid'] != "" ) {
       // Validate long-term session details

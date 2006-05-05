@@ -30,7 +30,7 @@ $request_types     = get_code_list( "request", "request_type", "$request_type" )
 $quote_types       = get_code_list( "request_quote", "quote_type", "$quote_type" );
 $period_total="week";
 
-$select_columns=array(""=>"","Organisation"=>"o.org_name","System"=>"ws.system_code","WR#"=>"r.request_id","Work By"=>"rtu.fullname","Request Brief"=>"r.brief","Request Status"=>"r.last_status");
+$select_columns=array(""=>"","Organisation"=>"o.org_name","System"=>"ws.system_desc","WR#"=>"r.request_id","Work By"=>"rtu.fullname","Request Brief"=>"r.brief","Request Status"=>"r.last_status");
 // $select_columns=array(""=>"","Organisation"=>"o.org_name","System"=>"r.system_id","WR#"=>"r.request_id","Work By"=>"rtu.fullname","Request Brief"=>"r.brief","Request Status"=>"r.last_status");
 
 function buildSelect($name, $key_values, $current ) {

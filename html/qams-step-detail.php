@@ -374,7 +374,7 @@ if (isset($qastep)) {
                       if (substr($href, 0, 1) != "/") {
                         $href = "/$href";
                       }
-                      $href = $GLOBALS[base_dns] . $href;
+                      $href = $URL_PREFIX . $href;
                     }
                     $link  = "<a href=\"$href\" title=\"Click to download $label\">$href</a>";
                     $s .= "<p>Click the below link to download $label:<br>";
@@ -392,7 +392,7 @@ if (isset($qastep)) {
             
               // WRMS access to step work request..
               $s .= "<p>The Work Request associated with this step is:<br>"; 
-              $href = $GLOBALS[base_dns] . "/wr.php?request_id=$qastep->request_id";
+              $href = $URL_PREFIX . "/wr.php?request_id=$qastep->request_id";
               $wrlink = "<a href=\"$href\">$href</a>";
               $s .= "&nbsp;&nbsp;" . $wrlink . "</p>";
             
@@ -406,7 +406,7 @@ if (isset($qastep)) {
               $s  = "<p>$assignee_fullname has been assigned to the Quality Assurance Step ";
               $s .= "'$qastep->qa_step_desc' on this project. The summary link for the step ";
               $s .= "itself is provided here:<br>";
-              $href = $GLOBALS[base_dns] . "/qams-step-detail.php?project_id=$qastep->project_id&step_id=$qastep->qa_step_id";
+              $href = $URL_PREFIX . "/qams-step-detail.php?project_id=$qastep->project_id&step_id=$qastep->qa_step_id";
               $stlink = "<a href=\"$href\">$href</a>";
               $s .= "&nbsp;&nbsp;" . $stlink . "</p>";
               $project->QAMSNotifyEmail("QAMS Activity Notice", $s, $subject, $recipients);

@@ -236,7 +236,7 @@ if (isset($qastep)) {
         
         // WRMS access to step work request..
         $s .= "<p>The Work Request associated with this step is:<br>"; 
-        $href = $GLOBALS[base_dns] . "/wr.php?request_id=$qastep->request_id";
+        $href = $URL_PREFIX . "/wr.php?request_id=$qastep->request_id";
         $wrlink = "<a href=\"$href\">$href</a>";
         $s .= "&nbsp;&nbsp;" . $wrlink . "</p>";
         
@@ -249,7 +249,7 @@ if (isset($qastep)) {
         // Approval link..
         $s .= "<p><b>STEP 2: Approval</b> <br>";
         $s .= "To post an approval decision on this step, please use the following link to access QAMS:<br>";
-        $href  = $GLOBALS[base_dns] . "/qams-step-approve.php"; 
+        $href  = $URL_PREFIX . "/qams-step-approve.php"; 
         $href .= "?project_id=$project->request_id";
         $href .= "&step_id=$qastep->qa_step_id";
         $href .= "&ap_type_id=$approval_type";
@@ -267,7 +267,7 @@ if (isset($qastep)) {
         $s  = "<p>A request has been sent to $approver_fullname to review and ";
         $s .= "approve the Quality Assurance Step '$qastep->qa_step_desc' on this project. ";
         $s .= "The summary link for this step is provided here:<br>";
-        $href = $GLOBALS[base_dns] . "/qams-step-detail.php?project_id=$qastep->project_id&step_id=$qastep->qa_step_id";
+        $href = $URL_PREFIX . "/qams-step-detail.php?project_id=$qastep->project_id&step_id=$qastep->qa_step_id";
         $stlink = "<a href=\"$href\">$href</a>";
         $s .= "&nbsp;&nbsp;" . $stlink . "</p>";
         $project->QAMSNotifyEmail("QAMS Activity Notice", $s, $subject, $recipients);

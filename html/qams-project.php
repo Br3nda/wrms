@@ -56,7 +56,7 @@ switch ($qa_action) {
       $qastep->reapprove();
       if ($qastep->overall_approval_status() == "") {
         // Let everyone know what's going on..
-        $href  = $GLOBALS[base_dns] . "/qams-step-detail.php"; 
+        $href  = $URL_PREFIX . "/qams-step-detail.php"; 
         $href .= "?project_id=$project->request_id";
         $href .= "&step_id=$qastep->qa_step_id";
         $link = "<a href=\"$href\">$href</a>";

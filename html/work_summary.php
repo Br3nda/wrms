@@ -4,7 +4,7 @@ require_once("authorisation-page.php");
 
 $session->LoginRequired();
 include("code-list.php");
-include( "user-list.php" );
+include("user-list.php");
 include("headers.php");
 include("system-list.php");
 include("organisation-list.php");
@@ -14,12 +14,9 @@ $title = "$system_name Work Summary";
 // Recommended way of limiting queries to not include sub-tables for 7.1
 $result = awm_pgexec( $dbconn, "SET SQL_Inheritance TO OFF;" );
 
-
 // Initialise variables.
-
-if ( !isset($from_date) ) $from_date = date('01/m/y', strtotime('-1 month'));
+if ( !isset($from_date) ) $from_date = date('01/m/y', mktime(0, 0, 0, date("m"), 0,  date("Y")));
 if ( !isset($to_date) )   $to_date   = date('d/m/y',mktime(0, 0, 0, date("m"), 0,  date("Y")));
-
 if ( !isset($break_columns) ) $break_columns = 2;
 
 if ( is_member_of('Admin', 'Support' ) ) {
@@ -28,14 +25,13 @@ if ( is_member_of('Admin', 'Support' ) ) {
 }
 else $system_list = get_system_list( "CES", $system_id);
 
-
 $organisation_list = get_organisation_list($organisation_code);
 $request_types     = get_code_list( "request", "request_type", "$request_type" );
 $quote_types       = get_code_list( "request_quote", "quote_type", "$quote_type" );
 $period_total="week";
 
-$select_columns=array(""=>"","Organisation"=>"o.org_name","System"=>"r.system_id","WR#"=>"r.request_id","Work By"=>"rtu.fullname","Request Brief"=>"r.brief","Request Status"=>"r.last_status");
-
+$select_columns=array(""=>"","Organisation"=>"o.org_name","System"=>"ws.system_code","WR#"=>"r.request_id","Work By"=>"rtu.fullname","Request Brief"=>"r.brief","Request Status"=>"r.last_status");
+// $select_columns=array(""=>"","Organisation"=>"o.org_name","System"=>"r.system_id","WR#"=>"r.request_id","Work By"=>"rtu.fullname","Request Brief"=>"r.brief","Request Status"=>"r.last_status");
 
 function buildSelect($name, $key_values, $current ) {
         // global $select_columns;
@@ -98,17 +94,17 @@ function insert_period_totals() {
         $trs=$theads[0]->get_elements_by_tagname("tr");
         $ths=$trs[0]->get_elements_by_tagname("th");
 
-        $first_subtotal_col=$subtotal_column_start+1+bcmod(7-jddayofweek($j_from_date),7);
+        $first_subtotal_col=$subtotal_column_start+bcmod(7-jddayofweek($j_from_date),7);
 
         // Loop thru ths adding subtotal cols after each sunday
-        for ($j=$first_subtotal_col;$j<=count($ths);$j+=7) {
+        for ($j=$first_subtotal_col;$j<count($ths);$j+=7) {
 
             $th=$doc->create_element("th");
             $th->set_content("sub total");
             $th->set_attribute("class","cols period");
 
-            if   (is_null($ths[$j])) $trs[0]->append_child($th);
-            else $th->insert_before($th, $ths[$j]);
+            if   (is_null($ths[$j]->next_sibling())) $trs[0]->append_child($th);
+            else $th->insert_before($th, $ths[$j]->next_sibling());
         }
         $th=$doc->create_element("th");
         $th->set_content("total");
@@ -122,12 +118,12 @@ function insert_period_totals() {
             $tds=$trs[$i]->get_elements_by_tagname("td");
             $subtotal=0;
             $total=0;
-            // Loop thru ths adding subtotal cols after each sunday
+            // Loop thru tds adding subtotal cols after each sunday
             for ($j=$subtotal_column_start;$j<count($tds);$j++) {
-                if (bcmod($j-$first_subtotal_col,7)==0) {
+                if (bcmod($j-$first_subtotal_col,7)==0 ) {
                     $td=$doc->create_element("td");
-                    if   (is_null($tds[$j])) $trs[0]->append_child($td);
-                    else $td->insert_before($td, $tds[$j]);
+                    if   (is_null($tds[$j]->next_sibling())) $trs[$i]->append_child($td);
+                    else $td->insert_before($td, $tds[$j]->next_sibling());
                     if ($subtotal != 0) $td->set_content(number_format($subtotal,2));
                     $total=$total+$subtotal;
                     $subtotal=0;
@@ -136,15 +132,15 @@ function insert_period_totals() {
                 }
                 $subtotal=$subtotal+$tds[$j]->get_content();
             }
+            // Insert Total column
             $total=$total+$subtotal;
             $td=$doc->create_element("td");
             $td->set_attribute("class","sml period");
             $td->set_attribute("align","right");
             $trs[$i]->append_child($td);
-            if ($total != 0) $td->set_content(number_format($total,2));
+            if ($total != 0) $td->set_content(number_format($total,2)); 
         }
 }
-
 
 ?>
 
@@ -168,7 +164,7 @@ function insert_period_totals() {
           <?php echo $system_list; ?>
         </select>
       </td>
-      
+
       <td class=sml><label for="users">Work By</label></td>
       <td class=sml>
         <select class=sml name="users[]" id="users" size="6" multiple="true">
@@ -184,7 +180,6 @@ function insert_period_totals() {
             // Number of break columns to do subtotals by.-!>
             echo buildSelect("break_columns", array(0=>0,1=>1,2=>2,3=>3),$break_columns) ;
         ?>
-      
       <label class="sml" for="from_date">From Date</label>
       <input type=text name="from_date" id="from_date" class="sml" size=10<?php if ("$from_date" != "") echo " value=$from_date";?>>
       <label for="to_date" class=sml>To Date</label>
@@ -212,7 +207,11 @@ if ( isset($organisation_code )) $organisation_code=array_filter($organisation_c
 if ( isset($system_id)) $system_id=array_filter($system_id);
 if (isset($users)) $users=array_filter($users);
 
-if ( isset($organisation_code) || isset($system_id) || isset($users)) {
+ if ($_SERVER['REQUEST_METHOD'] == "POST") {
+ 
+// if ( isset($organisation_code) || isset($system_id) || isset($users)) {
+    // Select all data
+
     $columns=array_filter($columns);
 
     if (! array_search("WR#",$columns)) $columns[]="WR#" ;  // Always needs to be selected so subselects will work
@@ -220,14 +219,13 @@ if ( isset($organisation_code) || isset($system_id) || isset($users)) {
     $query  = "SELECT DISTINCT";
     foreach ($columns as $column) $query .= "  $select_columns[$column]  AS \"$column\" ,\n";
 
-    $query .= " ARRAY(SELECT date(rt2.work_on) FROM request_timesheet rt2 WHERE rt2.request_id = r.request_id";
-
+    $query .= " ARRAY(SELECT date(rt2.work_on) FROM request_timesheet rt2 WHERE rt2.request_id = r.request_id AND rt2.work_units = 'hours'";
     if (array_search("Work By",$columns)!==false) $query .= " AND rt2.work_by_id = rt.work_by_id" ;
 
     $query .= " AND date(rt2.work_on) >= '$from_date' AND date(rt2.work_on) <= '$to_date'
                     GROUP BY date(rt2.work_on) ORDER BY date(rt2.work_on)) AS date,\n";
 
-    $query .= " ARRAY(SELECT SUM(rt2.work_quantity) FROM request_timesheet rt2 WHERE rt2.request_id = r.request_id" ;
+    $query .= " ARRAY(SELECT SUM(rt2.work_quantity) FROM request_timesheet rt2 WHERE rt2.request_id = r.request_id AND rt2.work_units = 'hours'" ;
     if (array_search("Work By",$columns)!==false) $query .= " AND rt2.work_by_id = rt.work_by_id" ;
 
     $query .= " AND date(rt2.work_on) >= '$from_date' AND date(rt2.work_on) <= '$to_date'
@@ -235,6 +233,7 @@ if ( isset($organisation_code) || isset($system_id) || isset($users)) {
 
     $query .= " FROM request r\n";
     $query .= " LEFT JOIN usr rqu ON rqu.user_no = r.requester_id\n";
+    $query .= " LEFT JOIN work_system ws USING (system_id)\n";
     $query .= " LEFT JOIN organisation o USING (org_code)\n";
     $query .= " LEFT OUTER JOIN request_timesheet rt  USING (request_id)\n";
     $query .= " LEFT OUTER JOIN usr rtu ON rtu.user_no = rt.work_by_id\n";
@@ -267,16 +266,15 @@ if ( isset($organisation_code) || isset($system_id) || isset($users)) {
 
     // Create column headers for selected fields.
     $xthead = $xtable->new_child("thead", "");
-    $xtr = $xthead->new_child("tr", "");
+    $xthr = $xthead->new_child("tr", "");
     $clone_tr = $doc->create_element("tr");
 
     foreach ($columns as $column) {
-        $xth = $xtr->new_child("th", $column);
+        $xth = $xthr->new_child("th", $column);
         $xth->set_attribute("class", "cols");
         $clone_td = $doc->create_element("td");
         $clone_td = $clone_tr->append_child($clone_td);
         $clone_td->set_attribute("class", "sml");
-        $clone_td->set_attribute("nowrap","nowrap");
     }
 
     list($day, $month, $year) = explode('/', nice_date($from_date));
@@ -293,7 +291,7 @@ if ( isset($organisation_code) || isset($system_id) || isset($users)) {
     for ($day = 0; $day <= $j_to_date - $j_from_date; $day++ ) {
             $temp_timestamp = mktime($temp_date["hour"],$temp_date["minutes"],$temp_date["seconds"],$temp_date["mon"],$temp_date["mday"] + $day,$temp_date["year"]);
             $day_array[date("Y-m-d", $temp_timestamp)] = $day;
-            $xth = $xtr->new_child("th", date("D d m y", $temp_timestamp));
+            $xth = $xthr->new_child("th", date("D d m y", $temp_timestamp));
             $xth->set_attribute("class", "cols");
 
             $clone_td = $doc->create_element("td");
@@ -302,6 +300,11 @@ if ( isset($organisation_code) || isset($system_id) || isset($users)) {
             else $clone_td->set_attribute("class","sml");
             $clone_td->set_attribute("align","right");
     }
+
+    // Create table footer with empty row
+    $xtfoot = $xtable->new_child("tfoot", "");
+    $xtfr = $xtfoot->new_child("tr", "");
+
 
     // How many columns to skip over when starting any subtotal calculations.
     $subtotal_column_start = count($columns);
@@ -341,15 +344,12 @@ if ( isset($organisation_code) || isset($system_id) || isset($users)) {
             foreach ($xtrows=$xtbody->get_elements_by_tagname("tr") as $key=>$xtrow) {
                 $xtds=$xtrow->get_elements_by_tagname("td");
 
-
                 // Check for break. Insert subtotal rows if needed.
                 for ($i = 1; $i<=($break_columns); $i++){
                     if ($xtds[$i-1]->get_content() != $prev_break[$i]){
-                        // if ($key!=count($xtrows)-1 ) { // Don't need if last row.
                             if ($key != 0) insert_subtotal($xtrows[$key-1], $subtotal[$i], $i);
-                            if ($i<$break_columns-2) $prev_break[$i+1]="";
-                        // }
-                        $prev_break[$i]=$xtds[$i-1]->get_content();
+                            if ($i<$break_columns) $prev_break[$i+1]="";
+                            $prev_break[$i]=$xtds[$i-1]->get_content();
                     }
                 }
 
@@ -367,6 +367,9 @@ if ( isset($organisation_code) || isset($system_id) || isset($users)) {
         }
     }
 
+    $xtd = $xtfr->new_child("td","Rows selected: " . pg_NumRows($result));
+    $xtd->set_attribute("colspan", count($xthr->child_nodes()));
+
     // Output the html table
     echo $doc->html_dump_mem(true);
 
@@ -374,5 +377,3 @@ if ( isset($organisation_code) || isset($system_id) || isset($users)) {
 
     include("footers.php");
 ?>
-
-

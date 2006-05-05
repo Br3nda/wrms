@@ -30,6 +30,9 @@ define("STEP_ID_ACCEPT_TESTS", 25);
 define("STEP_ID_MAINTPLAN", 27);
 define("STEP_ID_POSTREVIEW", 28);
 
+// Prefix for building page URLs..
+$URL_PREFIX = ($_SERVER["HTTPS"] != "" ? "https" : "http") . "://"
+            . $_SERVER["HTTP_HOST"];
 // -----------------------------------------------------------------------
 /**
  * This class is a container for a set of projects.

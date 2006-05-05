@@ -215,7 +215,7 @@ if (isset($qastep)) {
 
       // Summary link for step..      
       $s .= "<p>The summary link for this step is provided here:<br>";
-      $href = $GLOBALS[base_dns] . "/qams-step-detail.php?project_id=$qastep->project_id&step_id=$qastep->qa_step_id";
+      $href = $URL_PREFIX . "/qams-step-detail.php?project_id=$qastep->project_id&step_id=$qastep->qa_step_id";
       $stlink = "<a href=\"$href\">$href</a>";
       $s .= "&nbsp;&nbsp;" . $stlink . "</p>";
       

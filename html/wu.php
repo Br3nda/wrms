@@ -27,10 +27,10 @@
 
   $title = "$system_name - " . ucfirst($form);
   $right_panel = true;
-  include("headers.php");
+  include("page-header.php");
 
   include("$form-form.php");
 
-  include("footers.php");
+  include("page-footer.php");
 
 ?>

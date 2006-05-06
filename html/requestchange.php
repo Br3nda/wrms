@@ -8,7 +8,7 @@ if ( !$qry->Exec("rqchange") || $qry->rows == 0 ) {
   $error_message = "Can't find any active systems";
 }
   require_once("top-menu-bar.php");
-  require_once("headers.php");
+  require_once("page-header.php");
 
 // Fetch the systems into an array
 while( $row = $qry->Fetch() ) {
@@ -67,6 +67,6 @@ foreach( $systems AS $scode => $sys ) {
 }
 echo "</table>\n";
 
-include("footers.php");
+include("page-footer.php");
 
 ?>

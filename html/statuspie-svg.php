@@ -61,11 +61,11 @@
   $pie = new PieChart( $sql );
 
 /*
-  include("headers.php");
+  include("page-header.php");
 */
   $pie->Render();
 /*
-  include("footers.php");
+  include("page-footer.php");
 */
   error_reporting(7);
   if ( $debuglevel > 0 ) {

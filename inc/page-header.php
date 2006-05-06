@@ -17,9 +17,30 @@ function send_headers() {
   echo "<!DOC"."TYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\" \"http://www.w3.org/TR/REC-html40/loose.dtd\">\n";
   echo "<html>\n<head>\n<title>$title</title>\n";
 
-  if ( !isset($stylesheet) ) $stylesheet = "main.css";
-  echo '<link rel="stylesheet" type="text/css" href="'.$stylesheet.'" />' . "\n";
-  echo '<script language="JavaScript" src="js/date-picker.js"></script>' . "\n";
+//  if ( !isset($stylesheet) ) $stylesheet = "main.css";
+//  echo '<link rel="stylesheet" type="text/css" href="'.$stylesheet.'" />' . "\n";
+  foreach ( $c->stylesheets AS $stylesheet ) {
+    echo "<link rel=\"stylesheet\" type=\"text/css\" href=\"$stylesheet\" />\n";
+  }
+  if ( isset($c->local_styles) ) {
+    // Always load local styles last, so they can override prior ones...
+    foreach ( $c->local_styles AS $stylesheet ) {
+      echo "<link rel=\"stylesheet\" type=\"text/css\" href=\"$stylesheet\" />\n";
+    }
+  }
+
+  if ( isset($c->print_styles) ) {
+    // Finally, load print styles last, so they can override all of the above...
+    foreach ( $c->print_styles AS $stylesheet ) {
+      echo "<link rel=\"stylesheet\" type=\"text/css\" href=\"$stylesheet\" media=\"print\"/>\n";
+    }
+  }
+
+  if ( isset($c->scripts) ) {
+    foreach ( $c->scripts AS $script ) {
+      echo "<script language=\"JavaScript\" src=\"$script\"></script>\n";
+    }
+  }
 
   $fontsizes = array( "xx-small", "x-small", "small", "medium" );
   if ( is_object($settings) )
@@ -172,7 +193,7 @@ th.cols, th.rows, a.cols  {font: small-caps bold $fontsizes[1] $fonts[0], sans-s
     echo "<table border=\"0\" width=\"450\" cellspacing=\"0\" cellpadding=\"0\" bgcolor=\"$colors[bgerr]\" fgcolor=\"$colors[fgerr]\" align=center><tr>\n";
     echo "<th class=error>$error_message$warn_message<th>\n</tr></table>\n<br clear=all>";
     if ( isset($error_message) && $error_message <> "" ) {
-      include("footers.php");
+      include("page-footer.php");
       exit;
     }
   }

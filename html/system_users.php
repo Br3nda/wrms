@@ -37,8 +37,8 @@ function write_system_roles( $roles, $system_id ) {
   if ( "$system_id" == 0 ) {
     $c->messages[] = "System ID was not supplied.";
     require_once("top-menu-bar.php");
-    include("headers.php");
-    include("footers.php");
+    include("page-header.php");
+    include("page-footer.php");
     exit;
   }
 
@@ -46,7 +46,7 @@ function write_system_roles( $roles, $system_id ) {
     write_system_roles( $_POST['role'], $system_id );
 
   require_once("top-menu-bar.php");
-  include("headers.php");
+  include("page-header.php");
 
   // Select the possible system roles for the select boxes.
   $sql = "SELECT lookup_code, lookup_desc FROM lookup_code ";
@@ -200,5 +200,5 @@ SCRIPT;
     echo $ef->EndForm();
   }
 
-  include("footers.php");
+  include("page-footer.php");
 ?>

@@ -10,7 +10,7 @@
     // Recommended way of limiting queries to not include sub-tables for 7.1
     $result = awm_pgexec( $dbconn, "SET SQL_Inheritance TO OFF;" );
 
-  include("headers.php");
+  include("page-header.php");
 
   // Initialise variables.
   include("system-list.php");
@@ -274,5 +274,5 @@
   echo "\n<small>" . $printed_rows . " requests found</small>";
     }
 
-    include("footers.php");
+    include("page-footer.php");
 ?>

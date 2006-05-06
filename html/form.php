@@ -15,10 +15,10 @@
   $title = "$system_name - " . ucfirst($form);
   $right_panel = false;
   require_once("top-menu-bar.php");
-  require_once("headers.php");
+  require_once("page-header.php");
 
   include("$form-form.php");
 
-  include("footers.php");
+  include("page-footer.php");
 
 ?>

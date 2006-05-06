@@ -12,10 +12,10 @@
   $title = "$system_name - Weekly Timesheet: $session->fullname";
   $right_panel = false;
   require_once("top-menu-bar.php");
-  include("headers.php");
+  include("page-header.php");
 
 // Helper function to tidy the automatic remembrance of our numeric settings
-// $settings are saved to the user record within "footers.php"
+// $settings are saved to the user record within "page-footer.php"
 function get_numeric_setting( $name, $current, $default ) {
   global $settings;
 
@@ -222,6 +222,6 @@ EOQRY;
   }
 
   // Close off page and write the $settings out
-  include("footers.php");
+  include("page-footer.php");
 
 ?>

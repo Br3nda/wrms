@@ -8,7 +8,7 @@
 
   $title = "$system_name User Search";
   require_once("top-menu-bar.php");
-  include("headers.php");
+  include("page-header.php");
 
   if ( ! is_member_of('Admin','Support','OrgMgr') ) {
     echo "<p class=error>Unauthorised</p>\n";
@@ -110,5 +110,5 @@
 
   } /* The end of the else ... clause waaay up there! */
 
-  include("footers.php");
+  include("page-footer.php");
 ?>

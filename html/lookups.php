@@ -6,7 +6,7 @@
   include("lookwrite.php");
 
   $title = "$system_name - " . ucfirst("$table") . ", " . ucfirst("$field");
-  include("headers.php");
+  include("page-header.php");
   include("lookhead.php");
 
   if ( $logged_on && "$error_loc$error_msg" == "" ) {
@@ -23,5 +23,5 @@ resembling &quot;--- not selected ---&quot; to allow the user not entering a val
 spaces. It will usually be interpreted by computers rather than people, but it will be sent
 back and forth several times for each form submitted.</p>
 <?php
-  include("footers.php");
+  include("page-footer.php");
 ?>

@@ -61,12 +61,12 @@
   include_once("search_listing_functions.php");
   include_once("search_build_query.php");
 
-  include("headers.php");
+  include("page-header.php");
   echo '<script language="JavaScript" src="/js/wrsearch.js"></script>' . "\n";
 
   include_once("search_form.php");
   include_once("search_list_results.php");
 
-  include("footers.php");
+  include("page-footer.php");
 
 ?>

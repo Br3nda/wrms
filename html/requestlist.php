@@ -364,7 +364,7 @@ function column_header( $ftext, $fname ) {
   }
 
   require_once("top-menu-bar.php");
-  require_once("headers.php");
+  require_once("page-header.php");
 
 if ( ! is_member_of('Request') || ((isset($error_msg) || isset($error_qry)) && "$error_msg$error_qry" != "") ) {
   // error_log( "Error: Msg:$error_msg, Qry:$error_qry, Membership: ".is_member_of('Request'));
@@ -836,6 +836,6 @@ $query";
 
 } /* The end of the else ... clause waaay up there! */
 
-include("footers.php");
+include("page-footer.php");
 
 ?>

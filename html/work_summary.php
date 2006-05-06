@@ -5,7 +5,7 @@ require_once("authorisation-page.php");
 $session->LoginRequired();
 include("code-list.php");
 include( "user-list.php" );
-include("headers.php");
+include("page-header.php");
 include("system-list.php");
 include("organisation-list.php");
 
@@ -372,7 +372,7 @@ if ( isset($organisation_code) || isset($system_id) || isset($users)) {
 
 }
 
-    include("footers.php");
+    include("page-footer.php");
 ?>
 
 

@@ -11,7 +11,7 @@ require_once("authorisation-page.php");
     $result = awm_pgexec( $dbconn, "SET SQL_Inheritance TO OFF;" );
 
   require_once("top-menu-bar.php");
-  require_once("headers.php");
+  require_once("page-header.php");
 
   // Initialise variables.
   include("system-list.php");
@@ -227,5 +227,5 @@ $query";
 
 
 
-  include("footers.php");
+  include("page-footer.php");
 ?>

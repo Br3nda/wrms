@@ -31,10 +31,10 @@ elseif ( !$session->just_logged_in && isset($action) ) {
 }
 
   require_once("top-menu-bar.php");
-  require_once("headers.php");
+  require_once("page-header.php");
   echo '<script language="JavaScript" src="/js/request.js"></script>' . "\n";
 
   echo $wr->Render();
 
-  include("footers.php");
+  include("page-footer.php");
 ?>

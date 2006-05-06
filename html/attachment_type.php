@@ -2,9 +2,9 @@
 require_once("always.php");
 require_once("authorisation-page.php");
 if ( !$session->logged_in ) {
-  include("headers.php");
+  include("page-header.php");
   echo "<h3>Please log on for access to work requests</h3>\n";
-  include("footers.php");
+  include("page-footer.php");
   exit;
 }
 
@@ -42,9 +42,9 @@ else {
 $show = 0;
 
   require_once("top-menu-bar.php");
-  require_once("headers.php");
+  require_once("page-header.php");
 
   echo $att->Render();
 
-  include("footers.php");
+  include("page-footer.php");
 ?>

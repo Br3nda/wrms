@@ -22,9 +22,9 @@
       }
     }
   }
-  include("headers.php");
+  include("page-header.php");
 
   echo $org->Render();
 
-  include("footers.php");
+  include("page-footer.php");
 ?>

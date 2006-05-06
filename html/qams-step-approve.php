@@ -269,9 +269,9 @@ else {
 // -----------------------------------------------------------------------------
 // DELIVER..
 require_once("top-menu-bar.php");
-require_once("headers.php");
+require_once("page-header.php");
 
 echo $content;
 
-include("footers.php");
+include("page-footer.php");
 ?>

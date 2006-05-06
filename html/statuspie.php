@@ -114,7 +114,7 @@
   }
 
 
-  include("headers.php");
+  include("page-header.php");
   echo '<script language="JavaScript" src="/js/statuspie.js"></script>' . "\n";
 
   echo RenderPieForm();
@@ -143,6 +143,6 @@ Internet Explorer that will also do the job.
 
 EOHTML;
 
-  include("footers.php");
+  include("page-footer.php");
 
 ?>

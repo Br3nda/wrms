@@ -11,6 +11,8 @@ $error_msg = "";
 $warn_msg = "";
 $client_messages = array();
 
+$c->stylesheet = array("wrms.css");
+
 error_log( "=============================================== Start $PHP_SELF for $HTTP_HOST" );
 if ( file_exists("/etc/wrms/".$HTTP_HOST."-conf.php") ) {
   include_once("/etc/wrms/".$HTTP_HOST."-conf.php");
@@ -26,6 +28,9 @@ $c->sysabbr     = $sysabbr;
 $c->admin_email = $admin_email;
 $c->system_name = $system_name;
 $c->base_dns    = $base_dns;
+$c->scripts[]   = "js/date-picker.js";
+
+if ( isset($stylesheet) ) $c->stylesheets[0] = $stylesheet;
 
 require_once("PgQuery.php");
 require_once("html-format.php");
@@ -150,6 +155,53 @@ function nice_date($str) {
   return $date;
 }
 
+require_once("WRMSSession.php");
+
+/**
+* Given a variable that has come from the client, escape the crap out of it
+* so it is safe to use.
+* @param string $unclean The variable we will be fixing
+* @return string The cleaned variable
+*/
+function clean_component_name( $unclean ) {
+  global $session;
+  $cleaned = strtolower($unclean);
+  $cleaned = preg_replace( "/[\"!'\\\\()\[\]|\/*{}&%@~.;:?<>]/", '', $cleaned );
+  $session->Dbg( "Always", "Cleaned component name from <<%s>> to <<%s>>", $unclean, $cleaned );
+  return $cleaned;
+}
+
+
+/**
+* Given a URL (presumably the current one) and a parameter, replace the value of parameter,
+* extending the URL as necessary if the parameter is not already there.
+* @param string $uri The URI we will be replacing parameters in.
+* @param array $replacements An array of replacement pairs array( "replace_this" => "with this"
+ )
+* @return string The URI with the replacements done.
+*/
+function replace_uri_params( $uri, $replacements ) {
+  global $session;
+
+  $replaced = $uri;
+  foreach( $replacements AS $param => $new_value ) {
+    $rxp = preg_replace( '/([\[\]])/', '\\\\$1', $param );  // Some parameters may be arrays.
+    $regex = "/([&?])($rxp)=([^&]+)/";
+    $session->Dbg("Always", "Looking for [%s] to replace with [%s] regex is %s and searching [%s]", $param, $new_value, $regex, $replaced );
+    if ( preg_match( $regex, $replaced ) )
+      $replaced = preg_replace( $regex, "\$1$param=$new_value", $replaced);
+    else
+      $replaced .= "&$param=$new_value";
+  }
+  if ( ! preg_match( '/\?/', $replaced  ) ) {
+    $replaced = preg_replace("/&(.+)$/", "?\$1", $replaced);
+  }
+  $replaced = str_replace("&amp;", "--AmPeRsAnD--", $replaced);
+  $replaced = str_replace("&", "&amp;", $replaced);
+  $replaced = str_replace("--AmPeRsAnD--", "&amp;", $replaced);
+  $session->Dbg("Always", "URI <<$uri>> morphed to <<$replaced>>");
+  return $replaced;
+}
 
 
 //-----------------------------------------

@@ -276,5 +276,6 @@
     <item url="scripts/patches/patch-1.99.11.sql" uploadstatus="1" />
     <item url="inc/wrms_configuration_missing.php" uploadstatus="1" />
     <item url="html/saved_searches.php" />
+    <item url="inc/WRMSSession.php" />
   </project>
 </webproject>

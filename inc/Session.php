@@ -614,7 +614,7 @@ EOTEXT;
     if ( $this->logged_in && $groups == "" ) return;
     if ( ! $this->logged_in ) {
       $c->messages[] = "You must log in to use this system.";
-      include_once("headers.php");
+      include_once("page-header.php");
       if ( function_exists("local_index_not_logged_in") ) {
         local_index_not_logged_in();
       }
@@ -635,10 +635,10 @@ EOHTML;
         if ( $this->AllowedTo($v) ) return;
       }
       $c->messages[] = "You are not authorised to use this function.";
-      include_once("headers.php");
+      include_once("page-header.php");
     }
 
-    include("footers.php");
+    include("page-footer.php");
     exit;
   }
 
@@ -783,9 +783,9 @@ on will have the existing password invalidated.</p>
 </div>
 EOTEXT;
     }
-    include_once("headers.php");
+    include_once("page-header.php");
     echo $page_content;
-    include_once("footers.php");
+    include_once("page-footer.php");
     exit(0);
   }
 

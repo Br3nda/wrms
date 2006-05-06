@@ -150,9 +150,9 @@ $PROJECTS_LIST = $s;
 // These go last of all, since they are content
 // replacements within replacements..
 require_once("top-menu-bar.php");
-require_once("headers.php");
+require_once("page-header.php");
 
 echo $PROJECTS_LIST;
 
-include("footers.php");
+include("page-footer.php");
 ?>

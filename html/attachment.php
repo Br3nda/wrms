@@ -10,9 +10,9 @@
   require_once("authorisation-page.php");
 
 if ( !$session->logged_in ) {
-  include("headers.php");
+  include("page-header.php");
   echo "<h3>Please log on for access to attachments</h3>\n";
-  include("footers.php");
+  include("page-footer.php");
   exit;
 }
 

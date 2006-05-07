@@ -126,9 +126,8 @@ INDEXNOTLOGGEDIN;
 
       echo '<span class="prompt" style="vertical-align: 0%;">Find:</span>';
       echo '<span class="entry"><input class="search_for" type="text" name="search_for" value="'.$GLOBALS['search_for'].'"/></span>';
-
       $systems = new PgQuery(SqlSelectSystems($GLOBALS['org_code']));
-      $system_list = $systems->BuildOptionList($GLOBALS['system_id'],'Config::LocPgHdr');
+      $system_list = $systems->BuildOptionList($GLOBALS['system_id'],'PageHeader');
       echo '<span class="prompt" style="vertical-align: 0%;">Systems:</span>';
       echo '<span class="entry"><select name="system_id" class="search_for"><option value="">-- select --</option>'.$system_list;
       echo '</select></span>';

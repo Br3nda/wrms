@@ -1,16 +1,21 @@
 <?php
-/////////////////////////////////////////////////////////////
-//   C L A S S   F O R   W O R K   R E Q U E S T S
-/////////////////////////////////////////////////////////////
+/**
+* Class for work requests.
+* @package   wrms
+* @subpackage   Request
+* @author    Andrew McMillan <andrew@catalyst.net.nz>
+* @copyright Catalyst IT Ltd
+* @license   http://gnu.org/copyleft/gpl.html GNU GPL v2
+*/
 require_once("guess-file-type.php");
 require_once('class.phpmailer.php');
 require_once("organisation-selectors-sql.php");
 
-/////////////////////////////////////////////////////////////
-// Due to browsers submitting differently, we simplify a whole
-// lot of the string before we compare these to see if the
-// user has actually changed stuff.  Bizarre but true.
-/////////////////////////////////////////////////////////////
+/**
+* Due to browsers submitting differently, we simplify a whole
+* lot of the string before we compare these to see if the
+* user has actually changed stuff.  Bizarre but true.
+*/
 function simplify_string( $str ) {
 
   $result = strtolower(stripslashes($str));
@@ -40,6 +45,10 @@ function simplify_string( $str ) {
 }
 
 
+/**
+* Class for work requests.
+* @package wrms
+*/
 class Request {
   var $request_id;         // Which WR is this
   var $new_record;
@@ -579,7 +588,7 @@ class Request {
   // Display the files attached to the W/R
   /////////////////////////////////////////////////////////////
   function RenderAttachments( $ef ) {
-    global $session;
+    global $session, $theme;
     $html = "";
     $sql = "SELECT att_filename, attachment_id, att_brief, att_description, ";
     $sql .= "to_char(attached_on, 'HH24:MI DD-MM-YYYY') AS att_on, fullname, type_desc ";
@@ -606,7 +615,7 @@ class Request {
       $attachment_format .= '<td class="entry" style="white-space: nowrap;">%s</td><td class="entry" style="white-space: nowrap;">%s</td><td class="entry" style="white-space: nowrap;">%s</td><td class="entry">%s</td>';
       $attachment_format .= ( $ef->editmode ? '<td class="entry" width="2%%">%s</td>' : '%s');
       $attachment_format .= '</tr>'."\n";
-      $delete_link_format = '<a href="/wr.php?request_id=%d&action=removeatt&attachment_id=%d&edit=1" title="Remove attachment from this request"><img src="'.$GLOBALS['images'].'/delete.png" border="none"></a>';
+      $delete_link_format = '<a href="/wr.php?request_id=%d&action=removeatt&attachment_id=%d&edit=1" title="Remove attachment from this request">'.$theme->Image("delete.png").'</a>';
       while( $row = $q->Fetch() ) {
         $delete_link = ( $ef->editmode ? sprintf( $delete_link_format, $this->request_id, $row->attachment_id ) : '');
         $html .= sprintf( $attachment_format, ($q->rownum % 2),
@@ -752,10 +761,10 @@ class Request {
   // Render the details of any requests related to/from this one
   /////////////////////////////////////////////////////////////
   function RenderRelations( $ef ) {
-    global $session;
+    global $session, $theme;
     $html = "";
     $header_done = false;
-    $delete_link_format .= '<td class="entry" width="2%%"><a href="/wr.php?edit=1&request_id=%d&action=disassociate&other_id=%d" title="Break the association with this request"><img src="'.$GLOBALS['images'].'/delete.png" border="none"></a></td>';
+    $delete_link_format .= '<td class="entry" width="2%%"><a href="/wr.php?edit=1&request_id=%d&action=disassociate&other_id=%d" title="Break the association with this request">'.$theme->Image("delete.png").'</a></td>';
 
     $sql = "SELECT parent.*, request_request.*, parent.request_id AS parent_id, ";
     $sql .= "lsd.lookup_desc AS last_status_desc, llt.lookup_desc AS link_type_desc ";
@@ -868,7 +877,7 @@ class Request {
   // Display the people who are allocated to work on this
   /////////////////////////////////////////////////////////////
   function RenderAllocations( $ef ) {
-    global $session;
+    global $session, $theme;
     $html = "";
     $sql = "SELECT request_allocated.*, usr.fullname, usr.email, ";
     $sql .= "to_char(allocated_on, 'HH24:MI DD-MM-YYYY') AS alloc_on ";
@@ -884,7 +893,7 @@ class Request {
       $html .= '<tr><th class="prompt">&nbsp;</th><td class="entry" style="vertical-align: middle;">'."\n";
       $line_format = '<a href="/user.php?user_no=%d">%s</a>';
       if ( $ef->editmode ) {
-        $line_format .= '<a href="/wr.php?request_id=%d&action=deallocate&user_no=%d&edit=1" title="Deallocate %s from this request"><img src="'.$GLOBALS['images'].'/delete.png" border="none"></a>';
+        $line_format .= '<a href="/wr.php?request_id=%d&action=deallocate&user_no=%d&edit=1" title="Deallocate %s from this request">'.$theme->Image("delete.png").'</a>';
       }
       $line_format .= "&nbsp; &nbsp;\n";
       while( $row = $q->Fetch() ) {
@@ -922,7 +931,7 @@ class Request {
   /////////////////////////////////////////////////////////////
   /////////////////////////////////////////////////////////////
   function RenderTimesheets( $ef ) {
-    global $session, $sysabbr, $allwork;
+    global $session, $c, $theme, $sysabbr, $allwork;
 
     if ( ! $this->AllowedTo("viewtimesheets") ) return "";
     $html = "";
@@ -962,7 +971,7 @@ class Request {
       $line_format .= '<td class="entry" style="white-space: nowrap; text-align: right; ">%s</td>';
       $line_format .= '%s%s</tr>'."\n";
       $bill_ok_format = '<td class="entry" style="text-align: center; ">%s</td>';
-      $delete_link_format = '<td class="entry" width="2%%"><a href="/wr.php?request_id=%d&action=removets&timesheet_id=%d&edit=1" title="Remove timesheet from this request"><img src="'.$GLOBALS['images'].'/delete.png" border="none"></a></td>';
+      $delete_link_format = '<td class="entry" width="2%%"><a href="/wr.php?request_id=%d&action=removets&timesheet_id=%d&edit=1" title="Remove timesheet from this request">'.$theme->Image("delete.png").'</td>';
 
       $html .= '<tr><td colspan="2" class="entry"><table width="100%" class="entry">'."\n";
       $html .= '<tr><th class="pcol">Done&nbsp;By</th>';
@@ -1087,7 +1096,7 @@ class Request {
   // Display the people who are being notified about changes
   /////////////////////////////////////////////////////////////
   function RenderInterests( $ef ) {
-    global $session;
+    global $session, $theme;
     $html = "";
 
     $sql = "SELECT request_interested.*, usr.fullname, usr.email ";
@@ -1103,7 +1112,7 @@ class Request {
       $html .= '<tr><th class="prompt">&nbsp;</th><td class="entry" style="vertical-align: middle;">'."\n";
       $line_format = '<a href="/user.php?user_no=%d">%s</a>';
       if ( $ef->editmode ) {
-        $line_format .= '<a href="/wr.php?request_id=%d&action=unsubscribe&user_no=%d&edit=1" title="Unsubscribe %s from this request"><img src="'.$GLOBALS['images'].'/delete.png" border="none"></a>';
+        $line_format .= '<a href="/wr.php?request_id=%d&action=unsubscribe&user_no=%d&edit=1" title="Unsubscribe %s from this request">'.$theme->Image("delete.png").'</a>';
       }
       $line_format .= "&nbsp; &nbsp;\n";
       while( $row = $q->Fetch() ) {
@@ -1142,7 +1151,7 @@ class Request {
   // Display the tags that have been assigned to this W/R
   /////////////////////////////////////////////////////////////
   function RenderTags( $ef ) {
-    global $session;
+    global $session, $theme;
     $html = "";
 
     $sql = "SELECT organisation_tag.* ";
@@ -1159,7 +1168,7 @@ class Request {
       $html .= '<tr><th class="prompt">&nbsp;</th><td class="entry" style="vertical-align: middle;">'."\n";
       $line_format = '%s';
       if ( $ef->editmode ) {
-        $line_format .= '<a href="/wr.php?request_id=%d&action=untag&tag_id=%d&edit=1" title="Remove the %s tag from this request"><img src="'.$GLOBALS['images'].'/delete.png" border="none"></a>';
+        $line_format .= '<a href="/wr.php?request_id=%d&action=untag&tag_id=%d&edit=1" title="Remove the %s tag from this request">'.$theme->Image("delete.png").'</a>';
       }
       $line_format .= "&nbsp; &nbsp;\n";
       while( $row = $q->Fetch() ) {

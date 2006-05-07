@@ -3,7 +3,14 @@ function get_system_list( $access="", $current=0, $maxwidth=50 ) {
   global $dbconn;
   global $session, $roles;
   $system_id_list = "";
-  $current = intval("$current");
+
+  function int_val(&$item)
+  {
+    $item= strval(intval($item));
+  }
+
+  if   (is_array($current)) array_walk($current,'int_val');
+  else $current = intval("$current");
 
   $query = "SELECT work_system.system_id, system_desc ";
   $query .= "FROM work_system WHERE active ";
@@ -12,10 +19,11 @@ function get_system_list( $access="", $current=0, $maxwidth=50 ) {
     $query .= " AND user_no=$session->user_no ";
     $query .= " AND role~*'[$access]') ";
   }
-  if ( $current <> "" ) {
-    $query .= " OR work_system.system_id=$current";
-  }
-  $query .= " ORDER BY LOWER(system_id);";
+
+  if      (is_array($current)) $query .= " OR work_system.system_id IN (" . implode(",",$current) . ") " ;
+  else if ( $current <> "" )   $query .= " OR work_system.system_id=$current";
+
+  $query .= " ORDER BY LOWER(system_desc);";
 
   $rid = awm_pgexec( $dbconn, $query);
   if ( ! $rid ) return;

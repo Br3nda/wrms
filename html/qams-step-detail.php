@@ -39,31 +39,31 @@ include_once("qams-project-defs.php");
 // FUNCTIONS
 function ContentForm(&$project, &$qastep, $view_history="no") {
   global $session;
-  
+
   $have_admin = $project->qa_process->have_admin;
-  
+
   $s = "";
   $s .= "<table cellspacing=\"2\" cellpadding=\"2\" width=\"100%\">\n";
   $s .= "<tr class=\"row0\">";
-  
+
   // Project brief..
   $s .= "<tr class=\"row1\">";
   $s .= "<th width=\"30%\" class=\"prompt\"><b>Project:</b> </th>";
   $s .= "<td width=\"70%\">$project->brief</td>";
   $s .= "</tr>\n";
-  
+
   // WRMS step link..
   $href  = "/wr.php?request_id=$qastep->request_id";
   $label = "[WRMS $qastep->request_id]";
   $title = "Go to the WRMS record for this QA step (new window)";
   $link  = "<a href=\"$href\" title=\"$title\">$label</a>";
-  
+
   // Step description..
   $s .= "<tr class=\"row1\">";
   $s .= "<th class=\"prompt\"><b>Step:</b> </th>";
   $s .= "<td>" . $qastep->qa_step_desc . "&nbsp;&nbsp;" . $link . "</td>";
   $s .= "</tr>\n";
-  
+
   if ($qastep->qa_document_title != "") {
     $s .= "<tr class=\"row1\">";
     $s .= "<th class=\"prompt\"><b>Associated document:</b> </th>";
@@ -76,13 +76,13 @@ function ContentForm(&$project, &$qastep, $view_history="no") {
       $s .= "</tr>\n";
     }
   }
-  
+
   // Step notes..
   $s .= "<tr class=\"row1\">";
   $s .= "<th class=\"prompt\"><b>Notes for reviewers:</b> </th>";
   $s .= "<td>" . $qastep->qa_step_notes . "</td>";
   $s .= "</tr>\n";
-  
+
   // Special notes..
   if ($qastep->special_notes != "") {
     $s .= "<tr class=\"row1\">";
@@ -100,7 +100,7 @@ function ContentForm(&$project, &$qastep, $view_history="no") {
         $project->project_manager => $project->project_manager_fullname,
         $project->qa_mentor => $project->qa_mentor_fullname
         );
-    $allocatables = $project->allocated + $extras; 
+    $allocatables = $project->allocated + $extras;
     foreach ($allocatables as $user_no => $fullname) {
       $F .= "<option value=\"$user_no\"";
       if ($user_no == $qastep->responsible_usr) {
@@ -109,12 +109,12 @@ function ContentForm(&$project, &$qastep, $view_history="no") {
       $F .= ">$fullname</option>\n";
     }
     $F .= "</select>\n";
-    
+
     $s .= "<tr class=\"row0\">";
     $s .= "<th class=\"prompt\"><b>Assigned to:</b> </th>";
     $s .= "<td>" . $F . "</td>";
     $s .= "</tr>\n";
-    
+
     $assignment = $qastep->assigned();
     if ($assignment !== false) {
       $s .= "<tr class=\"row0\">";
@@ -124,7 +124,7 @@ function ContentForm(&$project, &$qastep, $view_history="no") {
           . "</td>";
       $s .= "</tr>\n";
     }
-    
+
     $s .= "<tr class=\"row0\">";
     $s .= "<th>&nbsp;</th>";
     $s .= "<td style=\"padding-right:30px\">"
@@ -133,11 +133,11 @@ function ContentForm(&$project, &$qastep, $view_history="no") {
             . "an e-mail to them, containing all of the relevant details.</i></p>"
             . "</td>";
     $s .= "</tr>\n";
-    
+
     // Empty text area for assignment notes..
     $F  = "<textarea name=\"assignment_covernotes\" style=\"width:400px;height:150px\">";
     $F .= "</textarea>";
-    
+
     $s .= "<tr class=\"row0\">";
     $s .= "<th class=\"prompt\"><b>Assignment notes:</b> </th>";
     $s .= "<td>" . $F . "</td>";
@@ -171,7 +171,7 @@ function ContentForm(&$project, &$qastep, $view_history="no") {
   $s .= "<th class=\"prompt\"><b>Current approval statuses:</b> </th>";
   $s .= "<td>" . $qastep->render_approval_types($have_admin) . "</td>";
   $s .= "</tr>\n";
-  
+
   // Approvals being sought..
   $cnt = 0;
   $approvals = $qastep->approvals();
@@ -180,18 +180,18 @@ function ContentForm(&$project, &$qastep, $view_history="no") {
     if (($approval->approval_status == "p" || $approval->approval_status == "")
       && $approval->assigned_datetime != ""
     ) {
-      
+
       $days  = "<span style=\"color:orange\" title=\"Days since approval was requested\">";
       $days .= "(" . $approval->since_assignment_days() . " days)";
       $days .= "</span>";
-      
+
       $seek = $approval->qa_approval_type_desc . "&nbsp;sought";
       if ($approval->assigned_fullname != "") {
         $seek .= "&nbsp;from&nbsp;" . $approval->assigned_fullname;
       }
       $seek .= "&nbsp;" . datetime_to_displaydate(NICE_FULLDATETIME, $approval->assigned_datetime);
       $seek .= "&nbsp;$days";
-      
+
       $sought[] = $seek;
     }
   }
@@ -211,7 +211,7 @@ function ContentForm(&$project, &$qastep, $view_history="no") {
   }
   else {
     $link = "";
-  } 
+  }
   $s .= "<tr class=\"row1\">";
   $s .= "<th class=\"prompt\"><b>Approvals being sought:</b> </th>";
   $s .= "<td>" . "$appseek_status $link" . "</td>";
@@ -222,7 +222,7 @@ function ContentForm(&$project, &$qastep, $view_history="no") {
     $s .= "<tr>";
     $s .= "<td colspan=\"2\" align=\"center\" style=\"text-align:center;vertical-align:bottom;height:50px\"><b>Approvals history</b></td>";
     $s .= "</tr>\n";
-  
+
     $s .= "<tr class=\"row0\">";
     $s .= "<td colspan=\"2\" align=\"center\">" . $qastep->render_approvals_history() . "</td>";
     $s .= "</tr>\n";
@@ -249,7 +249,7 @@ function ContentForm(&$project, &$qastep, $view_history="no") {
 
   $s .= "</table>\n";
   return $s;
-  
+
 } // ContentForm
 
 
@@ -260,7 +260,7 @@ function ContentForm(&$project, &$qastep, $view_history="no") {
 $project = new qa_project($project_id);
 
 // Administrator status..
-$have_admin = $project->qa_process->have_admin; 
+$have_admin = $project->qa_process->have_admin;
 
 // Viewing approvals history?
 if (!isset($view_history)) {
@@ -281,7 +281,7 @@ if (!isset($qastep)) {
 
 $s = "";
 if (isset($qastep)) {
-  
+
   // PROCESS POSTED UPDATES..
   if (isset($submit) && $submit == "Update") {
     if ($project->request_id > 0) {
@@ -293,7 +293,7 @@ if (isset($qastep)) {
       if (isset($new_assignment)) {
         if ($new_assignment != $qastep->responsible_usr) {
 
-          // First, save the assignment..          
+          // First, save the assignment..
           $qastep->responsible_usr = ($new_assignment != "" ? $new_assignment : NULLVALUE);
           $qastep->responsible_datetime = timestamp_to_datetime();
           $qastep->save();
@@ -303,13 +303,13 @@ if (isset($qastep)) {
           $q .= " WHERE request_id=$qastep->project_id";
           $qry = new PgQuery($q);
           $ok = $qry->Exec("qams-step-detail.php::assignment");
-          
+
           // Re-read to get new user name and email..
           $qastep->get($project->request_id, $qastep->qa_step_id);
 
           // If we are assigning someone, then let everyone know. Otherwise a null
           // assignment is de-assigning somebody, which we keep quiet about..
-          if ($new_assignment != "") {          
+          if ($new_assignment != "") {
             $qry = new PgQuery("SELECT email, fullname FROM usr WHERE user_no=$new_assignment");
             if ($qry->Exec("qams-step-detail.php::new_assignment") && $qry->rows > 0) {
               $row = $qry->Fetch();
@@ -318,18 +318,18 @@ if (isset($qastep)) {
               $assignee_fullname = $row->fullname;
               $subject = "QAMS Assignment: $qastep->qa_step_desc [$project->system_id/$project->username]";
               $recipients = array($assignee_email => $assignee_fullname);
-          
+
               // Assemble body for assignee..
               $s .= "<p>Congratulations! You have been chosen from thousands of eager applicants ";
               $s .= "to take ownership of this quality assurance step, and deliver it through ";
               $s .= "the approval process.</p>";
-  
+
               $s .= "<p>The step you are charged with getting through approval is known as '" . $qastep->qa_step_desc . "'</p>";
               if ($qastep->qa_step_notes != "") {
                 $s .= "<p>Some notes on what reviewers will be looking for when approving this step: ";
                 $s .= $qastep->qa_step_notes . "</p>";
               }
-              
+
               if ($qastep->qa_document_title != "") {
                 $s .= "<p>For this step you have to produce a document, the '" . $qastep->qa_document_title . "'. ";
                 if ($qastep->qa_document_desc != "") {
@@ -338,7 +338,7 @@ if (isset($qastep)) {
                 $s .= " ";
                 $s .= "<b><u>NB: You should attach any versions of this document that you produce, to the ";
                 $s .= "Work Request given below</u></b>.</p>";
-                
+
                 // Look up templates and examples..
                 $qastep->get_documents();
                 $docurls = array();
@@ -366,7 +366,7 @@ if (isset($qastep)) {
                     $s .= "You will have to strip out content which is not applicable.";
                   }
                   $s .= "</p>";
-                  
+
                   // Insert link(s)..
                   foreach ($docurls as $href => $label) {
                     // Make sure it's a good clickable link..
@@ -374,7 +374,7 @@ if (isset($qastep)) {
                       if (substr($href, 0, 1) != "/") {
                         $href = "/$href";
                       }
-                      $href = $GLOBALS[base_dns] . $href;
+                      $href = $URL_PREFIX . $href;
                     }
                     $link  = "<a href=\"$href\" title=\"Click to download $label\">$href</a>";
                     $s .= "<p>Click the below link to download $label:<br>";
@@ -383,21 +383,21 @@ if (isset($qastep)) {
                   }
                 }
               }
-              
+
               // Covering notes..
               if ($assignment_covernotes != "") {
                 $s .= "<p><b>Specific Notes:</b><br>";
                 $s .= $assignment_covernotes . "</p>";
               }
-            
+
               // WRMS access to step work request..
-              $s .= "<p>The Work Request associated with this step is:<br>"; 
-              $href = $GLOBALS[base_dns] . "/wr.php?request_id=$qastep->request_id";
+              $s .= "<p>The Work Request associated with this step is:<br>";
+              $href = $URL_PREFIX . "/wr.php?request_id=$qastep->request_id";
               $wrlink = "<a href=\"$href\">$href</a>";
               $s .= "&nbsp;&nbsp;" . $wrlink . "</p>";
-            
+
               $project->QAMSNotifyEmail("QAMS Assignment", $s, $subject, $recipients);
-              
+
               // Other emails to let everyone know what's going on..
               $recipients = $project->GetRecipients();
               if (isset($recipients[$assignee_email])) {
@@ -406,22 +406,22 @@ if (isset($qastep)) {
               $s  = "<p>$assignee_fullname has been assigned to the Quality Assurance Step ";
               $s .= "'$qastep->qa_step_desc' on this project. The summary link for the step ";
               $s .= "itself is provided here:<br>";
-              $href = $GLOBALS[base_dns] . "/qams-step-detail.php?project_id=$qastep->project_id&step_id=$qastep->qa_step_id";
+              $href = $URL_PREFIX . "/qams-step-detail.php?project_id=$qastep->project_id&step_id=$qastep->qa_step_id";
               $stlink = "<a href=\"$href\">$href</a>";
               $s .= "&nbsp;&nbsp;" . $stlink . "</p>";
               $project->QAMSNotifyEmail("QAMS Activity Notice", $s, $subject, $recipients);
             }
           }
         } // null assignment
-      } // assignment changed 
+      } // assignment changed
     }
   }
-  
-  // Main content..    
+
+  // Main content..
   $s = "";
   $ef = new EntryForm($RESPONSE->requested, $project, ($have_admin ? 1 : 0));
   $ef->NoHelp();
-  
+
   if ($ef->editmode) {
     $s .= $ef->StartForm();
     $s .= $ef->HiddenField( "qa_action", "$qa_action" );
@@ -430,7 +430,7 @@ if (isset($qastep)) {
       $s .= $ef->HiddenField( "step_id", "$qastep->qa_step_id" );
     }
   }
-  // Start main table..    
+  // Start main table..
   $s .= "<table width=\"100%\" class=\"data\" cellspacing=\"0\" cellpadding=\"0\">\n";
 
   $s .= $ef->BreakLine("Quality Assurance Step");
@@ -438,20 +438,20 @@ if (isset($qastep)) {
 
   if ($this->project_manager_fullname != "") {
     $href = "/user.php?user_no=$this->project_manager";
-    $link = "<a href=\"$href\">" . $this->project_manager_fullname . "</a>"; 
+    $link = "<a href=\"$href\">" . $this->project_manager_fullname . "</a>";
     $s .= "<tr><td colspan=\"2\"><b>Project Manager:</b> " . $link . "</td></tr>";
-  } 
+  }
   if ($this->qa_mentor_fullname != "") {
     $href = "/user.php?user_no=$this->qa_mentor";
-    $link = "<a href=\"$href\">" . $this->qa_mentor_fullname . "</a>"; 
+    $link = "<a href=\"$href\">" . $this->qa_mentor_fullname . "</a>";
     $s .= "<tr><td colspan=\"2\"><b>QA Mentor:</b> " . $link . "</td></tr>";
-  } 
-  
+  }
+
   $s .= "<tr><td height=\"15\" colspan=\"2\">&nbsp;</td></tr>";
   $s .= "<tr><td colspan=\"2\">" . ContentForm($project, $qastep, $view_history) . "</td></tr>";
   $s .= "<tr><td height=\"15\" colspan=\"2\">&nbsp;</td></tr>";
   $s .= "</table>\n";
-  
+
   if ( $ef->editmode ) {
     $s .= $ef->SubmitButton( "submit", "Update" );
     $s .= $ef->EndForm();
@@ -461,7 +461,7 @@ if (isset($qastep)) {
 // -----------------------------------------------------------------------------
 // ASSEMBLE CONTENT
 if ($s == "") {
-  $content = "<p>Nothing known about that QA step.</p>"; 
+  $content = "<p>Nothing known about that QA step.</p>";
 }
 else {
   $content = $s;

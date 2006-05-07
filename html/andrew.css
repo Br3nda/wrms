@@ -5,15 +5,9 @@
 body {
   padding: 0;
   margin: 0;
-  font-size: 36pt;
 }
 
 table.data {
-/*  border: 0;
-  padding: 0;
-  margin: 0;
-  background: green; */
-  /* border-right: thick solid #606060; */
   border-bottom: 12px solid #606060;
   background-image:url(/catimg/tile_lines.gif);
 }

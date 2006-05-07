@@ -35,6 +35,7 @@ if ( isset($stylesheet) ) $c->stylesheets[0] = $stylesheet;
 
 require_once("PgQuery.php");
 require_once("html-format.php");
+require_once("organisation-selectors-sql.php");
 
 $schema_version = 0;
 $qry = new PgQuery( "SELECT schema_major, schema_minor, schema_patch FROM wrms_revision ORDER BY schema_id DESC LIMIT 1;" );

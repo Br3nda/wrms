@@ -1,3 +1,15 @@
+wrms (2.3.0-1) unstable; urgency=low
+
+  * Put include for organisation-selectors-sql.php into always.php
+
+ -- Andrew McMillan <debian@mcmillan.net.nz>  Mon,  8 May 2006 08:11:28 +1200
+
+wrms (2.3.0-0) unstable; urgency=low
+
+  * Move theming into separate files.
+
+ -- Andrew McMillan <debian@mcmillan.net.nz>  Mon,  8 May 2006 07:26:02 +1200
+
 wrms (2.2.3-0) unstable; urgency=low
 
   * QAMS changes.

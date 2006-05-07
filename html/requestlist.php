@@ -381,7 +381,6 @@ else {
       $form_url .= ( $i == 0 ? '?' : '&' ) . $form_url_parameters[$i] ;
     }
     echo "<form name=\"search\" action=\"$form_url\" Method=\"POST\">";
-    echo "</h3>\n";
 
     $systems = new PgQuery(SqlSelectSystems($org_code));
     $system_list = $systems->BuildOptionList($system_id,"requestlist");

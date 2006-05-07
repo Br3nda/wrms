@@ -1,16 +1,16 @@
 <?php
 function send_login_block() {
-  global $go_width, $go_height, $REQUEST_URI;
+  global $go_width, $go_height, $REQUEST_URI, $theme;
   echo "<br />\n";
-  block_open();
-  block_title("WRMS Login");
+  $theme->BlockOpen();
+  $theme->BlockTitle("WRMS Login");
 
   if ( $go_width && $go_height ) {
     $dim = " width=\"$go_width\" height=\"$go_height\" ";
   }
   $action_target = $REQUEST_URI;
-  $action_target = ereg_replace( '\?logout=1?&', '?', $action_target );
-  $action_target = ereg_replace( '\?logout=1$', '', $action_target );
+  $action_target = ereg_replace( '\?logout(=1)?&', '?', $action_target );
+  $action_target = ereg_replace( '\?logout(=1)?$', '', $action_target );
   $action_target = ereg_replace( '\?M=LO&', '?', $action_target );
   $action_target = ereg_replace( '\?M=LO', '', $action_target );
 
@@ -27,7 +27,7 @@ function send_login_block() {
   echo "</form><br>\n";
 
   echo "<img src=\"/images/clear.gif\" width=\"155\" height=\"1\" hspace=\"0\" vspace=\"2\" border=\"0\">\n";
-  block_close();
+  $theme->BlockClose();
 }
 send_login_block();
 ?>

@@ -1,13 +1,13 @@
 <?php
-global $PHP_SELF;
+global $PHP_SELF, $theme;
 
-block_open();
+$theme->BlockOpen();
 
 if ($qams_enabled && strstr($PHP_SELF, "qams")) {
-  block_title(' &nbsp;<a href="/qams.php" class="blockhead" title="Go to the QAMS Home Page">HOME</a>');
+  $theme->BlockTitle(' &nbsp;<a href="/qams.php" class="blockhead" title="Go to the QAMS Home Page">HOME</a>');
 }
 else {
-  block_title(' &nbsp;<a href="/" class="blockhead" title="Go to the WRMS Home Page">HOME</a>');
+  $theme->BlockTitle(' &nbsp;<a href="/" class="blockhead" title="Go to the WRMS Home Page">HOME</a>');
 }
 
 function menu_url_line($url,$tooltip,$prompt,$head="") {
@@ -16,19 +16,12 @@ function menu_url_line($url,$tooltip,$prompt,$head="") {
 }
 
 function menu_break_line() {
-  printf('<img class="blocksep" src="/%s/menuBreak.gif" width="130" height="9"><br />'."\n", $GLOBALS['images']);
+  global $theme;
+  printf('<img class="blocksep" src="/%s/menuBreak.gif" width="130" height="9"><br />'."\n", $theme->images);
 }
 
 function show_sidebar_menu() {
-  global $PHP_SELF, $session, $hurl, $lsid, $help_url, $qams_enabled;
-
-  if ($qams_enabled) {
-    if (strstr($PHP_SELF, "qams")) {
-    }
-    else {
-    }
-  }
-
+  global $PHP_SELF, $session, $c, $theme, $hurl, $lsid, $help_url, $qams_enabled;
 
   if ($qams_enabled && strstr($PHP_SELF, "qams")) {
     menu_break_line();
@@ -137,7 +130,7 @@ function show_sidebar_menu() {
   if ( is_member_of('Admin', 'Support' ) ) {
     menu_url_line("/statuspie.php", 'A pie chart of request statuses for a period / system / organisation', "Status Pie" );
   }
-  block_close();
+  $theme->BlockClose();
 }
 
 show_sidebar_menu();

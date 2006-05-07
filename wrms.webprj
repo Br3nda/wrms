@@ -1,6 +1,6 @@
 <!DOCTYPE webproject>
 <webproject>
-  <project usePreviewPrefix="0" preview="http://mywrms/" previewPrefix="file:file%3A" type="Local" newfiles="php" name="WRMS" encoding="iso 8859-1" >
+  <project usePreviewPrefix="0" preview="http://mywrms/" type="Local" previewPrefix="file:file%3A" newfiles="php" name="WRMS" encoding="iso 8859-1" >
     <upload/>
     <author>Andrew McMillan</author>
     <email>wrms@catalyst.net.nz</email>
@@ -67,7 +67,6 @@
     <item url="inc/get-request-roles.php" uploadstatus="0" />
     <item url="inc/notify-emails.php" uploadstatus="0" />
     <item modified_time="1043740841" url="inc/syslist-valid.php" uploadstatus="0" />
-    <item modified_time="1126056583" url="inc/headers.php" uploadstatus="0" />
     <item modified_time="1125439868" url="inc/html-format.php" uploadstatus="0" />
     <item modified_time="1114081643" url="inc/indexpage.php" uploadstatus="0" />
     <item modified_time="1125440255" url="inc/timelist-form.php" uploadstatus="0" />
@@ -80,7 +79,6 @@
     <item modified_time="1126056282" url="inc/sessionlist-form.php" uploadstatus="0" />
     <item url="inc/sessionlist-valid.php" uploadstatus="0" />
     <item modified_time="1126047296" url="inc/wu-form.php" uploadstatus="0" />
-    <item modified_time="1119347013" url="inc/footers.php" uploadstatus="0" />
     <item modified_time="1118283506" url="inc/sidebarleft.php" uploadstatus="0" />
     <item url="inc/help-valid.php" uploadstatus="0" />
     <item modified_time="1118277638" url="inc/block-login.php" uploadstatus="0" />
@@ -275,7 +273,16 @@
     <item url="scripts/views.sql" uploadstatus="1" />
     <item url="scripts/patches/patch-1.99.11.sql" uploadstatus="1" />
     <item url="inc/wrms_configuration_missing.php" uploadstatus="1" />
-    <item url="html/saved_searches.php" />
-    <item url="inc/WRMSSession.php" />
+    <item url="html/saved_searches.php" uploadstatus="1" />
+    <item url="inc/WRMSSession.php" uploadstatus="1" />
+    <item url="inc/themes/" uploadstatus="1" />
+    <item url="inc/themes/Catalyst.php" uploadstatus="1" />
+    <item url="inc/axyl-datetime-defs.php" uploadstatus="1" />
+    <item url="inc/page-footer.php" uploadstatus="1" />
+    <item url="inc/page-header.php" uploadstatus="1" />
+    <item url="inc/themes/Default.php" uploadstatus="1" />
+    <item url="inc/themes/Eduforge.php" uploadstatus="1" />
+    <item url="inc/themes/PWL.php" />
+    <item url="inc/themes/EEC.php" />
   </project>
 </webproject>

@@ -5,7 +5,7 @@ require_once("authorisation-page.php");
 $systems = array();
 $qry = new PgQuery( "SELECT * FROM work_system WHERE active ORDER BY system_desc ASC;" );
 if ( !$qry->Exec("rqchange") || $qry->rows == 0 ) {
-  $error_message = "Can't find any active systems";
+  $c->messages[] = "Can't find any active systems";
 }
   require_once("top-menu-bar.php");
   require_once("page-header.php");

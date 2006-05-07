@@ -4,8 +4,8 @@
   $query .= "ORDER BY wu_on DESC LIMIT 20;";
   $rid = awm_pgexec( $dbconn, $query, "newnodes");
   if ( ! $rid || pg_NumRows($rid) == 0 ) return;
-  block_open($colors['row1'], $colors['bg2'] );
-  block_title("New Nodes");
+  $theme->BlockOpen($colors['row1'], $colors['bg2'] );
+  $theme->BlockTitle("New Nodes");
   echo "<tr><td class=block style=\"padding: 3px;\">\n";
 
   for ( $i = 0; $i < pg_NumRows($rid); $i ++) {
@@ -15,7 +15,7 @@
   }
 
   echo "</td></tr>\n";
-  block_close();
+  $theme->BlockClose();
 
   echo "<img src=\"/images/clear.gif\" width=\"155\" height=\"50\" hspace=\"0\" vspace=\"2\" border=\"0\">\n";
 

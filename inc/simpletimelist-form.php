@@ -143,10 +143,10 @@ function nice_time( $in_time ) {
       $header_cell .= "%s</th>";    // %s For the image
 
       function column_header( $ftext, $fname ) {
-        global $tlsort, $tlseq, $header_cell, $images;
+        global $tlsort, $tlseq, $header_cell, $theme;
         if ( "$tlsort" == "$fname" ) {
           $fseq = ( "$tlseq" == "DESC" ? "ASC" : "DESC");
-          $seq_image .= "&nbsp;<img border=0 src=\"/$images/sort-$tlseq.png\">";
+          $seq_image .= "&nbsp;".$theme->Image("sort-$tlseq.png");
         }
         printf( $header_cell, $fname, $fseq, $ftext, $seq_image );
       }

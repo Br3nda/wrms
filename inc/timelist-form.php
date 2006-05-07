@@ -61,12 +61,12 @@ function nice_time( $in_time ) {
 <tr><td><table border=0 cellspacing=0 cellpadding=0 width=100%><tr valign=middle>
 <td class=smb align=right>Work&nbsp;From:</td>
 <td nowrap class=smb><input type=text size=10 name=from_date class=sml value=\"$from_date\">
-<a href=\"javascript:show_calendar('forms[0].from_date');\" onmouseover=\"window.status='Date Picker';return true;\" onmouseout=\"window.status='';return true;\"><img valign=middle src=\"/$images/date-picker.gif\" border=0></a>
+<a href=\"javascript:show_calendar('forms[0].from_date');\" onmouseover=\"window.status='Date Picker';return true;\" onmouseout=\"window.status='';return true;\">".$theme->Image("date-picker.gif")."</a>
 </td>
 
 <td class=smb align=right>&nbsp;To:</td>
 <td nowrap class=smb><input type=text size=10 name=to_date class=sml value=\"$to_date\">
-<a href=\"javascript:show_calendar('forms[0].to_date');\" onmouseover=\"window.status='Date Picker';return true;\" onmouseout=\"window.status='';return true;\"><img valign=middle src=\"/$images/date-picker.gif\" border=0></a>
+<a href=\"javascript:show_calendar('forms[0].to_date');\" onmouseover=\"window.status='Date Picker';return true;\" onmouseout=\"window.status='';return true;\">".$theme->Image("date-picker.gif")."</a>
 </td>
 <td class=smb align=right>&nbsp;Type:</td>
 <td nowrap class=smb><select name=\"type_code\" class=sml><option value=\"\">-- All Types --</option>$request_types</select></td>
@@ -146,10 +146,10 @@ function nice_time( $in_time ) {
       $header_cell .= "%s</th>";    // %s For the image
 
       function column_header( $ftext, $fname ) {
-        global $tlsort, $tlseq, $header_cell, $images;
+        global $tlsort, $tlseq, $header_cell, $theme;
         if ( "$tlsort" == "$fname" ) {
           $fseq = ( "$tlseq" == "DESC" ? "ASC" : "DESC");
-          $seq_image .= "&nbsp;<img border=0 src=\"/$images/sort-$tlseq.png\">";
+          $seq_image .= "&nbsp;".$theme->Image("sort-$tlseq.png");
         }
         printf( $header_cell, $fname, $fseq, $ftext, $seq_image );
       }

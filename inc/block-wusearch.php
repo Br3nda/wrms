@@ -1,6 +1,6 @@
 <?php
-  block_open($colors['row1'], $colors['bg2'] );
-  block_title("Search");
+  $theme->BlockOpen($colors['row1'], $colors['bg2'] );
+  $theme->BlockTitle("Search");
   echo "<tr><td class=block style=\"padding: 3px;\">\n";
 ?>
 <form action="/wu.php" method=GET>
@@ -10,7 +10,7 @@
 </form>
 <?php
   echo "</td></tr>\n";
-  block_close();
+  $theme->BlockClose();
 
   echo "<img src=\"/images/clear.gif\" width=\"155\" height=\"50\" hspace=\"0\" vspace=\"2\" border=\"0\">\n";
 

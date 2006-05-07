@@ -11,11 +11,12 @@ $error_msg = "";
 $warn_msg = "";
 $client_messages = array();
 
+$c->theme = "Default";
 $c->stylesheet = array("wrms.css");
 
-error_log( "=============================================== Start $PHP_SELF for $HTTP_HOST" );
-if ( file_exists("/etc/wrms/".$HTTP_HOST."-conf.php") ) {
-  include_once("/etc/wrms/".$HTTP_HOST."-conf.php");
+error_log( "=============================================== Start $PHP_SELF for $HTTP_HOST on $_SERVER[SERVER_NAME]" );
+if ( file_exists("/etc/wrms/".$_SERVER['SERVER_NAME']."-conf.php") ) {
+  include_once("/etc/wrms/".$_SERVER['SERVER_NAME']."-conf.php");
 }
 else if ( file_exists("../config/config.php") ) {
   include_once("../config/config.php");

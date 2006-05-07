@@ -25,7 +25,7 @@ function ggv($var, $i = "nope", $j = "nope") {
 //   on the W/R.
 /////////////////////////////////////////////////////////////
 function RenderSearchForm( $target_url ) {
-  global $session, $images, $search_record;
+  global $session, $theme, $search_record;
 
   $html = "";
   $search_record = (object) array();
@@ -99,12 +99,12 @@ function RenderSearchForm( $target_url ) {
   $html .= $ef->DataEntryLine( "Last Action", "%s", "date", "from_date",
             array( "size" => 10, "class" => "srchf",
                    "title" => "Only show requests with action after this date." ) );
-  $html .= "<a href=\"javascript:show_calendar('forms.form.from_date');\" onmouseover=\"window.status='Date Picker';return true;\" onmouseout=\"window.status='';return true;\"><img valign=\"middle\" src=\"/$images/date-picker.gif\" border=\"0\"></a> &nbsp; \n";
+  $html .= "<a href=\"javascript:show_calendar('forms.form.from_date');\" onmouseover=\"window.status='Date Picker';return true;\" onmouseout=\"window.status='';return true;\">".$theme->Image("date-picker.gif")."</a> &nbsp; \n";
 
   $html .= $ef->DataEntryLine( "To", "%s", "date", "to_date",
             array( "size" => 10, "class" => "srchf",
                    "title" => "Only show requests with action before this date." ) );
-  $html .= "<a href=\"javascript:show_calendar('forms.form.to_date');\" onmouseover=\"window.status='Date Picker';return true;\" onmouseout=\"window.status='';return true;\"><img valign=\"middle\" src=\"/$images/date-picker.gif\" border=\"0\"></a> &nbsp; \n";
+  $html .= "<a href=\"javascript:show_calendar('forms.form.to_date');\" onmouseover=\"window.status='Date Picker';return true;\" onmouseout=\"window.status='';return true;\">".$theme->Image("date-picker.gif")."</a> &nbsp; \n";
 
   // Type of Request
   $html .= $ef->DataEntryLine( "Type", $this->request_type_desc, "lookup", "type_code",
@@ -189,7 +189,7 @@ function RenderSearchForm( $target_url ) {
 //   the search screen.
 /////////////////////////////////////////////////////////////
 function RenderTagsPanel( $ef ) {
-  global $session, $images;
+  global $session;
 
   $html = "";
   $org_code = intval(ggv('org_code'));

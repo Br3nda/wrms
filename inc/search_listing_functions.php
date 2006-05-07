@@ -144,12 +144,12 @@ function data_row( $row, $rc ) {
 //Builds up and outputs the HTML for a linked column header on the request list
 //------------------------------------------------------------
 function column_header( $ftext, $fname ) {
-  global $rlsort, $rlseq, $header_cell, $images;
+  global $rlsort, $rlseq, $header_cell, $theme;
   $fseq = "";
   $seq_image = "";
   if ( "$rlsort" == "$fname" ) {
     $fseq = ( "$rlseq" == "DESC" ? "ASC" : "DESC");
-    $seq_image .= "&nbsp;<img border=0 src=\"/$images/sort-$rlseq.png\">";
+    $seq_image .= "&nbsp;".$theme->Image("sort-$rlseq.png");
   }
   printf( $header_cell, $fname, $fseq, $ftext, $seq_image );
 }

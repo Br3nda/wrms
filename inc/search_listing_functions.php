@@ -62,25 +62,25 @@ function show_column_value( $column_name, $row ) {
   global $format, $status_query;
   switch( $column_name ) {
     case "request_id":
-      echo "<td class=sml align=center><a href=\"/wr.php?request_id=$row->request_id\">$row->request_id</a></td>\n";
+      echo "<td class=\"sml\" align=\"center\"><a href=\"/wr.php?request_id=$row->request_id\">$row->request_id</a></td>\n";
       break;
     case "lfull":
     case "request_for":
-      echo "<td class=sml nowrap><a href=\"mailto:$row->email\">$row->fullname</a></td>\n";
+      echo "<td class=\"sml\" style=\"white-space: nowrap;\"><a href=\"mailto:$row->email\">$row->fullname</a></td>\n";
       break;
     case "lby_fullname":
     case "request_by":
-      echo "<td class=sml nowrap><a href=\"mailto:$row->by_email\">$row->by_fullname</a></td>\n";
+      echo "<td class=\"sml\" style=\"white-space: nowrap;\"><a href=\"mailto:$row->by_email\">$row->by_fullname</a></td>\n";
       break;
     case "request_tags":
       echo "<td class=\"sml\">$row->request_tags</td>\n";
       break;
     case "request_on":
-      echo "<td class=sml align=center>$row->date_requested</td>\n";
+      echo "<td class=\"sml\" align=\"center\" style=\"white-space: nowrap;\">$row->date_requested</td>\n";
       break;
     case "lbrief":
     case "description":
-      echo "<td class=sml><a href=\"/wr.php?request_id=$row->request_id\">$row->brief";
+      echo "<td class=\"sml\"><a href=\"/wr.php?request_id=$row->request_id\">$row->brief";
       if ( "$row->brief" == "" ) echo substr( $row->detailed, 0, 50) . "...";
       echo "</a></td>\n";
       break;
@@ -89,20 +89,20 @@ function show_column_value( $column_name, $row ) {
       if ( "$format" == "edit" && $row->editable ) {
         //provide a drop down to allow editing of the status code for that request
         $status_list = $status_query->BuildOptionList($row->last_status, "show_column_value");
-        echo "<td class=sml><select class=sml name=\"request_status[$row->request_id]\">$status_list</select></td>\n";
+        echo "<td class=\"sml\"><select class=sml name=\"request_status[$row->request_id]\">$status_list</select></td>\n";
       }
       else {
         //otherwise output plain text of the current request status
-        echo "<td class=sml>&nbsp;".str_replace(' ', '&nbsp;',$row->status_desc)."&nbsp;</td>\n";
+        echo "<td class=\"sml\">&nbsp;".str_replace(' ', '&nbsp;',$row->status_desc)."&nbsp;</td>\n";
       }
       break;
     case "type":
     case "request_type_desc":
-      echo "<td class=sml>&nbsp;" . str_replace( " ", "&nbsp;", $row->request_type_desc) . "&nbsp;</td>\n";
+      echo "<td class=\"sml\">&nbsp;" . str_replace( " ", "&nbsp;", $row->request_type_desc) . "&nbsp;</td>\n";
       break;
     case "last_change":
     case "request.last_activity":
-      echo "<td class=sml align=center>" . str_replace( " ", "&nbsp;", $row->last_change) . "</td>\n";
+      echo "<td class=\"sml\" align=\"center\" style=\"white-space: nowrap;\">" . str_replace( " ", "&nbsp;", $row->last_change) . "</td>\n";
       break;
     case "active":
       if ( "$format" == "edit" && $row->editable ) {
@@ -113,14 +113,14 @@ function show_column_value( $column_name, $row ) {
 EOHTML;
       }
       else {
-        echo "<td class=sml align=center>" . ( $row->active == 't' ? "Active" : "Inactive" ) . "</td>\n";
+        echo "<td class=\"sml\" align=\"center\">" . ( $row->active == 't' ? "Active" : "Inactive" ) . "</td>\n";
       }
       break;
     case "urgency":
-      echo "<td class=sml align=left>" . $row->request_urgency_desc . "</td>\n";
+      echo "<td class=\"sml\" align=\"left\">" . $row->request_urgency_desc . "</td>\n";
       break;
     case "importance":
-      echo "<td class=sml align=left>" . $row->request_importance_desc . "</td>\n";
+      echo "<td class=\"sml\" align=\"left\">" . $row->request_importance_desc . "</td>\n";
       break;
   }
 }

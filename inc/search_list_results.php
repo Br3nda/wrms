@@ -90,10 +90,10 @@
         $subres = awm_pgexec( $dbconn, $subquery, "requestlist" );
         for ( $j=0; $subres && $j < pg_NumRows($subres); $j++ ) {
           $thisquote = pg_Fetch_Object( $subres, $j );
-          printf( "<tr class=row%1d valign=top>\n", $i % 2);
-          echo "<td>$thisquote->nice_date</td>\n";
+          printf( "<tr class=\"row%1d\" valign=\"top\">\n", $i % 2);
+          echo "<td style=\"white-space: nowrap;\">$thisquote->nice_date</td>\n";
           echo "<td>$thisquote->fullname</td>\n";
-          echo "<td colspan=4><b>$thisquote->quote_brief</b><br><hr>\n";
+          echo "<td colspan=\"4\"><b>$thisquote->quote_brief</b><br><hr>\n";
           echo html_format($thisquote->quote_details);
           echo "</td>\n";
           printf("<td align=right>%9.2f &nbsp; %s</td>\n", $thisquote->quote_amount, $thisquote->quote_units);
@@ -128,7 +128,7 @@
         for ( $j=0; $subres && $j < pg_NumRows($subres); $j++ ) {
           $thiswork = pg_Fetch_Object( $subres, $j );
           printf( "<tr class=row%1d valign=top>\n", $i % 2);
-          echo "<td>$thiswork->nice_date</td>\n";
+          echo "<td style=\"white-space: nowrap;\">$thiswork->nice_date</td>\n";
           echo "<td>$thiswork->fullname</td>\n";
           echo "<td colspan=2>$thiswork->work_description</td>\n";
           printf("<td align=right>%9.2f</td>\n", $thiswork->work_quantity);

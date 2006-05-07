@@ -1,9 +1,8 @@
 <?php
-  /////////////////////////////////////////////////////////////////////////////////////////////////
-  //
-  // Now we build the statement that will find those requests...
-  //
-  /////////////////////////////////////////////////////////////////////////////////////////////////
+  /**
+  *
+  * Now we build the statement that will find those requests...
+  */
 
   $search_query = "";
   if ( !isset($_POST['submit']) && isset($_GET['saved_query'])) {
@@ -126,8 +125,6 @@
           }
           $lb = ereg_replace('[^(]','',$tag_lb[$i] );
           $rb = ereg_replace('[^)]','',$tag_rb[$i] );
-//          $lb_count += strlen(str_replace(" ", "", $tag_lb[$i]));
-//          $rb_count += strlen(str_replace(" ", "", $tag_rb[$i]));
           $lb_count += strlen($lb);
           $rb_count += strlen($rb);
           $taglist_subquery .= sprintf("%s %s EXISTS( SELECT 1 FROM request_tag WHERE request_id=request.request_id AND tag_id=%d) %s ",
@@ -137,7 +134,6 @@
       if ( $taglist_subquery != "" ) {
         $taglist_subquery = str_replace("'","",str_replace("\\", "", $taglist_subquery ));
         $search_query .= "AND (" . $taglist_subquery . ") ";
-        // error_log( "$sysabbr: DBG: Tag List subquery: $taglist_subquery" );
         if ( $lb_count != $rb_count ) {
           $client_messages[] = "You have $lb_count left brackets and $rb_count right brackets - they should match!";
         }

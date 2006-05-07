@@ -16,7 +16,7 @@
 *  - "Remember me" cookies are supported, and will result in a new
 *    Session for each browser session.
 *
-* @package   pocketmoney
+* @package   wrms
 * @subpackage   WRMSSession
 * @author    Andrew McMillan <andrew@catalyst.net.nz>
 * @copyright Catalyst .Net Ltd
@@ -44,8 +44,8 @@ $session = 1;  // Fake initialisation
 */
 function local_session_sql() {
   $sql = <<<EOSQL
-SELECT session.*, usr.*, client.is_banker, bank.*
-  FROM session JOIN usr USING (user_no) LEFT JOIN client USING (user_no) LEFT JOIN bank USING (bank_no)
+SELECT session.*, usr.*, organisation.*
+        FROM session JOIN usr USING(user_no) LEFT JOIN organisation USING (org_code)
 EOSQL;
   return $sql;
 }
@@ -60,7 +60,7 @@ Session::_CheckLogout();
 /**
 * A class for creating and holding session information.
 *
-* @package   pocketmoney
+* @package   wrms
 */
 class WRMSSession extends Session
 {
@@ -109,22 +109,22 @@ class WRMSSession extends Session
   }
 
 
-// /**
-// * Internal function used to get the user's roles from the database.
-// */
-//   function GetAccounts () {
-//     $this->my_accounts = array();
-//     $this->bank_accounts = array();
-//     $qry = new PgQuery( 'SELECT * FROM account WHERE bank_no = ? ORDER BY user_no', $this->bank_no );
-//     if ( $qry->Exec('WRMSSession::GetAccounts') && $qry->rows > 0 ) {
-//       while( $account = $qry->Fetch() ) {
-//         $this->bank_accounts[$account->account_no] = $account;
-//         if ( $account->user_no == $this->user_no ) {
-//           $this->my_accounts[$account->account_no] = $account;
-//         }
-//       }
-//     }
-//   }
+/**
+* Internal function used to get the user's system roles from the database.
+*/
+  function GetSystemRoles() {
+    $this->system_roles = array();
+    $this->system_codes = array();
+    $qry = new PgQuery( 'SELECT system_usr.system_id, role, system_code FROM system_usr JOIN work_system USING (system_id) WHERE user_no = ? ', $this->user_no );
+    if ( $qry->Exec('Session::GetRoles') && $qry->rows > 0 )
+    {
+      while( $role = $qry->Fetch() )
+      {
+        $this->system_roles[$role->system_id] = $role->role;
+        $this->system_codes[$role->system_id] = $role->system_code;
+      }
+    }
+  }
 
 
 /**
@@ -133,8 +133,7 @@ class WRMSSession extends Session
 */
   function AssignSessionDetails( $u ) {
     parent::AssignSessionDetails( $u );
-    // $this->GetAccounts();
-    // $this->GetBankClients();
+    $this->GetSystemRoles();
   }
 
 /**
@@ -183,6 +182,5 @@ EOHTML;
 
 $session = new WRMSSession();
 $session->_CheckLogin();
-
 
 ?>

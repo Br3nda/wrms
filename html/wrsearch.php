@@ -61,8 +61,9 @@
   include_once("search_listing_functions.php");
   include_once("search_build_query.php");
 
+  $c->scripts[] = "/js/wrsearch.js";
+
   include("page-header.php");
-  echo '<script language="JavaScript" src="/js/wrsearch.js"></script>' . "\n";
 
   include_once("search_form.php");
   include_once("search_list_results.php");

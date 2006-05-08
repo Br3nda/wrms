@@ -41,6 +41,7 @@ class MyTheme extends Theme {
     parent::Theme();
     $this->stylesheets[0] = "eduforge.css";
     $this->images = "images/eduforge";
+    $c->images = "images/eduforge";  // Compatibilty with AWL... :-)
 
     $this->colors = array(
       "bg1" => "#ffffff", // primary background

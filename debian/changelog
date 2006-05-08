@@ -1,3 +1,16 @@
+wrms (2.3.0-4) unstable; urgency=low
+
+  * OK.  Really fix the stylesheet stuff.  This is about as stable as things
+    get before I start busting things again, I imagine.... :-)
+
+ -- Andrew McMillan <debian@mcmillan.net.nz>  Mon,  8 May 2006 22:43:44 +1200
+
+wrms (2.3.0-3) unstable; urgency=low
+
+  * Fix rendering problem in Opera / Safari.
+
+ -- Andrew McMillan <debian@mcmillan.net.nz>  Mon,  8 May 2006 11:00:42 +1200
+
 wrms (2.3.0-2) unstable; urgency=low
 
   * Merge some stuff into AWL.  Fix logout bug.

@@ -41,6 +41,7 @@ class MyTheme extends Theme {
     parent::Theme();
     $this->stylesheets[0] = "andrew.css";
     $this->images = "catimg";
+    $c->images = "catimg";
   }
 
 

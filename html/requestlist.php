@@ -9,8 +9,6 @@
   // Force some variables to have values.
   if ( !isset($format) ) $format = "";
   if ( !isset($style) ) $style = "";
-  if ( !isset($saved_query) ) $saved_query = "";
-  if ( !isset($qs) ) $qs = "";
   if ( !isset($org_code) ) $org_code = 0;
   if ( !isset($system_id) ) $system_id = 0;
   if ( !isset($search_for) ) $search_for = "";
@@ -22,13 +20,10 @@
   if ( !isset($requested_by) ) $requested_by = "";
   if ( !isset($from_date) ) $from_date = "";
   if ( !isset($to_date) ) $to_date = "";
-  if ( !isset($where_clause) ) $where_clause = "";
 
   // If they didn't provide a $columns, we use a default.
   if ( !isset($columns) || $columns == "" || $columns == array() ) {
     $columns = array("request_id","lfull","request_on","lbrief","status_desc","request_tags","request_type_desc","request.last_activity");
-    if ( "$format" == "edit" )  //adds in the Active field header for the Brief (editable) report
-      array_push( $columns, "request.active");
   }
   elseif ( ! is_array($columns) )
     $columns = explode( ',', $columns );
@@ -48,152 +43,24 @@
           "request.active" => "Active",
    );
 
-//Uses a URL variable format = edit in order to indicate that the report should be in the Brief (editable) format
 
-//------------------------------------------------------
-// function RequestEditPermissions()
-// This function is used to determine the editing permissions for the status and active
-// fields of a request based on the particular request in question and the user that is logged in
-// This function returns an array of two boolean values
-// the first boolean value in the array is a flag for the edit permission
-// of the status field of a request
-// the second boolean value in the array is a flag for the edit permission
-// of the active field of a request
-//------------------------------------------------------
-  function RequestEditPermissions($request_id)
-  {
-     //  This code was written by Simon and gets marked 3/10 - could do better.
-     global $session, $dbconn;
-     $plain = FALSE;
-
-     include("getrequest.php");
-
-     return array($statusable, $editable);
+/**
+* Builds up and outputs the HTML for a linked column header on the request list
+*/
+function column_header( $ftext, $fname ) {
+  global $rlsort, $rlseq, $header_cell, $theme;
+  $fseq = "";
+  $seq_image = "";
+  if ( "$rlsort" == "$fname" ) {
+    $fseq = ( "$rlseq" == "DESC" ? "ASC" : "DESC");
+    $seq_image .= "&nbsp;".$theme->Image("sort-$rlseq.png");
   }
+  printf( $header_cell, $fname, $fseq, $ftext, $seq_image );
+}
 
-//-----------------------------------------------------------
-// function Process_Brief_editable_Requests()
-// This function is used to process the returned changes (if any)
-// from the Brief (editable) report. All editable request lines in the
-// list are returned with their editable fields values whether or
-// not they have been changed. All changed editable field values are written
-// back into the database
-//------------------------------------------------------------
-  function Process_Brief_editable_Requests()
-  {
-     global $dbconn, $EditableRequests, $session, $ChangedRequests_count, $because;
-
-     if ( !isset($EditableRequests) )
-        return;
-
-     $count = count($EditableRequests);
-
-     for ( $i = 0 ; $i < $count ; $i++ ) //Loop through and process each requested in the returned array $EditableRequests
-     {
-        //$ReturnedRequestId - contains the request id of the current request to update
-        //$ReturnedRequestStatus - if set stores the status value of the current request to be updated to, if unset then indicates that the current request status is not allowed to be edited by the logged in user or its value hasn't been changed
-        //$ReturnedRequestActivePermit - if TRUE then indicates that the current request active field is allowed to be edited by the logged in user, if FALSE it indicates that the current request active field is not allowed to be edited by the logged in user or that the active field value hasn't been changed
-        //$ReturnedRequestActive - if 1 then means the current request active field should be updated to 't', if 0 then means the current request active field should be updated to 'f'
-        //Note that the value for $ReturnedRequestActive is not valid unless $ReturnedRequestActivePermit is TRUE.
-        //Note that for status and active values returned in the $EditableRequests array that are no change from the original values
-        //the $ReturnedRequestStatus is made unset and the $ReturnedRequestActivePermit is made FALSE in order to prevent duplicate records written into the
-        //request_history and request_status tables
-
-        $ReturnedRequestId = intval($EditableRequests[$i][0]);
-
-        //Retrieve current request status and active field values from the database
-        $q = new PgQuery( "SELECT last_status, active FROM request WHERE request_id = $ReturnedRequestId");
-        if ( !$q || !$q->Exec("requestlist") || $q->rows > 1 || $q->rows == 0 ) {
-           $because .= "<P>Request $ReturnedRequestId: Error updating request! - query 1</P>\n";
-           continue;
-        }
-
-        $CurrentRequest = $q->Fetch();
-
-        if ( isset($EditableRequests[$i][1]) )
-        {
-           //Check that returned status value is different to the status value stored in the request record
-
-           //Unset $ReturnedRequestStatus if there has been no change made to the status
-           if ( $CurrentRequest->last_status == $EditableRequests[$i][1] )
-              unset($ReturnedRequestStatus);
-           else
-              $ReturnedRequestStatus = $EditableRequests[$i][1];
-        }
-        else if ( isset($ReturnedRequestStatus) )
-           unset($ReturnedRequestStatus);
-
-        if ( isset($EditableRequests[$i][2]) && $EditableRequests[$i][2] == "active_edit" )
-        {
-           //Permission on active checkbox
-
-           if ( isset($EditableRequests[$i][3]) )
-              $ReturnedRequestActive = $EditableRequests[$i][3];
-           else
-              $ReturnedRequestActive = 0;
-
-           //Set $ReturnedRequestActviePermit to TRUE if a change has been made otherwise set to false
-           if ( ($CurrentRequest->active == 't' && $ReturnedRequestActive == 0) || ( $CurrentRequest->active == 'f' && $ReturnedRequestActive == 1 ) )
-              $ReturnedRequestActivePermit = TRUE;
-           else
-              $ReturnedRequestActivePermit = FALSE;
-        }
-        else
-        {
-           //No permission on active checkbox
-           $ReturnedRequestActivePermit = FALSE;
-        }
-
-        if ( !isset($ReturnedRequestStatus) && !$ReturnedRequestActivePermit )
-        {
-           continue;
-        }
-
-        //Begin SQL Transaction for the updating of each request
-        $q = new PgQuery("BEGIN;");   $q->Exec("requestlist");
-
-        /* take a snapshot of the current request record and store in request_history*/
-        $q = new PgQuery( "INSERT INTO request_history (SELECT * FROM request WHERE request.request_id = $ReturnedRequestId)");
-        if ( !$q || !$q->Exec("requestlist") ) {
-           $because .= "<P>Request $ReturnedRequestId: Error updating request! - query 2</P>\n";
-           continue;
-        }
-
-        //update request record in request - status field and/or active field
-
-        $sql = "UPDATE request SET ";
-        if ( isset($ReturnedRequestStatus ) ) $sql .= " last_status = '".qpg($ReturnedRequestStatus)."', ";
-        if ( $ReturnedRequestActivePermit )   $sql .= " active = '".qpg($ReturnedRequestActive)."', ";
-        $sql .= " last_activity = 'now' ";
-        $sql .= "WHERE request.request_id = $ReturnedRequestId ";
-
-        $q = new PgQuery($sql);
-        if ( !$q || !$q->Exec("requestlist") ) {
-           $because .= "<P>Request $ReturnedRequestId: Error updating request! - query 3</P>\n";
-           continue;
-        }
-
-
-        //update the request_status table with the new status for that request if permitted
-        if ( isset($ReturnedRequestStatus) )
-        {
-           $sql = "INSERT INTO request_status (request_id, status_by, status_on, status_code, status_by_id)";
-           $sql .= "VALUES( $ReturnedRequestId, '$session->username', 'now', '$ReturnedRequestStatus', $session->user_no);";
-
-           $rid = awm_pgexec( $dbconn, $sql, "requestlist", TRUE, 7 );
-           if ( ! $rid ) {
-              $because .= "<P>Request $ReturnedRequestId: Error updating request! - query 4</P>\n";
-              continue;
-           }
-
-        }
-
-        $q = new PgQuery("BEGIN;");   $q->Exec("requestlist");
-
-        $ChangedRequests_count++;
-     }
-  }
-
+/**
+* Output a single row of the column headers
+*/
 function header_row() {
   global $format, $columns, $available_columns;
 
@@ -219,76 +86,60 @@ function header_row() {
   echo "</tr>";
 }
 
+/**
+* Display a single data vale on the report
+*/
 function show_column_value( $column_name, $row ) {
-  global $format, $status_edit, $active_edit, $EditableRequests_count;
+  global $format;
   switch( $column_name ) {
     case "request_id":
-      if ( "$format" == "edit" )  //used to control whether or not a request id hidden variable is also added which builds up the 'id' column in the EditableRequests array for the Brief (editable) report
-        echo "<td class=sml align=center>" . ( ($status_edit || $active_edit ) ? "<input type=hidden name=\"EditableRequests[$EditableRequests_count][0]\" value=\"$row->request_id\">" : "" ) . "<a href=\"/wr.php?request_id=$row->request_id\">$row->request_id</a></td>\n";
-      else
-        echo "<td class=sml align=center><a href=\"/wr.php?request_id=$row->request_id\">$row->request_id</a></td>\n";
+      echo "<td class=\"sml\" align=\"center\"><a href=\"/wr.php?request_id=$row->request_id\">$row->request_id</a></td>\n";
       break;
     case "lfull":
     case "request_for":
-      echo "<td class=sml nowrap><a href=\"mailto:$row->email\">$row->fullname</a></td>\n";
+      echo "<td class=\"sml\" style=\"white-space: nowrap;\"><a href=\"mailto:$row->email\">$row->fullname</a></td>\n";
       break;
     case "lby_fullname":
     case "request_by":
-      echo "<td class=sml nowrap><a href=\"mailto:$row->by_email\">$row->by_fullname</a></td>\n";
+      echo "<td class=\"sml\" style=\"white-space: nowrap;\"><a href=\"mailto:$row->by_email\">$row->by_fullname</a></td>\n";
       break;
     case "request_tags":
       echo "<td class=\"sml\">$row->request_tags</td>\n";
       break;
     case "request_on":
-      echo "<td class=sml align=center>$row->date_requested</td>\n";
+      echo "<td class=\"sml\" align=\"center\" style=\"white-space: nowrap;\">$row->date_requested</td>\n";
       break;
     case "lbrief":
     case "description":
-      echo "<td class=sml><a href=\"/wr.php?request_id=$row->request_id\">$row->brief";
+      echo "<td class=\"sml\"><a href=\"/wr.php?request_id=$row->request_id\">$row->brief";
       if ( "$row->brief" == "" ) echo substr( $row->detailed, 0, 50) . "...";
       echo "</a></td>\n";
       break;
     case "status":
     case "status_desc":
-      if ( "$format" == "edit" && $status_edit ) {
-        //tests to see if report should provide editable status fields where appropriate
-        //tests to see if the logged in user is able to edit the status field for this request record
-        //provide a drop down to allow editing of the status code for that request
-        $status_list   = get_code_list( "request", "status_code", "$row->last_status" );
-        echo "<td class=sml><select class=sml name=\"EditableRequests[$EditableRequests_count][1]\">$status_list</select></td>\n";
-      }
-      else {
-        //otherwise output plain text of the current request status
-        echo "<td class=sml>&nbsp;".str_replace(' ', '&nbsp;',$row->status_desc)."&nbsp;</td>\n";
-      }
+      echo "<td class=\"sml\">&nbsp;".str_replace(' ', '&nbsp;',$row->status_desc)."&nbsp;</td>\n";
       break;
     case "type":
     case "request_type_desc":
-      echo "<td class=sml>&nbsp;" . str_replace( " ", "&nbsp;", $row->request_type_desc) . "&nbsp;</td>\n";
+      echo "<td class=\"sml\">&nbsp;" . str_replace( " ", "&nbsp;", $row->request_type_desc) . "&nbsp;</td>\n";
       break;
     case "last_change":
     case "request.last_activity":
-      echo "<td class=sml align=center>" . str_replace( " ", "&nbsp;", $row->last_change) . "</td>\n";
+      echo "<td class=\"sml\" align=\"center\" style=\"white-space: nowrap;\">" . str_replace( " ", "&nbsp;", $row->last_change) . "</td>\n";
       break;
     case "active":
-      if ( "$format" == "edit" && ( $active_edit || $status_edit) ) {
-        //adds in the Active field for the Brief (editable) reports
-        if ( $active_edit ) //tests to see if the logged in user is able to edit the active field for this request
-          echo "<td class=sml align=center><input type=\"hidden\" name=\"EditableRequests[$EditableRequests_count][2]\" value=\"active_edit\"><input type=checkbox name=\"EditableRequests[$EditableRequests_count][3]\" value=\"1\" " . ( $row->active == 't' ? "CHECKED" : "" ) . "></td>\n";
-        else if ( $status_edit )
-          echo "<td class=sml align=center><input type=\"hidden\" name=\"EditableRequests[$EditableRequests_count][2]\" value=\"active_read\">" . ( $row->active == 't' ? "Active" : "Inactive" ) . "</td>\n";
-      }
-      else {
-        echo "<td class=sml align=center>" . ( $row->active == 't' ? "Active" : "Inactive" ) . "</td>\n";
-      }
+      echo "<td class=\"sml\" align=\"center\">" . ( $row->active == 't' ? "Active" : "Inactive" ) . "</td>\n";
       break;
   }
 }
 
+/**
+*  Output a single row of report data
+*/
 function data_row( $row, $rc ) {
   global $columns;
 
-  printf( "<tr class=row%1d>\n", $rc % 2);
+  printf( "<tr class=\"row%1d\">\n", $rc % 2);
   reset($columns);
   while( list($k,$v) = each( $columns ) ) {
     show_column_value($v,$row);
@@ -296,12 +147,10 @@ function data_row( $row, $rc ) {
   echo "</tr>\n";
 }
 
-  if ( "$format" == "edit" && isset($submitBriefEditable) ) // If changes have been returned from Brief (editable) then function is called update the database with the changes
-  {
-     $ChangedRequests_count = 0;
-     $because ="";
-     Process_Brief_editable_Requests();
-  }
+
+/**
+* Now back into the main line...
+*/
 
   $title = "$system_name Request List";
 
@@ -321,7 +170,6 @@ function data_row( $row, $rc ) {
 
   // Build up the column header cell, with %s gaps for the sort, sequence and sequence image
   $header_cell = "<th class=cols><a class=cols href=\"$PHP_SELF?rlsort=%s&rlseq=%s";
-  if ( isset($qs) ) $header_cell .= "&qs=$qs";
   if ( $org_code > 0 ) $header_cell .= "&org_code=$org_code";
   if ( $system_id > 0 ) $header_cell .= "&system_id=$system_id";
   if ( isset($search_for) ) $header_cell .= "&search_for=$search_for";
@@ -338,43 +186,18 @@ function data_row( $row, $rc ) {
       $header_cell .= "&incstat[$k]=$v";
     }
   }
-  if ( "$saved_query" != "" ) $header_cell .= "&saved_query=$saved_query";
   if ( "$style" != "" ) $header_cell .= "&style=$style";
   if ( "$format" != "" ) $header_cell .= "&format=$format";
   if ( isset($choose_columns) && $choose_columns ) $header_cell .= "&choose_columns=1";
   $header_cell .= "\">%s";      // %s for the Cell heading
   $header_cell .= "%s</a></th>";    // %s For the image
 
-//Builds up and outputs the HTML for a linked column header on the request list
-function column_header( $ftext, $fname ) {
-  global $rlsort, $rlseq, $header_cell, $images;
-  $fseq = "";
-  $seq_image = "";
-  if ( "$rlsort" == "$fname" ) {
-    $fseq = ( "$rlseq" == "DESC" ? "ASC" : "DESC");
-    $seq_image .= "&nbsp;<img border=0 src=\"/$images/sort-$rlseq.png\">";
-  }
-  printf( $header_cell, $fname, $fseq, $ftext, $seq_image );
-}
-
-  if ( "$saved_query" != "" && "$action" == "delete" ) {
-    $sql = "DELETE FROM saved_queries WHERE user_no = '$session->user_no' AND LOWER(query_name) = LOWER(".qpg($saved_query).");";
-    $result = awm_pgexec( $dbconn, $sql, "requestlist", false, 7);
-    unset($saved_query);
-  }
-
   require_once("top-menu-bar.php");
   require_once("page-header.php");
 
-if ( ! is_member_of('Request') || ((isset($error_msg) || isset($error_qry)) && "$error_msg$error_qry" != "") ) {
-  // error_log( "Error: Msg:$error_msg, Qry:$error_qry, Membership: ".is_member_of('Request'));
-  include( "error.php" );
-}
-else {
   if ( !isset( $style ) || ($style != "plain" && $style != "stripped") ) {
     $form_url_parameters = array();
     if ( isset($org_code) && intval($org_code) > 0 )  array_push( $form_url_parameters, "org_code=$org_code");
-    if ( isset($qs) && "$qs" != "" )                  array_push( $form_url_parameters, "qs=$qs");
     if ( isset($choose_columns) && $choose_columns )  array_push( $form_url_parameters, "choose_columns=1");
     $form_url = "$PHP_SELF";
     for( $i=0; $i < count($form_url_parameters) && $i < 20; $i++ ) {
@@ -388,452 +211,257 @@ else {
 
     echo "<table border=0 cellspacing=2 cellpadding=0 align=center class=row0 width=100% style=\"border: 1px dashed #aaaaaa;\">\n<tr>\n";
     echo "<td width=100%><table border=0 cellspacing=0 cellpadding=0 width=100%><tr valign=middle>\n";
-    if ( "$qs" == "complex" )
-      echo "<td class=smb>Find:</td><td class=sml><input class=sml type=text size=10 name=search_for value=\"$search_for\"></td>\n";
 
-    echo "<td class=smb>&nbsp;System:</td><td class=sml><select class=sml name=system_id><option value=\".\">--- All Systems ---</option>$system_list</select></td>\n";
+    echo "<td class=smb>&nbsp;System:</td><td class=\"sml\"><select class=\"sml\" name=system_id><option value=\".\">--- All Systems ---</option>$system_list</select></td>\n";
 
-  if ( is_member_of('Admin', 'Support','Contractor') ) {
-    $organisations = new PgQuery(SqlSelectOrganisations($org_code));
-    $orglist = "<option value=\"\">--- All Organisations ---</option>\n" . $organisations->BuildOptionList( "$org_code", "requestlist" );
-    echo "<td class=\"smb\">&nbsp;Organisation:</td><td class=\"sml\"><select class=\"sml\" name=\"org_code\">\n$orglist</select></td>\n";
-  }
-  if ( "$qs" != "complex" )
-   echo "<td valign=middle class=smb align=center><input type=submit value=\"RUN QUERY\" alt=go name=submit class=\"submit\"></td><td class=smb width=100px> &nbsp; &nbsp; &nbsp; </td>\n";
-  echo "</tr></table></td></tr>\n";
-
-
-  if ( "$qs" == "complex" ) {
-    $requesters = new PgQuery(SqlSelectRequesters($org_code));
-    $subscribers = new PgQuery(SqlSelectSubscribers($org_code));
-    if ( ! is_member_of('Admin', 'Support')  && ! isset($interested_in) ) $interested_in = $session->user_no;
-    $subscriber_list = $subscribers->BuildOptionList($interested_in,'requestlist');
-    if ( is_member_of('Admin', 'Support', 'Manage', 'Contractor') ) {
-      echo "<tr><td width=\"100%\"><table border=\"0\" cellspacing=\"0\" cellpadding=\"0\" width=\"100%\"><tr valign=\"middle\">\n";
-      $user_list = "<option value=\"\">--- Any Requester ---</option>" . $requesters->BuildOptionList($requested_by,'requestlist');
-      echo "<td class=\"smb\">By:</td><td class=\"sml\"><select class=\"sml\" name=\"requested_by\">$user_list</select></td>\n";
-
-      $user_list = "<option value=\"\">--- Any Interested User ---</option>" . $subscriber_list;
-      echo "<td class=\"smb\">Watching:</td><td class=\"sml\"><select class=\"sml\" name=\"interested_in\">$user_list</select></td>\n";
-
-      $user_list = "<option value=\"\">--- Any Assigned Staff ---</option><option value=\"-1\">Not Yet Allocated</option>" . $subscriber_list;
-      echo "<td class=\"smb\">ToDo:</td><td class=\"sml\"><select class=\"sml\" name=\"allocated_to\">$user_list</select></td>\n";
-      echo "</tr></table></td></tr>\n";
+    if ( is_member_of('Admin', 'Support','Contractor') ) {
+      $organisations = new PgQuery(SqlSelectOrganisations($org_code));
+      $orglist = "<option value=\"\">--- All Organisations ---</option>\n" . $organisations->BuildOptionList( "$org_code", "requestlist" );
+      echo "<td class=\"smb\">&nbsp;Organisation:</td><td class=\"sml\"><select class=\"sml\" name=\"org_code\">\n$orglist</select></td>\n";
     }
+    echo "<td valign=middle class=smb align=center><input type=submit value=\"RUN\" alt=\"Run\" title=\"Run a query with these settings\" name=submit class=\"submit\">";
+    echo "</tr></table></td></tr>\n";
+    echo "</table></form>\n";
 
-    $request_types = get_code_list( "request", "request_type", "$type_code" );
-?>
-<tr><td><table border=0 cellspacing=0 cellpadding=0 width=100%><tr valign=middle>
-<td class=smb align=right>Last&nbsp;Action&nbsp;From:</td>
-<td nowrap class=smb><input type=text size=10 name=from_date class=sml value="<?php echo "$from_date"; ?>">
-<a href="javascript:show_calendar('search.from_date');" onmouseover="window.status='Date Picker';return true;" onmouseout="window.status='';return true;"><img valign="middle" src="/<?php echo $images; ?>/date-picker.gif" border=0></a>
-</td>
-
-<td class=smb align=right>&nbsp;To:</td>
-<td nowrap class=smb><input type=text size=10 name=to_date class=sml value="<?php echo "$to_date"; ?>">
-<a href="javascript:show_calendar('search.to_date');" onmouseover="window.status='Date Picker';return true;" onmouseout="window.status='';return true;"><img valign="middle" src="/<?php echo $images; ?>/date-picker.gif" border=0></a>
-</td>
-<td class=smb align=right>&nbsp;Type:</td>
-<td nowrap class=smb><select name="type_code" class=sml><option value="">-- All Types --</option><?php echo "$request_types"; ?></select></td>
-</tr></table></td>
-</tr>
-<?php
-    echo "<tr><td>\n";
-    echo "<table border=0 cellspacing=0 cellpadding=0><tr valign=middle><td class=smb align=right valign=top>When:</td><td class=sml valign=top>\n";
-    $sql = "SELECT * FROM lookup_code WHERE source_table='request' ";
-    $sql .= " AND source_field='status_code' ";
-    $sql .= " ORDER BY source_table, source_field, lookup_seq, lookup_code ";
-    $rid = pg_Exec( $dbconn, $sql);
-    if ( $rid && pg_NumRows($rid) > 1 ) {
-      $nrows = pg_NumRows($rid);
-      for ( $i=0; $i<$nrows; $i++ ) {
-        $status = pg_Fetch_Object( $rid, $i );
-        echo "<label for=\"incstat[$status->lookup_code]\" style=\"white-space: nowrap\"><input type=\"checkbox\" id=\"incstat[$status->lookup_code]\" name=\"incstat[$status->lookup_code]\"";
-        if ( !isset( $incstat) || isset($incstat[$status->lookup_code]) ) echo " checked";
-        echo " value=1>" . str_replace( " ", "&nbsp;", $status->lookup_desc) . "</label> &nbsp; \n";
-//        if ( $i == intval(($nrows + 1) / 3) ) echo "&nbsp;<br>";
-      }
-      echo "<input type=checkbox name=inactive";
-      if ( $inactive != "" ) echo " checked";
-      echo " value=1>Inactive";
-      echo "</td>\n";
-    }
-    echo "<td valign=middle class=smb align=center><input type=submit value=\"RUN\" alt=\"Run\" title=\"Run a query with these settings\" name=submit class=\"submit\"></td>\n";
-    echo "</tr></table>\n</td></tr>\n";
-
-    if ( isset($choose_columns) && $choose_columns ) {
-      echo "<tr><td>\n";
-      echo "<table border=0 cellspacing=0 cellpadding=0 align=left>\n";
-      echo "<tr valign=middle>\n";
-      echo "<td valign=middle align=right class=smb>Columns:</td><td class=sml valign=top>";
-      // echo "<select name=\"columns[]\" multiple size=\"6\">\n";
-      reset($available_columns);
-      $cols_set = array_flip($columns);
-      $i=0;
-      while( list($k,$v) = each( $available_columns ) ) {
-        // echo "<option value=\"$k\"";
-        // if ( isset($columns[$k]) ) echo " selected";
-        // echo ">$v</option>\n";;
-        echo "<label for=\"columns[$i]\" style=\"white-space: nowrap\"><input type=\"checkbox\" id=\"columns[$i]\" name=\"columns[$i]\"";
-        if ( isset($cols_set[$k]) ) echo " checked";
-        echo " value=\"$k\">" . str_replace( " ", "&nbsp;", $v) . "</label> &nbsp; \n";
-        $i++;
-      }
-      // echo "</select>\n";
-      echo "</td>\n";
-      echo "</tr></table>\n</td></tr>\n";
-    }
-
-
-    if ( is_member_of('Admin') ) {
-      echo "<tr><td>\n";
-      echo "<table border=0 cellspacing=0 cellpadding=0 align=left>\n";
-      echo "<tr valign=middle>\n";
-      echo "<td valign=middle align=right class=smb>WHERE:</td><td class=sml valign=top><input type=text size=100 value=\"".htmlentities($where_clause)."\" name=where_clause class=\"sml\"></td>\n";
-      echo "</tr></table>\n</td></tr>\n";
-    }
-
-    echo "<table border=0 cellspacing=0 cellpadding=0 align=center>\n";
-    echo "<tr valign=middle>\n";
-    echo "<td valign=middle align=right class=smb>Max results:</td><td class=sml valign=top><input type=text size=6 value=\"$maxresults\" name=maxresults class=\"sml\"></td>\n";
-    echo "<td valign=middle align=right class=sml>&nbsp;&nbsp;&nbsp;&nbsp;<input type=\"checkbox\" id=\"save_query_order\" value=\"1\" name=\"save_query_order\" class=\"sml\" /></td><td class=\"smb\" valign=\"middle\"><label for=\"save_query_order\" >Save&nbsp;Order?&nbsp;&nbsp;&nbsp;</label></td>\n";
-    echo "<td valign=middle align=right class=smb>&nbsp; &nbsp; Save query as:</td>\n";
-    echo "<td valign=middle align=center><input type=text size=20 value=\"$savelist\" name=savelist class=\"sml\"></td>\n";
-    echo "<td valign=middle align=left><input type=submit value=\"SAVE QUERY\" alt=save name=submit class=\"submit\"></td>\n";
-    echo "</tr></table>\n</td></tr>\n";
-  }
-?>
-</table>
-</form>
-
-<?php
   } // if  not plain  or stripped style
 
 
-  /////////////////////////////////////////////////////////////////////////////////////////////////
-  //
-  // Now we build the statement that will find those requests...
-  //
-  /////////////////////////////////////////////////////////////////////////////////////////////////
+  /**
+  * Now we build the statement that will find those requests...
+  */
+  $query = "";
 
-  // if ( "$saved_query$search_for$org_code$system_id" != "" ) {
-    $query = "";
-    if ( isset($saved_query) && "$saved_query" != "" ) {
-      $qquery = "SELECT * FROM saved_queries WHERE user_no = '$session->user_no' AND query_name = ".qpg($saved_query).";";
-      $result = awm_pgexec( $dbconn, $qquery, "requestlist", false, 7);
-      $thisquery = pg_Fetch_Object( $result, 0 );
-      $query = $thisquery->query_sql ;
-      // If the maxresults they saved was non-default, use that, otherwise we
-      // increase the default anyway, because saved queries are more carefully
-      // crafted, and less likely to list the whole database
-      $maxresults = ( $maxresults == 100 && $thisquery->maxresults != 100 ? $thisquery->maxresults : 1000 );
-      if ( $thisquery->rlsort && ! isset($_GET['rlsort']) ) {
-        $rlsort = $thisquery->rlsort;
-        $rlseq = $thisquery->rlseq;
-      }
+  $maxresults = ( isset($maxresults) && intval($maxresults) > 0 ? intval($maxresults) : 100 );
+  $flipped_columns = array_flip($columns);
+
+  $query .= "SELECT request.request_id, brief, usr.fullname, usr.email, request_on, status.lookup_desc AS status_desc, last_activity, detailed ";
+  $query .= ", request_type.lookup_desc AS request_type_desc, lower(usr.fullname) AS lfull, lower(brief) AS lbrief ";
+  $query .= ", to_char( request.last_activity, 'FMdd Mon yyyy') AS last_change ";
+  $query .= ", to_char( request.request_on, 'FMdd Mon yyyy') AS date_requested";
+  $query .= ", request.active, last_status ";
+  $query .= ", creator.email AS by_email, creator.fullname AS by_fullname, lower(creator.fullname) AS lby_fullname ";
+  if ( isset($flipped_columns['request_tags']) ) {
+    $query .= ", request_tags(request.request_id) ";
+  }
+  $query .= "FROM ";
+  if ( intval("$interested_in") > 0 ) $query .= "request_interested, ";
+  if ( intval("$allocated_to") > 0 ) $query .= "request_allocated, ";
+  $query .= "request ";
+  if ( ! is_member_of('Admin', 'Support') ) {
+    $query .= "JOIN work_system USING (system_id) ";
+    $query .= "JOIN system_usr ON (work_system.system_id = system_usr.system_id AND system_usr.user_no = $session->user_no) ";
+  }
+  $query .= ", usr";
+  $query .= ", lookup_code AS status ";
+  $query .= ", lookup_code AS request_type";
+  $query .= ", usr AS creator";
+
+  $query .= " WHERE request.requester_id=usr.user_no AND request.entered_by=creator.user_no ";
+  $query .= " AND request_type.source_table='request' AND request_type.source_field='request_type' AND request.request_type = request_type.lookup_code";
+  if ( "$inactive" == "" )        $query .= " AND request.active ";
+  if ( ! is_member_of('Admin', 'Support', 'Contractor' ) ) {
+    $query .= " AND usr.org_code = '$session->org_code' ";
+  }
+  else if ( isset($org_code) && intval($org_code) > 0 )
+    $query .= " AND usr.org_code='$org_code' ";
+
+  if ( intval("$user_no") > 0 )
+    $query .= " AND requester_id = " . intval($user_no);
+  else if ( intval("$requested_by") > 0 )
+    $query .= " AND requester_id = " . intval($requested_by);
+  if ( intval("$interested_in") > 0 )
+    $query .= " AND request_interested.request_id=request.request_id AND request_interested.user_no = " . intval($interested_in);
+  if ( intval("$allocated_to") > 0 )
+    $query .= " AND request_allocated.request_id=request.request_id AND request_allocated.allocated_to_id = " . intval($allocated_to);
+  else if ( intval("$allocated_to") < 0 )
+    $query .= " AND NOT EXISTS( SELECT request_id FROM request_allocated WHERE request_allocated.request_id=request.request_id )";
+
+  if ( "$search_for" != "" ) {
+    $query .= " AND (brief ~* '$search_for' ";
+    $query .= " OR detailed ~* '$search_for' ) ";
+  }
+  if ( $system_id > 0 )     $query .= " AND request.system_id=$system_id ";
+  if ( "$type_code" != "" )     $query .= " AND request_type=" . intval($type_code);
+
+  if ( "$from_date" != "" )     $query .= " AND request.last_activity >= '$from_date' ";
+  if ( "$to_date" != "" )     $query .= " AND request.last_activity<='$to_date' ";
+
+  $query .= " AND status.source_table='request' AND status.source_field='status_code' AND status.lookup_code=request.last_status ";
+
+  if ( isset($incstat) && is_array( $incstat ) ) {
+    reset($incstat);
+    $query .= " AND (request.last_status ~* '[";
+    while( list( $k, $v) = each( $incstat ) ) {
+      $query .= $k ;
+    }
+    $query .= "]') ";
+  }
+
+  $query .= " ORDER BY $rlsort $rlseq ";
+  $query .= " LIMIT $maxresults ";
+
+  $result = awm_pgexec( $dbconn, $query, "requestlist", false, 7 );
+
+  if ( "$style" != "stripped" ) {
+    if ( $result && pg_NumRows($result) > 0 ) {
+      echo "\n<small>";
+      echo pg_NumRows($result) . " requests found";
+      if ( pg_NumRows($result) == $maxresults ) echo " (limit reached)";
+      echo "</small>";
     }
     else {
+      echo "\n<p><small>No requests found</small></p>";
+    }
+  }
 
-      $maxresults = ( isset($maxresults) && intval($maxresults) > 0 ? intval($maxresults) : 100 );
-      $flipped_columns = array_flip($columns);
-
-      $query .= "SELECT request.request_id, brief, usr.fullname, usr.email, request_on, status.lookup_desc AS status_desc, last_activity, detailed ";
-      $query .= ", request_type.lookup_desc AS request_type_desc, lower(usr.fullname) AS lfull, lower(brief) AS lbrief ";
-      $query .= ", to_char( request.last_activity, 'FMdd Mon yyyy') AS last_change ";
-      $query .= ", to_char( request.request_on, 'FMdd Mon yyyy') AS date_requested";
-      //provides extra fields that are needed to create a Brief (editable) report
-      $query .= ", request.active, last_status ";
-      $query .= ", creator.email AS by_email, creator.fullname AS by_fullname, lower(creator.fullname) AS lby_fullname ";
-      if ( isset($flipped_columns['request_tags']) ) {
-        $query .= ", request_tags(request.request_id) ";
-      }
-      $query .= "FROM ";
-      if ( intval("$interested_in") > 0 ) $query .= "request_interested, ";
-      if ( intval("$allocated_to") > 0 ) $query .= "request_allocated, ";
-      $query .= "request ";
-      if ( ! is_member_of('Admin', 'Support') ) {
-        $query .= "JOIN work_system USING (system_id) ";
-        $query .= "JOIN system_usr ON (work_system.system_id = system_usr.system_id AND system_usr.user_no = $session->user_no) ";
-      }
-      $query .= ", usr";
-      $query .= ", lookup_code AS status ";
-      $query .= ", lookup_code AS request_type";
-      $query .= ", usr AS creator";
-
-      $query .= " WHERE request.requester_id=usr.user_no AND request.entered_by=creator.user_no ";
-      $query .= " AND request_type.source_table='request' AND request_type.source_field='request_type' AND request.request_type = request_type.lookup_code";
-      if ( "$inactive" == "" )        $query .= " AND request.active ";
-      if ( ! is_member_of('Admin', 'Support', 'Contractor' ) ) {
-        $query .= " AND usr.org_code = '$session->org_code' ";
-      }
-      else if ( isset($org_code) && intval($org_code) > 0 )
-        $query .= " AND usr.org_code='$org_code' ";
-
-      if ( intval("$user_no") > 0 )
-        $query .= " AND requester_id = " . intval($user_no);
-      else if ( intval("$requested_by") > 0 )
-        $query .= " AND requester_id = " . intval($requested_by);
-      if ( intval("$interested_in") > 0 )
-        $query .= " AND request_interested.request_id=request.request_id AND request_interested.user_no = " . intval($interested_in);
-      if ( intval("$allocated_to") > 0 )
-        $query .= " AND request_allocated.request_id=request.request_id AND request_allocated.allocated_to_id = " . intval($allocated_to);
-      else if ( intval("$allocated_to") < 0 )
-        $query .= " AND NOT EXISTS( SELECT request_id FROM request_allocated WHERE request_allocated.request_id=request.request_id )";
-
-      if ( "$search_for" != "" ) {
-        $query .= " AND (brief ~* '$search_for' ";
-        $query .= " OR detailed ~* '$search_for' ) ";
-      }
-      if ( $system_id > 0 )     $query .= " AND request.system_id=$system_id ";
-      if ( "$type_code" != "" )     $query .= " AND request_type=" . intval($type_code);
-
-      if ( "$from_date" != "" )     $query .= " AND request.last_activity >= '$from_date' ";
-      if ( "$to_date" != "" )     $query .= " AND request.last_activity<='$to_date' ";
-
-      $query .= " AND status.source_table='request' AND status.source_field='status_code' AND status.lookup_code=request.last_status ";
-      if ( $where_clause != "" ) {
-        $query .= " AND $where_clause ";
-      }
-
-      if ( isset($incstat) && is_array( $incstat ) ) {
-        reset($incstat);
-        $query .= " AND (request.last_status ~* '[";
-        while( list( $k, $v) = each( $incstat ) ) {
-          $query .= $k ;
-        }
-        $query .= "]') ";
-        if ( eregi("save", "$submit") && "$savelist" != "" ) {
-          $saved_sort = "";
-          $saved_seq  = "";
-          if ( isset($save_query_order) && $save_query_order ) {
-            $saved_sort = $rlsort;
-            $saved_seq = $rlseq;
-          }
-          $savelist = qpg($savelist);
-          $qquery   = qpg($query);
-          $save_rlsort   = qpg($rlsort);
-          $save_rlseq    = qpg($rlseq);
-          $query = "DELETE FROM saved_queries WHERE user_no = '$session->user_no' AND LOWER(query_name) = LOWER($savelist);
-INSERT INTO saved_queries (user_no, query_name, query_sql, maxresults, rlsort, rlseq)
-   VALUES( '$session->user_no', $savelist, 'qquery, $maxresults, $save_rlsort, $save_rlseq);
-$query";
-        }
+  if ( "$style" != "stripped" ) {
+    $this_page = "wrsearch.php?style=%s&format=%s";
+    if ( "$search_for" != "" ) $this_page .= "&search_for=" . urlencode($search_for);
+    if ( $org_code > 0 ) $this_page .= "&org_code=$org_code";
+    if ( $system_id > 0 ) $this_page .= "&system_id=$system_id";
+    if ( isset($inactive) ) $this_page .= "&inactive=$inactive";
+    if ( isset($requested_by) ) $this_page .= "&requested_by=$requested_by";
+    if ( isset($interested_in) ) $this_page .= "&interested_in=$interested_in";
+    if ( isset($allocated_to) ) $this_page .= "&allocated_to=$allocated_to";
+    if ( isset($from_date) ) $this_page .= "&from_date=$from_date";
+    if ( isset($to_date) ) $this_page .= "&to_date=$to_date";
+    if ( isset($type_code) ) $this_page .= "&type_code=$type_code";
+    if ( isset($incstat) && is_array( $incstat ) ) {
+      reset($incstat);
+      while( list($k,$v) = each( $incstat ) ) {
+        $this_page .= "&incstat[$k]=$v";
       }
     }
+  }
 
-    $query .= " ORDER BY $rlsort $rlseq ";
-    $query .= " LIMIT $maxresults ";
-//    echo "<p>Query:<br />$query</p>";
+  if ( $style == "stripped" ) {
+    echo "<table border=\"0\" cellspacing=\"0\" cellpadding=\"2\" width=\"100%\">\n<tr>\n";
+    echo "<th class=\"cols\" style=\"text-align: right\">" . pg_NumRows($result) . " requests at " . date("H:i j M y") . "</th>";
+    echo "</tr></table>\n";
+  }
+  echo "<table border=\"0\" width=\"100%\">\n";
 
-    $result = awm_pgexec( $dbconn, $query, "requestlist", false, 7 );
+  $show_notes = ($format == "ultimate" || $format == "detailed" );
+  $show_details = ($format == "ultimate" || $format == "detailed" || "$format" == "activity" || "$format" == "quotes" );
+  $show_quotes = ( $format == "ultimate" || "$format" == "activity" || "$format" == "quotes" );
+  $show_work = ( ($format == "ultimate" || "$format" == "activity" ) &&  is_member_of('Admin', 'Support' ) );
+  if ( ! $show_details ) header_row();
 
-    if ( "$style" != "stripped" ) {
-      if ( $result && pg_NumRows($result) > 0 ) {
-        echo "\n<small>";
-        echo pg_NumRows($result) . " requests found";
-        if ( pg_NumRows($result) == $maxresults ) echo " (limit reached)";
-        if ( isset($saved_query) && $saved_query != "" ) echo " for <b>$saved_query</b>";
-        echo "</small>";
+
+  if ( $result ) {
+    $grand_total = 0.0;
+    $grand_qty_total = 0.0;
+
+    // Build table of requests found
+    for ( $i=0; $i < pg_NumRows($result); $i++ ) {
+      $thisrequest = pg_Fetch_Object( $result, $i );
+
+      if ( $show_details ) header_row();
+      data_row($thisrequest, $i);
+
+      if ( $show_details ) {
+        printf( "<tr class=\"row%1d\">\n", $i % 2);
+        echo "<td colspan=\"7\">" . html_format($thisrequest->detailed) . "</td>\n";
+        echo "</tr>\n";
       }
-      else {
-        echo "\n<p><small>No requests found</small></p>";
-      }
-    }
-
-    if ( "$style" != "stripped" || ("$style" == "stripped" && "$format" == "edit")) {
-      $this_page = "$PHP_SELF?style=%s&format=%s";
-      if ( isset($saved_query) ) $uqry = str_replace('%','%%',urlencode($saved_query));
-      if ( "$saved_query" != "" ) $this_page .= "&saved_query=$uqry";
-      if ( "$search_for" != "" ) $this_page .= "&search_for=" . urlencode($search_for);
-      if ( $org_code > 0 ) $this_page .= "&org_code=$org_code";
-      if ( $system_id > 0 ) $this_page .= "&system_id=$system_id";
-      if ( isset($inactive) ) $this_page .= "&inactive=$inactive";
-      if ( isset($requested_by) ) $this_page .= "&requested_by=$requested_by";
-      if ( isset($interested_in) ) $this_page .= "&interested_in=$interested_in";
-      if ( isset($allocated_to) ) $this_page .= "&allocated_to=$allocated_to";
-      if ( isset($from_date) ) $this_page .= "&from_date=$from_date";
-      if ( isset($to_date) ) $this_page .= "&to_date=$to_date";
-      if ( isset($type_code) ) $this_page .= "&type_code=$type_code";
-      if ( isset($incstat) && is_array( $incstat ) ) {
-        reset($incstat);
-        while( list($k,$v) = each( $incstat ) ) {
-          $this_page .= "&incstat[$k]=$v";
-        }
-      }
-    }
-
-    if ( "$format" == "edit" && "$because" != "")
-       echo $because;
-
-    if ( "$format" == "edit" ) //encloses any Brief (editable) reports in a form tag to enable submit form functionality
-       printf ("<form action=\"$this_page\" method=\"post\">\n", "stripped", "edit");
-
-    if ( $style == "stripped" ) {
-      echo "<table border=\"0\" cellspacing=\"0\" cellpadding=\"2\" width=\"100%\">\n<tr>\n";
-      echo "<th class=cols style=\"text-align: left\">$saved_query</th>";
-      echo "<th class=cols style=\"text-align: right\">" . pg_NumRows($result) . " requests at " . date("H:i j M y") . "</th>";
-      echo "</tr></table>\n";
-    }
-    echo "<table border=\"0\" width=\"100%\">\n";
-
-    $show_notes = ($format == "ultimate" || $format == "detailed" );
-    $show_details = ($format == "ultimate" || $format == "detailed" || "$format" == "activity" || "$format" == "quotes" );
-    $show_quotes = ( $format == "ultimate" || "$format" == "activity" || "$format" == "quotes" );
-    $show_work = ( ($format == "ultimate" || "$format" == "activity" ) &&  is_member_of('Admin', 'Support' ) );
-    if ( ! $show_details ) header_row();
-
-
-    if ( $result ) {
-      $grand_total = 0.0;
-      $grand_qty_total = 0.0;
-
-      // Build table of requests found
-      for ( $i=0; $i < pg_NumRows($result); $i++ ) {
-        $thisrequest = pg_Fetch_Object( $result, $i );
-
-        if ( "$format" == "edit" ) //tests to see if request needs to be checked for editing permissions for the logged in user
-        {
-           //$status_edit flags whether or not the logged in user has permissions to edit the status for the current request to be listed
-           //$active_edit flags whether or not the logged in user has permissions to edit the active field for the current request to be listed
-
-           list($status_edit, $active_edit) = RequestEditPermissions($thisrequest->request_id); //Calls function to find out and return the editing permissions for the current request
-
-           if ( $i == 0 )  //if statement to initialise counter to be used as the
-                $EditableRequests_count = 0; // position no in the EditableRequests array that is returned when
-            //a Brief (editable) report is submitted back
-            //with one or more editable requests in its list
-
-        }
-
-        if ( $show_details ) header_row();
-        data_row($thisrequest, $i);
-
-        if ( $show_details ) {
-          printf( "<tr class=row%1d>\n", $i % 2);
-          echo "<td colspan=7>" . html_format($thisrequest->detailed) . "</td>\n";
+      if ( $show_quotes ) {
+        $subquery = "SELECT *, to_char( quoted_on, 'DD/MM/YYYY') AS nice_date ";
+        $subquery .= "FROM request_quote, usr ";
+        $subquery .= "WHERE request_id = $thisrequest->request_id ";
+        $subquery .= "AND usr.user_no = request_quote.quote_by_id ";
+        $subquery .= "ORDER BY request_id, quoted_on ";
+        $total = 0.0;
+        $qty_total = 0.0;
+        $subres = awm_pgexec( $dbconn, $subquery, "requestlist" );
+        for ( $j=0; $subres && $j < pg_NumRows($subres); $j++ ) {
+          $thisquote = pg_Fetch_Object( $subres, $j );
+          printf( "<tr class=\"row%1d\" valign=\"top\">\n", $i % 2);
+          echo "<td>$thisquote->nice_date</td>\n";
+          echo "<td>$thisquote->fullname</td>\n";
+          echo "<td colspan=\"4\"><b>$thisquote->quote_brief</b><br><hr>\n";
+          echo html_format($thisquote->quote_details);
+          echo "</td>\n";
+          printf("<td align=\"right\">%9.2f &nbsp; %s</td>\n", $thisquote->quote_amount, $thisquote->quote_units);
           echo "</tr>\n";
         }
-        if ( $show_quotes ) {
-          $subquery = "SELECT *, to_char( quoted_on, 'DD/MM/YYYY') AS nice_date ";
-          $subquery .= "FROM request_quote, usr ";
-          $subquery .= "WHERE request_id = $thisrequest->request_id ";
-          $subquery .= "AND usr.user_no = request_quote.quote_by_id ";
-          $subquery .= "ORDER BY request_id, quoted_on ";
-          $total = 0.0;
-          $qty_total = 0.0;
-          $subres = awm_pgexec( $dbconn, $subquery, "requestlist" );
-          for ( $j=0; $subres && $j < pg_NumRows($subres); $j++ ) {
-            $thisquote = pg_Fetch_Object( $subres, $j );
-            printf( "<tr class=row%1d valign=top>\n", $i % 2);
-            echo "<td>$thisquote->nice_date</td>\n";
-            echo "<td>$thisquote->fullname</td>\n";
-            echo "<td colspan=4><b>$thisquote->quote_brief</b><br><hr>\n";
-            echo html_format($thisquote->quote_details);
-            echo "</td>\n";
-            printf("<td align=right>%9.2f &nbsp; %s</td>\n", $thisquote->quote_amount, $thisquote->quote_units);
-            echo "</tr>\n";
-          }
-        }
-        if ( $show_notes ) {
-          $subquery = "SELECT *, to_char( note_on, 'DD/MM/YYYY') AS nice_date ";
-          $subquery .= "FROM request_note, usr ";
-          $subquery .= "WHERE request_id = $thisrequest->request_id ";
-          $subquery .= "AND usr.user_no = request_note.note_by_id ";
-          $subquery .= "ORDER BY request_id, note_on ";
-          $subres = awm_pgexec( $dbconn, $subquery, "requestlist" );
-          for ( $j=0; $subres && $j < pg_NumRows($subres); $j++ ) {
-            $thisnote = pg_Fetch_Object( $subres, $j );
-            printf( "<tr class=row%1d valign=top>\n", $i % 2);
-            echo "<td>$thisnote->nice_date</td>\n";
-            echo "<td>$thisnote->fullname</td>\n";
-            echo "<td colspan=5>" . html_format($thisnote->note_detail) . "</td>\n";
-            echo "</tr>\n";
-          }
-        }
-        if ( $show_work ) {
-          $subquery = "SELECT *, to_char( work_on, 'DD/MM/YYYY') AS nice_date ";
-          $subquery .= "FROM request_timesheet, usr ";
-          $subquery .= "WHERE request_id = $thisrequest->request_id ";
-          $subquery .= "AND usr.user_no = request_timesheet.work_by_id ";
-          $subquery .= "ORDER BY request_id, work_on ";
-          $total = 0.0;
-          $qty_total = 0.0;
-          $subres = awm_pgexec( $dbconn, $subquery, "requestlist" );
-          for ( $j=0; $subres && $j < pg_NumRows($subres); $j++ ) {
-            $thiswork = pg_Fetch_Object( $subres, $j );
-            printf( "<tr class=row%1d valign=top>\n", $i % 2);
-            echo "<td>$thiswork->nice_date</td>\n";
-            echo "<td>$thiswork->fullname</td>\n";
-            echo "<td colspan=2>$thiswork->work_description</td>\n";
-            printf("<td align=right>%9.2f &nbsp; </td>\n", $thiswork->work_quantity);
-            printf("<td align=right>%9.2f &nbsp; </td>\n", $thiswork->work_rate);
-            $value = $thiswork->work_quantity * $thiswork->work_rate;
-            $total += $value;
-            $qty_total += $thiswork->work_quantity;
-            printf("<td align=right>%9.2f &nbsp; </td>\n", $value);
-            echo "</tr>\n";
-          }
-          if ( $j > 0 )
-            printf( "<tr class=row%1d>\n<td colspan=4>&nbsp; &nbsp; &nbsp; Request #$thisrequest->request_id total</td>\n<td align=right>%9.2f &nbsp; </td><td>&nbsp;</td><td align=right>%9.2f &nbsp; </td>\n</tr>\n", $i % 2, $qty_total, $total);
-          $grand_total += $total;
-          $grand_qty_total += $qty_total;
-        }
-
-        if ( $show_details )
-          echo "<tr class=row3>\n<td colspan=7>&nbsp;</td></tr>\n";
-
-        if ( (isset($status_edit) && $status_edit) || (isset($active_edit) && $active_edit ) ) //Maintains the $EditableRequests_count counter
-         $EditableRequests_count++;
       }
+      if ( $show_notes ) {
+        $subquery = "SELECT *, to_char( note_on, 'DD/MM/YYYY') AS nice_date ";
+        $subquery .= "FROM request_note, usr ";
+        $subquery .= "WHERE request_id = $thisrequest->request_id ";
+        $subquery .= "AND usr.user_no = request_note.note_by_id ";
+        $subquery .= "ORDER BY request_id, note_on ";
+        $subres = awm_pgexec( $dbconn, $subquery, "requestlist" );
+        for ( $j=0; $subres && $j < pg_NumRows($subres); $j++ ) {
+          $thisnote = pg_Fetch_Object( $subres, $j );
+          printf( "<tr class=\"row%1d\" valign=\"top\">\n", $i % 2);
+          echo "<td>$thisnote->nice_date</td>\n";
+          echo "<td>$thisnote->fullname</td>\n";
+          echo "<td colspan=\"5\">" . html_format($thisnote->note_detail) . "</td>\n";
+          echo "</tr>\n";
+        }
+      }
+      if ( $show_work ) {
+        $subquery = "SELECT *, to_char( work_on, 'DD/MM/YYYY') AS nice_date ";
+        $subquery .= "FROM request_timesheet, usr ";
+        $subquery .= "WHERE request_id = $thisrequest->request_id ";
+        $subquery .= "AND usr.user_no = request_timesheet.work_by_id ";
+        $subquery .= "ORDER BY request_id, work_on ";
+        $total = 0.0;
+        $qty_total = 0.0;
+        $subres = awm_pgexec( $dbconn, $subquery, "requestlist" );
+        for ( $j=0; $subres && $j < pg_NumRows($subres); $j++ ) {
+          $thiswork = pg_Fetch_Object( $subres, $j );
+          printf( "<tr class=row%1d valign=top>\n", $i % 2);
+          echo "<td>$thiswork->nice_date</td>\n";
+          echo "<td>$thiswork->fullname</td>\n";
+          echo "<td colspan=\"2\">$thiswork->work_description</td>\n";
+          printf("<td align=\"right\">%9.2f &nbsp; </td>\n", $thiswork->work_quantity);
+          printf("<td align=\"right\">%9.2f &nbsp; </td>\n", $thiswork->work_rate);
+          $value = $thiswork->work_quantity * $thiswork->work_rate;
+          $total += $value;
+          $qty_total += $thiswork->work_quantity;
+          printf("<td align=\"right\">%9.2f &nbsp; </td>\n", $value);
+          echo "</tr>\n";
+        }
+        if ( $j > 0 )
+          printf( "<tr class=\"row%1d\">\n<td colspan=\"4\">&nbsp; &nbsp; &nbsp; Request #$thisrequest->request_id total</td>\n<td align=\"right\">%9.2f &nbsp; </td><td>&nbsp;</td><td align=right>%9.2f &nbsp; </td>\n</tr>\n", $i % 2, $qty_total, $total);
+        $grand_total += $total;
+        $grand_qty_total += $qty_total;
+      }
+
+      if ( $show_details )
+        echo "<tr class=\"row3\">\n<td colspan=\"7\">&nbsp;</td></tr>\n";
+
     }
-    if ( $show_work )
-      printf( "<tr class=row%1d>\n<th align=left colspan=4>Grand Total</th>\n<th align=right>%9.2f &nbsp; </th><th>&nbsp;</th><th align=right>%9.2f &nbsp; </th>\n</tr>\n", $i % 2, $grand_qty_total, $grand_total);
+  }
+  if ( $show_work )
+    printf( "<tr class=\"row%1d\">\n<th align=\"left\" colspan=\"4\">Grand Total</th>\n<th align=\"right\">%9.2f &nbsp; </th><th>&nbsp;</th><th align=\"right\">%9.2f &nbsp; </th>\n</tr>\n", $i % 2, $grand_qty_total, $grand_total);
 
-    if ( "$format" == "edit" )
-       if ( $EditableRequests_count == 0 )
-          echo "<tr><td align=\"center\" colspan=\"8\"><br>You do not have permission to edit any of the requests in this report.<br>&nbsp;</td></tr>";
-       else
-       {
-          echo "<tr><td align=\"left\" colspan=\"4\"><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type=reset class=\"submit\" value=\"Reset Attributes\"><br>&nbsp;</td><td align=\"right\" colspan=\"4\"><br><input type=submit value=\"Apply Changes\" name=\"submitBriefEditable\" class=\"submit\">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br>&nbsp;<td></tr>";
-          if ( isset($ChangedRequests_count) )
-             echo "<tr><td align=\"center\" colspan=\"8\"><br>" . ($ChangedRequests_count == 0 ? "No" : "$ChangedRequests_count" ) . " request". ( ($ChangedRequests_count > 1 || $ChangedRequests_count == 0) ? "s" : "" ) . " updated.<br>&nbsp;</td></tr>";
-       }
+  echo "</table>\n";
 
-    echo "</table>\n";
 
-    if ( "$format" == "edit" )  //end form enclosing Brief (editable) report
-       echo "</form>\n";
-
-    //$this_page string build code block was here
-    if ( "$style" != "stripped" )
-    {
-      echo "<br clear=all><hr>\n<table cellpadding=5 cellspacing=5 align=right><tr><td>Rerun as report: </td>\n<td>\n";
-      printf( "<a href=\"$this_page\" target=_new>Brief</a>\n", "stripped", "brief");
-      printf( " &nbsp;|&nbsp; <a href=\"$this_page&maxresults=5000\">All Rows</a>\n", $style, $format);
-      if ( is_member_of('Admin', 'Support') ) {
-        printf( " &nbsp;|&nbsp; <a href=\"$this_page\" target=_new>Activity</a>\n", "stripped", "activity");
-      }
-      printf( " &nbsp;|&nbsp; <a href=\"$this_page\" target=_new>Detailed</a>\n", "stripped", "detailed");
-      if ( is_member_of('Admin', 'Support', 'Manage') ) {
-        printf( " &nbsp;|&nbsp; <a href=\"$this_page\" target=_new>Quotes</a>\n", "stripped", "quotes");
-      }
-      if ( is_member_of('Admin', 'Support') ) {
-        printf( " &nbsp;|&nbsp; <a href=\"$this_page\" target=_new>Ultimate</a>\n", "stripped", "ultimate");
-      }
-      if ( is_member_of('Admin', 'Support') ) {
-        // The editable one must use wrsearch.php to work correctly now.
-        $that_page = str_replace( '/requestlist.php?', '/wrsearch.php?', $this_page );
-        printf( " &nbsp;|&nbsp; <a href=\"$that_page\" target=_new>Brief (editable)</a>\n", "stripped", "edit");  //uses the format = edit setting in this link for the Brief (editable) report
-      }
-      if ( "$saved_query" != "" ) {
-        echo "</td><td>|&nbsp; &nbsp; or <a href=\"wrsearch.php?saved_query=".urlencode($saved_query)."&action=delete\" class=\"sbutton\">Delete</a> it\n";
-      }
-      echo "</td></tr></table>\n";
+  if ( "$style" != "stripped" )
+  {
+    echo "<br clear=all><hr>\n<table cellpadding=5 cellspacing=5 align=right><tr><td>Rerun as report: </td>\n<td>\n";
+    printf( "<a href=\"$this_page\" target=_new>Brief</a>\n", "stripped", "brief");
+    printf( " &nbsp;|&nbsp; <a href=\"$this_page&maxresults=5000\">All Rows</a>\n", $style, $format);
+    if ( is_member_of('Admin', 'Support') ) {
+      printf( " &nbsp;|&nbsp; <a href=\"$this_page\" target=_new>Activity</a>\n", "stripped", "activity");
     }
+    printf( " &nbsp;|&nbsp; <a href=\"$this_page\" target=_new>Detailed</a>\n", "stripped", "detailed");
+    if ( is_member_of('Admin', 'Support', 'Manage') ) {
+      printf( " &nbsp;|&nbsp; <a href=\"$this_page\" target=_new>Quotes</a>\n", "stripped", "quotes");
+    }
+    if ( is_member_of('Admin', 'Support') ) {
+      printf( " &nbsp;|&nbsp; <a href=\"$this_page\" target=_new>Ultimate</a>\n", "stripped", "ultimate");
+    }
+    if ( is_member_of('Admin', 'Support') ) {
+      printf( " &nbsp;|&nbsp; <a href=\"$this_page\" target=_new>Brief (editable)</a>\n", "stripped", "edit");
+    }
+    echo "</td></tr></table>\n";
+  }
 
-  // }
-
-} /* The end of the else ... clause waaay up there! */
 
 include("page-footer.php");
 

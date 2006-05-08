@@ -7,6 +7,21 @@ body {
   margin: 0;
 }
 
+.left {
+    text-align:left;
+  }
+
+
+.center {
+    text-align:center;
+    white-space:nowrap;
+  }
+
+
+.right {
+    text-align:right;
+  }
+
 table.data {
   border-bottom: 12px solid #606060;
   background-image:url(/catimg/tile_lines.gif);
@@ -44,7 +59,7 @@ th.prompt {
   line-height: 1.5em;
 }
 
-th.pcol {
+th.pcol, #browser thead {
   margin: 0;
   padding: 0;
   text-align: left;
@@ -295,3 +310,9 @@ div.blockhead {
   width: auto;
   clear: both;
 }
+
+
+#browser .order {
+    border:none;
+    vertical-align:middle;
+  }

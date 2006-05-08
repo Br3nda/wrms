@@ -41,6 +41,7 @@ class MyTheme extends Theme {
     parent::Theme();
     $this->stylesheets[0] = "pwl.css";
     $this->images = "pwimg";
+    $c->images = "pwimg";  // Compatibilty with AWL... :-)
   }
 
 

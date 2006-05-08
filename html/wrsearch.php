@@ -28,6 +28,12 @@
   if ( !isset($from_date) ) $from_date = "";
   if ( !isset($to_date) ) $to_date = "";
   if ( !isset($where_clause) ) $where_clause = "";
+
+  // Can't just let anyone type in a where clause on the command line!
+  if ( ! is_member_of('Admin' ) ) {
+    $where_clause = "";
+  }
+
   if ( !isset($default_search_statuses) ) $default_search_statuses = '@NRILKTQADSPZU';
 
   // If they didn't provide a $columns, we use a default.

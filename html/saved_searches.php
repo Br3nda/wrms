@@ -11,7 +11,16 @@
 
   $browser = new Browser("");
   $browser->AddColumn( 'user_no', 'User#', 'center', '<a href="/user.php?user_no=##user_no##">%d</a>' );
-  $browser->AddColumn( 'query_name', 'Query Name', 'center', '<a href="/wrsearch.php?user_no=##user_no##">%d</a>' );
+  $browser->AddColumn( 'query_name', 'Query Name', 'left', '<a href="/wrsearch.php?style=plain&saved_query=##URL:query_name##">%s</a>' );
+  $browser->AddColumn( 'query_type', 'Type', 'center', '%s' );
+//  $browser->AddColumn( 'query_sql', 'SQL', 'left', '%s' );
+//  $browser->AddColumn( 'query_params', 'Params', 'left', '%s' );
+  $browser->AddColumn( 'maxresults', 'Max#', 'left', '%s' );
+  $browser->AddColumn( 'rlsort', 'SortBy', 'center', '%s' );
+  $browser->AddColumn( 'rlseq', 'Up/Dn', 'center', '%s' );
+  $browser->AddColumn( 'public', 'Public?', 'center', '%s' );
+  $browser->AddColumn( 'in_menu', 'Menu?', 'center', '%s' );
+  $browser->AddColumn( 'updated', 'Last Modified', 'center', '%-16.16s' );
   $browser->SetJoins( "saved_queries JOIN usr USING(user_no) " );
   $browser->SetWhere( "usr.user_no = ".$session->user_no );
   if ( isset( $_GET['o']) && isset($_GET['d']) ) {

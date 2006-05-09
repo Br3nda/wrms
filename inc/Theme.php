@@ -501,7 +501,7 @@ EOINSTYLE;
 
     // Now start the body
     echo "</head>\n";
-    echo "<body bgcolor=\"$colors[bg1]\" fgcolor=\"$colors[fg1]\" leftmargin=\"0\" marginheight=\"0\" marginwidth=\"0\" topmargin=\"0\" text=\"$colors[fg1]\" link=\"$colors[link1]\" vlink=\"$colors[link1]\" alink=\"$colors[link2]\" background=\"/$images/tanTile.gif\">\n";
+    echo "<body bgcolor=\"$colors[bg1]\" fgcolor=\"$colors[fg1]\" leftmargin=\"0\" marginheight=\"0\" marginwidth=\"0\" topmargin=\"0\" text=\"$colors[fg1]\" link=\"$colors[link1]\" vlink=\"$colors[link1]\" alink=\"$colors[link2]\">\n";
   }
 
 
@@ -516,12 +516,12 @@ EOINSTYLE;
 <table width="100%" border="0" cellspacing="0" cellpadding="0">
   <tr>
     <td>
-      <table width="100%" border="0" cellspacing="0" cellpadding="0" background="$this->images/tanTile.gif">
+      <table width="100%" border="0" cellspacing="0" cellpadding="0"">
         <tr>
           <td background="$this->images/tanTile.gif" height="55"><img src="$this->images/wrmsTOP.gif" width="700" height="60"></td>
         </tr>
       </table>
-      <table width="100%" border="0" cellspacing="0" cellpadding="0" background="$this->images/midTile.gif">
+      <table width="100%" border="0" cellspacing="0" cellpadding="0"">
         <tr>
           <td width="40%">
             <table width="142" border="0" cellspacing="0" cellpadding="0">

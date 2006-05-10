@@ -187,7 +187,7 @@ INDEXNOTLOGGEDIN;
   * Function to output the HTML header part of the document.
   */
   function HTMLHeader() {
-    global $c;
+    global $c, $title;
 
     if ( isset($c->page_title) ) $title = $c->page_title;
 

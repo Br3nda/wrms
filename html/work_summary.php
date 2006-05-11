@@ -19,11 +19,17 @@ if ( !isset($from_date) ) $from_date = date('01/m/y', mktime(0, 0, 0, date("m"),
 if ( !isset($to_date) )   $to_date   = date('d/m/y',mktime(0, 0, 0, date("m"), 0,  date("Y")));
 if ( !isset($break_columns) ) $break_columns = 2;
 
-if ( is_member_of('Admin', 'Support' ) ) {
+
+
+if ( is_member_of('Admin', 'Accounts' ) ) {
     $system_list = get_system_list( "", $system_id);
     $user_list   = get_user_list( "Support", "", $users );
 }
-else $system_list = get_system_list( "CES", $system_id);
+else {
+    $system_list = get_system_list( "CES", $system_id);
+    $users=array($session->user_no  );
+    $user_list="<option value=\"" . $session->user_no . "\">" . substr($session->fullname,0, 25) . " (" . $session->abbreviation . ")" . "</option>";
+}
 
 $organisation_list = get_organisation_list($organisation_code);
 $request_types     = get_code_list( "request", "request_type", "$request_type" );
@@ -201,7 +207,7 @@ function insert_period_totals() {
 
 <?php
 
-if  ( !($session->AllowedTo("Admin") || $session->AllowedTo("Support"))) $users[]=$session->user_no;
+// if  ( !($session->AllowedTo("Admin") || $session->AllowedTo("Support"))) $users[]=$session->user_no;
 
 if ( isset($organisation_code )) $organisation_code=array_filter($organisation_code);
 if ( isset($system_id)) $system_id=array_filter($system_id);

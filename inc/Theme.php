@@ -490,6 +490,21 @@ th.cols, th.rows, a.cols {
   color: $colors[hv2];
 }
 
+.subtotal {
+    font: bold;
+    border-top: 2px solid;
+    border-bottom: 2px solid;
+    background: $colors[row1];
+}
+
+.period {
+    font: bold;
+    border-right: 2px solid;
+    border-left: 2px solid;
+    background: $colors[row1];
+}
+
+
 EOINSTYLE;
 
     $this->InlineStyles();

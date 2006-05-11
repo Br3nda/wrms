@@ -49,6 +49,9 @@ if (!isset($edit)) {
   $edit = 0;
 }
 
+require_once("top-menu-bar.php");
+require_once("page-header.php");
+
 switch ($qa_action) {
   case "reapprove":
     if (isset($project->qa_process->qa_steps[$step_id])) {
@@ -79,8 +82,6 @@ switch ($qa_action) {
 
 // -----------------------------------------------------------------------------------------------
 // DELIVER..
-require_once("top-menu-bar.php");
-require_once("page-header.php");
 
 echo $content;
 

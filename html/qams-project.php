@@ -41,9 +41,6 @@ if (!isset($request_id)) {
   $request_id = 0;
 }
 
-require_once("top-menu-bar.php");
-require_once("page-header.php");
-
 // New project object to work with..
 $project = new qa_project($request_id);
 
@@ -52,6 +49,8 @@ if (!isset($edit)) {
   $edit = 0;
 }
 
+require_once("top-menu-bar.php");
+require_once("page-header.php");
 
 switch ($qa_action) {
   case "reapprove":

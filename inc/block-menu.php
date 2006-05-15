@@ -128,9 +128,15 @@ function show_sidebar_menu() {
       menu_url_line("/requestrank.php?qs=complex", $tooltip, "Request Ranking" );
     }
   }
+
   if ( is_member_of('Admin', 'Support' ) ) {
     menu_url_line("/statuspie.php", 'A pie chart of request statuses for a period / system / organisation', "Status Pie" );
   }
+
+  if ( is_member_of('Admin', 'Accounts' ) ) {
+     menu_url_line("/work_summary.php", 'Show work summary for an Organisation / System / Person etc.', "Work Summary" );
+  }
+
   $theme->BlockClose();
 }
 

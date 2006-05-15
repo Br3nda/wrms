@@ -174,8 +174,16 @@ class qa_project extends qams_request {
   var $new_project = false;
   /** User ID (wrms user_no) of Project Manager */
   var $project_manager;
+  /** Email address of Project Manager */
+  var $project_manager_email = "";
+  /** Full name of Project Manager */
+  var $project_manager_fullname = "";
   /** User ID (wrms user_no) of QA Mentor */
   var $qa_mentor;
+  /** Email address of QA Mentor */
+  var $qa_mentor_email = "";
+  /** Full name of QA Mentor */
+  var $qa_mentor_fullname = "";
   /** Model ID originally chosen */
   var $qa_model_id;
   /** The current QA phase of this project. This is updated
@@ -445,10 +453,15 @@ class qa_project extends qams_request {
     $mail->IsSendmail();
 
     // From addressing..
-    $mail->From = $this->project_manager_email;
+    if ($session->email != "") {
+      $mail->From = $session->email;
+      $mail->FromName = $session->fullname;
+    }
+    else {
+      $mail->From = $this->project_manager_email;
+      $mail->FromName = $this->project_manager_fullname;
+    }
     $mail->Sender = $mail->From;
-    $mail->FromName = $this->project_manager_fullname;
-    $mail->AddReplyTo( $session->email, $session->fullname );
 
     // Recipients..
     if (is_array($recipients)) {
@@ -457,6 +470,7 @@ class qa_project extends qams_request {
     else {
       $send_to = $this->GetRecipients();
     }
+    $debug_to = "";
     foreach ($send_to as $email => $name) {
       if (isset($debug_email)) {
         if ($debug_to != "") $debug_to .= ", ";

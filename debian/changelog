@@ -1,3 +1,20 @@
+wrms (2.3.1-0) unstable; urgency=low
+
+  * Added saved_searches script and support for having some reports outside of
+    a person's menu.
+  * Add some missing images.
+  * Fix missing titles in theme.
+  * Fix images in statuspie query form.
+  * Crude fix for qams_project (not) creating new projects.
+
+ -- Andrew McMillan <debian@mcmillan.net.nz>  Wed, 10 May 2006 22:02:31 +1200
+
+wrms (2.3.0-5) unstable; urgency=low
+
+  * Add Flexible theme and tweak PWL one.
+
+ -- Andrew McMillan <debian@mcmillan.net.nz>  Tue,  9 May 2006 21:51:33 +1200
+
 wrms (2.3.0-4) unstable; urgency=low
 
   * OK.  Really fix the stylesheet stuff.  This is about as stable as things

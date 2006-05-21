@@ -74,7 +74,7 @@ function show_sidebar_menu() {
 
     $tooltip = "Run this saved search";
     $tooltip2 = "Edit this saved search";
-    $qry = new PgQuery( "SELECT * FROM saved_queries WHERE user_no = '$session->user_no' ORDER BY query_name" );
+    $qry = new PgQuery( "SELECT * FROM saved_queries WHERE user_no = '$session->user_no' AND in_menu ORDER BY query_name" );
     if ( $qry->Exec("block-menu") && $qry->rows > 0) {
       menu_break_line();
       while ( $thisquery = $qry->Fetch() ) {
@@ -84,6 +84,7 @@ function show_sidebar_menu() {
         }
         echo "<br />\n";
       }
+      echo "&nbsp; &nbsp;<a href=\"/saved_searches.php\">...more</a><br />\n";
     }
 
     menu_break_line();
@@ -127,9 +128,15 @@ function show_sidebar_menu() {
       menu_url_line("/requestrank.php?qs=complex", $tooltip, "Request Ranking" );
     }
   }
+
   if ( is_member_of('Admin', 'Support' ) ) {
     menu_url_line("/statuspie.php", 'A pie chart of request statuses for a period / system / organisation', "Status Pie" );
   }
+
+  if ( is_member_of('Admin', 'Accounts' ) ) {
+     menu_url_line("/work_summary.php", 'Show work summary for an Organisation / System / Person etc.', "Work Summary" );
+  }
+
   $theme->BlockClose();
 }
 

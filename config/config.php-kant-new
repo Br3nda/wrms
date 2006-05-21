@@ -26,19 +26,21 @@ if ( !isset($debuglevel) ) $debuglevel = 2;
 // $debuggroups['Login'] = 1;
 // $debuggroups['querystring'] = 1;
 // $debuggroups['Request'] = 1;
-$debuggroups['PageHeader'] = 1;
+// $debuggroups['PageHeader'] = 1;
 // $debuggroups['User'] = 1;
 // $debuggroups['WorkSystem'] = 1;
 // $debuggroups['TimeSheet'] = 1;
 // $debuggroups['OrganisationPlus'] = 1;
 // $debuggroups['Organisation'] = 1;
 // $debuggroups['DataEntry'] = 1;
+$debuggroups['SavedSearches'] = 1;
 
-$c->theme = "Default";
-$c->theme = "Catalyst";
+// $c->theme = "Default";
+// $c->theme = "Catalyst";
 // $c->theme = "Eduforge";
 // $c->theme = "PWL";
 // $c->theme = "EEC";
+$c->theme = "Flexible";
 
 $default_search_statuses = '@NRILKTQADSPZU';
 $qams_enabled = true;

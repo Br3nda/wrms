@@ -121,26 +121,30 @@ foreach ($doc as $id => $qa_document_title) {
 
   // Template document links..
   $s .= "<td valign=\"top\">";
+  $tps = array();
   if (isset($doc_template[$id])) {
     foreach ($doc_template[$id] as $model_name => $template) {
       if ($template != "") {
         $doctitle = "Template for " . $doc[$id] . " for " . strtolower($model_name) . " projects";
-        $s .= "<a href=\"$template\" title=\"$doctitle\">$model_name model</a>";
+        $tps[] = "<a href=\"$template\" title=\"$doctitle\">$model_name</a>";
       }
     }
   }
+  $s .= implode("<br>", $tps);
   $s .= "</td>";
     
   // Example document links..
   $s .= "<td valign=\"top\">";
+  $egs = array();
   if (isset($doc_example[$id])) {
     foreach ($doc_example[$id] as $model_name => $example) {
       if ($example != "") {
         $doctitle = "Example of " . $doc[$id] . " for " . strtolower($model_name) . " projects";
-        $s .= "<a href=\"$example\" title=\"$doctitle\">$model_name model</a>";
+        $egs[] = "<a href=\"$example\" title=\"$doctitle\">$model_name</a>";
       }
     }
   }
+  $s .= implode("<br>", $egs);
   $s .= "</td>";
   $s .= "</tr>\n";
 }

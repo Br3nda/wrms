@@ -503,7 +503,31 @@ class Session
             // Recognise that we have started a session now too...
             $this->Session($sid);
             $this->Dbg( "Login", "New session $session_id started for $this->username ($usr->user_no)" );
-            return true;
+
+            $this->just_logged_in = true;
+
+            // Unset all of the submitted values, so we don't accidentally submit an unexpected form.
+            unset($_POST['username']);
+            unset($_POST['password']);
+            unset($_POST['submit']);
+            unset($_GET['submit']);
+            unset($GLOBALS['submit']);
+
+            if ( function_exists('local_session_sql') ) {
+              $sql = local_session_sql();
+            }
+            else {
+              $sql = "SELECT session.*, usr.* FROM session JOIN usr USING ( user_no )";
+            }
+            $sql .= " WHERE session.session_id = ? AND (md5(session.session_start::text) = ? OR session.session_key = ?) ORDER BY session.session_start DESC LIMIT 2";
+
+            $qry = new PgQuery($sql, $session_id, $session_key, $session_key);
+            if ( $qry->Exec('Session') && 1 == $qry->rows ) {
+              $this->AssignSessionDetails( $qry->Fetch() );
+            }
+
+            $rc = true;
+            return $rc;
           }
    // else ...
           $this->cause = 'ERR: Could not create new session.';

@@ -1,3 +1,9 @@
+wrms (2.3.1-1) unstable; urgency=low
+
+  * Fix (crudely) the Remember Me function.
+
+ -- Andrew McMillan <debian@mcmillan.net.nz>  Tue,  6 Jun 2006 15:51:09 +1200
+
 wrms (2.3.1-0) unstable; urgency=low
 
   * Added saved_searches script and support for having some reports outside of

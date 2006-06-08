@@ -46,6 +46,30 @@ class Theme {
   */
   var $images;
 
+  /**
+  * Do we display the top panel?
+  * @var boolean
+  */
+  var $panel_top;
+
+  /**
+  * Do we display the left panel?
+  * @var boolean
+  */
+  var $panel_left;
+
+  /**
+  * Do we display the bottom panel?
+  * @var boolean
+  */
+  var $panel_bottom;
+
+  /**
+  * Do we display the right panel?
+  * @var boolean
+  */
+  var $panel_right;
+
   /**#@-*/
 
   /**
@@ -61,6 +85,14 @@ class Theme {
   */
   function Theme( ) {
     global $c;
+
+    $this->panel_top = true;
+    $this->panel_left = true;
+    $this->panel_bottom = true;
+    $this->panel_right = true;
+
+    if ( isset($GLOBALS['left_panel']) )  $this->panel_left  = $GLOBALS['left_panel'];
+    if ( isset($GLOBALS['right_panel']) ) $this->panel_right = $GLOBALS['right_panel'];
 
     $this->stylesheets[] = "main.css";
     $this->images = "images";
@@ -100,6 +132,15 @@ class Theme {
       "block" => "tahoma");   // block font
   }
 
+  /**
+  * Set which panels are to be displayed
+  */
+  function SetPanels( $top, $left, $bottom, $right ) {
+    $this->panel_top = $top;
+    $this->panel_left = $left;
+    $this->panel_bottom = $bottom;
+    $this->panel_right = $right;
+  }
 
   /**
   * Start a block in a sidebar
@@ -477,14 +518,14 @@ th.cols, th.rows, a.cols {
 }
 
 .subtotal {
-    font: bold;
+    font-weight: bold;
     border-top: 2px solid;
     border-bottom: 2px solid;
     background: $colors[row1];
 }
 
 .period {
-    font: bold;
+    font-weight: bold;
     border-right: 2px solid;
     border-left: 2px solid;
     background: $colors[row1];
@@ -513,7 +554,8 @@ EOINSTYLE;
     global $c, $session, $tmnu;
     global $left_panel, $right_panel;
 
-    echo <<<EOHDR
+    if ( $this->panel_top ) {
+      echo <<<EOHDR
 <table width="100%" border="0" cellspacing="0" cellpadding="0">
   <tr>
     <td>
@@ -539,20 +581,8 @@ EOINSTYLE;
   </tr>
 </table>
 EOHDR;
-
-    if ( $style != "stripped" ) {
-      // The left hand sidebar.
-      if ( $left_panel ) {
-        echo "<table border=\"0\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\"><tr bgcolor=\"".$this->colors['bg1']."\">\n";
-        echo "<td width=\"10%\" valign=\"top\" class=\"noprint sidebarleft\">";
-        if ( !isset($error_qry) || "$error_qry" == "" ) {
-          include("sidebarleft.php");
-        }
-        echo "\n</td>\n";
-
-        echo "<td valign=top width=\"" . ($right_panel ? "80" : ($left_panel ? "90" : "100")) . "%\">";
-      }
     }
+
   }
 
 
@@ -572,11 +602,83 @@ EOHDR;
   }
 
   /**
+  * Function to display the left side panel
+  */
+  function BeginPanels() {
+    echo "<table border=\"0\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\"><tr bgcolor=\"".$this->colors['bg1']."\">\n";
+  }
+
+  /**
+  * Function to display the left side panel
+  */
+  function LeftPanel() {
+    global $session;
+
+    if ( $this->panel_left ) {
+      // The left hand sidebar.
+      echo "<td width=\"10%\" valign=\"top\" class=\"noprint sidebarleft\">";
+
+      if ( $session->logged_in )
+        include("block-menu.php");
+      else
+        include("block-login.php");
+
+      echo "\n</td>\n";
+
+    }
+  }
+
+  /**
+  * Function to begin the content box
+  */
+  function BeginContentArea() {
+    // Begin the table that is the content area
+    echo "<td valign=top width=\"" . ($this->panel_right ? "80" : ($this->panel_left ? "90" : "100")) . "%\">";
+  }
+
+  /**
+  * Function to end the content box
+  */
+  function EndContentArea() {
+    echo "</td>\n";
+  }
+
+  /**
+  * Function to display the right side panel
+  */
+  function RightPanel() {
+    global $session;
+
+    if ( ! $this->panel_right ) return;
+
+    echo "<td width=\"10%\" bgcolor=\"".$this->colors['bg1']."\" valign=top>\n";
+    echo "<table border=0 cellspacing=0 cellpadding=2>\n<tr><td>\n";
+    include("block-newnodes.php");
+    echo "<br>\n";
+    include("block-wusearch.php");
+    echo "<br>\n";
+    if ( $session->logged_in ) {
+      echo "<br>\n";
+    }
+    echo "</td></tr>\n<tr><td valign=top align=center><img src=/images/clear.gif width=125 height=2 hspace=0 vspace=0 border=0></td></tr>\n</table>\n";
+    echo "</td>\n";
+  }
+
+  /**
+  * Function to end the left / content / right panels
+  */
+  function EndPanels() {
+    echo "</tr></table>\n";
+  }
+
+  /**
   * Function to do the page footer
   */
   function PageFooter() {
 
-      echo <<<FOOTERTABLE
+    if ( ! $this->panel_bottom ) return;
+
+    echo <<<FOOTERTABLE
 <table width="100%" border="0" cellspacing="0" cellpadding="0" height="16" background="/$this->images/WRMSbottomTile.gif">
   <tr>
     <td width="41%" height="10" valign="top"><img src="/$this->images/WRMSbottom.gif" width="473" height="16">

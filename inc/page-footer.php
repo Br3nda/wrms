@@ -2,23 +2,12 @@
 function send_footers() {
   global $settings, $c, $session, $theme, $dbconn, $total_query_time, $debuglevel;
   global $REQUEST_URI, $HTTP_USER_AGENT, $HTTP_REFERER, $PHP_SELF;
-  global $style, $left_panel, $right_panel;
 
-  if ( isset($style) && "$style" != "stripped" ) {
-    echo "</td></tr></table>\n";
-    if ( $left_panel ) {
-      echo "</td>\n";
+  $theme->EndContentArea();
+  if ( $theme->panel_right )  $theme->RightPanel();
+  $theme->EndPanels();
+  if ( $theme->panel_bottom ) $theme->PageFooter();
 
-      if ( $right_panel ) {
-        echo "<td width=\"10%\" bgcolor=\"".$theme->colors['bg1']."\" valign=top>\n";
-        include("sidebarright.php");
-        echo "\n</td>\n";
-      }
-
-      echo "</tr></table>\n";
-    }
-    $theme->PageFooter();
-  }
   echo <<<CLOSEHTML
 <div id="overDiv" style="position:absolute; visibility:hidden; z-index:1000;"></div>
 <script language="JavaScript" src="js/overlib.js"></script>

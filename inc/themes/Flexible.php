@@ -1,6 +1,6 @@
 <?php
 /**
-* CatalystTheme for WRMS
+* Flexible Learning Network Theme for WRMS
 *
 * @package   awl
 * @subpackage   FlexibleTheme
@@ -118,7 +118,8 @@ INDEXNOTLOGGEDIN;
   */
   function PageHeader( $style="normal" ) {
     global $c, $session, $tmnu;
-    global $left_panel, $right_panel;
+
+    if ( ! $this->panel_top ) return;
 
     echo '<div id="topbar">';
     echo $this->ImgLink('logo_main.gif', '/', 383, 77);
@@ -150,15 +151,6 @@ INDEXNOTLOGGEDIN;
     }
     echo '</div>'."\n";
 
-    // The left hand sidebar.
-    if ( $left_panel ) {
-      echo "<table border=\"0\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\"><tr bgcolor=\"".$this->colors['bg1']."\">\n";
-      echo "<td width=\"10%\" valign=\"top\" class=\"noprint sidebarleft\">";
-      include("sidebarleft.php");
-      echo "\n</td>\n";
-
-      echo "<td valign=\"top\" width=\"" . ($right_panel ? "80" : ($left_panel ? "90" : "100")) . "%\">";
-    }
   }
 
   /**

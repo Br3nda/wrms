@@ -1,6 +1,3 @@
 <?php
-  if ( $GLOBALS['session']->logged_in )
-    include("block-menu.php");
-  else
-    include("block-login.php");
+// This file should be no longer used.  It is handled within the Theme class now.
 ?>

@@ -1,9 +1,9 @@
 <?php
 /**
-* CatalystTheme for WRMS
+* Eduforge Theme for WRMS
 *
 * @package   awl
-* @subpackage   CatalystTheme
+* @subpackage   EduforgeTheme
 * @author    Andrew McMillan <andrew@catalyst.net.nz>
 * @copyright Catalyst IT Ltd
 * @license   http://gnu.org/copyleft/gpl.html GNU GPL v2
@@ -192,7 +192,8 @@ INDEXNOTLOGGEDIN;
   */
   function PageHeader( $style="normal" ) {
     global $c, $session, $tmnu;
-    global $left_panel, $right_panel;
+
+    if ( ! $this->panel_top ) return;
 
     $systems = new PgQuery(SqlSelectSystems($GLOBALS['org_code']));
     $system_list = $systems->BuildOptionList($GLOBALS['system_id'],'PageHeader');
@@ -233,16 +234,6 @@ EOHDR;
     }
     echo '</div>'."\n";
 
-
-    // The left hand sidebar.
-    if ( $left_panel ) {
-      echo "<table border=\"0\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\"><tr bgcolor=\"".$this->colors['bg1']."\">\n";
-      echo "<td width=\"10%\" valign=\"top\" class=\"noprint sidebarleft\">";
-      include("sidebarleft.php");
-      echo "\n</td>\n";
-
-      echo "<td valign=\"top\" width=\"" . ($right_panel ? "80" : ($left_panel ? "90" : "100")) . "%\" style=\"padding: 7px;\">";
-    }
   }
 
   /**

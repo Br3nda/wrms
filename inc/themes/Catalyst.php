@@ -118,45 +118,38 @@ INDEXNOTLOGGEDIN;
     global $c, $session, $tmnu;
     global $left_panel, $right_panel;
 
-    echo '<div id="topbar">';
-    echo $this->ImgLink('logo_main.gif', '/', 180, 50);
-    echo '</div>'."\n";
-    if ( $session->logged_in  ) {
-      echo '<div id="searchbar">';
-      echo '<form action="/wrsearch.php" method="post" name="search">';
+    if ( $this->panel_top ) {
+      echo '<div id="topbar">';
+      echo $this->ImgLink('logo_main.gif', '/', 180, 50);
+      echo '</div>'."\n";
+      if ( $session->logged_in  ) {
+        echo '<div id="searchbar">';
+        echo '<form action="/wrsearch.php" method="post" name="search">';
 
-      echo '<span class="prompt" style="vertical-align: 0%;">Find:</span>';
-      echo '<span class="entry"><input class="search_for" type="text" name="search_for" value="'.$GLOBALS['search_for'].'"/></span>';
-      $systems = new PgQuery(SqlSelectSystems($GLOBALS['org_code']));
-      $system_list = $systems->BuildOptionList($GLOBALS['system_id'],'PageHeader');
-      echo '<span class="prompt" style="vertical-align: 0%;">Systems:</span>';
-      echo '<span class="entry"><select name="system_id" class="search_for"><option value="">-- select --</option>'.$system_list;
-      echo '</select></span>';
-      echo '<span class="entry""><input type="submit" alt="go" class="fsubmit" value="Search" /></span>';
-      echo '</form>';
+        echo '<span class="prompt" style="vertical-align: 0%;">Find:</span>';
+        echo '<span class="entry"><input class="search_for" type="text" name="search_for" value="'.$GLOBALS['search_for'].'"/></span>';
+        $systems = new PgQuery(SqlSelectSystems($GLOBALS['org_code']));
+        $system_list = $systems->BuildOptionList($GLOBALS['system_id'],'PageHeader');
+        echo '<span class="prompt" style="vertical-align: 0%;">Systems:</span>';
+        echo '<span class="entry"><select name="system_id" class="search_for"><option value="">-- select --</option>'.$system_list;
+        echo '</select></span>';
+        echo '<span class="entry""><input type="submit" alt="go" class="fsubmit" value="Search" /></span>';
+        echo '</form>';
+        echo '</div>'."\n";
+      }
+
+      echo '<div id="top_menu">';
+      if ( $session->logged_in ) {
+        echo '<span style="float:right; margin-right:3px; margin-top:3px;">';
+        echo $session->fullname;
+        echo '</span>';
+      }
+      if ( isset($tmnu) && is_object($tmnu) && $tmnu->Size() > 0 ) {
+        echo $tmnu->Render();
+      }
       echo '</div>'."\n";
     }
 
-    echo '<div id="top_menu">';
-    if ( $session->logged_in ) {
-      echo '<span style="float:right; margin-right:3px; margin-top:3px;">';
-      echo $session->fullname;
-      echo '</span>';
-    }
-    if ( isset($tmnu) && is_object($tmnu) && $tmnu->Size() > 0 ) {
-      echo $tmnu->Render();
-    }
-    echo '</div>'."\n";
-
-    // The left hand sidebar.
-    if ( $left_panel ) {
-      echo "<table border=\"0\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\"><tr bgcolor=\"".$this->colors['bg1']."\">\n";
-      echo "<td width=\"10%\" valign=\"top\" class=\"noprint sidebarleft\">";
-      include("sidebarleft.php");
-      echo "\n</td>\n";
-
-      echo "<td valign=\"top\" width=\"" . ($right_panel ? "80" : ($left_panel ? "90" : "100")) . "%\">";
-    }
   }
 
   /**

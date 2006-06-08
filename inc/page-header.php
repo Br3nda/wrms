@@ -7,9 +7,8 @@ else {
 }
 
 function send_headers() {
-  global $colors, $fontsizes, $fonts, $stylesheet, $error_message, $warn_message, $client_messages;
-  global $title, $style, $left_panel, $right_panel, $images, $tmnu, $settings, $session, $help_url;
-  global $c, $session, $theme;
+  global $c, $session, $theme, $tmnu;
+  global $style, $client_messages;
 
   $theme = new MyTheme();
 
@@ -21,8 +20,15 @@ function send_headers() {
   Header("Cache-Control: private");
   Header("Pragma: no-cache");
 
+  if ( $style == "stripped" ) {
+    $theme->SetPanels( false, false, false, false );  // Turn off top / left / bottom / right panels
+  }
+
   $theme->HTMLHeader();
-  $theme->PageHeader( $style );
+  if ( $theme->panel_top ) $theme->PageHeader();
+  $theme->BeginPanels();
+  if ( $theme->panel_left ) $theme->LeftPanel();
+  $theme->BeginContentArea();
 
   if ( (isset($client_messages) && is_array($client_messages) && count($client_messages) > 0 ) || count($c->messages) > 0 ) {
     echo "<div id=\"messages\"><ul class=\"messages\">\n";

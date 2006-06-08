@@ -1,9 +1,9 @@
 <?php
 /**
-* CatalystTheme for WRMS
+* PWL Theme for WRMS
 *
 * @package   awl
-* @subpackage   CatalystTheme
+* @subpackage   PWLTheme
 * @author    Andrew McMillan <andrew@catalyst.net.nz>
 * @copyright Catalyst IT Ltd
 * @license   http://gnu.org/copyleft/gpl.html GNU GPL v2
@@ -102,7 +102,7 @@ EOSTYLE;
 <blockquote>
 <p><strong>
 Welcome to $c->system_name. For more information
-on Catalyst, please visit  <a href="http://www.catalyst.net.nz">www.catalyst.net.nz</a>.
+on Plumbing World, please visit  <a href="http://www.plumbingworld.co.nz">www.plumbingworld.co.nz</a>.
 </strong></p>
 </blockquote>
 
@@ -116,7 +116,8 @@ INDEXNOTLOGGEDIN;
   */
   function PageHeader( $style="normal" ) {
     global $c, $session, $tmnu;
-    global $left_panel, $right_panel;
+
+    if ( ! $this->panel_top ) return;
 
     echo '<div id="topbar">';
     echo $this->ImgLink('pwl-logo.png', '/', 252, 60);
@@ -149,15 +150,6 @@ INDEXNOTLOGGEDIN;
     }
     echo '</div>'."\n";
 
-    // The left hand sidebar.
-    if ( $left_panel ) {
-      echo "<table border=\"0\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\"><tr bgcolor=\"".$this->colors['bg1']."\">\n";
-      echo "<td width=\"10%\" valign=\"top\" class=\"noprint sidebarleft\">";
-      include("sidebarleft.php");
-      echo "\n</td>\n";
-
-      echo "<td valign=\"top\" width=\"" . ($right_panel ? "80" : ($left_panel ? "90" : "100")) . "%\">";
-    }
   }
 
   /**

@@ -282,7 +282,31 @@
     <item url="inc/page-header.php" uploadstatus="1" />
     <item url="inc/themes/Default.php" uploadstatus="1" />
     <item url="inc/themes/Eduforge.php" uploadstatus="1" />
-    <item url="inc/themes/PWL.php" />
-    <item url="inc/themes/EEC.php" />
+    <item url="inc/themes/PWL.php" uploadstatus="1" />
+    <item url="inc/themes/EEC.php" uploadstatus="1" />
+    <item url="html/pwl.css" uploadstatus="1" />
+    <item url="inc/qams-project-defs.php" uploadstatus="1" />
+    <item url="inc/qams-request-defs.php" uploadstatus="1" />
+    <item url="html/qams-project-status.php" uploadstatus="1" />
+    <item url="html/qams-project.php" uploadstatus="1" />
+    <item url="html/qams-refdoc-index.php" uploadstatus="1" />
+    <item url="html/qams-request-approval.php" uploadstatus="1" />
+    <item url="html/qams-step-approve.php" uploadstatus="1" />
+    <item url="html/qams-step-detail.php" uploadstatus="1" />
+    <item url="html/qams.php" uploadstatus="1" />
+    <item url="html/fleximg/" uploadstatus="1" />
+    <item url="html/fleximg/bar_blue_tile.gif" uploadstatus="1" />
+    <item url="html/fleximg/clear.gif" uploadstatus="1" />
+    <item url="html/fleximg/date-picker.gif" uploadstatus="1" />
+    <item url="html/fleximg/delete.png" uploadstatus="1" />
+    <item url="html/fleximg/flexwrms.css" uploadstatus="1" />
+    <item url="html/fleximg/logo_main.gif" uploadstatus="1" />
+    <item url="html/fleximg/menuBreak.gif" uploadstatus="1" />
+    <item url="html/fleximg/sort-ASC.png" uploadstatus="1" />
+    <item url="html/fleximg/sort-DESC.png" uploadstatus="1" />
+    <item url="html/fleximg/tile_lines.gif" uploadstatus="1" />
+    <item url="inc/themes/Flexible.php" uploadstatus="1" />
+    <item url="html/css/browse.css" uploadstatus="1" />
+    <item url="html/css/" uploadstatus="1" />
   </project>
 </webproject>

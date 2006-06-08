@@ -1,0 +1,13 @@
+
+#browser .order {
+  border:none;
+  vertical-align:middle;
+}
+
+#browser tr.header {
+  background-color: #e0e0e0;
+}
+
+#browser td.center {
+  text-align: center;
+}

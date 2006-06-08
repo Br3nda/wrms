@@ -13,7 +13,7 @@
   //   on the W/R.
   /////////////////////////////////////////////////////////////
   function RenderPieForm( ) {
-    global $session, $images, $search_record;
+    global $session, $theme, $search_record;
 
     $html = "";
     $search_record = (object) array();
@@ -83,12 +83,12 @@
     $html .= $ef->DataEntryLine( "From", "%s", "date", "from_date",
               array( "size" => 10, "class" => "srchf",
                     "title" => "Only show requests with action after this date." ) );
-    $html .= "<a href=\"javascript:show_calendar('forms.form.from_date');\" onmouseover=\"window.status='Date Picker';return true;\" onmouseout=\"window.status='';return true;\"><img valign=\"middle\" src=\"/$images/date-picker.gif\" border=\"0\"></a> &nbsp; \n";
+    $html .= "<a href=\"javascript:show_calendar('forms.form.from_date');\" onmouseover=\"window.status='Date Picker';return true;\" onmouseout=\"window.status='';return true;\">".$theme->Image("date-picker.gif")."</a> &nbsp; \n";
 
     $html .= $ef->DataEntryLine( "To", "%s", "date", "to_date",
               array( "size" => 10, "class" => "srchf",
                     "title" => "Only show requests with action before this date." ) );
-    $html .= "<a href=\"javascript:show_calendar('forms.form.to_date');\" onmouseover=\"window.status='Date Picker';return true;\" onmouseout=\"window.status='';return true;\"><img valign=\"middle\" src=\"/$images/date-picker.gif\" border=\"0\"></a> &nbsp; \n";
+    $html .= "<a href=\"javascript:show_calendar('forms.form.to_date');\" onmouseover=\"window.status='Date Picker';return true;\" onmouseout=\"window.status='';return true;\">".$theme->Image("date-picker.gif")."</a> &nbsp; \n";
 
 /*
     if ( ($session->AllowedTo("Admin") ) ) {

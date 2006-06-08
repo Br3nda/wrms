@@ -105,11 +105,7 @@ class Theme {
   * Start a block in a sidebar
   */
   function BlockOpen(  $bgcolor="", $border_color="") {
-    if ( $bgcolor == "" ) $bgcolor=$this->colors["blockback"];
-    if ( $border_color == "" ) $border_color=$this->colors["blocksides"];
-    echo "<table cellpadding=\"1\" cellspacing=\"0\" border=\"0\" width=\"100%\" bgcolor=\"$border_color\" style=\" margin: 0 1px;\">\n";
-    echo "<tr><td>\n";
-    echo "<table width=\"100%\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\" bgcolor=\"$bgcolor\">\n";
+    echo '<div class="block">';
   }
 
 
@@ -117,14 +113,7 @@ class Theme {
   * Title for a block of options / menus in the sidebar
   */
   function BlockTitle( $title="&nbsp;", $bgcolor="", $border_color="") {
-    if ( $bgcolor == "" ) $bgcolor=$this->colors["blocktitle"];
-    if ( $border_color == "" ) $border_color=$this->colors["blocksides"];
-
-    echo "<tr bgcolor=\"$bgcolor\">\n";
-    echo "<td class=\"blockhead\" align=\"center\">$title</td>\n";
-    echo "</tr>\n";
-    echo "<tr bgcolor=\"$bgcolor\">\n";
-    echo "<td class=\"block\" align=\"left\">\n";
+    echo '<div class="blockhead">'.$title.'</div>';
   }
 
 
@@ -132,10 +121,7 @@ class Theme {
   * Finish a block in a sidebar
   */
   function BlockClose() {
-    echo "</td></tr>\n";
-    echo "</table>\n";
-    echo "</td></tr>\n";
-    echo "</table>\n";
+    echo '</div>';
   }
 
 
@@ -201,7 +187,7 @@ INDEXNOTLOGGEDIN;
   * Function to output the HTML header part of the document.
   */
   function HTMLHeader() {
-    global $c;
+    global $c, $title;
 
     if ( isset($c->page_title) ) $title = $c->page_title;
 
@@ -516,7 +502,7 @@ EOINSTYLE;
 
     // Now start the body
     echo "</head>\n";
-    echo "<body bgcolor=\"$colors[bg1]\" fgcolor=\"$colors[fg1]\" leftmargin=\"0\" marginheight=\"0\" marginwidth=\"0\" topmargin=\"0\" text=\"$colors[fg1]\" link=\"$colors[link1]\" vlink=\"$colors[link1]\" alink=\"$colors[link2]\" background=\"/$images/tanTile.gif\">\n";
+    echo "<body bgcolor=\"$colors[bg1]\" fgcolor=\"$colors[fg1]\" leftmargin=\"0\" marginheight=\"0\" marginwidth=\"0\" topmargin=\"0\" text=\"$colors[fg1]\" link=\"$colors[link1]\" vlink=\"$colors[link1]\" alink=\"$colors[link2]\">\n";
   }
 
 
@@ -531,12 +517,12 @@ EOINSTYLE;
 <table width="100%" border="0" cellspacing="0" cellpadding="0">
   <tr>
     <td>
-      <table width="100%" border="0" cellspacing="0" cellpadding="0" background="$this->images/tanTile.gif">
+      <table width="100%" border="0" cellspacing="0" cellpadding="0"">
         <tr>
           <td background="$this->images/tanTile.gif" height="55"><img src="$this->images/wrmsTOP.gif" width="700" height="60"></td>
         </tr>
       </table>
-      <table width="100%" border="0" cellspacing="0" cellpadding="0" background="$this->images/midTile.gif">
+      <table width="100%" border="0" cellspacing="0" cellpadding="0"">
         <tr>
           <td width="40%">
             <table width="142" border="0" cellspacing="0" cellpadding="0">

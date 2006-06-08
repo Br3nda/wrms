@@ -1,4 +1,9 @@
 <?php
+/**
+* FIXME
+* This file is included _within_ a function.  As such it needs to declare any
+* variables to explicitly be within the global context
+*/
 global $PHP_SELF, $theme;
 
 $theme->BlockOpen();

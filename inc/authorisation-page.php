@@ -13,6 +13,9 @@
   if ( is_object($settings) ) {
     $bigboxrows = $settings->get('bigboxrows');
     $bigboxcols = $settings->get('bigboxcols');
+    if ( $settings->get('theme') != "" ) {
+      $c->theme = $settings->get('theme');
+    }
   }
   if ( intval($bigboxrows) == 0 ) $bigboxrows = 10;
   if ( intval($bigboxcols) == 0 ) $bigboxcols = 60;

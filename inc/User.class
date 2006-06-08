@@ -74,10 +74,12 @@ class User {
           $this->base_font_size = $this->settings->get('fontsize');
           $this->box_rows  = $this->settings->get('bigboxrows');
           $this->box_cols  = $this->settings->get('bigboxcols');
+          $this->theme     = $this->settings->get('theme');
         }
         if ( "$this->base_font_size" == "" ) $this->base_font_size = "11";
         if ( "$this->box_rows"  == "" ) $this->box_rows  = "10";
         if ( "$this->box_cols"  == "" ) $this->box_cols  = "60";
+        if ( "$this->theme"  == "" ) unset($this->theme);
 
       }
       else {
@@ -236,7 +238,7 @@ class User {
   }
 
   function RenderFontChoices( $ef ) {
-    global $session;
+    global $c, $session;
     $html = "";
 
     $html .= '<tr><th class="prompt">Font Size</th><td class="entry">';
@@ -270,6 +272,12 @@ class User {
     }
     $html .= '</td></tr>'."\n";
 
+    if ( isset($c->can_set_theme) && $c->can_set_theme ) {
+      $html .= $ef->DataEntryLine( "Theme", "$this->theme", "lookup", "theme",
+                  array("_type" => "user|theme",
+                        "_null" => "--- select a theme ---",
+                        "title" => "The theme for this person to use" ) );
+    }
     return $html;
   }
 
@@ -496,6 +504,7 @@ SCRIPT;
     $this->settings->set('fontsize', $_POST['base_font_size']);
     $this->settings->set('bigboxrows', $_POST['box_rows']);
     $this->settings->set('bigboxcols', $_POST['box_cols']);
+    if ( $_POST['theme'] != "" ) $this->settings->set('theme', $_POST['theme']);
     if ( is_object( $this->settings ) ) $_POST['config_data'] = $this->settings->to_save();
 
     unset($_POST['password']);  // Just in case...

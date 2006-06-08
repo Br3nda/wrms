@@ -35,12 +35,15 @@ if ( !isset($debuglevel) ) $debuglevel = 2;
 // $debuggroups['DataEntry'] = 1;
 $debuggroups['SavedSearches'] = 1;
 
+// User can choose theme
+$c->can_set_theme = true;
+
 // $c->theme = "Default";
-// $c->theme = "Catalyst";
+$c->theme = "Catalyst";
 // $c->theme = "Eduforge";
 // $c->theme = "PWL";
 // $c->theme = "EEC";
-$c->theme = "Flexible";
+// $c->theme = "Flexible";
 
 $default_search_statuses = '@NRILKTQADSPZU';
 $qams_enabled = true;

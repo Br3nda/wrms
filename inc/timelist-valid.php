@@ -14,6 +14,6 @@
 
   if ( "$because" <> "" ) {
     $because = "<H2>Errors with request:</H2>\n" . nl2br( $because ) . "<HR>\n";
-    $because .= "<P><B>Changes have not been processed - please correct because and re-submit</B></P>\n";
+    $because .= "<P><B>Changes have not been processed - please correct the cause and re-submit</B></P>\n";
   }
 ?>

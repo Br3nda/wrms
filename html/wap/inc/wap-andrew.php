@@ -31,7 +31,7 @@ $rightwidth = 330;
 ////////////////////////////////////////////////////////////////////
 function WMLinit() {
   global $wap_pagedata, $wap_browser;
-  global $wap_buttons, $HTTP_USER_AGENT, $colors, $fonts
+  global $wap_buttons, $HTTP_USER_AGENT, $colors, $fonts;
   global $leftwidth, $colwidth, $rightwidth;
 
 //  Header("Last-Modified: Tue, 28 Mar 2000 23:57:41 GMT");

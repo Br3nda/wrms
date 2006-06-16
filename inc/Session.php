@@ -404,8 +404,9 @@ class Session
             $this->Session($sid);
             $this->Dbg( "Login", "New session $session_id started for $username ($usr->user_no)" );
             if ( isset($_POST['remember']) && intval($_POST['remember']) > 0 ) {
-              $cookie .= md5( $this->user_no ) . ";";
+              $cookie .= md5( $usr->user_no ) . ";";
               $cookie .= session_salted_md5($usr->user_no . $usr->username . $usr->password);
+              $GLOBALS['lsid'] = $cookie;
               setcookie( "lsid", $cookie, time() + (86400 * 3600), "/" );   // will expire in ten or so years
             }
             $this->just_logged_in = true;

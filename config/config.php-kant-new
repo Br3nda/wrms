@@ -22,8 +22,8 @@ $pg_version = 8.1;
 if ( !isset($debuglevel) ) $debuglevel = 2;
 
 // //////////////////// Enable for debugging...
-// $debuggroups['Session'] = 1;
-// $debuggroups['Login'] = 1;
+$debuggroups['Session'] = 1;
+$debuggroups['Login'] = 1;
 // $debuggroups['querystring'] = 1;
 // $debuggroups['Request'] = 1;
 // $debuggroups['PageHeader'] = 1;

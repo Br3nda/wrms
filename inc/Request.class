@@ -246,8 +246,8 @@ class Request {
   //   function is really only checking that permissions and
   //   data are appropriate.
   /////////////////////////////////////////////////////////////
-  function Actions( ) {
-    global $session, $action, $sysabbr, $client_messages;
+  function Actions( $action ) {
+    global $session, $sysabbr, $client_messages;
     switch( $action ) {
       case 'removeatt':
         $this->RemoveAttachment(intval($GLOBALS['attachment_id']));
@@ -1352,12 +1352,13 @@ class Request {
     return $html;
   }
 
-  /////////////////////////////////////////////////////////////
-  // This is called prior to writing the record to perform any
-  // cross-field (or other) validations.  If it returns false
-  // then the record will not be written
-  /////////////////////////////////////////////////////////////
-  function Validate( $ef ) {
+  /**
+  * This is called prior to writing the record to perform any
+  * cross-field (or other) validations.  If it returns false
+  * then the record will not be written
+  * @return boolean Whether or not validation passed
+  */
+  function Validate( ) {
     global $client_messages, $session;
     $session->Dbg( "Request", "Validate: Validating request");
 
@@ -1465,13 +1466,13 @@ class Request {
   }
 
 
-  /////////////////////////////////////////////////////////////
-  // This is the main routine to actually write the record.  In
-  // the work request case we actually call a lot of other
-  // functions (roughly corresponding to the different Render
-  // ones used for displaying the form.
-  /////////////////////////////////////////////////////////////
-  function Write( $ef ) {
+  /**
+  * This is the main routine to actually write the record.  In
+  * the work request case we actually call a lot of other
+  * functions (roughly corresponding to the different Render
+  * ones used for displaying the form.
+  */
+  function Write( ) {
     global $client_messages, $request_id, $session, $schema_version;
     $session->Dbg( "Request", "Write: Writing request details to database");
     $qry = new PgQuery("BEGIN");  $qry->Exec("WR::Write");
@@ -1580,6 +1581,7 @@ class Request {
     else {
       $client_messages[] = "Request details written.";
 
+      $this->ReadRequest($request_id);
       if ( $this->send_an_email ) $this->NotifyEmail();
 
       // Since we wrote it all successfully, clear the $_POST array
@@ -1757,7 +1759,7 @@ EOX;
     if ( $this->brief != "" && "$this->brief" != $_POST['brief'] ) {
       $session->Dbg( "Request", "Old brief: $this->brief" );
       $session->Dbg( "Request", "New brief: ".$_POST['brief'] );
-      $session->Dbg( "Request", "description has changed on W/R $this-request_id" );
+      $session->Dbg( "Request", "description has changed on W/R $this->request_id" );
       $this->mail_message_data[]['html'] = sprintf($hfmt, "New description: $_POST[brief]<br />(was: $this->brief)");
       $this->mail_message_data[]['text'] = sprintf($tfmt, "New description: $_POST[brief]\n   (was: $this->brief)");
       $this->send_an_email = true;

@@ -1,3 +1,9 @@
+wrms (2.3.3-0) unstable; urgency=low
+
+  * Fixes to Request::Write and Request::Validate.
+
+ -- Andrew McMillan <debian@mcmillan.net.nz>  Sun, 18 Jun 2006 02:56:57 +1200
+
 wrms (2.3.2-1) unstable; urgency=low
 
   * Nail the 'Remember me' bugs.

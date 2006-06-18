@@ -573,8 +573,8 @@ EOINSTYLE;
               </tr>
             </table>
           </td>
-          <td width="28%"><font size=1>&nbsp;</font></td>
-          <td width="32%" align="right"><a href="$GLOBALS[help_url]"><img src="$this->images/help.gif" width="101" height="19" border=0></a></td>
+          <td width="28%" style="background: url($this->images/midTile.gif)"><font size=1>&nbsp;</font></td>
+          <td width="32%" align="right" style="background: url($this->images/midTile.gif)"><a href="$GLOBALS[help_url]"><img src="$this->images/help.gif" width="101" height="19" border=0></a></td>
         </tr>
       </table>
     </td>

@@ -18,7 +18,7 @@
     $this_page = "$PHP_SELF?style=%s&format=%s";
     if ( isset($saved_query) ) $usaved_query = str_replace('%','%%',urlencode($saved_query));
     if ( "$saved_query" != "" ) $this_page .= "&saved_query=$usaved_query";
-    if ( "$search_for" != "" ) $this_page .= "&search_for=" . urlencode($search_for);
+    if ( "$search_for" != "" ) $this_page .= "&search_for=" . str_replace('%','%%',urlencode($search_for));
     if ( $org_code > 0 ) $this_page .= "&org_code=$org_code";
     if ( $system_id > 0 ) $this_page .= "&system_id=$system_id";
     if ( isset($inactive) && $inactive != 0 && $inactive != 'off' ) $this_page .= "&inactive=$inactive";

@@ -1,7 +1,7 @@
 <?php
 
-if ( ! $dbconn = pg_Connect("port=5433 dbname=wrms user=general") ) {
-  if ( ! $dbconn = pg_Connect("port=5432 dbname=wrms user=general") ) {
+if ( ! $dbconn = pg_Connect("port=5432 dbname=wrms user=general") ) {
+  if ( ! $dbconn = pg_Connect("port=5433 dbname=wrms user=general") ) {
     echo "<html><head><title>Database Error</title></head><body>
 <h1>Database Error</h1>
 <h3>Could not connect to PGPool or to Postgres</h3>

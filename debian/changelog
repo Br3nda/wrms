@@ -1,8 +1,9 @@
 wrms (2.3.3-2) unstable; urgency=low
 
   * Display a link to the saved searches page if there are none in-menu.
+  * Display the WRMS code version and DB schema version in the footer.
 
- -- Andrew McMillan <debian@mcmillan.net.nz>  Tue,  1 Aug 2006 06:44:58 +1200
+ -- Andrew McMillan <debian@mcmillan.net.nz>  Tue,  1 Aug 2006 07:58:24 +1200
 
 wrms (2.3.3-1) unstable; urgency=low
 

@@ -93,9 +93,9 @@ function session_validate_password( $they_sent, $we_have ) {
 * @return boolean Whether or not the user correctly guessed a temporary password within the necessary window of opportunity.
 */
 function check_temporary_passwords( $they_sent, $user_no ) {
-  global $debuggroups, $session;
+  global $debuggroups, $session, $c;
 
-  if ( $GLOBALS['schema_version'] <= 1099.007 ) return false;  // Introduced at that version
+  if ( $c->schema_version <= 1099.007 ) return false;  // Introduced at that version
 
   $sql = 'SELECT 1 AS ok FROM tmp_password WHERE user_no = ? AND password = ? AND valid_until > current_timestamp';
   $qry = new PgQuery( $sql, $user_no, $they_sent );

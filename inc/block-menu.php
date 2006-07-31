@@ -72,10 +72,12 @@ function show_sidebar_menu() {
       menu_url_line("/?logout=1$hurl", "Au revoir!", "Log Off", "head" );
 
     menu_break_line();
-    echo '<form method="get" action="/wr.php" name="quickwr" id="quickwr" style="display:inline">';
-    printf('&nbsp;<b>W/R:</b><input type="text" size="7" title="%s" value="%d" name="request_id">',
-              'Enter a W/R number and press [Enter] to go to it directly.', $GLOBALS['request_id'] );
-    echo "</form><br />";
+    printf( <<<EOFORM
+<form method="get" action="/wr.php" name="quickwr" id="quickwr" style="display:inline">
+&nbsp;<b>W/R:</b><input type="text" size="7" title="%s" value="%d" name="request_id">
+</form><br />
+EOFORM
+            , 'Enter a W/R number and press [Enter] to go to it directly.', $GLOBALS['request_id'] );
 
     $tooltip = "Run this saved search";
     $tooltip2 = "Edit this saved search";
@@ -90,6 +92,11 @@ function show_sidebar_menu() {
         echo "<br />\n";
       }
       echo "&nbsp; &nbsp;<a href=\"/saved_searches.php\">...more</a><br />\n";
+    }
+    else {
+      menu_break_line();
+      $tooltip = "List, run and edit all of your saved searches.";
+      menu_url_line("/saved_searches.php", $tooltip, "Saved Searches" );
     }
 
     menu_break_line();

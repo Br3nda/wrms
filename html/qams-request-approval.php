@@ -227,11 +227,11 @@ if (isset($qastep)) {
           $s .= "<p>Notes for reviewers: " . $qastep->qa_step_notes . "</p>";
         }
         if ($qastep->qa_document_title != "") {
-          $s .= "<p>The focus of this review is a document, the '" . $qastep->qa_document_title . "'. ";
+          $s .= "<p>The focus of this review is documentation, the '" . $qastep->qa_document_title . "'. ";
           if ($qastep->qa_document_desc != "") {
             $s .= $qastep->qa_document_desc;
           }
-          $s .= "You can find this document attached to the Work Request below.</p>";
+          $s .= "You can find this documentation attached to the Work Request below.</p>";
         }
         
         // WRMS access to step work request..

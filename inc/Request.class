@@ -423,7 +423,7 @@ class Request {
   //   on the W/R.
   /////////////////////////////////////////////////////////////
   function Render( ) {
-    global $session, $schema_version;
+    global $session, $c;
     $html = "";
 
     $ef = new EntryForm( $REQUEST_URI, $this, $GLOBALS['edit'] );
@@ -446,7 +446,7 @@ class Request {
     $html .= $this->RenderAllocations($ef);
     $html .= $this->RenderTimesheets($ef);
     $html .= $this->RenderTags($ef);
-    if ( $schema_version >= 1099.007 ) {  // Schema >= 1.99.7
+    if ( $c->schema_version >= 1099.007 ) {  // Schema >= 1.99.7
       $html .= $this->RenderQAActions($ef);
     }
     $html .= $this->RenderNotes($ef);
@@ -1473,7 +1473,7 @@ class Request {
   * ones used for displaying the form.
   */
   function Write( ) {
-    global $client_messages, $request_id, $session, $schema_version;
+    global $client_messages, $request_id, $session, $c;
     $session->Dbg( "Request", "Write: Writing request details to database");
     $qry = new PgQuery("BEGIN");  $qry->Exec("WR::Write");
 
@@ -1513,7 +1513,7 @@ class Request {
           $db_errors = ! $this->AddNote();
         }
 
-        if ( $schema_version >= 1099.007 ) {
+        if ( $c->schema_version >= 1099.007 ) {
           if ( !$db_errors && isset($_POST['action_detail']) && trim($_POST['action_detail']) != "" ) {
             $db_errors = ! $this->AddQAAction();
           }

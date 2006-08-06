@@ -84,9 +84,9 @@
       $search_query .= " AND NOT EXISTS( SELECT request_id FROM request_allocated WHERE request_allocated.request_id=request.request_id )";
 
     if ( "$search_for" != "" ) {
-      $search_query .= " AND (brief ~* '$search_for' ";
-      $search_query .= " OR detailed ~* '$search_for' ";
-      $search_query .= " OR EXISTS(SELECT 1 FROM request_note WHERE request_id = request.request_id AND note_detail ~* '$search_for')) ";
+      $search_query .= " AND (brief ~* ".qpg($search_for)." ";
+      $search_query .= " OR detailed ~* ".qpg($search_for)." ";
+      $search_query .= " OR EXISTS(SELECT 1 FROM request_note WHERE request_id = request.request_id AND note_detail ~* ".qpg($search_for).")) ";
     }
     if ( $system_id > 0 )     $search_query .= " AND request.system_id=".intval($system_id);
     if ( "$type_code" != "" )     $search_query .= " AND request_type=" . intval($type_code);

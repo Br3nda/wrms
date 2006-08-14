@@ -52,7 +52,7 @@ if ( file_exists("../debian/changelog") ) {
   $changelog = fopen( "../debian/changelog", "r" );
 }
 else if ( file_exists("/usr/share/doc/wrms/changelog.Debian") ) {
-  $changelog = fopen( "../debian/changelog", "r" );
+  $changelog = fopen( "/usr/share/doc/wrms/changelog.Debian", "r" );
 }
 if ( $changelog ) {
   list( $c->code_pkgver, $c->code_major, $c->code_minor, $c->code_patch, $c->code_debian ) = fscanf($changelog, "%s (%d.%d.%d-%d)");

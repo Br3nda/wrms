@@ -271,12 +271,11 @@ select.search_for {
 }
 #page_footer {
   width: auto;
-  height: 32px;
+  height: 1.5em;
   text-align: left;
   margin-top: 5px;
   padding-left: 3px;
-  background-color: #6C859F;
-  background-color: white;
+  background-color: #F5F8FA;
   color: white;
   font-size:10px;
 }

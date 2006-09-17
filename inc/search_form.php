@@ -107,7 +107,7 @@ function RenderSearchForm( $target_url ) {
   $html .= "<a href=\"javascript:show_calendar('forms.form.to_date');\" onmouseover=\"window.status='Date Picker';return true;\" onmouseout=\"window.status='';return true;\">".$theme->Image("date-picker.gif")."</a> &nbsp; \n";
 
   // Type of Request
-  $html .= $ef->DataEntryLine( "Type", $this->request_type_desc, "lookup", "type_code",
+  $html .= $ef->DataEntryLine( "Type", "%s", "lookup", "type_code",
             array("_type" => "request|request_type",
                   "_null" => "-- All Types --",
                   "class" => "srchf",

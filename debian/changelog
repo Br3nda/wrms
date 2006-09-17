@@ -1,3 +1,16 @@
+wrms (2.3.4-0) unstable; urgency=low
+
+  * Fix simple time list (WR#37801).
+  * Fix display of type in search form.
+
+ -- Andrew McMillan <debian@mcmillan.net.nz>  Mon, 18 Sep 2006 10:35:50 +1200
+
+wrms (2.3.3-3) unstable; urgency=low
+
+  * Fix typo.
+
+ -- Andrew McMillan <debian@mcmillan.net.nz>  Tue,  1 Aug 2006 12:31:30 +1200
+
 wrms (2.3.3-2) unstable; urgency=low
 
   * Display a link to the saved searches page if there are none in-menu.

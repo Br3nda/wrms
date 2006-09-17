@@ -24,7 +24,7 @@ if ( !isset($debuglevel) ) $debuglevel = 2;
 // //////////////////// Enable for debugging...
 $debuggroups['Session'] = 1;
 $debuggroups['Login'] = 1;
-// $debuggroups['querystring'] = 1;
+$debuggroups['querystring'] = 1;
 // $debuggroups['Request'] = 1;
 // $debuggroups['PageHeader'] = 1;
 // $debuggroups['User'] = 1;
@@ -34,6 +34,7 @@ $debuggroups['Login'] = 1;
 // $debuggroups['Organisation'] = 1;
 // $debuggroups['DataEntry'] = 1;
 $debuggroups['SavedSearches'] = 1;
+$debuggroups['simpletimelist'] = 1;
 
 // User can choose theme
 $c->can_set_theme = true;

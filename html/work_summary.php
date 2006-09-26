@@ -228,14 +228,16 @@ if (isset($users)) $users=array_filter($users);
     $query .= " ARRAY(SELECT date(rt2.work_on) FROM request_timesheet rt2 WHERE rt2.request_id = r.request_id AND rt2.work_units = 'hours'";
     if (array_search("Work By",$columns)!==false) $query .= " AND rt2.work_by_id = rt.work_by_id" ;
 
-    $query .= " AND date(rt2.work_on) >= '$from_date' AND date(rt2.work_on) <= '$to_date'
-                    GROUP BY date(rt2.work_on) ORDER BY date(rt2.work_on)) AS date,\n";
+    $query .= " AND date(rt2.work_on) >= '$from_date' AND date(rt2.work_on) <= '$to_date' ";
+    if ( count($users) > 0 ) $query .= " AND rt2.work_by_id IN (" . implode(",",$users) . ") ";
+    $query .= " GROUP BY date(rt2.work_on) ORDER BY date(rt2.work_on)) AS date,\n";
 
     $query .= " ARRAY(SELECT SUM(rt2.work_quantity) FROM request_timesheet rt2 WHERE rt2.request_id = r.request_id AND rt2.work_units = 'hours'" ;
     if (array_search("Work By",$columns)!==false) $query .= " AND rt2.work_by_id = rt.work_by_id" ;
 
-    $query .= " AND date(rt2.work_on) >= '$from_date' AND date(rt2.work_on) <= '$to_date'
-                    GROUP BY date(rt2.work_on) ORDER BY date(rt2.work_on)) AS quantity\n";
+    $query .= " AND date(rt2.work_on) >= '$from_date' AND date(rt2.work_on) <= '$to_date' ";
+    if ( count($users) > 0 ) $query .= " AND rt2.work_by_id IN (" . implode(",",$users) . ") ";
+    $query .= " GROUP BY date(rt2.work_on) ORDER BY date(rt2.work_on)) AS quantity\n";
 
     $query .= " FROM request r\n";
     $query .= " LEFT JOIN usr rqu ON rqu.user_no = r.requester_id\n";

@@ -80,12 +80,12 @@ class WRMSSession extends Session
 
 
   /**
-  * Checks whether this user is a banker
+  * Checks whether this user is an admin
   *
   * @return boolean Whether or not the logged in user is a banker
   */
   function IsAdmin() {
-    return ( $this->logged_in && isset($this->is_admin) && ($this->is_admin == 't') );
+    return ( $this->logged_in && $this->AllowedTo("Admin") );
   }
 
 

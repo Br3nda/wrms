@@ -1007,7 +1007,8 @@ class Request {
                             : ($row->org_rate > 0 ? $row->org_rate
                                         : ($row->worker_rate > 0 ? $row->worker_rate : $row->supplier_rate ) ));
         $invoice_details = $row->charged_details;
-        $amount_charged = sprintf("$%.2lf", $row->work_quantity * $rate );
+        $amount_chargeable = $row->work_quantity * $rate * ($row->work_units == 'days' ? 8 : 1);
+        $amount_charged = sprintf("$%.2lf", $amount_chargeable );
         if ( $ef->editmode ) {
           $bill_ok_options = array("title" => "Check this if it is OK to bill this work now." );
           if ( $row->ok_to_charge == 't' ) $this->ts_ok_to_charge["$row->timesheet_id"] = 't';
@@ -1019,7 +1020,7 @@ class Request {
             $invoice_details = $ef->DataEntryField( "", "text", "ts_invoice_no[$row->timesheet_id]",
                                         array( "title" => "The invoice number that included this work",
                                               "size" => "7" ) );
-            $this->ts_charged_amount["$row->timesheet_id"] = sprintf('%.1lf', $row->work_quantity * $rate) . "0";
+            $this->ts_charged_amount["$row->timesheet_id"] = $amount_charged;
             $amount_charged = $ef->DataEntryField( "", "text", "ts_charged_amount[$row->timesheet_id]",
                                         array( "title" => "The amount to be invoiced for this work.",
                                               "style" => "text-align:right;",
@@ -1036,7 +1037,7 @@ class Request {
                     $rate, $row->work_description,
                     $row->charged_by, $row->charged_on, $invoice_details, $amount_charged, $bill_ok, $delete_link
                   );
-        $total += ($row->work_charged != "" ? $row->charged_amount : $row->work_quantity * $rate);
+        $total += ($row->work_charged != "" ? $row->charged_amount : $amount_chargeable);
         if ( preg_match('/hour/i', $row->work_units) ) $total_hours += $row->work_quantity;
         elseif ( preg_match('/day/i', $row->work_units) ) $total_hours += (8 * $row->work_quantity);
       }
@@ -2048,9 +2049,25 @@ EOX;
     $id = $row->id;
     $work_description = htmlspecialchars($_POST['work_description']);
 
+    $extra_target = '';
+    $extra_values = '';
+    if ( $_POST['work_units'] == 'days' || $_POST['work_units'] == 'hours' ) {
+      $extra_target = ', work_duration, caldav_etag';
+      if ( $_POST['work_units'] == 'days' ) {
+        /**
+        * FIXME We should have a configuration value somewhere setting hours per day, rather than just '8'
+        */
+        $quantity = $_POST['work_quantity'] * 8;
+      }
+      else {
+        $quantity = $_POST['work_quantity'];
+      }
+      $extra_values = ", ".qpg("$quantity hours")."::interval(0), md5(timesheet_id||request_id||work_on||work_duration||work_by_id)";
+    }
+
     $sql = "INSERT INTO request_timesheet ( timesheet_id, request_id, work_by_id, ";
-    $sql .= "work_on, work_quantity, work_units, work_rate, work_description ) ";
-    $sql .= "VALUES( ?, ?, ?, ?, ?, ?, ?, ? );";
+    $sql .= "work_on, work_quantity, work_units, work_rate, work_description$extra_target ) ";
+    $sql .= "VALUES( ?, ?, ?, ?, ?, ?, ?, ?$extra_values );";
     $qry = new PgQuery( $sql, $id, $this->request_id, $session->user_no,
                         $_POST['work_on'], $_POST['work_quantity'], $_POST['work_units'], $_POST['work_rate'], $work_description ) ;
     if ( ! $qry->Exec('WR::AddWork') ) {

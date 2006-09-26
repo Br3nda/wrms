@@ -1,4 +1,4 @@
 build
 wrms.bfproject
 wrms.session
-wrms.pgdump
+*.pgdump

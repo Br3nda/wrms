@@ -73,7 +73,7 @@ function write_system_roles( $roles, $system_id ) {
   $sql .= "FROM usr NATURAL JOIN organisation ";
   $sql .= "LEFT JOIN system_usr ON (usr.user_no = system_usr.user_no AND system_usr.system_id = ?) ";
   $sql .= "LEFT JOIN lookup_code roles ON (source_table='system_usr' AND source_field='role' AND lookup_code=system_usr.role) ";
-  $sql .= "WHERE usr.status != 'I' ";
+  $sql .= "WHERE usr.active ";
   if ( isset( $org_code ) || $org_code == "" )
     $sql .= "AND usr.org_code=organisation.org_code ";
   else

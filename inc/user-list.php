@@ -6,7 +6,7 @@ function get_user_list( $roles="", $org="", $current ) {
 
   $query = "SELECT DISTINCT usr.user_no, usr.fullname, organisation.abbreviation ";
   $query .= "FROM usr , organisation";
-  $query .= " WHERE usr.status <> 'I' ";
+  $query .= " WHERE usr.active ";
   $query .= " AND usr.org_code = organisation.org_code ";
   if( $roles <> "" ) {
     $role_array = split( ',', $roles );

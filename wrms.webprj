@@ -308,6 +308,13 @@
     <item url="inc/themes/Flexible.php" uploadstatus="1" />
     <item url="html/css/browse.css" uploadstatus="1" />
     <item url="html/css/" uploadstatus="1" />
-    <item url="scripts/patches/patch-1.99.12.sql" />
+    <item url="scripts/patches/patch-1.99.12.sql" uploadstatus="1" />
+    <item url="html/caldav.php" uploadstatus="1" />
+    <item url="inc/BasicAuthSession.php" uploadstatus="1" />
+    <item url="inc/caldav-DELETE.php" uploadstatus="1" />
+    <item url="inc/caldav-GET.php" uploadstatus="1" />
+    <item url="inc/caldav-OPTIONS.php" uploadstatus="1" />
+    <item url="inc/caldav-PUT.php" uploadstatus="1" />
+    <item url="inc/caldav-REPORT.php" uploadstatus="1" />
   </project>
 </webproject>

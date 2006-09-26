@@ -64,6 +64,7 @@ class OrganisationPlus extends DBRecord {
 
     if ( $this->org_code > 0 ) {
       $this->Read();
+      if ( isset($GLOBALS['edit']) ) $this->EditMode = true;
       $c->page_title = $this->Get("org_name");
     }
     else {
@@ -100,7 +101,7 @@ class OrganisationPlus extends DBRecord {
     $html = "";
     $session->Dbg("OrganisationPlus", "Render: type=insert" );
 
-    $ef = new EntryForm( $REQUEST_URI, $this->Values, true );
+    $ef = new EntryForm( $REQUEST_URI, $this->Values, $this->EditMode );
     $ef->NoHelp();  // Prefer this style, for the moment
 
     $onsubmit = $this->validation->func_name; // retrieve the name of the onsubmit javascript function
@@ -267,7 +268,7 @@ EOSCRIPT;
 
     $this->Set("role", 'C' );  // This user will always have coordinate role to start with
     $this->Set("email_ok", true );
-    $this->Set("status", 'A' );  // Active
+    $this->Set("usr_active", true );
     $this->Set("organisation_specific", true );
     $this->Set("system_active", true );
     $this->Set("org_active", true );

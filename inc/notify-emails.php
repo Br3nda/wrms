@@ -7,12 +7,12 @@ function notify_emails( $dbid, $req_id ) {
   $query = "SELECT email, fullname FROM usr, request_interested ";
   $query .= "WHERE request_interested.user_no = usr.user_no ";
   $query .=  " AND request_interested.request_id = $req_id ";
-  $query .=  " AND usr.status != 'I' ";
+  $query .=  " AND usr.active ";
   $query .= "UNION ";
   $query .= "SELECT email, fullname FROM usr, request_allocated ";
   $query .= "WHERE request_allocated.allocated_to_id = usr.user_no ";
   $query .=  " AND request_allocated.request_id = $req_id ";
-  $query .=  " AND usr.status != 'I' ";
+  $query .=  " AND usr.active ";
 
   $peopleq = awm_pgexec( $dbid, $query, "notify-eml");
   $to = "";

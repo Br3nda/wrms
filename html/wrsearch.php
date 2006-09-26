@@ -57,6 +57,8 @@
           "request_type_desc" => "Type",
           "request_tags" => "Tags",
           "status_desc" => "Status",
+          "system_code" => "System Code",
+          "system_desc" => "System Name",
           "request.last_activity" => "Last Chng",
           "urgency" => "Urgency",
           "importance" => "Importance",

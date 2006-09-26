@@ -35,7 +35,7 @@
     $flipped_columns = array_flip($columns);
 
     $search_query .= "SELECT request.request_id, brief, usr.fullname, usr.email, request_on, status.lookup_desc AS status_desc, last_activity, detailed ";
-    $search_query .= ", request_urgency.lookup_desc AS request_urgency_desc, request.urgency AS urgency";
+    $search_query .= ", request_urgency.lookup_desc AS request_urgency_desc, request.urgency AS urgency, request.system_id";
     $search_query .= ", request_importance.lookup_desc AS request_importance_desc, request.importance AS importance";
     $search_query .= ", request_type.lookup_desc AS request_type_desc, lower(usr.fullname) AS lfull, lower(brief) AS lbrief ";
     $search_query .= ", to_char( request.last_activity, 'FMdd Mon yyyy') AS last_change ";
@@ -46,12 +46,18 @@
     if ( isset($flipped_columns['request_tags']) ) {
       $search_query .= ", request_tags(request.request_id) ";
     }
+    if ( isset($flipped_columns['system_code']) ) {
+      $search_query .= ", work_system.system_code ";
+    }
+    if ( isset($flipped_columns['system_desc']) ) {
+      $search_query .= ", work_system.system_desc ";
+    }
     $search_query .= "FROM ";
     if ( intval("$interested_in") > 0 ) $search_query .= "request_interested, ";
     if ( intval("$allocated_to") > 0 ) $search_query .= "request_allocated, ";
     $search_query .= "request ";
+    $search_query .= "JOIN work_system USING (system_id) ";
     if ( ! is_member_of('Admin', 'Support') ) {
-      $search_query .= "JOIN work_system USING (system_id) ";
       $search_query .= "JOIN system_usr ON (work_system.system_id = system_usr.system_id AND system_usr.user_no = $session->user_no) ";
     }
     $search_query .= ", usr";

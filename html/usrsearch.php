@@ -28,15 +28,15 @@
       include( "system-list.php" );
       $syslist = "<option value=\"\">--- All Systems ---</option>\n" . get_system_list( "VOECS", "$system_id", 20 );
       echo "<td class=smb><b>Type:</b></td><td><select class=sml name=\"system_id\">\n$syslist</select></td>\n";
-      echo "<td class=smb>&nbsp;<b><label id=status>Inactive:</label></b></td><td><input id=status class=sml type=\"checkbox\" name=status value=I" . ("$status" == "I" ? " checked" : "") . "></td>\n";
+      echo "<td class=smb>&nbsp;<b><label id=\"active\">Inactive:</label></b></td><td><input id=\"active\" class=\"sml\" type=\"checkbox\" name=\"active\" value=\"f\"" . ($active == 'f' ? " checked" : "") . "></td>\n";
     }
 
     echo "<td><input type=submit class=submit alt=go value=\"GO>>\" name=submit></td>\n";
     echo "</tr></table>\n</form>\n";
 
-    if ( "$search_for$org_code$system_id$status " != "" ) {
+    if ( "$search_for$org_code$system_id$active " != "" ) {
 
-      $sql = "SELECT *, to_char( last_update, 'dd/mm/yyyy' ) AS last_update, to_char( last_accessed, 'dd/mm/yyyy' ) AS last_accessed ";
+      $sql = "SELECT *, to_char( last_update, 'dd/mm/yyyy' ) AS last_update, to_char( last_used, 'dd/mm/yyyy' ) AS last_used ";
       $sql .= "FROM usr JOIN organisation USING ( org_code ) ";
 
       if ( isset( $system_id ) && $system_id > 0 ) {
@@ -47,8 +47,8 @@
       $sql .= "WHERE TRUE ";
       if ( !isset( $org_code ) || $org_code == 0 )
         $sql .= "AND organisation.active ";
-      if ( !isset( $status ) || $status <> "I" )
-        $sql .= "AND usr.status != 'I' ";
+      if ( !isset( $active ) || $active <> "f" )
+        $sql .= "AND usr.active ";
 
       if ( "$search_for" != "" ) {
         $search_for = qpg($search_for);
@@ -95,7 +95,7 @@
           echo "<td class=sml><a href=\"mailto:$thisusr->email\">$thisusr->email</a>&nbsp;</td>\n";
           if ( isset( $system_id ) && $system_id > 0 )
             echo "<td class=sml>$thisusr->lookup_desc ($thisusr->role)&nbsp;</td>\n";
-          echo "<td class=sml>$thisusr->last_accessed&nbsp;</td>\n";
+          echo "<td class=sml>$thisusr->last_used&nbsp;</td>\n";
 
           echo "<td class=sml><a class=submit href=\"requestlist.php?user_no=$thisusr->user_no\">Requested</a>\n";
           if ( is_member_of('Admin','Support') ) {

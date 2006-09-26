@@ -9,7 +9,7 @@ CREATE OR REPLACE VIEW organisation_plus AS
   SELECT organisation.org_code, organisation.active AS org_active, debtor_no, work_rate,
       abbreviation, org_name, current_sla, admin_user_no, general_system,
       work_system.system_id, work_system.system_code, work_system.active AS system_active, system_desc, organisation_specific,
-      status, email_ok, joined, last_update, username, password, fullname, email, location, mobile, phone,
+      usr.active AS usr_active, email_ok, joined, last_update, username, password, fullname, email, location, mobile, phone,
       system_usr.role
     FROM organisation
       LEFT JOIN work_system ON organisation.general_system = work_system.system_id
@@ -27,10 +27,10 @@ DO INSTEAD
       COALESCE( NEW.system_desc, NEW.org_name || ' - General Work' ),
       COALESCE( NEW.organisation_specific, TRUE)
     );
-  INSERT INTO usr ( user_no, status, email_ok, joined, last_update, username, password, fullname, email, location, mobile, phone )
+  INSERT INTO usr ( user_no, active, email_ok, joined, last_update, username, password, fullname, email, location, mobile, phone )
     VALUES(
       COALESCE( NEW.admin_user_no, nextval('usr_user_no_seq')),
-      COALESCE( NEW.status, 'A'),
+      COALESCE( NEW.usr_active, TRUE),
       COALESCE( NEW.email_ok, TRUE ),
       COALESCE( NEW.joined, current_timestamp),
       COALESCE( NEW.last_update, current_timestamp),
@@ -53,7 +53,7 @@ DO INSTEAD
       COALESCE( NEW.role, 'C' ),
       COALESCE( NEW.system_id, currval('work_system_system_id_seq'))
     );
-  INSERT INTO group_member (user_no, group_no) SELECT COALESCE( NEW.admin_user_no, currval('usr_user_no_seq')), group_no FROM ugroup WHERE group_name IN ('OrgMgr', 'Manage', 'Request' );
+  INSERT INTO role_member (user_no, role_no) SELECT COALESCE( NEW.admin_user_no, currval('usr_user_no_seq')), role_no FROM roles WHERE role_name IN ('OrgMgr', 'Manage', 'Request' );
   INSERT INTO org_system ( org_code, system_id )
     VALUES(
       COALESCE( NEW.org_code, currval('organisation_org_code_seq')),

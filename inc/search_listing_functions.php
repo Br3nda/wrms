@@ -40,6 +40,7 @@ function header_row() {
           "request_by"  => "lby_fullname",
           "brief"       => "lbrief",
           "status"      => "status_desc",
+//          "system_code" => "work_system.system_code",
           "type"        => "request_type_desc",
           "tags"        => "request_tags",
           "last_change" => "request.last_activity"
@@ -122,6 +123,13 @@ EOHTML;
     case "importance":
       echo "<td class=\"sml\" align=\"left\">" . $row->request_importance_desc . "</td>\n";
       break;
+    case "system_code":
+    case "system_desc":
+      printf( '<td class="sml" align="left"><a href="%s&system_id=%d">%s</td>%s', sprintf($GLOBALS['get_uri'], $GLOBALS['rlsort'], $GLOBALS['rlseq']), $row->system_id, $row->{$column_name}, "\n");
+      break;
+    default:
+      echo "<td class=\"sml\" align=\"left\">" . $row->{$column_name} . "</td>\n";
+      break;
   }
 }
 
@@ -185,31 +193,30 @@ function column_header( $ftext, $fname ) {
   if ( isset($system_id) ) $system_id = intval($system_id);
 
   // Build up the column header cell, with %s gaps for the sort, sequence and sequence image
-  $header_cell = "<th class=cols><a class=cols href=\"$PHP_SELF?rlsort=%s&rlseq=%s";
-  if ( isset($qs) ) $header_cell .= "&qs=$qs";
-  if ( $org_code > 0 ) $header_cell .= "&org_code=$org_code";
-  if ( $system_id > 0 ) $header_cell .= "&system_id=$system_id";
-  if ( isset($search_for) ) $header_cell .= "&search_for=$search_for";
-  if ( isset($inactive) ) $header_cell .= "&inactive=$inactive";
-  if ( isset($requested_by) ) $header_cell .= "&requested_by=$requested_by";
-  if ( isset($interested_in) ) $header_cell .= "&interested_in=$interested_in";
-  if ( isset($allocated_to) ) $header_cell .= "&allocated_to=$allocated_to";
-  if ( isset($from_date) ) $header_cell .= "&from_date=$from_date";
-  if ( isset($to_date) ) $header_cell .= "&to_date=$to_date";
-  if ( isset($type_code) ) $header_cell .= "&type_code=$type_code";
-  if ( isset($columns) ) $header_cell .= "&columns=" . implode(",",$columns);
+  $get_uri = "$PHP_SELF?rlsort=%s&rlseq=%s";
+  if ( isset($qs) ) $get_uri .= "&qs=$qs";
+  if ( $org_code > 0 ) $get_uri .= "&org_code=$org_code";
+  if ( $system_id > 0 ) $get_uri .= "&system_id=$system_id";
+  if ( isset($search_for) ) $get_uri .= "&search_for=$search_for";
+  if ( isset($inactive) ) $get_uri .= "&inactive=$inactive";
+  if ( isset($requested_by) ) $get_uri .= "&requested_by=$requested_by";
+  if ( isset($interested_in) ) $get_uri .= "&interested_in=$interested_in";
+  if ( isset($allocated_to) ) $get_uri .= "&allocated_to=$allocated_to";
+  if ( isset($from_date) ) $get_uri .= "&from_date=$from_date";
+  if ( isset($to_date) ) $get_uri .= "&to_date=$to_date";
+  if ( isset($type_code) ) $get_uri .= "&type_code=$type_code";
+  if ( isset($columns) ) $get_uri .= "&columns=" . implode(",",$columns);
   if ( isset($incstat) && is_array( $incstat ) ) {
     reset($incstat);
     while( list($k,$v) = each( $incstat ) ) {
-      $header_cell .= "&incstat[$k]=$v";
+      $get_uri .= "&incstat[$k]=$v";
     }
   }
-  if ( "$saved_query" != "" ) $header_cell .= "&saved_query=$saved_query";
-  if ( "$style" != "" ) $header_cell .= "&style=$style";
-  if ( "$format" != "" ) $header_cell .= "&format=$format";
-  if ( isset($choose_columns) && $choose_columns ) $header_cell .= "&choose_columns=1";
-  $header_cell .= "\">%s";      // %s for the Cell heading
-  $header_cell .= "%s</a></th>";    // %s For the image
+  if ( "$saved_query" != "" ) $get_uri .= "&saved_query=$saved_query";
+  if ( "$style" != "" ) $get_uri .= "&style=$style";
+  if ( "$format" != "" ) $get_uri .= "&format=$format";
+  if ( isset($choose_columns) && $choose_columns ) $get_uri .= "&choose_columns=1";
+  $header_cell = sprintf('<th class="cols"><a class="cols" href="%s">%%s%%s</a></th>', $get_uri);      // %s for the Cell heading and image which will be added later
 
   $status_query = new PgQuery( "SELECT lookup_code, lookup_desc FROM lookup_code WHERE source_table = 'request' AND source_field = 'status_code' ORDER BY source_table, source_field, lookup_seq, lookup_code;");
   $status_query->Exec("search_listing_functions");

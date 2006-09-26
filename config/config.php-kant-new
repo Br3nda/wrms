@@ -1,15 +1,7 @@
 <?php
 
-if ( ! $dbconn = pg_Connect("port=5432 dbname=wrms user=general") ) {
-  if ( ! $dbconn = pg_Connect("port=5433 dbname=wrms user=general") ) {
-    echo "<html><head><title>Database Error</title></head><body>
-<h1>Database Error</h1>
-<h3>Could not connect to PGPool or to Postgres</h3>
-</body>
-</html>";
-    exit;
-  }
-}
+$c->pg_connect[] = "port=5432 dbname=wrms user=general";
+$c->pg_connect[] = "port=5433 dbname=wrms user=general";
 
 $admin_email = "andrew@catalyst.net.nz";
 $basefont = "verdana,sans-serif";
@@ -18,6 +10,9 @@ $sysabbr = "wrms";
 $debuglevel = 3;
 $debug_email = 'andrew@catalyst.net.nz';
 $pg_version = 8.1;
+
+// Turn on all debugging...
+$c->dbg['ALL'] = 1;
 
 if ( !isset($debuglevel) ) $debuglevel = 2;
 

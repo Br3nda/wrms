@@ -59,34 +59,37 @@ function header_row() {
     }
     echo "&nbsp;Work By:&nbsp;<select class=\"sml\" name=\"user_no\">$user_list</select>&nbsp;\n";
 
-    $selected_0 = ( $date_restriction == 0 ) ? ' selected="selected"' : '';
+    $selected_0 = ( "$date_restriction" == "0" ) ? ' selected="selected"' : '';
     $selected_1 = ( $date_restriction == 1 ) ? ' selected="selected"' : '';
     $selected_2 = ( $date_restriction == 2 ) ? ' selected="selected"' : '';
     $selected_3 = ( $date_restriction == 3 ) ? ' selected="selected"' : '';
     $selected_4 = ( $date_restriction == 4 ) ? ' selected="selected"' : '';
     $selected_5 = ( $date_restriction == 5 ) ? ' selected="selected"' : '';
     $selected_6 = ( $date_restriction == 6 ) ? ' selected="selected"' : '';
-    $selected_a = ( $date_restriction == 'any' ) ? ' selected="selected"' : '';
+    $selected_a = ( "$date_restriction" == 'all' ) ? ' selected="selected"' : '';
 
-    echo "&nbsp;Show from:&nbsp;<select name=\"date_restriction\">
-  <option value=\"0\"$selected_0>This month</option>
-  <option value=\"1\"$selected_1>Last month</option>
-  <option value=\"2\"$selected_2>2 months ago</option>
-  <option value=\"3\"$selected_3>3 months ago</option>
-  <option value=\"4\"$selected_4>4 months ago</option>
-  <option value=\"5\"$selected_5>5 months ago</option>
-  <option value=\"6\"$selected_6>6 months ago</option>
-  <option value=\"all\"$selected_a>No date restriction</option>
-</select>";
-
-    echo "<input type=submit class=submit alt=go id=\"go\" name=\"go\" value=\"GO>>\"name=go>
+    echo <<<EOHTML
+&nbsp;Show from:&nbsp;<select name="date_restriction">
+  <option value="0"$selected_0>This month</option>
+  <option value="1"$selected_1>Last month</option>
+  <option value="2"$selected_2>2 months ago</option>
+  <option value="3"$selected_3>3 months ago</option>
+  <option value="4"$selected_4>4 months ago</option>
+  <option value="5"$selected_5>5 months ago</option>
+  <option value="6"$selected_6>6 months ago</option>
+  <option value="all"$selected_a>No date restriction</option>
+</select>
+<input type="submit" class="submit" alt="go" id="go" name="go" value="GO>>">
 </td>
 </tr>
-</table>\n</form>\n";
+</table>
+</form>
+
+EOHTML;
   }
 
   $numcols = 7;
-  if ( isset($user_no) ) {
+//  if ( isset($user_no) ) {
     $query = "SELECT request.*, organisation.*, request_timesheet.*, ";
     $query .= " requester.fullname AS requester_name";
     $query .= " FROM request, usr AS worker, usr AS requester, organisation, request_timesheet ";
@@ -99,7 +102,7 @@ function header_row() {
       $query .= " AND work_by_id=$user_no ";
     }
 
-	}
+//	}
 
   if ( isset($date_restriction) && $date_restriction < 1 ) {
     $from_date = date('Y/m/') . '1';

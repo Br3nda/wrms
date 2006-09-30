@@ -479,6 +479,7 @@ class Request {
     $html = "";
     $html .= $ef->BreakLine("Request Details");
     if ( !$this->new_record ) {
+      $html .= $ef->HiddenField( "old_last_activity", $this->last_activity );
       $html .= $ef->DataEntryLine( "W/R #",
                      "$this->request_id"
                     ." &nbsp; &nbsp; <b>Requested:</b> " . nice_date($this->request_on)
@@ -1375,8 +1376,14 @@ class Request {
     if ( ! $this->_CheckNewRequester() ) return false;
 
     // Set the entered_by if this is a new request
-    if ( $this->chtype == 'create' )
+    if ( $this->chtype == 'create' ) {
       $_POST['entered_by'] = intval($session->user_no);
+    }
+    else if ( $_POST['old_last_activity'] != $this->last_activity ) {
+      dbg_error_log("Request", "Submitted last_activity: %s, Current last_activity: %s", $_POST['old_last_activity'], $this->last_activity );
+      $client_messages[] = "ERROR: The request has been updated since you started editing. To force the update you should submit it again. ##RequestChangedMeantime##";
+      return false;
+    }
 
     // If we validated OK, make sure the request.last_status is synced with any submitted status.
     $_POST['last_status'] = $_POST['status_code'];
@@ -1639,34 +1646,31 @@ class Request {
             . "Importance:  $this->importance_desc\n"
             . "Urgency:     $this->urgency_desc\n";
 
+// <link rel='stylesheet' type='text/css' href='$GLOBALS[base_dns]/email.css' />
+
     $hbody  = <<<EOX
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html><head>
+<html>
+<head>
 <title>$mail->Subject</title>
-<link rel='stylesheet' type='text/css' href='$GLOBALS[base_dns]/email.css' />
 <style type="text/css"><!--
-A {color: navy; text-decoration:underline;  }
-body, input {font: 13px  tahoma, sans-serif; color: #000000; margin: 0.3em; }
+a {color: navy; text-decoration:underline;  }
+body {font: 1.05em  tahoma, sans-serif; color: #000000; margin: 0.3em; }
 p, td { margin: 0 2em 0.5em; }
-td.etd {font: bold 13px tahoma, sans-serif; color: black; background-color: #f0ece8; white-space:nowrap; }
-th.eth {font: bold 15px tahoma, sans-serif; color: white; background-color: #440000; margin: 0; padding: 1px 4px; }
-.row0 { background: #ffffff; color: #333333; }
-.row1 { background: #f0ece8; color: #333333; }
-h1, .h1 {font: bold 15px/17px tahoma, sans-serif; color: #660000; margin: 2em 0.3em 0; }
-h2, .h2 {font: normal 15px tahoma, sans-serif; color: #660000;  margin: 1.4em 0.3em 0; }
-h3, th.h3 {font: bold 13px tahoma, sans-serif; color: #660000; margin: 1em 0.3em 0; }
-h4, .h4 {font: bold 13px tahoma, sans-serif; color: #660000;  margin: 0.7em 0.3em 0; }
+td {font: bold 13px tahoma, sans-serif; color: black; background-color: #f0ece8; white-space:nowrap; }
+th {font: bold 15px tahoma, sans-serif; color: white; background-color: #440000; margin: 0; padding: 1px 4px; text-align: left; }
 hr.footerline {line-height: 1em; margin: 1em; padding: 2px; height: 2px; width: 95%; color: #440000; background-color: #840000; clear: both; border: none; align: center; }
-.footer { font: normal 11px tahoma, sans-serif; }
+.footer { font: normal 0.95em tahoma, sans-serif; }
 --></style>
-</head>\n<body>
+</head>
+<body>
 <table>
-<tr><th align="left" class="eth">Request No</th><td class="etd">$this->request_id</td></tr>
-<tr><th align="left" class="eth">Overview</th><td class="etd">$this->brief</td></tr>
-<tr><th align="left" class="eth">Type</th><td class="etd">$this->request_type_desc</td></tr>
-<tr><th align="left" class="eth">Status</th><td class="etd">$this->status_desc</td></tr>
-<tr><th align="left" class="eth">Importance</th><td class="etd">$this->importance_desc</td></tr>
-<tr><th align="left" class="eth">Urgency</th><td class="etd">$this->urgency_desc</td></tr>
+<tr><th align="left">Request No</th><td>$this->request_id</td></tr>
+<tr><th align="left">Overview</th><td>$this->brief</td></tr>
+<tr><th align="left">Type</th><td>$this->request_type_desc</td></tr>
+<tr><th align="left">Status</th><td>$this->status_desc</td></tr>
+<tr><th align="left">Importance</th><td>$this->importance_desc</td></tr>
+<tr><th align="left">Urgency</th><td>$this->urgency_desc</td></tr>
 EOX;
 
     $hfmt = '<tr><th align="left" class="eth">%s</th><td class="etd">%s</td></tr>'."\n";
@@ -1700,7 +1704,7 @@ EOX;
     }
 
     $hbody .= <<<EOX
-<hr class="footerline">
+<hr class="footerline" />
 <p class="footer">Full details of the request, with all changes and notes, can be reviewed and changed at:<br />
  &nbsp; &nbsp; <a href="$GLOBALS[base_dns]/wr.php?request_id=$this->request_id">$GLOBALS[base_dns]/wr.php?request_id=$this->request_id</a><br />
 <br /></p>
@@ -1711,7 +1715,6 @@ EOX;
     $tbody .= "\nFull details of the request, with all changes and notes, can be reviewed and changed at:\n"
             . "    <".$GLOBALS['base_dns']."/wr.php?request_id=".$this->request_id.">\n\n";
 
-    $hbody .= "</body>\n</html>\n";
     // Actually assign the message parts from what we have built
     $mail->Body = $hbody;
     $mail->AltBody = $tbody;
@@ -1730,12 +1733,12 @@ EOX;
       $query = "SELECT email, fullname FROM usr, request_interested ";
       $query .= "WHERE request_interested.user_no = usr.user_no ";
       $query .=  " AND request_interested.request_id = {$this->request_id}";
-      $query .=  " AND usr.status != 'I' ";
+      $query .=  " AND usr.active ";
       $query .= "UNION ";
       $query .= "SELECT email, fullname FROM usr, request_allocated ";
       $query .= "WHERE request_allocated.allocated_to_id = usr.user_no ";
       $query .=  " AND request_allocated.request_id = {$this->request_id}";
-      $query .=  " AND usr.status != 'I' ";
+      $query .=  " AND usr.active ";
 
       $peopleq = new PgQuery($query);
       $peopleq->Exec("notify-eml");
@@ -2182,7 +2185,7 @@ EOX;
     $sql .= "OR EXISTS(SELECT 1 FROM system_usr su ";
     $sql .=          "JOIN system_usr me USING(system_id) ";
     $sql .=          "WHERE me.user_no = $session->user_no AND su.user_no = usr.user_no AND su.role IN ('S','A') ) )";
-    $sql .= " AND usr.status != 'I' ";
+    $sql .= " AND usr.active ";
     $qry = new PgQuery($sql);
     if ( ! $qry->Exec('WR::NewAllocations') ) {
       $client_messages[] = "$qry->errorstring";
@@ -2206,7 +2209,7 @@ EOX;
     $sql .= "OR EXISTS(SELECT 1 FROM system_usr su ";
     $sql .=          "JOIN system_usr me USING(system_id) ";
     $sql .=          "WHERE me.user_no = $session->user_no AND su.user_no = usr.user_no AND su.role IN ('S','A') ) )";
-    $sql .= " AND usr.status != 'I' ";
+    $sql .= " AND usr.active ";
     $qry = new PgQuery($sql);
     if ( ! $qry->Exec('WR::NewAllocations') ) {
       $client_messages[] = "$qry->errorstring";
@@ -2248,7 +2251,7 @@ EOX;
     $sql .= "OR EXISTS(SELECT 1 FROM system_usr su ";
     $sql .=          "JOIN system_usr me USING(system_id) ";
     $sql .=          "WHERE me.user_no = $session->user_no AND su.user_no = usr.user_no AND su.role IN ('S','A') ) )";
-    $sql .= " AND usr.status != 'I' ";
+    $sql .= " AND usr.active ";
     $qry = new PgQuery($sql);
     if ( ! $qry->Exec('WR::NewSubscriptions') ) {
       $client_messages[] = "$qry->errorstring";
@@ -2274,7 +2277,7 @@ EOX;
     $sql .= "OR EXISTS(SELECT 1 FROM system_usr su ";
     $sql .=          "JOIN system_usr me USING(system_id) ";
     $sql .=          "WHERE me.user_no = $session->user_no AND su.user_no = usr.user_no AND su.role IN ('S','A') ) )";
-    $sql .= " AND usr.status != 'I'; ";
+    $sql .= " AND usr.active; ";
     if ( $this->chtype == 'create' ) {
       $qry = new PgQuery($sql);
       if ( ! $qry->Exec('WR::NewSubscriptions') ) {

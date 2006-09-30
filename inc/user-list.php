@@ -15,10 +15,9 @@ function get_user_list( $roles="", $org="", $current ) {
       $in_roles .= ($in_roles == "" ? "" : ",");
       $in_roles .= "'$v'";
     }
-    $query .= "AND EXISTS (SELECT group_member.user_no FROM group_member, ugroup ";
-    $query .= "WHERE group_member.user_no = usr.user_no ";
-    $query .= "AND ugroup.group_no = group_member.group_no ";
-    $query .= "AND ugroup.group_name IN ($in_roles) )";
+    $query .= "AND EXISTS (SELECT role_member.user_no FROM role_member NATURAL JOIN roles ";
+    $query .= "WHERE role_member.user_no = usr.user_no ";
+    $query .= "AND roles.role_name IN ($in_roles) )";
   }
   if ( "$org" <> "" )         $query .= " AND usr.org_code='$org' ";
   $query .= " ORDER BY usr.fullname; ";

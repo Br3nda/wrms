@@ -20,10 +20,12 @@ the username and password that have been issued to you.</H4>
 
 <h4>If you would like to request access, please e-mail <?php echo $admin_email; ?>.</h4>
 
+<p>If you have forgotten your password, you can <a href="/temppass.php">request a temporary one</a>.</p>
+
 <?php }
 
 if ( ! $logged_on ) {
-  $domains = array("hotmail.com", "yahoo.com", "bigpond.com.au", "xtra.co.nz", "debiana.net", "rugbylive.com", "hapua.com", "catalyst.net.nz", "mcmillan.net.nz", "cat-it.co.nz");
+  $domains = array("hotmail.com", "yahoo.com", "bigpond.com.au", "xtra.co.nz", "debiana.net", "rugbylive.com", "hapua.com", "catalyst.net.nz", "mcmillan.net.nz", "cat-it.co.nz", "gmail.com");
   $norm_letters = "abcdefghilmnoprstuvwy-_.123";
   $norm_length = strlen($norm_letters) - 1;
   $odd_letters = "zxjqk";

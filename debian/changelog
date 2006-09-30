@@ -1,3 +1,13 @@
+wrms (2.4.0) unstable; urgency=low
+
+  * Move database schema closer to AWL standard.
+  * Add system_desc as optional column on WR Search.
+  * Fixes to request_summary report (Gavin).
+  * Depend on latest version of libawl-php
+  * Improve CalDAV suport to more workable schema
+
+ -- Andrew McMillan <debian@mcmillan.net.nz>  Tue, 26 Sep 2006 14:20:21 +1200
+
 wrms (2.3.5) unstable; urgency=low
 
   * First cut for CalDAV support.  This is committed only for funsies - it

@@ -2,12 +2,12 @@ Source: wrms
 Section: catalyst
 Priority: extra
 Maintainer: Andrew McMillan <andrew@catalyst.net.nz>
-Standards-Version: 3.5.9
+Standards-Version: 3.6.3
 Build-Depends: debhelper
 
 Package: wrms
 Architecture: all
-Depends: debconf (>= 1.0.32), php4 (>= 4:4.1), php4-pgsql(>= 3:4.1.0), postgresql-client (>= 7.2.1) | postgresql-client-8.0 | postgresql-client-8.1, libawl-php (>=0.1-1)
+Depends: debconf (>= 1.0.32), php4 (>= 4:4.1), php4-pgsql(>= 3:4.1.0), postgresql-client (>= 7.2.1) | postgresql-client-8.0 | postgresql-client-8.1, libawl-php (>=0.4-1)
 Description: Work Request Management System
  The Work Request Management System is a system designed to assist
  managing of project, problem and enhancement requests through to

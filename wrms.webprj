@@ -1,6 +1,6 @@
 <!DOCTYPE webproject>
 <webproject>
-  <project usePreviewPrefix="0" preview="http://mywrms/" previewPrefix="file:file%3A" type="Local" newfiles="php" name="WRMS" encoding="iso 8859-1" >
+  <project usePreviewPrefix="0" preview="http://mywrms/" type="Local" previewPrefix="file:file%3A" newfiles="php" name="WRMS" encoding="iso 8859-1" >
     <upload/>
     <author>Andrew McMillan</author>
     <email>wrms@catalyst.net.nz</email>
@@ -114,7 +114,6 @@
     <item modified_time="1125285789" url="inc/maintenance-page.php" uploadstatus="0" />
     <item modified_time="1125387422" url="inc/DataEntry.php" uploadstatus="0" />
     <item modified_time="1109840677" url="inc/MenuClass.php" uploadstatus="0" />
-    <item modified_time="1125431507" url="inc/Session.php" uploadstatus="0" />
     <item modified_time="1125446510" url="inc/Request.class" uploadstatus="0" />
     <item modified_time="1109926749" url="html/main.css" uploadstatus="0" />
     <item url="inc/Theme.php" uploadstatus="0" />
@@ -316,5 +315,7 @@
     <item url="inc/caldav-OPTIONS.php" uploadstatus="1" />
     <item url="inc/caldav-PUT.php" uploadstatus="1" />
     <item url="inc/caldav-REPORT.php" uploadstatus="1" />
+    <item url="debian/" />
+    <item url="debian/control" />
   </project>
 </webproject>

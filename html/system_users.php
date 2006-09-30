@@ -64,12 +64,12 @@ function write_system_roles( $roles, $system_id ) {
   // Select the users that we may want to include here.
   $sql = "SELECT usr.user_no, fullname, usr.org_code, org_name, system_usr.role, ";
   $sql .= "lookup_code AS role_code, lookup_desc AS role_desc, ";
-  $sql .= "EXISTS (SELECT 1 FROM group_member WHERE usr.user_no = group_member.user_no ";
-  $sql .=                 "AND group_member.group_no IN (SELECT group_no FROM ugroup WHERE group_name IN ('Admin','Support'))) ";
-  $sql .= "AS internal_group, ";
-  $sql .= "EXISTS (SELECT 1 FROM group_member WHERE usr.user_no = group_member.user_no ";
-  $sql .=                 "AND group_member.group_no IN (SELECT group_no FROM ugroup WHERE group_name IN ('Contractor'))) ";
-  $sql .= "AS contractor_group ";
+  $sql .= "EXISTS (SELECT 1 FROM role_member WHERE usr.user_no = role_member.user_no ";
+  $sql .=                 "AND role_member.role_no IN (SELECT role_no FROM roles WHERE role_name IN ('Admin','Support'))) ";
+  $sql .= "AS internal_role, ";
+  $sql .= "EXISTS (SELECT 1 FROM role_member WHERE usr.user_no = role_member.user_no ";
+  $sql .=                 "AND role_member.role_no IN (SELECT role_no FROM roles WHERE role_name IN ('Contractor'))) ";
+  $sql .= "AS contractor_role ";
   $sql .= "FROM usr NATURAL JOIN organisation ";
   $sql .= "LEFT JOIN system_usr ON (usr.user_no = system_usr.user_no AND system_usr.system_id = ?) ";
   $sql .= "LEFT JOIN lookup_code roles ON (source_table='system_usr' AND source_field='role' AND lookup_code=system_usr.role) ";
@@ -81,8 +81,8 @@ function write_system_roles( $roles, $system_id ) {
 
   $sql .= "AND ( EXISTS(SELECT 1 FROM org_system WHERE organisation.org_code = org_system.org_code AND org_system.system_id = ".qpg($system_id) .") ";
   if ( ( $session->AllowedTo("Admin") || $session->AllowedTo("Support") ) ) {
-    $sql .= "OR EXISTS(SELECT 1 FROM usr u JOIN group_member USING (user_no) JOIN ugroup USING (group_no) ";
-    $sql .= "WHERE organisation.org_code = u.org_code AND ugroup.group_name = 'Support') ";
+    $sql .= "OR EXISTS(SELECT 1 FROM usr u JOIN role_member USING (user_no) JOIN roles USING (role_no) ";
+    $sql .= "WHERE organisation.org_code = u.org_code AND roles.role_name = 'Support') ";
   }
   $sql .= ") ";
 
@@ -183,8 +183,8 @@ SCRIPT;
       $colour = '#e8ffe0';
       $type   = "This is a client";
       $id     = "client_$i";
-      if ( $row->internal_group == 't' )        { $id = "int_$i"; $colour = '#ffe8e0'; $type = "This is an internal person"; }
-      else if ( $row->contractor_group == 't' ) { $id = "ext_$i"; $colour = '#e0e8ff'; $type = "This is an external support person"; }
+      if ( $row->internal_role == 't' )        { $id = "int_$i"; $colour = '#ffe8e0'; $type = "This is an internal person"; }
+      else if ( $row->contractor_role == 't' ) { $id = "ext_$i"; $colour = '#e0e8ff'; $type = "This is an external support person"; }
       $options['id'] = $id;
       $html = sprintf($fld_format, $role_colours["$row->role"],
                                      $ef->DataEntryField( "", "select", "role[$row->user_no]", $options ) );

@@ -2023,7 +2023,9 @@ EOX;
       $sql .= "charged_amount = ? ";
       $sql .= "WHERE timesheet_id = ? AND ok_to_charge ";
       $sql .= "AND work_charged IS NULL; ";
-      $qry = new PgQuery($sql, $_POST['ts_invoice_no'][$ts_id], $_POST['ts_charged_amount'][$ts_id], $ts_id );
+      $charged_amount = preg_replace('/[^0-9.-]/', '', $_POST['ts_charged_amount'][$ts_id]);
+      dbg_error_log("Request", "Charged: '%s'  => '%s'", $_POST['ts_charged_amount'][$ts_id], $charged_amount );
+      $qry = new PgQuery($sql, $_POST['ts_invoice_no'][$ts_id], $charged_amount, $ts_id );
       if ( !$qry->Exec('WR::UpdateInvoiceDetails') ) {
         $client_messages[] = "There was a problem writing the timesheet changes to the database.";
         return false;

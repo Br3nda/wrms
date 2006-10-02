@@ -41,7 +41,7 @@ ALTER TABLE request_timesheet ADD COLUMN dav_etag TEXT;
 
 UPDATE request_timesheet SET work_duration = ((work_quantity * 8)::text || ' hours')::interval(0) WHERE work_units = 'days';
 UPDATE request_timesheet SET work_duration = (work_quantity::text || ' hours')::interval(0) WHERE work_units = 'hours';
-UPDATE request_timesheet SET dav_etag = md5(timesheet_id||request_id||work_on||work_duration||work_by_id)
+UPDATE request_timesheet SET dav_etag = md5(timesheet_id||request_id||work_on||work_duration||work_by_id||COALESCE(charged_details,'')||work_description)
                 WHERE work_duration IS NOT NULL AND work_units = 'hours' OR work_units = 'days';
 
 -- Theoretically I suppose it won't be unique, but that would likely be bad...

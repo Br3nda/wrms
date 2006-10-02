@@ -5,8 +5,12 @@ wrms (2.4.0) unstable; urgency=low
   * Fixes to request_summary report (Gavin).
   * Depend on latest version of libawl-php
   * Improve CalDAV suport to more workable schema
+  * Add detection of whether someone else edited the WR since you started.
+  * CalDAV now working with non-timesheet events showing errors.
+  * CalDAV now working with Lightning and with Evolution.
+  * Added doc/CalDAV_Testing.txt which is a regression test overview.
 
- -- Andrew McMillan <debian@mcmillan.net.nz>  Tue, 26 Sep 2006 14:20:21 +1200
+ -- Andrew McMillan <debian@mcmillan.net.nz>  Mon,  2 Oct 2006 13:20:01 +1300
 
 wrms (2.3.5) unstable; urgency=low
 

@@ -9,14 +9,26 @@ dbg_error_log("get", "GET method handler");
 $get_path = $_SERVER['PATH_INFO'];
 $etag_none_match = str_replace('"','',$_SERVER["HTTP_IF_NONE_MATCH"]);
 
-list( $junk, $user, $ts_id ) = preg_split( '#/#', $get_path );
-$ts_id = intval($ts_id);
-$ts_url = sprintf("/%s/%d.ics", $session->username, $ts_id );
-if ( $get_path != $ts_url ) {
-  $ts_id = 0;
-  dbg_error_log('GET', "Looking very like this is not a timesheet: %s", $get_path );
+$get_user_no = $session->user_no;
+$get_user_name = $session->username;
+if ( preg_match( "#^/([^/]+)/([0-9]+)(.*)\.ics$#", $get_path, $matches ) ) {
+  $in_username = $matches[1];
+  $in_tsid = $matches[2];
+  $in_otherstuff = $matches[3];
+  $ts_id = intval($in_tsid);
+  if ( $in_otherstuff != '' && ! preg_match('/@[a-z0-9.-]+', $in_otherstuff ) ) {
+    $ts_id = 0;
+    dbg_error_log('GET', "Looking very like this is not a timesheet: %s", $get_path );
+  }
 }
-dbg_error_log('GET', "User: %s, TS_ID: %s", $user, $ts_id );
+
+if ( $session->AllowedTo("Admin") || $session->AllowedTo("Support") || $session->AllowedTo("Accounts") ) {
+  $qry = new PgQuery( "SELECT user_no FROM usr WHERE username = ?;", $in_username );
+  if ( $qry->Exec("REPORT") && $row = $qry->Fetch() ) {
+    $get_user_no = $row->user_no;
+    $get_user_name = $in_username;
+  }
+}
 
 $ical_date_format = vEvent::SqlDateFormat();
 $ical_duration_format = vEvent::SqlDurationFormat();
@@ -35,7 +47,7 @@ SELECT dav_etag,
  WHERE work_by_id = ? AND timesheet_id = ?
 EOSQL;
 
-$qry = new PgQuery( $sql, $session->user_no, $ts_id);
+$qry = new PgQuery( $sql, $get_user_no, $ts_id);
 if ( $qry->Exec("GET") && $qry->rows == 1 ) {
   $ts = $qry->Fetch();
 
@@ -59,11 +71,11 @@ if ( $qry->Exec("GET") && $qry->rows == 1 ) {
                        ));
   print $vevent->Render();
 
-  dbg_error_log( "GET", "User: %d, ETag: %s, Path: /%s/%d.ics", $session->user_no, $ts->dav_etag, $user, $ts_id );
+  dbg_error_log( "GET", "User: %d, ETag: %s, Path: /%s/%d.ics", $get_user_no, $ts->dav_etag, $get_user_name, $ts_id );
 
 }
 else {
-  $qry = new PgQuery( "SELECT * FROM caldav_data WHERE user_no = ? AND dav_name = ? ;", $session->user_no, $get_path);
+  $qry = new PgQuery( "SELECT * FROM caldav_data WHERE user_no = ? AND dav_name = ? ;", $get_user_no, $get_path);
   dbg_error_log("get", "%s", $qry->querystring );
   if ( $qry->Exec("GET") && $qry->rows == 1 ) {
     $event = $qry->Fetch();
@@ -79,16 +91,16 @@ else {
 
     print $event->caldav_data;
 
-    dbg_error_log( "GET", "User: %d, ETag: %s, Path: %s", $session->user_no, $event->dav_etag, $get_path);
+    dbg_error_log( "GET", "User: %d, ETag: %s, Path: %s", $get_user_no, $event->dav_etag, $get_path);
 
   }
   else if ( $qry->rows != 1 ) {
     header("HTTP/1.1 500 Internal Server Error");
-    dbg_error_log("ERROR", "Multiple rows match for User: %d, ETag: %s, Path: %s", $session->user_no, $event->dav_etag, $get_path);
+    dbg_error_log("ERROR", "Multiple rows match for User: %d, ETag: %s, Path: %s", $get_user_no, $event->dav_etag, $get_path);
   }
   else {
     header("HTTP/1.1 500 Infernal Server Error");
-    dbg_error_log("get", "Infernal Server Error - no data for %s - %s", $session->user_no, $get_path);
+    dbg_error_log("get", "Infernal Server Error - no data for %s - %s", $get_user_no, $get_path);
   }
 }
 

@@ -5,6 +5,8 @@ dbg_error_log("REPORT", "method handler");
 require_once("XMLElement.php");
 require_once("vEvent.php");
 
+$report_path = $_SERVER['PATH_INFO'];
+
 $attributes = array();
 $parser = xml_parser_create_ns('UTF-8');
 xml_parser_set_option ( $parser, XML_OPTION_SKIP_WHITE, 1 );
@@ -167,6 +169,19 @@ EOXML;
   exit(0);
 }
 
+$report_user_no = $session->user_no;
+$report_user_name = $session->username;
+if ( $session->AllowedTo("Admin") || $session->AllowedTo("Support") || $session->AllowedTo("Accounts") ) {
+  if ( preg_match( "#^/([^/]+)(/|$)#", $report_path, $matches ) ) {
+    $in_username = $matches[1];
+    $qry = new PgQuery( "SELECT user_no FROM usr WHERE username = ?;", $in_username );
+    if ( $qry->Exec("REPORT") && $row = $qry->Fetch() ) {
+      $report_user_no = $row->user_no;
+      $report_user_name = $in_username;
+    }
+  }
+}
+
 
 $ical_date_format = vEvent::SqlDateFormat();
 $ical_duration_format = vEvent::SqlDurationFormat();
@@ -200,7 +215,7 @@ EOSQL;
   $sql .= " ORDER BY work_on ASC";
 
   $responses = array();
-  $qry = new PgQuery( $sql, $session->user_no );
+  $qry = new PgQuery( $sql, $report_user_no );
   // echo $qry->querystring;
   if ( $qry->Exec() && $qry->rows > 0 ) {
     while( $ts = $qry->Fetch() ) {
@@ -217,7 +232,7 @@ EOSQL;
                         ));
 
       if ( isset($report[$i]['include_href']) && $report[$i]['include_href'] > 0 ) {
-        $url = sprintf("http://%s:%d%s/%s/%d.ics", $_SERVER['SERVER_NAME'], $_SERVER['SERVER_PORT'], $_SERVER['SCRIPT_NAME'], $session->username, $ts->timesheet_id );
+        $url = sprintf("http://%s:%d%s/%s/%d.ics", $_SERVER['SERVER_NAME'], $_SERVER['SERVER_PORT'], $_SERVER['SCRIPT_NAME'], $report_user_name, $ts->timesheet_id );
         $response->NewElement("href",$url);
       }
       if ( isset($report[$i]['include_data']) && $report[$i]['include_data'] > 0 ) {
@@ -241,7 +256,7 @@ EOSQL;
   * We also include _all_ caldav_data entries in there, since these
   * are events which failed to parse into timesheets.
   */
-  $qry = new PgQuery( "SELECT * FROM caldav_data WHERE user_no = ?", $session->user_no );
+  $qry = new PgQuery( "SELECT * FROM caldav_data WHERE user_no = ?", $report_user_no );
   if ( $qry->Exec() && $qry->rows > 0 ) {
     while( $dav = $qry->Fetch() ) {
       $response = new XMLElement("response" );

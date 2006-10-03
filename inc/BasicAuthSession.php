@@ -100,6 +100,20 @@ class BasicAuthSession {
 
 
   /**
+  * Internal function used to get the user's roles from the database.
+  */
+  function GetRoles () {
+    $this->roles = array();
+    $qry = new PgQuery( 'SELECT role_name FROM role_member m join roles r ON r.role_no = m.role_no WHERE user_no = ? ', $this->user_no );
+    if ( $qry->Exec('BasicAuthSession') && $qry->rows > 0 ) {
+      while( $role = $qry->Fetch() ) {
+        $this->roles[$role->role_name] = true;
+      }
+    }
+  }
+
+
+  /**
   * Internal function used to assign the session details to a user's new session.
   * @param object $u The user+session object we (probably) read from the database.
   */
@@ -108,6 +122,7 @@ class BasicAuthSession {
     foreach( $u AS $k => $v ) {
       $this->{$k} = $v;
     }
+    $this->GetRoles();
 
     $this->logged_in = true;
   }

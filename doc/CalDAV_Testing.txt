@@ -1,0 +1,7 @@
+CalDAV Testing
+==============
+
+Functions that should work, generally, are:
+
+Create an event with no WR# in summary or location.
+=> Event created.  Will redisplay as "Not a timesheet! was: <old description>"

@@ -8,7 +8,7 @@ $basefont = "verdana,sans-serif";
 $system_name = "Andrew's WRMS";
 $sysabbr = "wrms";
 $debuglevel = 3;
-$debug_email = 'shaun@catalyst.net.nz';
+$debug_email = 'cristina@catalyst.net.nz';
 $pg_version = 8.1;
 
 // Turn on all debugging...

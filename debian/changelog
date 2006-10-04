@@ -9,8 +9,9 @@ wrms (2.4.0) unstable; urgency=low
   * CalDAV now working with non-timesheet events showing errors.
   * CalDAV now working with Lightning and with Evolution.
   * Added doc/CalDAV_Testing.txt which is a regression test overview.
+  * Add ability to subscribe to other people's calendars, read-only.
 
- -- Andrew McMillan <debian@mcmillan.net.nz>  Mon,  2 Oct 2006 13:20:01 +1300
+ -- Andrew McMillan <debian@mcmillan.net.nz>  Thu,  5 Oct 2006 00:46:03 +1300
 
 wrms (2.3.5) unstable; urgency=low
 

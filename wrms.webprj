@@ -317,7 +317,7 @@
     <item url="inc/caldav-REPORT.php" uploadstatus="1" />
     <item url="debian/" uploadstatus="1" />
     <item url="debian/control" uploadstatus="1" />
-    <item url="doc/CalDAV_Testing.txt" />
-    <item url="doc/" />
+    <item url="doc/CalDAV_Testing.txt" uploadstatus="1" />
+    <item url="doc/" uploadstatus="1" />
   </project>
 </webproject>

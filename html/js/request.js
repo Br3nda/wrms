@@ -149,7 +149,15 @@ function CheckDate(objField)
 {
   if ( objField.value != "" ) {
     if ( ! objField.value.match( date_rx ) ) {
-      alert("That is not a valid date");
+      alert("That is not a valid date" + "\n"
+	   +"Expected date forms:"     + "\n"
+	   +"   dd/mm/yy"              + "\n"
+	   +"   dd-mm-yy"              + "\n"
+	   +"   dd/mm/yyyy"            + "\n"
+	   +"   dd-mm-yyyy"            + "\n"
+	   +"   'today', 'yesterday'," + "\n"
+	   +"   'now', 'tomorrow'"
+	   );
       objField.focus();
     }
   }

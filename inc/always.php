@@ -27,6 +27,7 @@ else {
 }
 $c->sysabbr     = $sysabbr;
 $c->admin_email = $admin_email;
+$c->debug_email = $debug_email;
 $c->system_name = $system_name;
 $c->base_dns    = $base_dns;
 $c->scripts[]   = "js/date-picker.js";

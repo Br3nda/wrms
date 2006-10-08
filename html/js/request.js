@@ -8,7 +8,7 @@ var sopt_rx = /^System: <option value="(.+)">(.+)<\/option>/i
 var aopt_rx = /^Subscriber: <option value="(.+)">(.+)<\/option>/i
 var orgtag_rx = /^OrgTag: <option value="(.+)">(.+)<\/option>/i
 var number_rx = /^[0-9\.]*$/
-var date_rx = /^([0-9][0-9]?[\/-][0-1]?[0-9][\/-][0-9][0-9][0-9]*|today|yesterday|now|tomorrow)$/
+var date_rx = /^([0-9][0-9]?[\/-][0-1]?[0-9][\/-][0-9][0-9][0-9]*|today|yesterday|now|tomorrow|[0-9][0-9]([0-9][0-9])?-?[0-9][0-9]-?[0-9][0-9])$/
 
 var person_options;
 var system_options;
@@ -149,7 +149,15 @@ function CheckDate(objField)
 {
   if ( objField.value != "" ) {
     if ( ! objField.value.match( date_rx ) ) {
-      alert("That is not a valid date");
+      alert("That is not a valid date" + "\n"
+	   +"Expected date forms:"     + "\n"
+	   +"   dd/mm/yy,   dd-mm-yy"  + "\n"
+	   +"   dd/mm/yyyy, dd-mm-yyyy"+ "\n"
+	   +"   yyyy-mm-dd, yyyymmdd"  + "\n"
+	   +"               yymmdd"    + "\n"
+	   +"   'today', 'yesterday'," + "\n"
+	   +"   'now', 'tomorrow'"
+	   );
       objField.focus();
     }
   }

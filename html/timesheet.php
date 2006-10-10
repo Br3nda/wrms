@@ -49,6 +49,13 @@ function get_numeric_setting( $name, $current, $default ) {
     $week_list .= "<option value=$sow_date" . ( $sow == $sow_date ? " selected" : "") . ">" . date( 'j M Y', $sow_date ) . "</option>\n";
   }
   $week_list .= "</select>\n";
+  $th_mon = date( 'j M Y', $sow );
+  $th_tue = date( 'j M Y', $sow + (86400 * 1));
+  $th_wed = date( 'j M Y', $sow + (86400 * 2));
+  $th_thu = date( 'j M Y', $sow + (86400 * 3));
+  $th_fri = date( 'j M Y', $sow + (86400 * 4));
+  $th_sat = date( 'j M Y', $sow + (86400 * 5));
+  $th_sun = date( 'j M Y', $sow + (86400 * 6));
 
   // Split of timesheet
   $period_list = "<select name=period_minutes onchange='form.submit()'>\n";
@@ -156,13 +163,13 @@ function build_time_list( $name, $from, $current, $delta ) {
 <table width="100%" border="0" cellpadding="1" cellspacing="0">
 <tr>
  <th class="cols" width="9%">&nbsp;</th>
- <th class="cols" width="13%">Monday</th>
- <th class="cols" width="13%">Tuesday</th>
- <th class="cols" width="13%">Wednesday</th>
- <th class="cols" width="13%">Thursday</th>
- <th class="cols" width="13%">Friday</th>
- <th class="cols" width="13%">Saturday</th>
- <th class="cols" width="13%">Sunday</th>
+ <th class="cols" width="13%">$th_mon<br />Monday</th>
+ <th class="cols" width="13%">$th_tue<br />Tuesday</th>
+ <th class="cols" width="13%">$th_wed<br />Wednesday</th>
+ <th class="cols" width="13%">$th_thu<br />Thursday</th>
+ <th class="cols" width="13%">$th_fri<br />Friday</th>
+ <th class="cols" width="13%">$th_sat<br />Saturday</th>
+ <th class="cols" width="13%">$th_sun<br />Sunday</th>
 </tr>
 EOHEADERS;
 

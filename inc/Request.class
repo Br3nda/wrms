@@ -2056,8 +2056,9 @@ EOX;
 
     $extra_target = '';
     $extra_values = '';
+    $caldav_update = '';
     if ( $_POST['work_units'] == 'days' || $_POST['work_units'] == 'hours' ) {
-      $extra_target = ', work_duration, caldav_etag';
+      $extra_target = ', work_duration';
       if ( $_POST['work_units'] == 'days' ) {
         /**
         * FIXME We should have a configuration value somewhere setting hours per day, rather than just '8'
@@ -2067,12 +2068,14 @@ EOX;
       else {
         $quantity = $_POST['work_quantity'];
       }
-      $extra_values = ", ".qpg("$quantity hours")."::interval(0), md5(timesheet_id||request_id||work_on||work_duration||work_by_id)";
+      $extra_values = ", ".qpg("$quantity hours")."::interval(0)";
+      $caldav_update = "UPDATE request_timesheet SET dav_etag = md5(timesheet_id||request_id||work_on||work_duration||work_by_id) WHERE timesheet_id = $id;";
     }
 
     $sql = "INSERT INTO request_timesheet ( timesheet_id, request_id, work_by_id, ";
     $sql .= "work_on, work_quantity, work_units, work_rate, work_description$extra_target ) ";
     $sql .= "VALUES( ?, ?, ?, ?, ?, ?, ?, ?$extra_values );";
+    $sql .= $caldav_update;
     $qry = new PgQuery( $sql, $id, $this->request_id, $session->user_no,
                         $_POST['work_on'], $_POST['work_quantity'], $_POST['work_units'], $_POST['work_rate'], $work_description ) ;
     if ( ! $qry->Exec('WR::AddWork') ) {

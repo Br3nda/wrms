@@ -55,9 +55,12 @@ if ( file_exists("../debian/changelog") ) {
 else if ( file_exists("/usr/share/doc/wrms/changelog.Debian") ) {
   $changelog = fopen( "/usr/share/doc/wrms/changelog.Debian", "r" );
 }
+else if ( file_exists("/usr/share/doc/wrms/changelog") ) {
+  $changelog = fopen( "/usr/share/doc/wrms/changelog", "r" );
+}
 if ( $changelog ) {
   list( $c->code_pkgver, $c->code_major, $c->code_minor, $c->code_patch, $c->code_debian ) = fscanf($changelog, "%s (%d.%d.%d-%d)");
-  $c->code_version = (($c->code_major * 1000) + $c->code_minor).".".$c->code_patch;
+  $c->code_version = (($c->code_pkgver * 1000) + $c->code_major).".".$c->code_minor;
   fclose($changelog);
 }
 

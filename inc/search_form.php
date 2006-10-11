@@ -73,7 +73,7 @@ function RenderSearchForm( $target_url ) {
                   "class" => "srchf",
                   "style" => "width: 18em") );
 
-  $html .= $ef->DataEntryLine( "By", "", "lookup", "requested_by",
+  $html .= $ef->DataEntryLine( "Requester", "", "lookup", "requested_by",
             array("_sql" => SqlSelectRequesters($org_code),
                   "_null" => "-- Any Requester --", "onchange" => "PersonChanged();",
                   "title" => "The client who is requesting this, or who is in charge of ensuring it happens.",

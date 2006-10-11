@@ -1,3 +1,19 @@
+wrms (2.4.2) unstable; urgency=low
+
+  * Fix bug with inserting timesheet detail on request page.
+  * Add date header to timesheet.
+  * Provide helpful error message when someone attempts to add a
+    quote/estimate without providing a brief description.
+
+ -- Andrew McMillan <debian@mcmillan.net.nz>  Thu, 12 Oct 2006 11:42:31 +1300
+
+wrms (2.4.1) unstable; urgency=low
+
+  * New javascript date validation accepts more variations, especially
+    including ISO format.
+
+ -- Andrew McMillan <debian@mcmillan.net.nz>  Sun,  8 Oct 2006 22:23:50 +1300
+
 wrms (2.4.0) unstable; urgency=low
 
   * Move database schema closer to AWL standard.

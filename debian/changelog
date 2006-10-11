@@ -1,3 +1,9 @@
+wrms (2.4.3) unstable; urgency=low
+
+  * Allow Catalyst theme to have a logo override from configuration.
+
+ -- Andrew McMillan <debian@mcmillan.net.nz>  Thu, 12 Oct 2006 12:05:52 +1300
+
 wrms (2.4.2) unstable; urgency=low
 
   * Fix bug with inserting timesheet detail on request page.
@@ -5,7 +11,7 @@ wrms (2.4.2) unstable; urgency=low
   * Provide helpful error message when someone attempts to add a
     quote/estimate without providing a brief description.
 
- -- Andrew McMillan <debian@mcmillan.net.nz>  Thu, 12 Oct 2006 11:42:31 +1300
+ -- Andrew McMillan <debian@mcmillan.net.nz>  Thu, 12 Oct 2006 11:44:19 +1300
 
 wrms (2.4.1) unstable; urgency=low
 

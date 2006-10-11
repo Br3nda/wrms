@@ -120,7 +120,7 @@ INDEXNOTLOGGEDIN;
 
     if ( $this->panel_top ) {
       echo '<div id="topbar">';
-      echo $this->ImgLink('logo_main.gif', '/', 180, 50);
+      echo $this->ImgLink((isset($c->alternate_logo) ? $c->alternate_logo : 'logo_main.gif'), '/', 180, 50);
       echo '</div>'."\n";
       if ( $session->logged_in  ) {
         echo '<div id="searchbar">';

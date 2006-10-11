@@ -1373,6 +1373,10 @@ class Request {
     if ( $qry->Exec("Request") && $qry->rows == 1 && $syscode = $qry->Fetch() )
       $this->system_code = $syscode->system_code;
 
+    if ( trim($_POST['quote_brief']) == "" && ( trim($_POST['quote_details']) != "" || trim($_POST['quote_amount']) != "") ) {
+      $client_messages[] = "ERROR: A brief description is required when adding a quote. ##AddingQuotes##";
+    }
+
     if ( ! $this->_CheckNewRequester() ) return false;
 
     // Set the entered_by if this is a new request

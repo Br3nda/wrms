@@ -16,7 +16,7 @@ if ( preg_match( "#^/([^/]+)/([0-9]+)(.*)\.ics$#", $get_path, $matches ) ) {
   $in_tsid = $matches[2];
   $in_otherstuff = $matches[3];
   $ts_id = intval($in_tsid);
-  if ( $in_otherstuff != '' && ! preg_match('/@[a-z0-9.-]+', $in_otherstuff ) ) {
+  if ( $in_otherstuff != '' && ! preg_match('/@[a-z0-9.-]+/', $in_otherstuff ) ) {
     $ts_id = 0;
     dbg_error_log('GET', "Looking very like this is not a timesheet: %s", $get_path );
   }

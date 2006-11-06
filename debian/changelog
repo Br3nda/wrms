@@ -1,9 +1,18 @@
+wrms (2.4.5) unstable; urgency=low
+
+  * Some phpdoc changes to Request.class and Organisation.class
+  * Don't display the Tags section if this organisation has no tags.
+  * Ensure we are in edit mode when we want to create a new organisation.
+  * New Release.
+
+ -- Andrew McMillan <debian@mcmillan.net.nz>  Sun,  5 Nov 2006 22:59:45 +1300
+
 wrms (2.4.4) unstable; urgency=low
 
   * Fix bug with assigning roles to users.
   * New release.
 
- -- Andrew McMillan <debian@mcmillan.net.nz>  Thu, 26 Oct 2006 11:41:08 +1300
+ -- Andrew McMillan <debian@mcmillan.net.nz>  Thu, 26 Oct 2006 11:42:25 +1300
 
 wrms (2.4.3) unstable; urgency=low
 

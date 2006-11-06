@@ -87,9 +87,9 @@ class Request {
     }
   }
 
-  /////////////////////////////////////////////////////////////
-  // ReadRequest - Read the actual request record and assign the fields.
-  /////////////////////////////////////////////////////////////
+  /**
+  * ReadRequest - Read the actual request record and assign the fields.
+  */
   function ReadRequest( $id ) {
     global $session, $tmnu, $client_messages, $debuggroups;
 
@@ -157,9 +157,9 @@ class Request {
   }
 
 
-  /////////////////////////////////////////////////////////////
-  // AllowedTo - Can the user do that to this request?
-  /////////////////////////////////////////////////////////////
+  /**
+  * AllowedTo - Can the user do that to this request?
+  */
   function AllowedTo( $action ) {
     global $session, $debuggroups;
 
@@ -240,12 +240,12 @@ class Request {
     return $answer;
   }
 
-  /////////////////////////////////////////////////////////////
-  // Actions - Process the more unusual actions against the W/R
-  //   A separate function is called for each action and this
-  //   function is really only checking that permissions and
-  //   data are appropriate.
-  /////////////////////////////////////////////////////////////
+  /**
+  * Actions - Process the more unusual actions against the W/R
+  *   A separate function is called for each action and this
+  *   function is really only checking that permissions and
+  *   data are appropriate.
+  */
   function Actions( $action ) {
     global $session, $sysabbr, $client_messages;
     switch( $action ) {
@@ -273,9 +273,9 @@ class Request {
     }
   }
 
-  /////////////////////////////////////////////////////////////
-  // RemoveAttachment - Detach the specified attachment from the W/R
-  /////////////////////////////////////////////////////////////
+  /**
+  * Detach the specified attachment from the W/R
+  */
   function RemoveAttachment( $attachment_id ) {
     global $client_messages;
     $sql = "SELECT * FROM request_attachment ";
@@ -1149,12 +1149,20 @@ class Request {
     return $html;
   }
 
-  /////////////////////////////////////////////////////////////
-  // Display the tags that have been assigned to this W/R
-  /////////////////////////////////////////////////////////////
+  /**
+  * Display the tags that have been assigned to this W/R
+  *
+  * @var object $ef The DataEntryForm with our record in it.
+  */
   function RenderTags( $ef ) {
     global $session, $theme;
     $html = "";
+
+    /**
+    * Check that this organisation even *has* tags
+    */
+    $q = new PgQuery(SqlSelectOrgTags($this->org_code));
+    if ( !$q->Exec('WR::Tags') || $q->rows == 0 ) return "";
 
     $sql = "SELECT organisation_tag.* ";
     $sql .= "FROM request_tag JOIN organisation_tag USING ( tag_id ) ";

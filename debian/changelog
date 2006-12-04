@@ -1,3 +1,10 @@
+wrms (2.4.6) unstable; urgency=low
+
+  * Fix closure in regex caldav-GET.php .
+  * Try and preserve existing HTML bits if we are formatting as HTML.
+
+ -- Andrew McMillan <debian@mcmillan.net.nz>  Fri, 10 Nov 2006 10:05:59 +1300
+
 wrms (2.4.5) unstable; urgency=low
 
   * Some phpdoc changes to Request.class and Organisation.class

@@ -5,6 +5,7 @@
 $c = (object) 'Configuration Data';
 $c->started = microtime();
 $c->messages = array();
+$c->total_query_time = 0;
 
 $error_loc = "";
 $error_msg = "";

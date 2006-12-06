@@ -104,6 +104,7 @@ function build_time_list( $name, $from, $current, $delta ) {
   $sql .= "ORDER BY work_on ASC; ";
   $qry = new PgQuery( $sql );
 
+  $invoiced = array();
   if ( $qry->Exec("TimeSheet") && $qry->rows > 0 ) {
 
     // Construct timesheet entries from all of our existing work data for the week
@@ -139,6 +140,7 @@ function build_time_list( $name, $from, $current, $delta ) {
       //
       for ( $j = 0; $j < $duration; $j += $period_minutes ) {
         $tm[$our_dow][sprintf("m%d", $start_tod + $j)] = "$ts->request_id/$ts->work_description" . ("$ts->entry_details" == "$ts->request_id" ? "" : "@|@$sow" );
+        $invoiced[$our_dow][sprintf("m%d", $start_tod + $j)] = $ts->charged_details;
         $session->Dbg( "TimeSheet", "\$" . "tm[$our_dow][" . sprintf("m%d", $start_tod + $j) . "] = $ts->request_id/$ts->work_description" . ("$ts->entry_details" == "$ts->request_id" ? "" : "@|@$sow" ) );
       }
     }
@@ -177,9 +179,14 @@ EOHEADERS;
     printf( '<tr class="row%d"><th>%02d:%02d</th>', $r % 2, $tod / 60, $tod % 60 );
     for ( $dow=0; $dow < 7; $dow++ ) {
       $tabindex = ($dow * 200) + ($tod / 10);
-      echo "<td><input tabindex=\"$tabindex\" type=\"text\" size=\"14\" name=\"tm[$dow][m$tod]\" value=\"";
-      echo $tm[$dow]["m$tod"];
-      echo "\"></td>\n";
+      echo "<td>";
+      if ( $invoiced[$dow]["m$tod"] == "" ) {
+        printf( '<input tabindex="%s" type="text" size="14" name="tm[%d][m%d]" value="%s">', $tabindex, $dow, $tod, $tm[$dow]["m$tod"]);
+      }
+      else {
+        echo preg_replace( '/@\|@.*$/', '', $tm[$dow]["m$tod"]);
+      }
+      echo "</td>\n";
     }
     echo "</tr>\n";
   }

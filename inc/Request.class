@@ -426,7 +426,7 @@ class Request {
     global $session, $c;
     $html = "";
 
-    $ef = new EntryForm( $REQUEST_URI, $this, $GLOBALS['edit'] );
+    $ef = new EntryForm( $_SERVER['REQUEST_URI'], $this, $GLOBALS['edit'] );
     $ef->NoHelp();  // Prefer this style, for the moment
 
     if ( $ef->editmode ) {
@@ -1032,7 +1032,7 @@ class Request {
         else {
           $bill_ok = "";
         }
-        $delete_link = ( $ef->editmode ? sprintf( $delete_link_format, $this->request_id, $row->timesheet_id ) : '');
+        $delete_link = ( $ef->editmode && $row->charged_details == "" ? sprintf( $delete_link_format, $this->request_id, $row->timesheet_id ) : '');
         $html .= sprintf( $line_format,
                     ($q->rownum % 2), $row->fullname, $row->work_on, $row->work_quantity, $row->work_units,
                     $rate, $row->work_description,

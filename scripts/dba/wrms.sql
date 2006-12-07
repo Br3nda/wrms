@@ -400,3 +400,12 @@ GRANT INSERT,UPDATE,SELECT, DELETE ON
 -- GRANT INSERT,UPDATE,SELECT, DELETE ON request_timesh_timesheet_id_seq TO general;
   -- Forward compatibility with 7.2...
 GRANT INSERT,UPDATE,SELECT, DELETE ON request_timesheet_timesheet_id_seq TO general;
+
+CREATE TABLE wrms_revision (
+ schema_id  INT4,
+ schema_major INT4,
+ schema_minor INT4,
+ schema_patch INT4,
+ schema_name TEXT,
+ applied_on  TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp
+ );

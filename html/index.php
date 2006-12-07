@@ -1,5 +1,5 @@
 <?php
-  include("always.php");
+  include("../inc/always.php");
   require_once("authorisation-page.php");
 
   $right_panel = false;

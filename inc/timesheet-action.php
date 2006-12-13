@@ -40,7 +40,7 @@ function update_timesheet( $ts_finish ) {
 
   if ( isset( $sow) && isset($tm) && is_array( $tm ) ) {
     $sow = intval($sow);
-    $sql = sprintf( "DELETE FROM request_timesheet WHERE entry_details = 'TS-%d-%d';", $session->user_no, $sow );
+    $sql = sprintf( "DELETE FROM request_timesheet WHERE entry_details = 'TS-%d-%d' AND charged_details IS NULL OR charged_details = '';", $session->user_no, $sow );
     $qry = new PgQuery( $sql );
     $qry->Exec("TimeSheet");
     for ( $dow = 0; $dow < 7; $dow ++ ) {

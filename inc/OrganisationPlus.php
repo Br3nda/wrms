@@ -70,6 +70,7 @@ class OrganisationPlus extends DBRecord {
     else {
       $this->new_record = true;
       $this->org_code = 0;
+      $this->EditMode = true;
       $c->page_title = "New Organisation";
 
       // Assign some defaults because it looks like we're starting a new one

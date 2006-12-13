@@ -405,6 +405,9 @@ class Organisation {
     return false;
   }
 
+  /**
+  * Write the organisation record and other records to the database.
+  */
   function Write( $ef ) {
     global $session, $client_messages;
     $session->Log("Org::Write: DBG: Writing organisation form details to database");

@@ -87,9 +87,9 @@ class Request {
     }
   }
 
-  /////////////////////////////////////////////////////////////
-  // ReadRequest - Read the actual request record and assign the fields.
-  /////////////////////////////////////////////////////////////
+  /**
+  * ReadRequest - Read the actual request record and assign the fields.
+  */
   function ReadRequest( $id ) {
     global $session, $tmnu, $client_messages, $debuggroups;
 
@@ -157,9 +157,9 @@ class Request {
   }
 
 
-  /////////////////////////////////////////////////////////////
-  // AllowedTo - Can the user do that to this request?
-  /////////////////////////////////////////////////////////////
+  /**
+  * AllowedTo - Can the user do that to this request?
+  */
   function AllowedTo( $action ) {
     global $session, $debuggroups;
 
@@ -240,12 +240,12 @@ class Request {
     return $answer;
   }
 
-  /////////////////////////////////////////////////////////////
-  // Actions - Process the more unusual actions against the W/R
-  //   A separate function is called for each action and this
-  //   function is really only checking that permissions and
-  //   data are appropriate.
-  /////////////////////////////////////////////////////////////
+  /**
+  * Actions - Process the more unusual actions against the W/R
+  *   A separate function is called for each action and this
+  *   function is really only checking that permissions and
+  *   data are appropriate.
+  */
   function Actions( $action ) {
     global $session, $sysabbr, $client_messages;
     switch( $action ) {
@@ -273,9 +273,9 @@ class Request {
     }
   }
 
-  /////////////////////////////////////////////////////////////
-  // RemoveAttachment - Detach the specified attachment from the W/R
-  /////////////////////////////////////////////////////////////
+  /**
+  * Detach the specified attachment from the W/R
+  */
   function RemoveAttachment( $attachment_id ) {
     global $client_messages;
     $sql = "SELECT * FROM request_attachment ";
@@ -426,7 +426,7 @@ class Request {
     global $session, $c;
     $html = "";
 
-    $ef = new EntryForm( $REQUEST_URI, $this, $GLOBALS['edit'] );
+    $ef = new EntryForm( $_SERVER['REQUEST_URI'], $this, $GLOBALS['edit'] );
     $ef->NoHelp();  // Prefer this style, for the moment
 
     if ( $ef->editmode ) {
@@ -1032,7 +1032,7 @@ class Request {
         else {
           $bill_ok = "";
         }
-        $delete_link = ( $ef->editmode ? sprintf( $delete_link_format, $this->request_id, $row->timesheet_id ) : '');
+        $delete_link = ( $ef->editmode && $row->charged_details == "" ? sprintf( $delete_link_format, $this->request_id, $row->timesheet_id ) : '');
         $html .= sprintf( $line_format,
                     ($q->rownum % 2), $row->fullname, $row->work_on, $row->work_quantity, $row->work_units,
                     $rate, $row->work_description,
@@ -1149,12 +1149,20 @@ class Request {
     return $html;
   }
 
-  /////////////////////////////////////////////////////////////
-  // Display the tags that have been assigned to this W/R
-  /////////////////////////////////////////////////////////////
+  /**
+  * Display the tags that have been assigned to this W/R
+  *
+  * @var object $ef The DataEntryForm with our record in it.
+  */
   function RenderTags( $ef ) {
     global $session, $theme;
     $html = "";
+
+    /**
+    * Check that this organisation even *has* tags
+    */
+    $q = new PgQuery(SqlSelectOrgTags($this->org_code));
+    if ( !$q->Exec('WR::Tags') || $q->rows == 0 ) return "";
 
     $sql = "SELECT organisation_tag.* ";
     $sql .= "FROM request_tag JOIN organisation_tag USING ( tag_id ) ";
@@ -1372,6 +1380,10 @@ class Request {
     $qry = new PgQuery($sql, $_POST['system_id'] );
     if ( $qry->Exec("Request") && $qry->rows == 1 && $syscode = $qry->Fetch() )
       $this->system_code = $syscode->system_code;
+
+    if ( trim($_POST['quote_brief']) == "" && ( trim($_POST['quote_details']) != "" || trim($_POST['quote_amount']) != "") ) {
+      $client_messages[] = "ERROR: A brief description is required when adding a quote. ##AddingQuotes##";
+    }
 
     if ( ! $this->_CheckNewRequester() ) return false;
 
@@ -2056,8 +2068,9 @@ EOX;
 
     $extra_target = '';
     $extra_values = '';
+    $caldav_update = '';
     if ( $_POST['work_units'] == 'days' || $_POST['work_units'] == 'hours' ) {
-      $extra_target = ', work_duration, caldav_etag';
+      $extra_target = ', work_duration';
       if ( $_POST['work_units'] == 'days' ) {
         /**
         * FIXME We should have a configuration value somewhere setting hours per day, rather than just '8'
@@ -2067,12 +2080,14 @@ EOX;
       else {
         $quantity = $_POST['work_quantity'];
       }
-      $extra_values = ", ".qpg("$quantity hours")."::interval(0), md5(timesheet_id||request_id||work_on||work_duration||work_by_id)";
+      $extra_values = ", ".qpg("$quantity hours")."::interval(0)";
+      $caldav_update = "UPDATE request_timesheet SET dav_etag = md5(timesheet_id||request_id||work_on||work_duration||work_by_id) WHERE timesheet_id = $id;";
     }
 
     $sql = "INSERT INTO request_timesheet ( timesheet_id, request_id, work_by_id, ";
     $sql .= "work_on, work_quantity, work_units, work_rate, work_description$extra_target ) ";
     $sql .= "VALUES( ?, ?, ?, ?, ?, ?, ?, ?$extra_values );";
+    $sql .= $caldav_update;
     $qry = new PgQuery( $sql, $id, $this->request_id, $session->user_no,
                         $_POST['work_on'], $_POST['work_quantity'], $_POST['work_units'], $_POST['work_rate'], $work_description ) ;
     if ( ! $qry->Exec('WR::AddWork') ) {

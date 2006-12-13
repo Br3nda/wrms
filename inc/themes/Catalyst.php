@@ -120,7 +120,7 @@ INDEXNOTLOGGEDIN;
 
     if ( $this->panel_top ) {
       echo '<div id="topbar">';
-      echo $this->ImgLink('logo_main.gif', '/', 180, 50);
+      echo $this->ImgLink((isset($c->alternate_logo) ? $c->alternate_logo : 'logo_main.gif'), '/', 180, 50);
       echo '</div>'."\n";
       if ( $session->logged_in  ) {
         echo '<div id="searchbar">';
@@ -167,7 +167,7 @@ INDEXNOTLOGGEDIN;
     global $c;
     echo <<<FOOTERTABLE
 <div id="page_footer">
-WRMS: $c->code_major.$c->code_minor.$c->code_patch-$c->code_debian , DB: $c->schema_major.$c->schema_minor.$c->schema_patch
+WRMS: $c->code_major.$c->code_minor.$c->code_patch, DB: $c->schema_major.$c->schema_minor.$c->schema_patch
 </div>
 FOOTERTABLE;
   }

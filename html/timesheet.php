@@ -49,6 +49,13 @@ function get_numeric_setting( $name, $current, $default ) {
     $week_list .= "<option value=$sow_date" . ( $sow == $sow_date ? " selected" : "") . ">" . date( 'j M Y', $sow_date ) . "</option>\n";
   }
   $week_list .= "</select>\n";
+  $th_mon = date( 'j M Y', $sow );
+  $th_tue = date( 'j M Y', $sow + (86400 * 1));
+  $th_wed = date( 'j M Y', $sow + (86400 * 2));
+  $th_thu = date( 'j M Y', $sow + (86400 * 3));
+  $th_fri = date( 'j M Y', $sow + (86400 * 4));
+  $th_sat = date( 'j M Y', $sow + (86400 * 5));
+  $th_sun = date( 'j M Y', $sow + (86400 * 6));
 
   // Split of timesheet
   $period_list = "<select name=period_minutes onchange='form.submit()'>\n";
@@ -97,6 +104,7 @@ function build_time_list( $name, $from, $current, $delta ) {
   $sql .= "ORDER BY work_on ASC; ";
   $qry = new PgQuery( $sql );
 
+  $invoiced = array();
   if ( $qry->Exec("TimeSheet") && $qry->rows > 0 ) {
 
     // Construct timesheet entries from all of our existing work data for the week
@@ -132,6 +140,7 @@ function build_time_list( $name, $from, $current, $delta ) {
       //
       for ( $j = 0; $j < $duration; $j += $period_minutes ) {
         $tm[$our_dow][sprintf("m%d", $start_tod + $j)] = "$ts->request_id/$ts->work_description" . ("$ts->entry_details" == "$ts->request_id" ? "" : "@|@$sow" );
+        $invoiced[$our_dow][sprintf("m%d", $start_tod + $j)] = $ts->charged_details;
         $session->Dbg( "TimeSheet", "\$" . "tm[$our_dow][" . sprintf("m%d", $start_tod + $j) . "] = $ts->request_id/$ts->work_description" . ("$ts->entry_details" == "$ts->request_id" ? "" : "@|@$sow" ) );
       }
     }
@@ -156,13 +165,13 @@ function build_time_list( $name, $from, $current, $delta ) {
 <table width="100%" border="0" cellpadding="1" cellspacing="0">
 <tr>
  <th class="cols" width="9%">&nbsp;</th>
- <th class="cols" width="13%">Monday</th>
- <th class="cols" width="13%">Tuesday</th>
- <th class="cols" width="13%">Wednesday</th>
- <th class="cols" width="13%">Thursday</th>
- <th class="cols" width="13%">Friday</th>
- <th class="cols" width="13%">Saturday</th>
- <th class="cols" width="13%">Sunday</th>
+ <th class="cols" width="13%">$th_mon<br />Monday</th>
+ <th class="cols" width="13%">$th_tue<br />Tuesday</th>
+ <th class="cols" width="13%">$th_wed<br />Wednesday</th>
+ <th class="cols" width="13%">$th_thu<br />Thursday</th>
+ <th class="cols" width="13%">$th_fri<br />Friday</th>
+ <th class="cols" width="13%">$th_sat<br />Saturday</th>
+ <th class="cols" width="13%">$th_sun<br />Sunday</th>
 </tr>
 EOHEADERS;
 
@@ -170,9 +179,14 @@ EOHEADERS;
     printf( '<tr class="row%d"><th>%02d:%02d</th>', $r % 2, $tod / 60, $tod % 60 );
     for ( $dow=0; $dow < 7; $dow++ ) {
       $tabindex = ($dow * 200) + ($tod / 10);
-      echo "<td><input tabindex=\"$tabindex\" type=\"text\" size=\"14\" name=\"tm[$dow][m$tod]\" value=\"";
-      echo $tm[$dow]["m$tod"];
-      echo "\"></td>\n";
+      echo "<td>";
+      if ( $invoiced[$dow]["m$tod"] == "" ) {
+        printf( '<input tabindex="%s" type="text" size="14" name="tm[%d][m%d]" value="%s">', $tabindex, $dow, $tod, $tm[$dow]["m$tod"]);
+      }
+      else {
+        echo preg_replace( '/@\|@.*$/', '', $tm[$dow]["m$tod"]);
+      }
+      echo "</td>\n";
     }
     echo "</tr>\n";
   }

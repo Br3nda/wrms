@@ -167,7 +167,9 @@ CREATE FUNCTION get_usr_setting(integer, text) RETURNS text
 
 CREATE TABLE roles (
     role_no serial NOT NULL,
-    role_name text
+    role_name text,
+    module_name text,
+    seq INT4
 );
 
 

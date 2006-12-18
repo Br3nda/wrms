@@ -53,6 +53,7 @@ CREATE TABLE request (
   brief TEXT,
   detailed TEXT,
   system_code TEXT,
+  system_id	INT4 not null,
   entered_by INT4
 ) ;
 CREATE INDEX xak0_request ON request ( active, request_id );
@@ -203,7 +204,7 @@ CREATE INDEX request_attachment_skey ON request_attachment ( request_id );
 
 CREATE FUNCTION max_attachment() RETURNS INT4 AS 'SELECT max(attachment_id) FROM request_attachment' LANGUAGE 'sql';
 
-
+-- *********************************
 
 
 CREATE TABLE lookup_code (
@@ -217,7 +218,20 @@ CREATE TABLE lookup_code (
 CREATE INDEX lookup_code_key ON lookup_code ( source_table, source_field, lookup_seq, lookup_code );
 CREATE UNIQUE INDEX lookup_code_ak1 ON lookup_code ( source_table, source_field, lookup_code );
 
+CREATE TABLE codes (
+ code_type TEXT,
+ code_seq INT2 DEFAULT 0,
+ code_id TEXT,
+ code_value TEXT,
+ code_data1 TEXT,
+ code_data2 TEXT
+);
 
+CREATE INDEX codes_sk1 ON codes ( code_type, code_seq, code_id );
+CREATE UNIQUE INDEX codes_pkey ON codes (lower(code_type), lower(code_id));
+GRANT INSERT,SELECT,UPDATE,DELETE ON codes TO general;
+
+-- *************************************
 
 CREATE FUNCTION get_lookup_desc( TEXT, TEXT, TEXT )
     RETURNS TEXT
@@ -284,6 +298,9 @@ CREATE TABLE saved_queries (
     maxresults INT,
     rlsort TEXT,
     rlseq TEXT,
+    public	boolean default false,
+    updated	timestamp with time zone DEFAULT current_timestamp,
+    in_menu	boolean default false,
     PRIMARY KEY (user_no, query_name)
 );
 
@@ -813,14 +830,22 @@ alter table request_project
 ALTER TABLE roles ADD seq integer;
 ALTER TABLE roles ADD module_name text;
 
-
-
- 
- 
- 
- 
- 
- 
- 
- 
- 
+ALTER TABLE usr ADD validated smallint;
+ ALTER TABLE usr ALTER validated SET DEFAULT 0;
+ALTER TABLE usr ADD enabled	smallint;
+ ALTER TABLE usr ALTER enabled SET DEFAULT 1;
+ALTER TABLE usr ADD access_level INT4;
+ ALTER TABLE usr ALTER access_level SET default 10;
+ALTER TABLE usr ADD linked_user	INT4;
+ALTER TABLE usr ADD help	boolean;
+ALTER TABLE usr ADD pager	text;
+ALTER TABLE usr ADD pager_ok boolean;
+ ALTER TABLE usr ALTER pager_ok SET default true;
+ALTER TABLE usr ADD phone_ok	boolean;
+ ALTER TABLE usr ALTER phone_ok SET default true;
+ALTER TABLE usr ADD fax_ok	boolean;
+ ALTER TABLE usr ALTER fax_ok SET default true;
+ALTER TABLE usr ADD organisation text;
+ALTER TABLE usr ADD mail_style	character(1);
+ALTER TABLE usr ADD note	character(1);
+ALTER TABLE usr ADD base_rate	numeric;

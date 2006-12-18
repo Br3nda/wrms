@@ -1,22 +1,25 @@
 BEGIN;
 
 -- create a base work_system
-INSERT INTO work_system (system_id, system_code, active) VALUES ('0', 'wrms', true);
+INSERT INTO work_system (system_id, system_code, active) VALUES ('1', 'wrms', true);
 
 -- to have a starting value for nextval()
-INSERT INTO request (request_id, system_id) VALUES ('-1', '0');
+INSERT INTO request (request_id, system_id) VALUES ('-1', '1');
 
--- create a base organisation
-INSERT INTO organisation (org_code, org_name, abbreviation,  debtor_no, work_rate) VALUES ('0', 'dummy', 'dummy', '0', '0');
+-- create a base organisation (NOTE: org_code='0' doesn't go well with the org.php!)
+INSERT INTO organisation (org_code, org_name, abbreviation,  debtor_no, work_rate) VALUES ('1', 'dummy', 'dummy', '0', '0');
 
 -- create a base user to access WRMS
-INSERT INTO usr (user_no, username, password, fullname, org_code) VALUES ('0', 'wrms', '**wrms', 'This is the base WRMS user', '0');
+INSERT INTO usr (user_no, username, password, fullname, org_code, base_rate) VALUES ('1', 'wrms', '**wrms', 'This is the base WRMS user', '1', '120');
 
 -- create base roles for the system
-INSERT INTO roles (role_name, role_no, module_name, seq) VALUES ('Admin', '0', 'wrms', '100'); -- "Support", "Contractor"
+INSERT INTO roles (role_name, role_no, module_name, seq) VALUES ('Admin', '1', 'wrms', '100'); -- "Support", "Contractor"
 
 -- assign role
-INSERT INTO role_member (role_no, user_no) VALUES ('0', '0');
+INSERT INTO role_member (role_no, user_no) VALUES ('1', '1');
+
+-- drop down boxes
+INSERT INTO codes (code_type, code_seq, code_id, code_value) VALUES ('urgency', '0', '0', 'Anytime');
 
 
 -- QAMS core stuff

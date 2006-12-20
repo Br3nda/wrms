@@ -49,7 +49,7 @@ class User {
 
     // Try and load it from file
     $sql = "SELECT usr.*, organisation.org_name ";
-    $sql .= " FROM usr  NATURAL JOIN organisation ";
+    $sql .= " FROM usr JOIN organisation USING( org_code) ";
     $sql .= " WHERE usr.user_no = '$id'";
     if ( !($session->AllowedTo('Admin') || $session->AllowedTo('Support')
             || $session->AllowedTo('Manage') || $session->AllowedTo('OrgMgr')) )

@@ -43,13 +43,14 @@ function SqlSelectOrganisations( $org_code = 0 ) {
 //             they support.
 // Support / Admin people see everyone from the two organisations.
 //////////////////////////////////////////////////////////
-function SqlSelectRequesters( $org_code = 0 ) {
+function SqlSelectRequesters( $org_code = 0, $allow_inactive_user = 0 ) {
   global $session;
 
   $sql = "SELECT usr.user_no, fullname || ' (' || abbreviation || ')' AS name, lower(fullname) ";
   $sql .= "FROM usr ";
   $sql .= "JOIN organisation USING (org_code) ";
   $sql .= "WHERE organisation.active ";
+  $sql .= "AND (usr.active OR usr.user_no=$allow_inactive_user) ";
   if ( $org_code != 0 && ($session->AllowedTo("Admin") || $session->AllowedTo("Support")  || $session->AllowedTo("Contractor")) ) {
     $sql .= "AND organisation.org_code = $org_code ";
     if ( ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support")) ) {

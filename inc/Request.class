@@ -504,7 +504,7 @@ class Request {
 
     // Person within Organisation drop-down
     $html .= $ef->DataEntryLine( "Person", "$this->fullname", "lookup", "requester_id",
-              array("_sql" => SqlSelectRequesters($this->org_code),
+              array("_sql" => SqlSelectRequesters($this->org_code,$this->requester_id),
                     "_null" => "--- select a person ---", "onchange" => "PersonChanged();",
                     "title" => "The client who is requesting this, or who is in charge of ensuring it happens." ) );
 

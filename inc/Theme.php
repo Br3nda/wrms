@@ -475,7 +475,7 @@ a.row0, a.row1 {
 
 blockquote {
   font: italic $fontsizes[1] $fonts[quote];
-  color: $colors[fg2];
+  color: $colors[fg1];
 }
 
 input.sml, select.sml {

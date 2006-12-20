@@ -6,7 +6,7 @@
 
 BEGIN;
 
-SELECT check_wrms_revision(1,99,9);  -- Will fail if this revision doesn't exist, or a later one does
+-- 	SELECT check_wrms_revision(1,99,9);  -- Will fail if this revision doesn't exist, or a later one does
 SELECT new_wrms_revision(1,99,10, 'Damper' );
 
 -- These fields haven't been used for anything in a loong time - pre wrms1, in fact

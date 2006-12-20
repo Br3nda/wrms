@@ -83,7 +83,6 @@ CREATE or REPLACE FUNCTION column_type( TEXT, TEXT ) RETURNS TEXT AS '
 ' LANGUAGE 'plpgsql';
 
 
-DROP FUNCTION last_status_on(int4);
 CREATE or REPLACE FUNCTION last_status_on( INT4 ) RETURNS TIMESTAMP AS '
   DECLARE
     res TIMESTAMP;
@@ -172,7 +171,6 @@ CREATE or REPLACE FUNCTION user_votes (int4, int4, int4 ) RETURNS int4 AS '
 ' LANGUAGE 'plpgsql';
 
 -- The last date a request was made for a particular organisation
-DROP FUNCTION last_org_request(int4);
 CREATE or REPLACE FUNCTION last_org_request ( int4 ) RETURNS timestamp AS '
    DECLARE
       in_org_code ALIAS FOR $1;
@@ -286,7 +284,6 @@ CREATE OR REPLACE FUNCTION request_sla_code(INTERVAL,CHAR)
     AS 'SELECT text( date_part( ''hour'', $1) ) || ''|'' || text(CASE WHEN $2 ='' '' THEN ''O'' ELSE $2 END)
     ' LANGUAGE 'sql';
 
-DROP FUNCTION get_last_note_on(int4);
 CREATE OR REPLACE FUNCTION get_last_note_on(INT4)
     RETURNS TIMESTAMP
     AS 'SELECT max(note_on)::timestamp FROM request_note WHERE request_note.request_id = $1
@@ -310,3 +307,48 @@ CREATE OR REPLACE FUNCTION get_status_desc(CHAR)
             AND lower(lookup_code) = lower($1)
     ' LANGUAGE 'sql';
 
+
+CREATE or REPLACE FUNCTION check_wrms_revision( INT, INT, INT ) RETURNS BOOLEAN AS '
+   DECLARE
+      major ALIAS FOR $1;
+      minor ALIAS FOR $2;
+      patch ALIAS FOR $3;
+      matching INT;
+   BEGIN
+      SELECT COUNT(*) INTO matching FROM wrms_revision
+                      WHERE schema_major = major AND schema_minor = minor AND schema_patch = patch;
+      IF matching != 1 THEN
+        RAISE EXCEPTION ''Database has not been upgraded to %.%.%'', major, minor, patch;
+        RETURN FALSE;
+      END IF;
+      SELECT COUNT(*) INTO matching FROM wrms_revision
+             WHERE (schema_major = major AND schema_minor = minor AND schema_patch > patch)
+                OR (schema_major = major AND schema_minor > minor)
+                OR (schema_major > major)
+             ;
+      IF matching >= 1 THEN
+        RAISE EXCEPTION ''Database revisions after %.%.% have already been applied.'', major, minor, patch;
+        RETURN FALSE;
+      END IF;
+      RETURN TRUE;
+   END;
+' LANGUAGE 'plpgsql' STABLE;
+
+CREATE or REPLACE FUNCTION new_wrms_revision( INT, INT, INT, TEXT ) RETURNS BOOLEAN AS '
+   DECLARE
+      major ALIAS FOR $1;
+      minor ALIAS FOR $2;
+      patch ALIAS FOR $3;
+      blurb ALIAS FOR $4;
+      new_id INT;
+   BEGIN
+      SELECT MAX(schema_id) + 1 INTO new_id FROM wrms_revision;
+      IF NOT FOUND THEN
+        RAISE EXCEPTION ''Database has no release history!'';
+        RETURN FALSE;
+      END IF;
+      INSERT INTO wrms_revision (schema_id, schema_major, schema_minor, schema_patch, schema_name)
+                    VALUES( new_id, major, minor, patch, blurb );
+      RETURN TRUE;
+   END;
+' LANGUAGE 'plpgsql';

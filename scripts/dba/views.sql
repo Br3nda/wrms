@@ -4,7 +4,7 @@
 -- for the specific case of creating an organisation, general work_system and
 -- primary user representative in one action.
 
-DROP VIEW organisation_plus CASCADE;
+-- DROP VIEW organisation_plus CASCADE;
 CREATE OR REPLACE VIEW organisation_plus AS
   SELECT organisation.org_code, organisation.active AS org_active, debtor_no, work_rate,
       abbreviation, org_name, current_sla, admin_user_no, general_system,

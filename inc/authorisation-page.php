@@ -1,6 +1,7 @@
 <?php
 
   $logged_on = $session->logged_in;  // FIXME: Compatibility with older code...
+//  var_dump($session);
   $settings = new Setting( $session->config_data );
   while( list( $k, $v ) = each( $session->roles ) ) {
     $roles["wrms"]["$k"] = 1;

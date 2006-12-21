@@ -70,7 +70,7 @@ function write_system_roles( $roles, $system_id ) {
   $sql .= "EXISTS (SELECT 1 FROM role_member WHERE usr.user_no = role_member.user_no ";
   $sql .=                 "AND role_member.role_no IN (SELECT role_no FROM roles WHERE role_name IN ('Contractor'))) ";
   $sql .= "AS contractor_role ";
-  $sql .= "FROM usr NATURAL JOIN organisation ";
+  $sql .= "FROM usr JOIN organisation USING(org_code) ";
   $sql .= "LEFT JOIN system_usr ON (usr.user_no = system_usr.user_no AND system_usr.system_id = ?) ";
   $sql .= "LEFT JOIN lookup_code roles ON (source_table='system_usr' AND source_field='role' AND lookup_code=system_usr.role) ";
   $sql .= "WHERE usr.active ";

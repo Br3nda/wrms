@@ -115,7 +115,7 @@ function SqlSelectOrgTags( $org_code = 0 ) {
   if ( $org_code == 0 && ($session->AllowedTo("Admin") || $session->AllowedTo("Support") || $session->AllowedTo("Contractor") ) )
     $sql .= " || ' (' || abbreviation || ')' AS tag_description ";
 
-  $sql .= "FROM organisation NATURAL JOIN organisation_tag ";
+  $sql .= "FROM organisation JOIN organisation_tag USING(org_code) ";
   $sql .= "WHERE organisation.active AND organisation_tag.active ";
   if ( $org_code != 0 && ($session->AllowedTo("Admin") || $session->AllowedTo("Support") || $session->AllowedTo("Contractor") ) )
     $sql .= "AND organisation.org_code = $org_code ";

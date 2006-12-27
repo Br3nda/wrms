@@ -46,6 +46,7 @@ function SqlSelectOrganisations( $org_code = 0 ) {
 function SqlSelectRequesters( $org_code = 0, $allow_inactive_user = 0 ) {
   global $session;
 
+  $allow_inactive_user = intval($allow_inactive_user);
   $sql = "SELECT usr.user_no, fullname || ' (' || abbreviation || ')' AS name, lower(fullname) ";
   $sql .= "FROM usr ";
   $sql .= "JOIN organisation USING (org_code) ";

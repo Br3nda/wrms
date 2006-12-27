@@ -1,3 +1,19 @@
+wrms (2.4.8) unstable; urgency=low
+
+  * Ensure that the possibly inactive user we are passed is non-blank.
+
+ -- Andrew McMillan <debian@mcmillan.net.nz>  Thu, 28 Dec 2006 12:03:40 +1300
+
+wrms (2.4.7) unstable; urgency=low
+
+  * Make billed timesheets unmodifiable.
+  * Make blockquote use the correct foreground colour.
+  * Fix the organisation selectors for requester so that it can allow a single
+    inactive person, but will generally exclude them.
+  * Fix Request so that it uses the organisation requester change.
+
+ -- Andrew McMillan <debian@mcmillan.net.nz>  Thu, 21 Dec 2006 14:04:54 +1300
+
 wrms (2.4.6) unstable; urgency=low
 
   * Fix closure in regex caldav-GET.php .

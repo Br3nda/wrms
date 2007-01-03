@@ -463,9 +463,9 @@ sub handle_sighup {
 
   # Close any open log files - they will get reopened
   # on the next message.
-  for my $channel ( keys %$channel_logs ) {
+  for my $channel ( keys %{$channel_logs} ) {
     # undef before close to avoid race conditions
-    $fh = $channel_logs{$channel};
+    my $fh = $channel_logs->{$channel};
     undef($channel_logs->{$channel});
     close($fh);
   }

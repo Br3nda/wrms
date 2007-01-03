@@ -1,0 +1,34 @@
+#
+# Configuration file for wrmsbot
+#
+
+debug=1
+nick=zz_tob
+ircname=WRMS Bot
+username=wrmsbot
+ircserver=irc.wgtn.cat-it.co.nz
+# IRCPORT=6667
+# channels=#catalyst
+channels=#wrmstest
+
+# syslog=1
+# pidfile=/var/run/wrms/wrmsbot.pid
+
+# %s is replaced with the channel name (sans '#') or the word 'private'
+# for private messages directly sent to the bot.
+logfile=/var/log/wrmsbot/%s.log
+
+
+[wr]
+  url=WRMS Link: https://wrms.catalyst.net.nz/
+  dsn=dbi:Pg:dbname=wrms;host=dewey.db.catalyst.net.nz;port=5433
+  user=general
+
+[edu]
+  url=Support.Eduforge: http://support.eduforge.org/wr.php?request_id=
+  dsn=dbi:Pg:dbname=opwrms;host=dewey.db.catalyst.net.nz;port=5433
+  user=general
+
+[eec]
+  url=EEC Worms: http://worms.election.net.nz/wr.php?request_id=
+

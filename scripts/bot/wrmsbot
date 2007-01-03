@@ -1,0 +1,402 @@
+#!/usr/bin/perl -w 
+#
+# AN IRC Bot to associate with WRMS and do useful things
+#
+
+use strict;
+use warnings;
+use POE qw(Component::IRC Component::IRC::Plugin::Connector);
+use DBI;
+use Proc::Daemon;
+use Getopt::Long qw(:config permute);  # allow mixed args.
+use Date::Manip;  # apt-get install libdate-manip-perl
+
+# Options variables
+my $nickname = 'zz_bot';
+my $ircname = 'WRMS Help Bot';
+my $username = 'xx_bot';
+my $ircserver = 'irc.wgtn.cat-it.co.nz';
+my $ircport = 6667;
+
+my @channels = ( '#catalyst' );
+
+my $dbname ="";
+my $dbuser ="";
+my $dbport = 5432;
+my $dbpass = "";
+my $dbhost = "";
+my $debug = 0;
+my $helpmeplease = 0;
+my $syslog = 0;
+my $config = "";
+my $logfile = "";
+my $pidfile = "";
+my $wrmsprefix = "";
+my $log_open = 0;
+
+GetOptions ('debug!'    => \$debug,
+            'dbname=s'  => \$dbname,
+            'dbuser=s'  => \$dbuser,
+            'dbpass=s'  => \$dbpass,
+            'dbport=s'  => \$dbport,
+            'dbhost=s'  => \$dbhost,
+            'nick=s'    => \$nickname,
+            'ircname=s' => \$ircname,
+            'ircserver=s' => \$ircserver,
+            'ircport=s' => \$ircport,
+            'config=s'  => \$config,
+            'help'      => \$helpmeplease  );
+
+show_usage() if ( $helpmeplease );
+
+# We stuff dodgy WRMS-related configuration in this anonymous
+# hash.  This can only be loaded from a configuration file as
+# it is too complicated for GetOptions
+my $wrms = {};
+
+if( $config ne "" ) {
+  read_config_file($config);
+}
+
+# Some safety.
+$wrmsprefix = 'wr' if ( $wrmsprefix eq "" );
+
+my ($irc) = POE::Component::IRC->spawn(
+      nick => $nickname,
+      server => $ircserver,
+      port => $ircport,
+      Ircname => $ircname,
+      Username => $username,
+  ) or die "Couldn't create POE::Component::IRC! $!";
+
+POE::Session->create(
+      package_states => [
+          'main' => [ qw(_default _start irc_001 irc_public irc_msg lag_o_meter) ],
+      ],
+  );
+
+Proc::Daemon::Init unless( $debug );
+$poe_kernel->run();
+closelog() if (  $log_open );
+
+exit 0;
+
+############################################################
+# This event is the first event we will always receive on
+# the creation of the session.
+############################################################
+sub _start {
+  my ($kernel,$heap) = @_[KERNEL,HEAP];
+
+  $irc->yield( register => 'all' );
+
+  $heap->{connector} = POE::Component::IRC::Plugin::Connector->new( 'delay' => 90 );
+  $irc->plugin_add( 'Connector' => $heap->{connector} );
+
+  $irc->yield( connect => { } );
+  $kernel->delay( 'lag_o_meter' => 60 );
+  undef;
+}
+
+############################################################
+# This is the welcome event from a server, so we are connected.
+############################################################
+sub irc_001 {
+  my ($kernel,$sender) = @_[KERNEL,SENDER];
+
+  # Get the component's object at any time by accessing the heap of
+  # the SENDER
+  my $poco_object = $sender->get_heap();
+  logf( "info", "Connected to ", $poco_object->server_name() );
+
+  # In any irc_* events SENDER will be the PoCo-IRC session
+  $kernel->post( $sender => join => $_ ) for @channels;
+  undef;
+}
+
+
+############################################################
+# This is called for each public (channel) message
+############################################################
+sub irc_public {
+  my ($kernel,$sender,$who,$where,$what) = @_[KERNEL,SENDER,ARG0,ARG1,ARG2];
+  my $nick = ( split /!/, $who )[0];
+  my $channel = $where->[0];
+
+  logf("info", "%s: %s: %s", $channel, $nick, $what );
+  $what =~ m/($wrmsprefix)[# ]*(\d{2,6})(\D|$)/i && do {
+    do_wrms_message($1,$channel,$2);
+  };
+  undef;
+}
+
+
+############################################################
+# This is called for each action ( /me ... )
+############################################################
+sub irc_ctcp_action {
+  my ($kernel,$sender,$who,$where,$what) = @_[KERNEL,SENDER,ARG0,ARG1,ARG2];
+  my $nick = ( split /!/, $who )[0];
+  my $channel = $where->[0];
+
+  logf("info", "Action: *%s %s", $nick, $what );
+  $what =~ m/($wrmsprefix)[# ]*(\d{2,6})(\D|$)/i && do {
+    do_wrms_message($1,$channel,$2);
+  };
+  undef;
+}
+
+
+############################################################
+# This is called for each private message
+############################################################
+sub irc_msg {
+  my ($kernel,$sender,$who,$where,$what) = @_[KERNEL,SENDER,ARG0,ARG1,ARG2];
+  my $nick = ( split /!/, $who )[0];
+  my $msg_to = $where->[0];
+
+  logf("info", "Msg: %s: %s", $nick, $what );
+  $what =~ m/($wrmsprefix)[# ]*(\d{2,6})(\D|$)/i && do {
+    do_wrms_message($1,$nick,$2);
+  };
+  $what =~ m/help/ && do {
+    $irc->yield( privmsg => $nick => "Not much help yet, I'm afraid  Ask Andrew McMillan" );
+  };
+  undef;
+}
+
+
+############################################################
+# We registered for all events, this will produce some debug info.
+############################################################
+sub _default {
+  my ($event, $args) = @_[ARG0 .. $#_];
+  my @output = ( "$event: " );
+
+  foreach my $arg ( @$args ) {
+    if ( ref($arg) eq 'ARRAY' ) {
+      push( @output, "[" . join(" ,", @$arg ) . "]" );
+    }
+    elsif ( defined($arg) ) {
+      push ( @output, "'$arg'" );
+    }
+  }
+  logf( "info", join( ' ', @output) );
+  return 0;
+}
+
+
+############################################################
+# We registered this to be called every 60 seconds.
+############################################################
+sub lag_o_meter {
+  my ($kernel,$heap) = @_[KERNEL,HEAP];
+  logf( "info", " Lag: " . $heap->{connector}->lag() );
+  $kernel->delay( 'lag_o_meter' => 60 );
+  undef;
+}
+
+#####################################################
+# Log to syslog or stdout, as selected
+#####################################################
+sub logf {
+my $severity = shift;
+
+  if ( $syslog && ! $log_open ) {
+    openlog( "logacct", "pid", "local0" );
+    $log_open = 1;
+  }
+  if ( $syslog ) {
+    syslog( $severity, @_ );
+  }
+  else {
+    print scalar localtime, "[", $$, "]: ";
+    printf( @_ );
+    print "\n";
+  }
+}
+
+#####################################################
+# Show an (un)helpful usage message to the user
+#####################################################
+sub show_usage {
+  print STDERR <<EOUSAGE ;
+Usage:
+  wrmsbot <options>
+
+To find the values for <options> a perusal of the source is currently
+required reading.
+
+You can specify a configuration file with the --config filename option.
+
+The configuration file syntax is something like:
+
+# Comment
+[prefix]
+KEY=VALUE
+  OTHERKEY = OTHER VALUE
+
+[nextprefix]
+
+Where <prefix> is purely alphabetic (short) character sequence used on
+IRC to introduce a work request reference, such as 'wr' in wr37159, or
+it is the word 'default' to intoduce the [default] section which
+overrides other command-line options.
+
+The KEY is case insensitive, and the VALUE often will be as well. All
+blank lines are ignored, as well as lines where the first non-blank
+character is the '#' character.
+
+Each section may contain keys describing a WRMS response as:
+
+URL=  A base URL for request links.
+DSN=  A DBI data source to connect to the relevant WRMS database
+USER= A valid username to connect to the database
+PASS= A password (if needed) for the database.
+
+The [default] section introducer may be omitted if these keys are at the
+beginning of the file. The default section may contain keys as follows:
+
+DEBUG=1        # enable debugging
+NICK=ircnick
+IRCNAME=Verbose Name
+IRCSERVER=irc.example.net
+IRCPORT=9876   # 6667 is the default
+CHANNELS=#chan1,#chan2,#etc
+
+EOUSAGE
+  exit 0;
+}
+
+#####################################################
+# Decode a reference to a Work Request
+#####################################################
+sub do_wrms_message {
+  my $prefix = shift;
+  my $replyto = shift;
+  my $request_id = shift;
+  my $brief = "";
+  my $url = "";
+
+  if ( defined($wrms->{$prefix}) ) {
+    logf( "info", "Looking up '%s' to find '%d'", $prefix, $request_id );
+    $brief = get_wrms_brief($prefix, $wrms->{$prefix}, $request_id);
+    $brief = "($brief)" unless( $brief eq "" );
+    $url = $wrms->{$prefix}->{'url'}.$request_id;
+  }
+  else {
+    logf( "info", "Prefix '%s' seems to not be configured.", $prefix, $request_id );
+    $url = 'https://wrms/wr.php?request_id='.$request_id;
+  }
+
+  $irc->yield( privmsg => $replyto => "$url $brief" );
+}
+
+#####################################################
+# Get the brief WR description from the appropriate DB
+#####################################################
+sub get_wrms_brief {
+  my $prefix = shift;
+  my $dbconfig = shift;
+  my $request_id = shift;
+
+  my $brief = "";
+
+  if ( !defined($dbconfig->{'dbh'}) ) {
+    logf( "info", "Connecting to WRMS database for prefix '%s'", $prefix );
+    my $dbh = DBI->connect($dbconfig->{'dsn'}, $dbconfig->{'user'}, $dbconfig->{'pass'} ) or do {
+      logf( "err", "Connection for prefix '%s' failed: DSN '%s', USER '%s', AUTH '%s'", $prefix, $dbconfig->{'dsn'}, $dbconfig->{'user'}, $dbconfig->{'pass'} );
+      return "";
+    };
+    $dbconfig->{'dbh'} = $dbh;
+    logf( "info", "Connection for prefix '%s' succeeded: DSN '%s', USER '%s', AUTH '%s'", $prefix, $dbconfig->{'dsn'}, $dbconfig->{'user'}, $dbconfig->{'pass'} );
+  }
+  return "" unless ( defined($dbconfig->{'dbh'}) );
+
+  my $dbh = $dbconfig->{'dbh'};
+  my $answer = $dbh->selectcol_arrayref( "SELECT brief FROM request WHERE request_id = ?", { 'MaxRows' => 1 }, $request_id);
+  $brief = $answer->[0] if ( defined($answer->[0]) );
+
+  return $brief;
+}
+
+#####################################################
+# Read our configuration file
+#####################################################
+sub read_config_file {
+  my $filename = shift;
+
+  my $prefix = "default";
+  my @prefixes;
+
+  open( CFG, '<', $filename );
+  while( <CFG> ) {
+    chomp;
+    my $line = $_;
+
+    # blank or comment
+    next if ( /^\s*(#|$)/i );
+
+    # new section
+    /^\[([a-z]+)\]\s*(#|$)/i && do {
+      $prefix = $1;
+      push @prefixes, $prefix unless( $prefix eq "default" );
+      next;
+    };
+
+    my ( $key, $value );
+    if ( /^\s*([^= ]+)\s*=\s*(\S.*)\s*$/ ) {
+      $key = $1;
+      $value = $2;
+    }
+    else {
+      logf( "info", "Didn't understand '%s' in [%s] section of config file",
+                        $line, $prefix );
+      next;
+    }
+
+    if ( $prefix eq "default" ) {
+      if ( $key eq "debug" )           { $debug = $value; }
+      elsif ( $key eq "nick" )       { $nickname = $value; }
+      elsif ( $key eq "ircname" )    { $ircname = $value; }
+      elsif ( $key eq "username" )   { $username = $value; }
+      elsif ( $key eq "ircserver" )  { $ircserver = $value; }
+      elsif ( $key eq "ircport" )    { $ircport = $value; }
+      elsif ( $key eq "syslog" )     { $syslog = $value; }
+      elsif ( $key eq "logfile" )    { $logfile = $value; }
+      elsif ( $key eq "pidfile" )    { $pidfile = $value; }
+      elsif ( $key eq "channels" ) {
+        @channels = split /\s*,\s*/, $value;
+      }
+      else {
+        logf( "info", "Didn't understand key '%s' in [%s] section of config file",
+                        $line, $prefix );
+      }
+    }
+    else {
+      if ( $key =~ /^(url|dsn|user|pass)$/ ) {
+        $wrms->{$prefix}->{$key} = $value;
+      }
+      else {
+        logf( "info", "Didn't understand key '%s' in [%s] section of config file",
+                        $line, $prefix );
+      }
+    }
+
+  }
+  close(CFG);
+
+  foreach my $prefix ( @prefixes ) {
+    if ( !defined($wrms->{$prefix}->{'url'}) ) {
+      logf( "warning", "URL not defined for prefix '%s' in config file", $prefix );
+    }
+
+    if ( !defined($wrms->{$prefix}->{'user'}) ) { $wrms->{$prefix}->{'user'} = ""; }
+    if ( !defined($wrms->{$prefix}->{'pass'}) ) { $wrms->{$prefix}->{'pass'} = ""; }
+  }
+
+  if ( defined($prefixes[0]) ) {
+    $wrmsprefix = join '|', @prefixes;
+  }
+}
+

@@ -5,6 +5,7 @@
 
 use strict;
 use warnings;
+use Sys::Syslog;
 use POE qw(Component::IRC Component::IRC::Plugin::Connector);
 use DBI;
 use Proc::Daemon;
@@ -12,19 +13,14 @@ use Getopt::Long qw(:config permute);  # allow mixed args.
 use Date::Manip;  # apt-get install libdate-manip-perl
 
 # Options variables
-my $nickname = 'zz_bot';
-my $ircname = 'WRMS Help Bot';
-my $username = 'xx_bot';
-my $ircserver = 'irc.wgtn.cat-it.co.nz';
+my $nickname = 'wrmsbot';
+my $ircname = 'WRMS Link Bot';
+my $username = 'wrmsbot';
+my $ircserver = 'irc.example.net';
 my $ircport = 6667;
 
-my @channels = ( '#catalyst' );
+my @channels = ( '#wrms' );
 
-my $dbname ="";
-my $dbuser ="";
-my $dbport = 5432;
-my $dbpass = "";
-my $dbhost = "";
 my $debug = 0;
 my $helpmeplease = 0;
 my $syslog = 0;
@@ -35,16 +31,12 @@ my $wrmsprefix = "";
 my $log_open = 0;
 
 GetOptions ('debug!'    => \$debug,
-            'dbname=s'  => \$dbname,
-            'dbuser=s'  => \$dbuser,
-            'dbpass=s'  => \$dbpass,
-            'dbport=s'  => \$dbport,
-            'dbhost=s'  => \$dbhost,
             'nick=s'    => \$nickname,
             'ircname=s' => \$ircname,
             'ircserver=s' => \$ircserver,
             'ircport=s' => \$ircport,
             'config=s'  => \$config,
+            'pidfile=s' => \$pidfile,
             'help'      => \$helpmeplease  );
 
 show_usage() if ( $helpmeplease );
@@ -57,6 +49,22 @@ my $wrms = {};
 if( $config ne "" ) {
   read_config_file($config);
 }
+
+Proc::Daemon::Init unless( $debug );
+
+if ( $pidfile ne "" ) {
+  if ( open( PIDFILE, ">", $pidfile ) ) {
+    print PIDFILE $$;
+    close(PIDFILE);
+  }
+  else {
+    logf("err", "Couldn't write PID to '%s'", $pidfile );
+  }
+}
+
+# Each time we open a logfile, it is stored in here, so we can close them
+# all on a SIGHUP
+my $channel_logs = {};
 
 # Some safety.
 $wrmsprefix = 'wr' if ( $wrmsprefix eq "" );
@@ -71,11 +79,10 @@ my ($irc) = POE::Component::IRC->spawn(
 
 POE::Session->create(
       package_states => [
-          'main' => [ qw(_default _start irc_001 irc_public irc_msg lag_o_meter) ],
+          'main' => [ qw(_default _start irc_001 irc_public irc_msg irc_ctcp_action ) ],
       ],
   );
 
-Proc::Daemon::Init unless( $debug );
 $poe_kernel->run();
 closelog() if (  $log_open );
 
@@ -94,7 +101,6 @@ sub _start {
   $irc->plugin_add( 'Connector' => $heap->{connector} );
 
   $irc->yield( connect => { } );
-  $kernel->delay( 'lag_o_meter' => 60 );
   undef;
 }
 
@@ -123,10 +129,13 @@ sub irc_public {
   my $nick = ( split /!/, $who )[0];
   my $channel = $where->[0];
 
-  logf("info", "%s: %s: %s", $channel, $nick, $what );
+  logf("debug", "%s: %s: %s", $channel, $nick, $what );
+  log_channel_message( $channel, $nick, $what );
+
   $what =~ m/($wrmsprefix)[# ]*(\d{2,6})(\D|$)/i && do {
     do_wrms_message($1,$channel,$2);
   };
+
   undef;
 }
 
@@ -140,9 +149,12 @@ sub irc_ctcp_action {
   my $channel = $where->[0];
 
   logf("info", "Action: *%s %s", $nick, $what );
+  log_channel_message( $channel, '*', "$nick $what" );
+
   $what =~ m/($wrmsprefix)[# ]*(\d{2,6})(\D|$)/i && do {
     do_wrms_message($1,$channel,$2);
   };
+
   undef;
 }
 
@@ -156,9 +168,12 @@ sub irc_msg {
   my $msg_to = $where->[0];
 
   logf("info", "Msg: %s: %s", $nick, $what );
+  log_channel_message( 'private', $nick, $what );
+
   $what =~ m/($wrmsprefix)[# ]*(\d{2,6})(\D|$)/i && do {
     do_wrms_message($1,$nick,$2);
   };
+
   $what =~ m/help/ && do {
     $irc->yield( privmsg => $nick => "Not much help yet, I'm afraid  Ask Andrew McMillan" );
   };
@@ -173,6 +188,8 @@ sub _default {
   my ($event, $args) = @_[ARG0 .. $#_];
   my @output = ( "$event: " );
 
+  return 0 if ( $event =~ /^irc_(ping)$/ );
+
   foreach my $arg ( @$args ) {
     if ( ref($arg) eq 'ARRAY' ) {
       push( @output, "[" . join(" ,", @$arg ) . "]" );
@@ -181,20 +198,10 @@ sub _default {
       push ( @output, "'$arg'" );
     }
   }
-  logf( "info", join( ' ', @output) );
+  logf( "debug", join( ' ', @output) );
   return 0;
 }
 
-
-############################################################
-# We registered this to be called every 60 seconds.
-############################################################
-sub lag_o_meter {
-  my ($kernel,$heap) = @_[KERNEL,HEAP];
-  logf( "info", " Lag: " . $heap->{connector}->lag() );
-  $kernel->delay( 'lag_o_meter' => 60 );
-  undef;
-}
 
 #####################################################
 # Log to syslog or stdout, as selected
@@ -210,11 +217,45 @@ my $severity = shift;
     syslog( $severity, @_ );
   }
   else {
-    print scalar localtime, "[", $$, "]: ";
-    printf( @_ );
-    print "\n";
+    print STDERR scalar localtime, "[", $$, "]: ";
+    printf( STDERR @_ );
+    print STDERR "\n";
   }
 }
+
+
+#####################################################
+# Log a message on a channel
+#####################################################
+sub log_channel_message {
+  my $channel = shift;
+  my $nick    = shift;
+  my $message = shift;
+
+  return unless( $logfile ne "" );  # Must be configured!
+
+  my $fh;
+
+  if ( !defined($channel_logs->{$channel}) ) {
+    my $logfilename = $channel;
+    $logfilename =~ s/^#// unless($logfilename eq '#private');    # Remove the annoying '#' from channel names, with one unlikely exception
+    $logfilename = sprintf( $logfile, $logfilename );
+    open( $fh, '>>', $logfilename ) or do {
+      logf("err", "Could not open '%s': %s", $logfilename, $! );
+      return;
+    };
+    $channel_logs->{$channel} = $fh;
+    select $fh;
+    $| = 1;
+  }
+  else {
+    select $channel_logs->{$channel};
+  }
+
+  print scalar localtime, ': ', $nick, ': ', $message, "\n";
+  select STDOUT;
+}
+
 
 #####################################################
 # Show an (un)helpful usage message to the user
@@ -302,9 +343,14 @@ sub get_wrms_brief {
 
   my $brief = "";
 
-  if ( !defined($dbconfig->{'dbh'}) ) {
+  if ( defined($dbconfig->{'dbh'}) ) {
+    undef($dbconfig->{'dbh'}) unless( $dbconfig->{'dbh'}->ping );
+  }
+
+  if ( defined($dbconfig->{'dsn'}) && !defined($dbconfig->{'dbh'}) ) {
     logf( "info", "Connecting to WRMS database for prefix '%s'", $prefix );
-    my $dbh = DBI->connect($dbconfig->{'dsn'}, $dbconfig->{'user'}, $dbconfig->{'pass'} ) or do {
+    my $dbh = DBI->connect($dbconfig->{'dsn'}, $dbconfig->{'user'}, $dbconfig->{'pass'} );
+    if ( !defined($dbh) ) {
       logf( "err", "Connection for prefix '%s' failed: DSN '%s', USER '%s', AUTH '%s'", $prefix, $dbconfig->{'dsn'}, $dbconfig->{'user'}, $dbconfig->{'pass'} );
       return "";
     };
@@ -356,15 +402,16 @@ sub read_config_file {
     }
 
     if ( $prefix eq "default" ) {
-      if ( $key eq "debug" )           { $debug = $value; }
-      elsif ( $key eq "nick" )       { $nickname = $value; }
-      elsif ( $key eq "ircname" )    { $ircname = $value; }
-      elsif ( $key eq "username" )   { $username = $value; }
+      # We might be advised to put all our config into a $cfg{'key'} hash to simplify this
+      if ( $key eq "debug" )         { $debug = $value     if($debug == 0);      }
+      elsif ( $key eq "syslog" )     { $syslog = $value    if($syslog == 0);     }
+      elsif ( $key eq "ircport" )    { $ircport = $value   if($ircport == 6667); }
+      elsif ( $key eq "pidfile" )    { $pidfile = $value   if($pidfile eq "");   }
+      elsif ( $key eq "nick" )       { $nickname = $value;  }
+      elsif ( $key eq "ircname" )    { $ircname = $value;   }
+      elsif ( $key eq "username"  )  { $username = $value;  }
       elsif ( $key eq "ircserver" )  { $ircserver = $value; }
-      elsif ( $key eq "ircport" )    { $ircport = $value; }
-      elsif ( $key eq "syslog" )     { $syslog = $value; }
-      elsif ( $key eq "logfile" )    { $logfile = $value; }
-      elsif ( $key eq "pidfile" )    { $pidfile = $value; }
+      elsif ( $key eq "logfile" )    { $logfile = $value;   }
       elsif ( $key eq "channels" ) {
         @channels = split /\s*,\s*/, $value;
       }

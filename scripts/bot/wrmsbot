@@ -83,6 +83,8 @@ POE::Session->create(
       ],
   );
 
+$SIG{HUP} = \&handle_sighup;
+
 $poe_kernel->run();
 closelog() if (  $log_open );
 
@@ -221,6 +223,7 @@ my $severity = shift;
     printf( STDERR @_ );
     print STDERR "\n";
   }
+  undef;
 }
 
 
@@ -254,6 +257,7 @@ sub log_channel_message {
 
   print scalar localtime, ': ', $nick, ': ', $message, "\n";
   select STDOUT;
+  undef;
 }
 
 
@@ -331,6 +335,7 @@ sub do_wrms_message {
   }
 
   $irc->yield( privmsg => $replyto => "$url $brief" );
+  undef;
 }
 
 #####################################################
@@ -445,5 +450,24 @@ sub read_config_file {
   if ( defined($prefixes[0]) ) {
     $wrmsprefix = join '|', @prefixes;
   }
+  undef;
 }
 
+
+sub handle_sighup {
+
+  if( $config ne "" ) {
+    # re-read our configuration
+    read_config_file($config);
+  }
+
+  # Close any open log files - they will get reopened
+  # on the next message.
+  for my $channel ( keys %$channel_logs ) {
+    # undef before close to avoid race conditions
+    $fh = $channel_logs{$channel};
+    undef($channel_logs->{$channel});
+    close($fh);
+  }
+  undef;
+}

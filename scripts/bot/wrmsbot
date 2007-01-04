@@ -79,7 +79,7 @@ my ($irc) = POE::Component::IRC->spawn(
 
 POE::Session->create(
       package_states => [
-          'main' => [ qw(_default _start irc_001 irc_public irc_msg irc_ctcp_action ) ],
+          'main' => [ qw(_default _start irc_001 irc_public irc_msg irc_ctcp_action irc_join irc_kick ) ],
       ],
   );
 
@@ -179,6 +179,32 @@ sub irc_msg {
   $what =~ m/help/ && do {
     $irc->yield( privmsg => $nick => "Not much help yet, I'm afraid  Ask Andrew McMillan" );
   };
+  undef;
+}
+
+
+############################################################
+# This is called for each channel join event
+############################################################
+sub irc_join {
+  my ($kernel,$sender,$who,$where,$what) = @_[KERNEL,SENDER,ARG0,ARG1,ARG2];
+  my $nick = ( split /!/, $who )[0];
+
+  logf("info", "join: %s %s", $nick, $where );
+
+  undef;
+}
+
+
+############################################################
+# This is called whenever we get kicked from a channel
+############################################################
+sub irc_kick {
+  my ($kernel,$sender,$who,$where,$what) = @_[KERNEL,SENDER,ARG0,ARG1,ARG2];
+  my $nick = ( split /!/, $who )[0];
+
+  logf("info", "kick: %s %s", $nick, $where );
+
   undef;
 }
 
@@ -323,6 +349,8 @@ sub do_wrms_message {
   my $brief = "";
   my $url = "";
 
+  $prefix =~ tr/[A-Z]/[a-z]/;
+
   if ( defined($wrms->{$prefix}) ) {
     logf( "info", "Looking up '%s' to find '%d'", $prefix, $request_id );
     $brief = get_wrms_brief($prefix, $wrms->{$prefix}, $request_id);
@@ -391,6 +419,7 @@ sub read_config_file {
     # new section
     /^\[([a-z]+)\]\s*(#|$)/i && do {
       $prefix = $1;
+      $prefix =~ tr/[A-Z]/[a-z]/;
       push @prefixes, $prefix unless( $prefix eq "default" );
       next;
     };

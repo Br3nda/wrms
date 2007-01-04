@@ -79,7 +79,7 @@ my ($irc) = POE::Component::IRC->spawn(
 
 POE::Session->create(
       package_states => [
-          'main' => [ qw(_default _start irc_001 irc_public irc_msg irc_ctcp_action irc_join irc_kick ) ],
+          'main' => [ qw(_default _start irc_001 irc_public irc_msg irc_ctcp_action irc_join irc_kick lag_o_meter ) ],
       ],
   );
 
@@ -102,6 +102,7 @@ sub _start {
   $heap->{connector} = POE::Component::IRC::Plugin::Connector->new( 'delay' => 90 );
   $irc->plugin_add( 'Connector' => $heap->{connector} );
 
+  $kernel->delay( 'lag_o_meter' => 60 );
   $irc->yield( connect => { } );
   undef;
 }
@@ -228,6 +229,17 @@ sub _default {
   }
   logf( "debug", join( ' ', @output) );
   return 0;
+}
+
+
+############################################################
+# We registered this to be called every 60 seconds.
+############################################################
+sub lag_o_meter {
+  my ($kernel,$heap) = @_[KERNEL,HEAP];
+  logf( "debug", " Lag: " . $heap->{connector}->lag() ) if ( $debug );
+  $kernel->delay( 'lag_o_meter' => 60 );
+  undef;
 }
 
 
@@ -427,6 +439,7 @@ sub read_config_file {
     my ( $key, $value );
     if ( /^\s*([^= ]+)\s*=\s*(\S.*)\s*$/ ) {
       $key = $1;
+      $key =~ tr/[A-Z]/[a-z]/;
       $value = $2;
     }
     else {

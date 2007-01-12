@@ -10,7 +10,6 @@ use POE qw(Component::IRC Component::IRC::Plugin::Connector);
 use DBI;
 use Proc::Daemon;
 use Getopt::Long qw(:config permute);  # allow mixed args.
-use Date::Manip;  # apt-get install libdate-manip-perl
 
 # Options variables
 my $nickname = 'wrmsbot';
@@ -46,6 +45,8 @@ show_usage() if ( $helpmeplease );
 # it is too complicated for GetOptions
 my $wrms = {};
 
+my $last_wrms_check = time;
+
 if( $config ne "" ) {
   read_config_file($config);
 }
@@ -66,6 +67,9 @@ if ( $pidfile ne "" ) {
 # all on a SIGHUP
 my $channel_logs = {};
 
+# The channels we are currently connected to
+my @connected = ();
+
 # Some safety.
 $wrmsprefix = 'wr' if ( $wrmsprefix eq "" );
 
@@ -79,7 +83,7 @@ my ($irc) = POE::Component::IRC->spawn(
 
 POE::Session->create(
       package_states => [
-          'main' => [ qw(_default _start irc_001 irc_public irc_msg irc_ctcp_action irc_join irc_kick lag_o_meter ) ],
+          'main' => [ qw(_default _start irc_001 irc_public irc_msg irc_ctcp_action irc_join irc_kick irc_part lag_o_meter ) ],
       ],
   );
 
@@ -118,8 +122,7 @@ sub irc_001 {
   my $poco_object = $sender->get_heap();
   logf( "info", "Connected to ", $poco_object->server_name() );
 
-  # In any irc_* events SENDER will be the PoCo-IRC session
-  $kernel->post( $sender => join => $_ ) for @channels;
+  connect_to_channels();
   undef;
 }
 
@@ -192,6 +195,29 @@ sub irc_join {
   my $nick = ( split /!/, $who )[0];
 
   logf("info", "join: %s %s", $nick, $where );
+  if ( $nick eq $nickname ) {
+    logf("info", "I've joined $where!");
+    push @connected, $where;
+  }
+
+  undef;
+}
+
+
+############################################################
+# This is called whenever we get part from a channel
+############################################################
+sub irc_part {
+  my ($kernel,$sender,$who,$where,$what) = @_[KERNEL,SENDER,ARG0,ARG1,ARG2];
+  my $nick = ( split /!/, $who )[0];
+
+  logf("info", "part: %s %s", $nick, $where );
+  if ( $nick eq $nickname ) {
+    logf("info", "I've parted from $where!");
+    foreach my $i ( 0 .. $#connected ) {
+      delete $connected[$i] if ( $connected[$i] eq $where);
+    }
+  }
 
   undef;
 }
@@ -205,6 +231,12 @@ sub irc_kick {
   my $nick = ( split /!/, $who )[0];
 
   logf("info", "kick: %s %s", $nick, $where );
+  if ( $nick eq $nickname ) {
+    logf("info", "I've been kicked from $where!");
+    foreach my $i ( 0 .. $#connected ) {
+      delete $connected[$i] if ( $connected[$i] eq $where);
+    }
+  }
 
   undef;
 }
@@ -239,6 +271,9 @@ sub lag_o_meter {
   my ($kernel,$heap) = @_[KERNEL,HEAP];
   logf( "debug", " Lag: " . $heap->{connector}->lag() ) if ( $debug );
   $kernel->delay( 'lag_o_meter' => 60 );
+
+  # Action any channel changes
+  connect_to_channels();
   undef;
 }
 
@@ -496,6 +531,9 @@ sub read_config_file {
 }
 
 
+#####################################################
+# Handle a SIGHUP, closing logs, rereading config etc.
+#####################################################
 sub handle_sighup {
 
   if( $config ne "" ) {
@@ -511,5 +549,34 @@ sub handle_sighup {
     undef($channel_logs->{$channel});
     close($fh);
   }
+
+  $irc->yield( nick => $nickname ) if ( $irc->nick_name ne $nickname );
+
+  # Action any channel changes
+  connect_to_channels();
+}
+
+
+#####################################################
+# Make our connected set match the desired set
+#####################################################
+sub connect_to_channels {
+
+  my (%connect, %disconnect);
+  for ( @channels ) {
+    $connect{$_} = 1;
+  }
+  for ( @connected ) {
+    next unless ( defined($_) );
+    $disconnect{$_} = 1;
+    delete $connect{$_};
+  }
+  for ( @channels ) {
+    delete $disconnect{$_};
+  }
+
+  $irc->yield( part => $_ ) for keys %disconnect;
+  $irc->yield( join => $_ ) for keys %connect;
+
   undef;
 }

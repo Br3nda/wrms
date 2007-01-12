@@ -70,6 +70,7 @@ class OrganisationPlus extends DBRecord {
     else {
       $this->new_record = true;
       $this->org_code = 0;
+      $this->Set('work_rate', $session->work_rate);
       $this->EditMode = true;
       $c->page_title = "New Organisation";
 
@@ -267,6 +268,9 @@ EOSCRIPT;
       }
     }
 
+    if ( floatval($_POST['work_rate']) == 0 ) {
+      $_POST['work_rate'] = $session->work_rate;
+    }
     $this->Set("role", 'C' );  // This user will always have coordinate role to start with
     $this->Set("email_ok", true );
     $this->Set("usr_active", true );

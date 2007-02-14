@@ -250,22 +250,22 @@ class Request {
     global $session, $sysabbr, $client_messages;
     switch( $action ) {
       case 'removeatt':
-        $this->RemoveAttachment(intval($GLOBALS['attachment_id']));
+        $this->RemoveAttachment(intval($_GET['attachment_id']));
         break;
       case 'removets':
-        $this->RemoveTimesheet(intval($GLOBALS['timesheet_id']));
+        $this->RemoveTimesheet(intval($_GET['timesheet_id']));
         break;
       case 'unsubscribe':
-        $this->Unsubscribe(intval($GLOBALS['user_no']));
+        $this->Unsubscribe(intval($_GET['user_no']));
         break;
       case 'deallocate':
-        $this->Deallocate(intval($GLOBALS['user_no']));
+        $this->Deallocate(intval($_GET['user_no']));
         break;
       case 'untag':
-        $this->Untag(intval($GLOBALS['tag_id']));
+        $this->Untag(intval($_GET['tag_id']));
         break;
       case 'disassociate':
-        $this->Disassociate(intval($GLOBALS['other_id']));
+        $this->Disassociate($_GET['link_type'], intval($_GET['other_id']));
         break;
       default:
         $session->Log("$sysabbr Request: ERROR: Unrecognised action: '$action'");
@@ -401,27 +401,27 @@ class Request {
     }
   }
 
-  /////////////////////////////////////////////////////////////
-  // Disassociate - Unlink from a related W/R
-  /////////////////////////////////////////////////////////////
-  function Disassociate( $other_id ) {
+  /**
+  * Disassociate - Unlink from a related W/R
+  */
+  function Disassociate( $link_type, $other_id ) {
     global $client_messages;
 
     $client_messages[] = "Disassociated from request $other_id.";
 
     $sql = "DELETE FROM request_request ";
-    $sql .= "WHERE (request_id = $this->request_id AND to_request_id = $other_id) ";
-    $sql .= "   OR (to_request_id = $this->request_id AND request_id = $other_id) ";
+    $sql .= "WHERE ((request_id = $this->request_id AND to_request_id = $other_id) ";
+    $sql .= "    OR (to_request_id = $this->request_id AND request_id = $other_id)) ";
+    $sql .= "AND link_type = ? ";
     # Select the records
-    $q = new PgQuery($sql);
+    $q = new PgQuery($sql, $link_type);
     $q->Exec('WR::Disassociate') ;
   }
 
-  /////////////////////////////////////////////////////////////
-  // Render - Return HTML to show the W/R
-  //   A separate function is called for each logical area
-  //   on the W/R.
-  /////////////////////////////////////////////////////////////
+  /**
+  * Returns the HTML to show the W/R.  A separate function is called for each
+  * logical area on the W/R.
+  */
   function Render( ) {
     global $session, $c;
     $html = "";
@@ -765,7 +765,7 @@ class Request {
     global $session, $theme;
     $html = "";
     $header_done = false;
-    $delete_link_format .= '<td class="entry" width="2%%"><a href="/wr.php?edit=1&request_id=%d&action=disassociate&other_id=%d" title="Break the association with this request">'.$theme->Image("delete.png").'</a></td>';
+    $delete_link_format .= '<td class="entry" width="2%%"><a href="/wr.php?edit=1&request_id=%d&action=disassociate&other_id=%d&link_type=%s" title="Break the association with this request">'.$theme->Image("delete.png").'</a></td>';
 
     $sql = "SELECT parent.*, request_request.*, parent.request_id AS parent_id, ";
     $sql .= "lsd.lookup_desc AS last_status_desc, llt.lookup_desc AS link_type_desc ";
@@ -800,7 +800,7 @@ class Request {
       $line_format .= '</tr>'."\n";
       while( $row = $q->Fetch() ) {
         if ( trim($row->brief) == '' ) $row->brief = substr($row->detailed,0,50) . "...";
-        $delete_link = ( $ef->editmode ? sprintf( $delete_link_format, $this->request_id, $row->parent_id) : '');
+        $delete_link = ( $ef->editmode ? sprintf( $delete_link_format, $this->request_id, $row->parent_id, $row->link_type) : '');
         $html .= sprintf( $line_format,
                     ($q->rownum % 2), $row->parent_id, $row->parent_id, $row->parent_id, $row->brief, $row->last_status_desc, $row->link_type_desc,
                     $this->request_id, $delete_link
@@ -2135,13 +2135,13 @@ EOX;
         }
         elseif ( $completed == "" ) {
           $sql .= "DELETE FROM request_action WHERE request_id = $this->request_id AND action_id = $row->action_id; ";
-          $message = "Action '$row->action_description' completion date cleared by $session->fullname.";
+          $message = "Action '$row->action_description' completion date cleared by ".$session->fullname.".";
         }
         else {
           $sql .= "UPDATE request_action ";
           $sql .= "SET completed_on = '$completed'::date, updated_by_id = $session->user_no ";
           $sql .= "WHERE request_id = $this->request_id AND action_id = $row->action_id; ";
-          $message = "Action '$row->action_description' updated on ".$actions[$row->action_id]." by $sesion->fullname.";
+          $message = "Action '$row->action_description' updated on ".$actions[$row->action_id]." by ".$sesion->fullname.".";
         }
         $client_messages[] = $message;
         $this->mail_message_data[]['html'] = "<h4>$message</h4>\n";

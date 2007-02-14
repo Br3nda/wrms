@@ -125,7 +125,7 @@ EOFORM
     if ( is_member_of('Admin', 'Support' ) ) {
       menu_break_line();
       menu_url_line("/form.php?f=orglist", "", "All Organisations" );
-      menu_url_line("/form.php?f=syslist", "", "All Systems" );
+      menu_url_line("/form.php?f=syslist", "", "General Systems" );
       menu_url_line("/new_organisation.php", "Add a new organisation, with a general system and primary user", "New Organisation" );
       menu_url_line("/form.php?user_no=$session->user_no&form=timelist&uncharged=1", "", "My Uncharged Work" );
       menu_url_line("/form.php?f=timelist&uncharged=1", "", "All Work" );

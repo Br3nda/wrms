@@ -89,20 +89,17 @@ EOHTML;
   }
 
   $numcols = 7;
-//  if ( isset($user_no) ) {
-    $query = "SELECT request.*, organisation.*, request_timesheet.*, ";
-    $query .= " requester.fullname AS requester_name";
-    $query .= " FROM request, usr AS worker, usr AS requester, organisation, request_timesheet ";
-    $query .= " WHERE request_timesheet.request_id = request.request_id";
-    $query .= " AND worker.user_no = work_by_id ";
-    $query .= " AND requester.user_no = requester_id ";
-    $query .= " AND organisation.org_code = requester.org_code ";
+  $query = "SELECT request.*, organisation.*, request_timesheet.*, ";
+  $query .= " worker.fullname AS worker_name, requester.fullname AS requester_name";
+  $query .= " FROM request, usr AS worker, usr AS requester, organisation, request_timesheet ";
+  $query .= " WHERE request_timesheet.request_id = request.request_id";
+  $query .= " AND worker.user_no = work_by_id ";
+  $query .= " AND requester.user_no = requester_id ";
+  $query .= " AND organisation.org_code = requester.org_code ";
 
-    if ( isset($user_no) && $user_no > 0 ) {
-      $query .= " AND work_by_id=$user_no ";
-    }
-
-//	}
+  if ( isset($user_no) && $user_no > 0 ) {
+    $query .= " AND work_by_id=$user_no ";
+  }
 
   if ( isset($date_restriction) && $date_restriction < 1 ) {
     $from_date = date('Y/m/') . '1';
@@ -233,11 +230,6 @@ EOHTML;
     if ( "$format" != "" ) $this_page .= "&format=$format";
     if ( isset($date_restriction) ) $this_page .= "&amp;date_restriction=$date_restriction";
 
-    echo "<br clear=all><hr>\n<table cellpadding=5 cellspacing=5 align=right><tr><td>Rerun as report: </td>\n<td>\n";
-    printf( "<a href=\"$this_page\" target=_new>Standard</a>\n", "stripped", "brief");
-    if ( "$qry" != "" ) {
-      echo "</td><td>|&nbsp; &nbsp; or <a href=\"$PHP_SELF?f=form&qs=complex&qry=$qry&action=delete\" class=sbutton>Delete</a> it\n";
-    }
     echo "</td></tr></table>\n";
   }
 ?>

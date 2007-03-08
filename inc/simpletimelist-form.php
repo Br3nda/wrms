@@ -164,11 +164,12 @@ EOHTML;
 
       $grand_total += doubleval( $timesheet->work_quantity * $timesheet->work_rate );
       switch ( $timesheet->work_units ) {
-        case 'hours': $total_hours += doubleval( $timesheet->work_quantity );  break;
-        case 'days':  $total_hours += doubleval( $timesheet->work_quantity * 8 );  break;
+        case 'hours': $total_hours += doubleval( $timesheet->work_quantity );
+                      $requests[$timesheet->request_id]['hours'] += $timesheet->work_quantity;  break;
+        case 'days':  $total_hours += doubleval( $timesheet->work_quantity * 8 );
+                      $requests[$timesheet->request_id]['hours'] += $timesheet->work_quantity * 8;  break;
       }
 
-      $requests[$timesheet->request_id]['hours'] += $timesheet->work_quantity;
       $requests[$timesheet->request_id]['name'] = $timesheet->brief;
 
       printf( "<tr class=row%1d>\n", ($qry->row % 2));

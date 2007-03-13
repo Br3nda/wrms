@@ -83,6 +83,13 @@ class Request {
       }
       if ( ! $loaded ) {
         // Initialise to standard default values
+        if ( isset($_GET['org_code']) && intval($_GET['org_code']) > 0 ) $this->org_code = intval($_GET['org_code']);
+        if ( isset($_GET['system_id']) && intval($_GET['system_id']) > 0 ) $this->system_id = intval($_GET['system_id']);
+        if ( isset($_GET['requester_id']) && intval($_GET['requester_id']) > 0 ) $this->requester_id = intval($_GET['requester_id']);
+        if ( isset($_GET['brief']) ) $this->brief = $_GET['brief'];
+        if ( isset($_GET['request_type']) ) $this->request_type = $_GET['request_type'];
+        if ( isset($_GET['urgency']) ) $this->urgency = $_GET['urgency'];
+        if ( isset($_GET['importance']) ) $this->importance = $_GET['importance'];
       }
     }
   }

@@ -11,6 +11,7 @@ $wr = new Request($request_id);
 if ( $wr->new_record ) {
   $edit = 1;
   unset( $request_id );
+  $title = "New Request";
 }
 else {
   $title = ( intval($request_id) > 0 && $wr->request_id == 0

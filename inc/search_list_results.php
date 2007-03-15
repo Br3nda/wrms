@@ -37,7 +37,7 @@
   }
 
   if ( "$format" == "edit" ) //encloses any Brief (editable) reports in a form tag to enable submit form functionality
-    printf ("<form action=\"$this_page\" method=\"post\">\n", "stripped", "edit");
+    printf ("<form action=\"$this_page\" method=\"post\"><h1>Note that these changes will not be notified by e-mail</h1>\n", "stripped", "edit");
 
   if ( $style == "stripped" ) {
     echo "<table border=\"0\" cellspacing=\"0\" cellpadding=\"2\" width=\"100%\">\n<tr>\n";

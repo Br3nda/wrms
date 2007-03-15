@@ -110,7 +110,7 @@ if ( $request_id == 0 ) {
                                                 $reprocessed_event_data, $etag, $ev->type, $session->user_no, $session->user_no, $put_path, $etag_match );
     $qry->Exec("PUT");
 
-    header("HTTP/1.1 201 Replaced");
+    header("HTTP/1.1 204 No Content");
     /**
     * From draft 13, 5.3.4 we understand that Since we screwed with it, we _don't_ send an etag
     */

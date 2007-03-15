@@ -1510,6 +1510,7 @@ class Request {
     $save_detailed_description = $_POST['detailed'];
     $_POST['detailed'] = htmlspecialchars($save_detailed_description);
     $_POST['last_activity'] = date('Y-m-d H:i:s');
+    $this->old_last_activity = preg_replace( '/\+[0-9]+$/', '', $this->last_activity);
     $sql = sql_from_post( $this->chtype, "request", "WHERE request_id='$this->request_id'");
     $_POST['detailed'] = $save_detailed_description;
     $qry = new PgQuery($sql);
@@ -1738,6 +1739,16 @@ EOX;
     $mail->Body = $hbody;
     $mail->AltBody = $tbody;
 
+    $uniq_id = $this->request_id;
+    if ( "create" != $this->chtype ) {
+      $uniq_id .= ".".md5($_POST['last_activity']);
+      $mail->AddReferences( sprintf("%s@%s", $this->request_id, $_SERVER['SERVER_NAME'] ) );
+      if ( isset($this->old_last_activity) && $this->old_last_activity != $_POST['last_activity']  && $this->old_last_activity != "" ) {
+        $mail->AddReferences( sprintf("%s.%s@%s", $this->request_id, md5($this->old_last_activity), $_SERVER['SERVER_NAME'] ) );
+        $mail->SetInReplyTo( sprintf("%s.%s@%s", $this->request_id, md5($this->old_last_activity), $_SERVER['SERVER_NAME'] ) );
+      }
+    }
+    $mail->SetUniqueId($uniq_id);
     if ( !$mail->Send() ) {
       $session->Log( "ERR: Unable to send e-mail for WR #$this->request_id" );
       $session->Log( "ERR: $mail->ErrorInfo" );

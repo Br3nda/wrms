@@ -945,8 +945,9 @@ class Request {
     return $html;
   }
 
-  /////////////////////////////////////////////////////////////
-  /////////////////////////////////////////////////////////////
+  /**
+  * Render the block for displaying / entering timesheet information for a request.
+  */
   function RenderTimesheets( $ef ) {
     global $session, $c, $theme, $sysabbr, $allwork;
 

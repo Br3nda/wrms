@@ -12,7 +12,7 @@ function request_menus(&$tmnu, $wr) {
     if ( $wr->AllowedTo('update') )
       $tmnu->AddOption("Edit","/wr.php?edit=1&request_id=$wr->request_id","Edit the details for this work request");
     if ( $wr->AllowedTo('create') )
-      $tmnu->AddOption("New Related","/wr.php?parent_request_id=$wr->request_id","Create a new work request related to this one.");
+      $tmnu->AddOption("New Related","/wr.php?parent_request_id=$wr->request_id&org_code=$wr->org_code&requester_id=$wr->requester_id&system_id=$wr->system_id","Create a new work request related to this one.");
   }
 
   if ( $wr->org_code > 0 )

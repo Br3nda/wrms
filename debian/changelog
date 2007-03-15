@@ -1,3 +1,13 @@
+wrms (2.4.11) unstable; urgency=low
+
+  * Allow various request attributes to be set as part of the GET on wr.php,
+    including org_code, requester_id, system_id, brief, request_type, urgency
+    and importance.
+  * Set a predictable Message-ID and add References and In-Reply-To headers
+    using this so some form of threading is possible.
+
+ -- Andrew McMillan <debian@mcmillan.net.nz>  Thu, 15 Mar 2007 14:25:29 +1300
+
 wrms (2.4.10) unstable; urgency=low
 
   * Change menu text to be more realistic.

@@ -401,22 +401,31 @@ CREATE TABLE request_tag (
 );
 CREATE INDEX request_tag_sk1 ON request_tag( tag_id );
 
-GRANT INSERT,UPDATE,SELECT, DELETE ON
+CREATE TABLE organisation_action (
+  action_id SERIAL,
+  org_code  INT4,
+  action_description  TEXT,
+  action_sequence INT4 DEFAULT 0,
+  active  BOOL DEFAULT TRUE
+);
+
+
+GRANT INSERT,UPDATE,SELECT,DELETE ON
   request_timesheet,
   request_allocated, request_interested,
   org_system,
   timesheet_note,
-  group_member,
+  role_member,
+  organisation_action, organisation_action_action_id_seq,
   request_tag, organisation_tag, organisation_tag_tag_id_seq,
   system_usr,
-  saved_queries
+  saved_queries,
+  request_timesheet_timesheet_id_seq
   TO general;
 
-  -- Backward compatibility with 7.2...
--- GRANT INSERT,UPDATE,SELECT, DELETE ON request_timesh_timesheet_id_seq TO general;
-  -- Forward compatibility with 7.2...
-GRANT INSERT,UPDATE,SELECT, DELETE ON request_timesheet_timesheet_id_seq TO general;
 
+
+-- Superseded by the AWL revision table, but we'll keep it for the time being
 CREATE TABLE wrms_revision (
  schema_id  INT4,
  schema_major INT4,
@@ -425,63 +434,54 @@ CREATE TABLE wrms_revision (
  schema_name TEXT,
  applied_on  TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp
  );
- 
- CREATE TABLE organisation_action (
-  action_id	SERIAL,
-  org_code	INT4,
-  action_description	TEXT,
-  action_sequence	INT4 DEFAULT 0,
-  active	BOOL DEFAULT TRUE
- );
- 
-/*==============================================================*/
-/* Database name:  axyl                                         */
-/* DBMS name:      PostgreSQL 7                                 */
-/* Created on:     24/12/2005 9:24:07 a.m.                      */
-/*==============================================================*/
 
 
-create sequence seq_qa_approval_id
-increment 1
-minvalue 1
-maxvalue 2147483647
-start 1
-cache 1;
 
-create sequence seq_qa_approval_type_id
-increment 1
-minvalue 1
-maxvalue 2147483647
-start 1
-cache 1;
+CREATE TABLE qa_document (
+qa_document_id       SERIAL               not null PRIMARY KEY,
+qa_document_title    TEXT                 not null,
+qa_document_desc     TEXT                 null
+);
 
-create sequence seq_qa_document_id
-increment 1
-minvalue 1
-maxvalue 2147483647
-start 1
-cache 1;
 
-create sequence seq_qa_model_id
-increment 1
-minvalue 1
-maxvalue 2147483647
-start 1
-cache 1;
+CREATE TABLE qa_phase (
+qa_phase             TEXT                 not null PRIMARY KEY,
+qa_phase_desc        TEXT                 null,
+qa_phase_order       INT4                 not null default 0
+);
 
-create sequence seq_qa_step_id
-increment 1
-minvalue 1
-maxvalue 2147483647
-start 1
-cache 1;
+comment on table qa_phase is
+'Contains all of the Quality Assurance Phases available. A QA Phase is a logical grouping of QA Steps. Useful for display and reporting purposes.';
 
-/*==============================================================*/
-/* Table: qa_approval                                           */
-/*==============================================================*/
-create table qa_approval (
-qa_step_id           INT4                 not null,
-qa_approval_type_id  INT4                 not null,
+
+CREATE TABLE qa_step (
+qa_step_id           SERIAL               primary key not null,
+qa_phase             TEXT                 not null REFERENCES qa_phase(qa_phase),
+qa_document_id       INT4                 null REFERENCES qa_document(qa_document_id),
+qa_step_desc         TEXT                 null,
+qa_step_notes        TEXT                 null,
+qa_step_order        INT4                 not null default 0,
+mandatory            BOOL                 not null default false,
+enabled              BOOL                 not null default true
+);
+
+
+comment on table qa_step is
+'Contains all of the Quality Assurance Steps that are allowed in a project. A QA Step is a task which needs to be achieved as part of the QA process, and must be QA approved.';
+
+
+CREATE TABLE qa_approval_type (
+qa_approval_type_id  SERIAL                not null PRIMARY KEY,
+qa_approval_type_desc TEXT                 not null
+);
+
+comment on table qa_approval_type is
+'Contains Quality Assurance Approval Types. A QA Approval Type represents a particular kind of approval required for a QA Step. Examples would be ''Internal Approval'', ''Peer Review'', ''Maintainer Approval'', or ''Client Approval''.';
+
+
+CREATE TABLE qa_approval (
+qa_step_id           SERIAL               not null REFERENCES qa_step(qa_step_id),
+qa_approval_type_id  INT4                 not null REFERENCES qa_approval_type(qa_approval_type_id),
 qa_approval_order    INT4                 not null default 0,
 constraint PK_QA_APPROVAL primary key (qa_step_id, qa_approval_type_id)
 );
@@ -489,37 +489,12 @@ constraint PK_QA_APPROVAL primary key (qa_step_id, qa_approval_type_id)
 comment on table qa_approval is
 'Contains the required Quality Assurance Approvals for given QA Step. A QA Approval is associated with a given QA Step. The contents of this table define which approvals records have to be created for QA Steps, when you create the QA instance records for a project.';
 
-/*==============================================================*/
-/* Table: qa_approval_type                                      */
-/*==============================================================*/
-create table qa_approval_type (
-qa_approval_type_id  INT4                 not null,
-qa_approval_type_desc TEXT                 not null,
-constraint PK_QA_APPROVAL_TYPE primary key (qa_approval_type_id)
-);
 
-comment on table qa_approval_type is
-'Contains Quality Assurance Approval Types. A QA Approval Type represents a particular kind of approval required for a QA Step. Examples would be ''Internal Approval'', ''Peer Review'', ''Maintainer Approval'', or ''Client Approval''.';
-
-/*==============================================================*/
-/* Table: qa_document                                           */
-/*==============================================================*/
-create table qa_document (
-qa_document_id       INT4                 not null,
-qa_document_title    TEXT                 not null,
-qa_document_desc     TEXT                 null,
-constraint PK_QA_DOCUMENT primary key (qa_document_id)
-);
-
-/*==============================================================*/
-/* Table: qa_model                                              */
-/*==============================================================*/
-create table qa_model (
-qa_model_id          INT4                 not null,
+CREATE TABLE qa_model (
+qa_model_id          SERIAL               not null primary key,
 qa_model_name        TEXT                 not null,
 qa_model_desc        TEXT                 null,
-qa_model_order       INT4                 not null default 0,
-constraint PK_QA_MODEL primary key (qa_model_id)
+qa_model_order       INT4                 not null default 0
 );
 
 comment on table qa_model is
@@ -527,55 +502,39 @@ comment on table qa_model is
 for that profile. It provides a kind of template for assigning default QA Steps etc. There are three simple models
 which have been invented to begin with: Small, Medium and Large (referring to project size).';
 
-/*==============================================================*/
-/* Table: qa_model_documents                                    */
-/*==============================================================*/
-create table qa_model_documents (
-qa_model_id          INT4                 not null,
-qa_document_id       INT4                 not null,
+
+CREATE TABLE qa_model_documents (
+qa_model_id          INT4                 not null REFERENCES qa_model(qa_model_id),
+qa_document_id       INT4                 not null REFERENCES qa_document(qa_document_id),
 path_to_template     TEXT                 null,
 path_to_example      TEXT                 null,
 constraint PK_QA_MODEL_DOCUMENTS primary key (qa_model_id, qa_document_id)
 );
 
-/*==============================================================*/
-/* Table: qa_model_step                                         */
-/*==============================================================*/
-create table qa_model_step (
-qa_model_id          INT4                 not null,
-qa_step_id           INT4                 not null,
+
+CREATE TABLE qa_model_step (
+qa_model_id          INT4                 not null REFERENCES qa_model(qa_model_id),
+qa_step_id           INT4                 not null REFERENCES qa_step(qa_step_id),
 constraint PK_QA_MODEL_STEP primary key (qa_model_id, qa_step_id)
 );
 
-/*==============================================================*/
-/* Table: qa_phase                                              */
-/*==============================================================*/
-create table qa_phase (
-qa_phase             TEXT                 not null,
-qa_phase_desc        TEXT                 null,
-qa_phase_order       INT4                 not null default 0,
-constraint PK_QA_PHASE primary key (qa_phase)
-);
 
-comment on table qa_phase is
-'Contains all of the Quality Assurance Phases available. A QA Phase is a logical grouping of QA Steps. Useful for display and reporting purposes.';
 
-/*==============================================================*/
-/* Table: qa_project_approval                                   */
-/*==============================================================*/
-create table qa_project_approval (
-qa_approval_id       INT4                 not null,
-project_id           INT4                 not null,
-qa_step_id           INT4                 not null,
-qa_approval_type_id  INT4                 not null,
-approval_status      TEXT                 null 
+
+CREATE TABLE qa_project_approval (
+qa_approval_id       SERIAL               not null PRIMARY KEY,
+project_id           INT4                 not null REFERENCES request_project (request_id),
+qa_step_id           INT4                 not null REFERENCES qa_step(qa_step_id),
+qa_approval_type_id  INT4                 not null REFERENCES qa_approval_type(qa_approval_type_id),
+approval_status      TEXT                 null
       constraint CKC_APPROVAL_STATUS_QA_PROJE check (approval_status is null or ( approval_status in ('p','y','n','s') )),
-assigned_to_usr      INT4                 null,
+assigned_to_usr      INT4                 null REFERENCES usr (user_no),
 assigned_datetime    TIMESTAMP            null,
-approval_by_usr      INT4                 null,
+approval_by_usr      INT4                 null REFERENCES usr (user_no),
 approval_datetime    TIMESTAMP            null,
 comment              TEXT                 null,
-constraint PK_QA_PROJECT_APPROVAL primary key (qa_approval_id)
+constraint FK_PROJECT_QA_APPROVAL_STEP FOREIGN KEY (project_id, qa_step_id)
+      REFERENCES qa_project_step (project_id, qa_step_id)
 );
 
 comment on table qa_project_approval is
@@ -593,18 +552,18 @@ comment on column qa_project_approval.approval_datetime is
 comment on column qa_project_approval.comment is
 'Used to make brief comments on this approval.';
 
-/*==============================================================*/
-/* Table: qa_project_step                                       */
-/*==============================================================*/
-create table qa_project_step (
-project_id           INT4                 not null,
-qa_step_id           INT4                 not null,
-request_id           INT4                 not null,
-responsible_usr      INT4                 null,
+
+
+CREATE TABLE qa_project_step (
+project_id           INT4                 not null REFERENCES request_project (request_id),
+qa_step_id           INT4                 not null REFERENCES qa_step(qa_step_id),
+request_id           INT4                 not null REFERENCES request(request_id),
+responsible_usr      INT4                 null REFERENCES usr (user_no),
 responsible_datetime TIMESTAMP            null,
 notes                TEXT                 null,
 constraint PK_QA_PROJECT_STEP primary key (project_id, qa_step_id)
 );
+
 
 comment on table qa_project_step is
 'The Project QA Step table contains the QA Steps defined for a given project. Each step is associated with a WRMS request record, which can be used to attach QA documents etc. and also for final signoff of the task once all the required approvals have been acquired.';
@@ -624,17 +583,17 @@ comment on column qa_project_step.responsible_usr is
 comment on column qa_project_step.responsible_datetime is
 'The datetime that the user responsible for this step was assigned to it.';
 
-/*==============================================================*/
-/* Table: qa_project_step_approval                              */
-/*==============================================================*/
-create table qa_project_step_approval (
-project_id           INT4                 not null,
-qa_step_id           INT4                 not null,
-qa_approval_type_id  INT4                 not null,
-last_approval_status TEXT                 null 
+
+CREATE TABLE qa_project_step_approval (
+project_id           INT4                 not null REFERENCES request_project (request_id),
+qa_step_id           INT4                 not null REFERENCES qa_step(qa_step_id),
+qa_approval_type_id  INT4                 not null REFERENCES qa_approval_type (qa_approval_type_id),
+last_approval_status TEXT                 null
       constraint CKC_LAST_APPROVAL_STA_QA_PROJE check (last_approval_status is null or ( last_approval_status in ('p','y','n','s') )),
-constraint PK_QA_PROJECT_STEP_APPROVAL primary key (project_id, qa_step_id, qa_approval_type_id)
+constraint PK_QA_PROJECT_STEP_APPROVAL primary key (project_id, qa_step_id, qa_approval_type_id),
+constraint FK_PROJ_STEP_APPROVAL FOREIGN KEY (project_id, qa_step_id) REFERENCES qa_project_step (project_id, qa_step_id)
 );
+
 
 comment on table qa_project_step_approval is
 'This contains the list of approval types which are required for a given project QA step. It starts off as the default types as expressed by the ''qa_approval'' table, but may be subsequently modified by the project manager to add or subtract approval types. The presence of one of these records indicates that the given approval type is required for the project QA step. Note that this record also holds a denormalised value of the last approval status registered for this type.';
@@ -645,34 +604,13 @@ comment on column qa_project_step_approval.project_id is
 comment on column qa_project_step_approval.qa_step_id is
 'This is the QA Step being processed for the given project.';
 
-/*==============================================================*/
-/* Table: qa_step                                               */
-/*==============================================================*/
-create table qa_step (
-qa_step_id           INT4                 not null,
-qa_phase             TEXT                 not null,
-qa_document_id       INT4                 null,
-qa_step_desc         TEXT                 null,
-qa_step_notes        TEXT                 null,
-qa_step_order        INT4                 not null default 0,
-mandatory            BOOL                 not null default false,
-enabled              BOOL                 not null default true,
-constraint PK_QA_STEP primary key (qa_step_id)
-);
 
-comment on table qa_step is
-'Contains all of the Quality Assurance Steps that are allowed in a project. A QA Step is a task which needs to be achieved as part of the QA process, and must be QA approved.';
-
-/*==============================================================*/
-/* Table: request_project                                       */
-/*==============================================================*/
-create table request_project (
-request_id           INT4                 not null,
-project_manager      INT4                 null,
-qa_mentor            INT4                 null,
-qa_model_id          INT4                 null,
-qa_phase             TEXT                 null,
-constraint PK_REQUEST_PROJECT primary key (request_id)
+CREATE TABLE request_project (
+request_id           INT4                 PRIMARY KEY not null REFERENCES request(request_id),
+project_manager      INT4                 null REFERENCES usr (user_no),
+qa_mentor            INT4                 null REFERENCES usr (user_no),
+qa_model_id          INT4                 null REFERENCES qa_model (qa_model_id),
+qa_phase             TEXT                 null REFERENCES qa_phase (qa_phase)
 );
 
 comment on table request_project is
@@ -690,161 +628,35 @@ comment on column request_project.qa_model_id is
 comment on column request_project.qa_phase is
 'The current phase that the project is in. Updated whenever approval action takes place. Can be used as a means of high-level project progress viewing.';
 
-alter table qa_approval
-   add constraint fk_qa_approval_step foreign key (qa_step_id)
-      references qa_step (qa_step_id)
-      on delete restrict on update restrict
-      deferrable initially deferred;
 
-alter table qa_approval
-   add constraint fk_qa_approval_type foreign key (qa_approval_type_id)
-      references qa_approval_type (qa_approval_type_id)
-      on delete restrict on update restrict
-      deferrable initially deferred;
 
-alter table qa_model_documents
-   add constraint fk_documents_model foreign key (qa_model_id)
-      references qa_model (qa_model_id)
-      on delete restrict on update restrict
-      deferrable initially deferred;
-
-alter table qa_model_documents
-   add constraint fk_model_documents foreign key (qa_document_id)
-      references qa_document (qa_document_id)
-      on delete restrict on update restrict
-      deferrable initially deferred;
-
-alter table qa_model_step
-   add constraint fk_qa_model_step foreign key (qa_step_id)
-      references qa_step (qa_step_id)
-      on delete restrict on update restrict
-      deferrable initially deferred;
-
-alter table qa_model_step
-   add constraint fk_qa_model_step_model foreign key (qa_model_id)
-      references qa_model (qa_model_id)
-      on delete restrict on update restrict
-      deferrable initially deferred;
-
-alter table qa_project_approval
-   add constraint fk_proj_approval_type foreign key (qa_approval_type_id)
-      references qa_approval_type (qa_approval_type_id)
-      on delete restrict on update restrict
-      deferrable initially deferred;
-
-alter table qa_project_approval
-   add constraint fk_proj_qa_approval_usr foreign key (approval_by_usr)
-      references usr (user_no)
-      on delete restrict on update restrict
-      deferrable initially deferred;
-
-alter table qa_project_approval
-   add constraint fk_proj_qa_behalf_of_usr foreign key (assigned_to_usr)
-      references usr (user_no)
-      on delete restrict on update restrict
-      deferrable initially deferred;
-
-alter table qa_project_approval
-   add constraint fk_project_qa_approval_step foreign key (project_id, qa_step_id)
-      references qa_project_step (project_id, qa_step_id)
-      on delete restrict on update restrict
-      deferrable initially deferred;
-
-alter table qa_project_step
-   add constraint fk_proj_qa_step_project foreign key (project_id)
-      references request_project (request_id)
-      on delete restrict on update restrict
-      deferrable initially deferred;
-
-alter table qa_project_step
-   add constraint fk_qa_proj_step_reqid foreign key (request_id)
-      references request (request_id)
-      on delete restrict on update restrict
-      deferrable initially deferred;
-
-alter table qa_project_step
-   add constraint FK_QA_PROJE_FK_QA_STE_QA_STEP foreign key (qa_step_id)
-      references qa_step (qa_step_id)
-      on delete restrict on update restrict
-      deferrable initially deferred;
-
-alter table qa_project_step
-   add constraint FK_QA_PROJE_REFERENCE_USR foreign key (responsible_usr)
-      references usr (user_no)
-      on delete restrict on update restrict;
-
-alter table qa_project_step_approval
-   add constraint fk_proj_step_appr_type foreign key (qa_approval_type_id)
-      references qa_approval_type (qa_approval_type_id)
-      on delete restrict on update restrict
-      deferrable initially deferred;
-
-alter table qa_project_step_approval
-   add constraint fk_proj_step_approval foreign key (project_id, qa_step_id)
-      references qa_project_step (project_id, qa_step_id)
-      on delete restrict on update restrict
-      deferrable initially deferred;
-
-alter table qa_step
-   add constraint fk_qa_step_document foreign key (qa_document_id)
-      references qa_document (qa_document_id)
-      on delete restrict on update restrict
-      deferrable initially deferred;
-
-alter table qa_step
-   add constraint fk_qa_step_phase foreign key (qa_phase)
-      references qa_phase (qa_phase)
-      on delete restrict on update restrict
-      deferrable initially deferred;
-
-alter table request_project
-   add constraint fk_project_phase foreign key (qa_phase)
-      references qa_phase (qa_phase)
-      on delete restrict on update restrict
-      deferrable initially deferred;
-
-alter table request_project
-   add constraint fk_qa_mentor_usr foreign key (qa_mentor)
-      references usr (user_no)
-      on delete restrict on update restrict
-      deferrable initially deferred;
-
-alter table request_project
-   add constraint fk_qa_project_mgr_usr foreign key (project_manager)
-      references usr (user_no)
-      on delete restrict on update restrict
-      deferrable initially deferred;
-
-alter table request_project
-   add constraint fk_req_proj_qa_model foreign key (qa_model_id)
-      references qa_model (qa_model_id)
-      on delete restrict on update restrict
-      deferrable initially deferred;
-
-alter table request_project
-   add constraint FK_REQUEST__FK_REQ_PR_REQUEST foreign key (request_id)
-      references request (request_id)
-      on delete restrict on update restrict
-      deferrable initially deferred;
+-- Alterations to the tables added by the AWL initialisation
 
 ALTER TABLE roles ADD seq integer;
 ALTER TABLE roles ADD module_name text;
 
 ALTER TABLE usr ADD validated smallint;
  ALTER TABLE usr ALTER validated SET DEFAULT 0;
+
 ALTER TABLE usr ADD enabled	smallint;
  ALTER TABLE usr ALTER enabled SET DEFAULT 1;
+
 ALTER TABLE usr ADD access_level INT4;
  ALTER TABLE usr ALTER access_level SET default 10;
+
 ALTER TABLE usr ADD linked_user	INT4;
 ALTER TABLE usr ADD help	boolean;
 ALTER TABLE usr ADD pager	text;
+
 ALTER TABLE usr ADD pager_ok boolean;
  ALTER TABLE usr ALTER pager_ok SET default true;
+
 ALTER TABLE usr ADD phone_ok	boolean;
  ALTER TABLE usr ALTER phone_ok SET default true;
+
 ALTER TABLE usr ADD fax_ok	boolean;
  ALTER TABLE usr ALTER fax_ok SET default true;
+
 ALTER TABLE usr ADD organisation text;
 ALTER TABLE usr ADD mail_style	character(1);
 ALTER TABLE usr ADD note	character(1);

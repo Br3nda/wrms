@@ -352,3 +352,22 @@ CREATE or REPLACE FUNCTION new_wrms_revision( INT, INT, INT, TEXT ) RETURNS BOOL
       RETURN TRUE;
    END;
 ' LANGUAGE 'plpgsql';
+
+CREATE or REPLACE FUNCTION default_timesheet_time( INT, TIMESTAMP ) RETURNS TIMESTAMP AS '
+  DECLARE
+    in_user ALIAS FOR $1;
+    in_time ALIAS FOR $2;
+    next_work TIMESTAMP;
+  BEGIN
+    IF date_trunc(''day'', in_time) != in_time THEN
+      RETURN in_time;
+    END IF;
+    SELECT work_on + work_duration INTO next_work FROM request_timesheet
+         WHERE work_by_id = in_user AND work_on >= in_time AND work_on < (in_time + ''1 day''::interval)
+         ORDER BY work_on DESC LIMIT 1;
+    IF NOT FOUND THEN
+      next_work := in_time + ''9 hours''::interval;
+    END IF;
+      RETURN next_work;
+  END;
+' LANGUAGE 'plpgsql';

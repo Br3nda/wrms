@@ -2079,13 +2079,14 @@ EOX;
     return true;
   }
 
-  /////////////////////////////////////////////////////////////
-  /////////////////////////////////////////////////////////////
+  /**
+  * Add a timesheet entry to this request.
+  */
   function AddWork( ) {
     global $session, $client_messages;
     $session->Dbg( "Request", "Adding work: " . $_POST['work_description'], 0);
-    $sql = "SELECT nextval('request_timesheet_timesheet_id_seq') AS id ;";
-    $qry = new PgQuery( $sql );
+    $sql = "SELECT nextval('request_timesheet_timesheet_id_seq') AS id, default_timesheet_time(?,?) AS work_start;";
+    $qry = new PgQuery( $sql, $session->user_no, $_POST['work_on'] );
     if ( ! $qry->Exec('WR::AddWork') ) {
       $client_messages[] = "$qry->errorstring";
       return false;

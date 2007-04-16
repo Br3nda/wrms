@@ -371,3 +371,24 @@ CREATE or REPLACE FUNCTION default_timesheet_time( INT, TIMESTAMP ) RETURNS TIME
       RETURN next_work;
   END;
 ' LANGUAGE 'plpgsql';
+
+
+-- Some functions which may be used in searches which accept a request_id and return a boolean
+CREATE or REPLACE FUNCTION comments_without_time( INT ) RETURNS BOOLEAN AS '
+  DECLARE
+    in_request ALIAS FOR $1;
+    junk INT;
+  BEGIN
+    SELECT request_id INTO junk FROM request_timesheet WHERE request_id = in_request ORDER BY request_id, timesheet_id LIMIT 1;
+    IF FOUND THEN
+      RETURN FALSE;
+    END IF;
+    SELECT request_id INTO junk FROM request_note WHERE request_id = in_request ORDER BY request_id, note_on LIMIT 1;
+    IF FOUND THEN
+      RETURN TRUE;
+    END IF;
+    RETURN FALSE;
+  END;
+' LANGUAGE 'plpgsql';
+
+

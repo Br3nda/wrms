@@ -1,10 +1,11 @@
 
--- awl differs
---CREATE FUNCTION get_usr_setting(TEXT,TEXT)
---    RETURNS TEXT
---    AS 'SELECT setting_value FROM usr_setting
---            WHERE usr_setting.username = $1
---            AND usr_setting.setting_name = $2 ' LANGUAGE 'sql';
+CREATE TABLE work_system (
+  system_id SERIAL PRIMARY KEY,
+  organisation_specific BOOL,
+  system_code TEXT NOT NULL UNIQUE,
+  system_desc TEXT,
+  active BOOL
+);
 
 
 CREATE TABLE organisation (
@@ -12,24 +13,32 @@ CREATE TABLE organisation (
   active BOOL DEFAULT TRUE,
   debtor_no INT4,
   work_rate FLOAT,
-  admin_user_no INT4,
-  support_user_no INT4,
+  admin_user_no INT4,    -- deprecated
+  support_user_no INT4,  -- deprecated
   abbreviation TEXT,
   current_sla BOOL,
   org_name TEXT,
-  admin_usr TEXT,
-  general_system INT
+  general_system INT REFERENCES work_system(system_id)
 ) ;
-CREATE FUNCTION max_organisation() RETURNS INT4 AS 'SELECT max(org_code) FROM organisation' LANGUAGE 'sql';
+
+CREATE TABLE org_system (
+  org_code INT4 REFERENCES organisation(org_code),
+  system_id INT  REFERENCES work_system(system_id),
+  PRIMARY KEY ( org_code, system_id )
+) ;
+CREATE INDEX xak1_org_system ON org_system ( system_id, org_code );
+
 
 -- alter the usr table to add the neccassary columns
-ALTER TABLE usr ADD org_code INT4 REFERENCES organisation( org_code );
-ALTER TABLE usr ADD last_update TIMESTAMPTZ;
-ALTER TABLE usr ADD location TEXT;
-ALTER TABLE usr ADD mobile TEXT;
-ALTER TABLE usr ADD phone TEXT;
-ALTER TABLE usr DROP email_ok;
-ALTER TABLE usr ADD email_ok BOOL;
+ALTER TABLE usr ADD COLUMN org_code INT4 REFERENCES organisation( org_code );
+ALTER TABLE usr ADD COLUMN last_update TIMESTAMPTZ;
+ALTER TABLE usr ADD COLUMN location TEXT;
+ALTER TABLE usr ADD COLUMN mobile TEXT;
+ALTER TABLE usr ADD COLUMN phone TEXT;
+
+-- This can probably be resolved better by changing existing DBs to use a timestamp
+-- ALTER TABLE usr DROP email_ok;
+-- ALTER TABLE usr ADD email_ok BOOL;
 
 CREATE TABLE request (
   request_id SERIAL PRIMARY KEY,
@@ -42,7 +51,7 @@ CREATE TABLE request (
   importance INT2,
   severity_code INT2,
   request_type INT2,
-  requester_id INT4,
+  requester_id INT4 REFERENCES usr(user_no),
   eta TIMESTAMP,
   last_activity TIMESTAMP DEFAULT current_timestamp,
   sla_response_time INTERVAL DEFAULT '0:00',
@@ -52,9 +61,9 @@ CREATE TABLE request (
   request_by TEXT,
   brief TEXT,
   detailed TEXT,
-  system_code TEXT,
-  system_id	INT4 not null,
-  entered_by INT4
+  system_id	INT4 NOT NULL REFERENCES work_system(system_id),
+  entered_by INT4 REFERENCES usr(user_no),
+  parent_request INT4 REFERENCES request(request_id)
 ) ;
 CREATE INDEX xak0_request ON request ( active, request_id );
 CREATE INDEX xak1_request ON request ( active, severity_code );
@@ -62,115 +71,90 @@ CREATE INDEX xak2_request ON request ( active, severity_code, request_by );
 CREATE INDEX xak3_request ON request ( active, request_by );
 CREATE INDEX xak4_request ON request ( active, last_status );
 
-CREATE TABLE work_system (
-  system_id INT,
-  organisation_specific BOOL,
-  system_code TEXT NOT NULL UNIQUE PRIMARY KEY,
-  system_desc TEXT,
-  active BOOL,
-  support_user_no INT4,
-  notify_usr TEXT
-) ;
-
-CREATE TABLE org_system (
-  org_code INT4 NOT NULL,
-  admin_user_no INT4,
-  support_user_no INT4,
-  system_code TEXT,
-  system_id INT
-) ;
-CREATE INDEX xpk_org_system ON org_system ( org_code, system_code );
-CREATE INDEX xak1_org_system ON org_system ( system_code, org_code );
-
 CREATE TABLE request_status (
-  request_id INT4,
+  request_id INT4 REFERENCES request(request_id),
   status_on TIMESTAMP,
-  status_by_id INT4,
+  status_by_id INT4 REFERENCES usr(user_no),
   status_by TEXT,
   status_code TEXT
 ) ;
-CREATE UNIQUE INDEX xpk_request_status ON request_status ( request_id, status_on );
+CREATE INDEX xpk_request_status ON request_status ( request_id, status_on );
 
 CREATE TABLE request_quote (
   quote_id SERIAL PRIMARY KEY,
-  request_id INT4,
+  request_id INT4 REFERENCES request(request_id),
   quoted_on TIMESTAMP DEFAULT current_timestamp,
   quote_amount FLOAT8,
-  quote_by_id INT4,
+  quote_by_id INT4 REFERENCES usr(user_no),
   quoted_by TEXT,
   quote_type TEXT,
   quote_units TEXT,
   quote_brief TEXT,
   quote_details TEXT,
-  approved_by_id INT4,
+  approved_by_id INT4 REFERENCES usr(user_no),
   approved_on TIMESTAMP,
   invoice_no INT4
 );
-CREATE INDEX xak1_request_quote ON request_quote ( request_id );
-
-CREATE FUNCTION max_quote() RETURNS INT4 AS 'SELECT max(quote_id) FROM request_quote' LANGUAGE 'sql';
+CREATE INDEX request_quote_sk1 ON request_quote ( request_id );
 
 
 CREATE TABLE request_allocated (
-  request_id INT4,
+  request_id INT4 REFERENCES request(request_id),
   allocated_on TIMESTAMP DEFAULT current_timestamp,
-  allocated_to_id INT4,
+  allocated_to_id INT4 REFERENCES usr(user_no),
   allocated_to TEXT
 );
 
 CREATE TABLE request_timesheet (
   timesheet_id SERIAL PRIMARY KEY,
-  request_id INT4,
+  request_id INT4 REFERENCES request(request_id),
   work_on TIMESTAMP WITHOUT TIME ZONE,
   ok_to_charge BOOL,
   work_quantity FLOAT8,
   work_duration INTERVAL,
-  work_by_id INT4,
+  work_by_id INT4 REFERENCES usr(user_no),
   work_by TEXT,
   work_description TEXT,
   work_rate FLOAT8,
   work_charged TIMESTAMP WITHOUT TIME ZONE,
   charged_amount FLOAT8,
-  charged_by_id INT4,
+  charged_by_id INT4 REFERENCES usr(user_no),
   work_units TEXT,
   charged_details TEXT,
-  entry_details TEXT
+  entry_details TEXT,
+  dav_etag TEXT
 );
 CREATE INDEX request_timesheet_skey1 ON request_timesheet ( work_on, work_by_id, request_id );
 CREATE INDEX request_timesheet_skey2 ON request_timesheet ( ok_to_charge, request_id );
-CREATE FUNCTION max_timesheet() RETURNS INT4 AS 'SELECT max(timesheet_id) FROM request_timesheet' LANGUAGE 'sql';
+CREATE INDEX request_timesheet_sk3 ON request_timesheet ( request_id, timesheet_id );
+CREATE UNIQUE INDEX request_timesheet_sk4 ON request_timesheet ( work_by_id, dav_etag );
 
 CREATE TABLE timesheet_note (
   note_date TIMESTAMP,
-  note_by_id INT4,
+  note_by_id INT4 REFERENCES usr(user_no),
   note_detail TEXT,
-  PRIMARY KEY ( note_date, note_by_id )
+  PRIMARY KEY ( note_by_id, note_date )
 ) ;
 
 CREATE TABLE request_note (
-  request_id INT4,
+  request_id INT4 REFERENCES request(request_id),
   note_on TIMESTAMP DEFAULT current_timestamp,
-  note_by_id INT4,
+  note_by_id INT4 REFERENCES usr(user_no),
   note_by TEXT,
   note_detail TEXT,
   PRIMARY KEY ( request_id, note_on )
-) ;
-
-CREATE FUNCTION get_last_note_on(INT4)
-    RETURNS TIMESTAMP
-    AS 'SELECT max(note_on) FROM request_note WHERE request_note.request_id = $1
-    ' LANGUAGE 'sql';
+);
 
 CREATE TABLE request_interested (
-  request_id INT4,
-  user_no INT4 DEFAULT -1,
+  request_id INT4 REFERENCES request(request_id),
+  user_no INT4 REFERENCES usr(user_no),
   username TEXT,
-  PRIMARY KEY ( request_id, username )
+  PRIMARY KEY ( request_id, user_no )
 ) ;
 
 CREATE TABLE request_request (
-  request_id INT4,
-  to_request_id INT4,
+  request_id INT4 REFERENCES request(request_id),
+  to_request_id INT4 REFERENCES request(request_id),
   link_type CHAR,
   link_data TEXT,
   PRIMARY KEY ( request_id, link_type, to_request_id )
@@ -189,9 +173,9 @@ CREATE INDEX xpk_request_history ON request_history ( request_id, modified_on );
 ---------------------------------------------------------------
 CREATE TABLE request_attachment (
   attachment_id SERIAL PRIMARY KEY,
-  request_id INT4,
+  request_id INT4 REFERENCES request(request_id),
   attached_on TIMESTAMP DEFAULT current_timestamp,
-  attached_by INT4,
+  attached_by INT4 REFERENCES usr(user_no),
   att_brief TEXT,
   att_description TEXT,
   att_filename TEXT,
@@ -202,7 +186,6 @@ CREATE TABLE request_attachment (
 ) ;
 CREATE INDEX request_attachment_skey ON request_attachment ( request_id );
 
-CREATE FUNCTION max_attachment() RETURNS INT4 AS 'SELECT max(attachment_id) FROM request_attachment' LANGUAGE 'sql';
 
 -- *********************************
 
@@ -218,39 +201,6 @@ CREATE TABLE lookup_code (
 CREATE INDEX lookup_code_key ON lookup_code ( source_table, source_field, lookup_seq, lookup_code );
 CREATE UNIQUE INDEX lookup_code_ak1 ON lookup_code ( source_table, source_field, lookup_code );
 
-CREATE TABLE codes (
- code_type TEXT,
- code_seq INT2 DEFAULT 0,
- code_id TEXT,
- code_value TEXT,
- code_data1 TEXT,
- code_data2 TEXT
-);
-
-CREATE INDEX codes_sk1 ON codes ( code_type, code_seq, code_id );
-CREATE UNIQUE INDEX codes_pkey ON codes (lower(code_type), lower(code_id));
-GRANT INSERT,SELECT,UPDATE,DELETE ON codes TO general;
-
--- *************************************
-
-CREATE FUNCTION get_lookup_desc( TEXT, TEXT, TEXT )
-    RETURNS TEXT
-    AS 'SELECT lookup_desc AS RESULT FROM lookup_code
-               WHERE source_table = $1 AND source_field = $2 AND lookup_code = $3;' LANGUAGE 'sql';
-
-CREATE FUNCTION get_lookup_misc( TEXT, TEXT, TEXT )
-    RETURNS TEXT
-    AS 'SELECT lookup_misc AS RESULT FROM lookup_code
-               WHERE source_table = $1 AND source_field = $2 AND lookup_code = $3;' LANGUAGE 'sql';
-
-
-CREATE FUNCTION get_status_desc(CHAR)
-    RETURNS TEXT
-    AS 'SELECT lookup_desc AS status_desc FROM lookup_code
-            WHERE source_table=''request'' AND source_field=''status_code''
-            AND lower(lookup_code) = lower($1)
-    ' LANGUAGE 'sql';
-
 
 
 CREATE TABLE attachment_type (
@@ -262,6 +212,7 @@ CREATE TABLE attachment_type (
    mime_pattern TEXT
 );
 
+-- Deprecated.  Nothing should use this, but need to check.
 CREATE TABLE module (
    module_name TEXT PRIMARY KEY,
    module_description TEXT,
@@ -270,27 +221,16 @@ CREATE TABLE module (
 CREATE INDEX xak1module ON module ( module_seq, module_name );
 
 
-CREATE TABLE ugroup (
-    group_no SERIAL,
-    module_name TEXT,
-    group_name TEXT );
-CREATE FUNCTION max_group() RETURNS INT4 AS 'SELECT max(group_no) FROM ugroup' LANGUAGE 'sql';
-
-
-CREATE TABLE group_member (
-    group_no INT4,
-    user_no INT4 );
-
-
 CREATE TABLE system_usr (
-    user_no INT4,
-    system_id INT,
+    user_no INT4 REFERENCES usr(user_no),
+    system_id INT REFERENCES work_system(system_id),
     role CHAR,
-    PRIMARY KEY ( user_no, role )
+    PRIMARY KEY ( user_no, system_id )
 );
+CREATE INDEX system_usr_sk1 ON system_usr( system_id, user_no );
 
 CREATE TABLE saved_queries (
-    user_no INT4,
+    user_no INT4 REFERENCES usr(user_no),
     query_name TEXT,
     query_type TEXT,
     query_sql TEXT,
@@ -361,7 +301,6 @@ CREATE TABLE nodetrack (
 );
 CREATE INDEX nodetrack_skey1 ON nodetrack(node_from, node_to);
 
-GRANT SELECT ON module, ugroup TO general;
 
 GRANT INSERT, UPDATE, SELECT ON
   request, request_request_id_seq,

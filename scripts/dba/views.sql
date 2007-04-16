@@ -4,7 +4,6 @@
 -- for the specific case of creating an organisation, general work_system and
 -- primary user representative in one action.
 
--- DROP VIEW organisation_plus CASCADE;
 CREATE OR REPLACE VIEW organisation_plus AS
   SELECT organisation.org_code, organisation.active AS org_active, debtor_no, work_rate,
       abbreviation, org_name, current_sla, admin_user_no, general_system,
@@ -31,7 +30,7 @@ DO INSTEAD
     VALUES(
       COALESCE( NEW.admin_user_no, nextval('usr_user_no_seq')),
       COALESCE( NEW.usr_active, TRUE),
-      COALESCE( NEW.email_ok, TRUE ),
+      COALESCE( NEW.email_ok, current_timestamp ),
       COALESCE( NEW.joined, current_timestamp),
       COALESCE( NEW.last_update, current_timestamp),
       NEW.username, NEW.password, NEW.fullname, NEW.email, NEW.location, NEW.mobile, NEW.phone

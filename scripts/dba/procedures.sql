@@ -286,7 +286,7 @@ CREATE OR REPLACE FUNCTION request_sla_code(INTERVAL,CHAR)
 
 CREATE OR REPLACE FUNCTION get_last_note_on(INT4)
     RETURNS TIMESTAMP
-    AS 'SELECT max(note_on)::timestamp FROM request_note WHERE request_note.request_id = $1
+    AS 'SELECT note_on::timestamp FROM request_note WHERE request_note.request_id = $1 ORDER BY request_id DESC, note_on DESC LIMIT 1
     ' LANGUAGE 'sql';
 
 CREATE OR REPLACE FUNCTION get_lookup_desc( TEXT, TEXT, TEXT )

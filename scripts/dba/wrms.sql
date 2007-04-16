@@ -302,26 +302,6 @@ CREATE TABLE nodetrack (
 CREATE INDEX nodetrack_skey1 ON nodetrack(node_from, node_to);
 
 
-GRANT INSERT, UPDATE, SELECT ON
-  request, request_request_id_seq,
-  request_quote, request_quote_quote_id_seq,
-  request_status, request_note,
-  request_request, request_history,
-  request_attachment,
-  lookup_code,
-  attachment_type,
-  session, session_session_id_seq,
-  work_system,
-  usr, usr_user_no_seq, usr_setting,
-  organisation, organisation_org_code_seq,
-  help, help_hit,
-  infonode, infonode_node_id_seq, wu, wu_vote, nodetrack
-  TO general;
-
--- One of these will fail for 7.2, one for 7.3
-GRANT INSERT, UPDATE, SELECT ON request_attachment_attachment_id_seq TO general;
-GRANT INSERT, UPDATE, SELECT ON request_attac_attachment_id_seq TO general;
-
 CREATE TABLE organisation_tag (
    tag_id SERIAL PRIMARY KEY,
    org_code INT4 REFERENCES organisation,
@@ -330,7 +310,7 @@ CREATE TABLE organisation_tag (
    active BOOL DEFAULT TRUE
 );
 
-CREATE INDEX organisation_tag_sk1 ON organisation_tag( tag_sequence, lower(tag_description) );
+CREATE INDEX organisation_tag_sk1 ON organisation_tag( org_code, tag_sequence, lower(tag_description) );
 
 CREATE TABLE request_tag (
    request_id INT4 REFERENCES request,
@@ -342,11 +322,28 @@ CREATE INDEX request_tag_sk1 ON request_tag( tag_id );
 
 CREATE TABLE organisation_action (
   action_id SERIAL,
-  org_code  INT4,
+  org_code  INT4 REFERENCES organisation(org_code),
   action_description  TEXT,
   action_sequence INT4 DEFAULT 0,
   active  BOOL DEFAULT TRUE
 );
+
+
+GRANT INSERT, UPDATE, SELECT ON
+  request,
+  request_quote,
+  request_status, request_note,
+  request_request, request_history,
+  request_attachment,
+  lookup_code,
+  attachment_type,
+  session,
+  work_system,
+  usr, usr_setting,
+  organisation,
+  help, help_hit,
+  infonode, wu, wu_vote, nodetrack
+  TO general;
 
 
 GRANT INSERT,UPDATE,SELECT,DELETE ON
@@ -355,24 +352,25 @@ GRANT INSERT,UPDATE,SELECT,DELETE ON
   org_system,
   timesheet_note,
   role_member,
-  organisation_action, organisation_action_action_id_seq,
-  request_tag, organisation_tag, organisation_tag_tag_id_seq,
+  organisation_action,
+  request_tag, organisation_tag,
   system_usr,
-  saved_queries,
-  request_timesheet_timesheet_id_seq
+  saved_queries
   TO general;
 
 
-
--- Superseded by the AWL revision table, but we'll keep it for the time being
-CREATE TABLE wrms_revision (
- schema_id  INT4,
- schema_major INT4,
- schema_minor INT4,
- schema_patch INT4,
- schema_name TEXT,
- applied_on  TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp
- );
+GRANT USAGE, UPDATE, SELECT ON
+  request_attachment_attachment_id_seq,
+  request_request_id_seq,
+  request_quote_quote_id_seq,
+  session_session_id_seq,
+  usr_user_no_seq,
+  organisation_org_code_seq,
+  infonode_node_id_seq,
+  organisation_action_action_id_seq,
+  organisation_tag_tag_id_seq,
+  request_timesheet_timesheet_id_seq
+  TO general;
 
 
 
@@ -459,6 +457,61 @@ constraint PK_QA_MODEL_STEP primary key (qa_model_id, qa_step_id)
 
 
 
+CREATE TABLE request_project (
+request_id           INT4                 PRIMARY KEY not null REFERENCES request(request_id),
+project_manager      INT4                 null REFERENCES usr (user_no),
+qa_mentor            INT4                 null REFERENCES usr (user_no),
+qa_model_id          INT4                 null REFERENCES qa_model (qa_model_id),
+qa_phase             TEXT                 null REFERENCES qa_phase (qa_phase)
+);
+
+comment on table request_project is
+'Contains the master records for projects. Every project has a master WRMS record associated with it, and this table contains pointers to those.';
+
+comment on column request_project.project_manager is
+'The user who is the designated project manager for this project.';
+
+comment on column request_project.qa_mentor is
+'The user who is designated as the person to help out and guide the project team in quality assurance matters.';
+
+comment on column request_project.qa_model_id is
+'The initial choice by the project creator, of the model that the project is closest to in size.';
+
+comment on column request_project.qa_phase is
+'The current phase that the project is in. Updated whenever approval action takes place. Can be used as a means of high-level project progress viewing.';
+
+
+
+CREATE TABLE qa_project_step (
+project_id           INT4                 not null REFERENCES request_project (request_id),
+qa_step_id           INT4                 not null REFERENCES qa_step(qa_step_id),
+request_id           INT4                 not null REFERENCES request(request_id),
+responsible_usr      INT4                 null REFERENCES usr (user_no),
+responsible_datetime TIMESTAMP            null,
+notes                TEXT                 null,
+constraint PK_QA_PROJECT_STEP primary key (project_id, qa_step_id)
+);
+
+
+comment on table qa_project_step is
+'The Project QA Step table contains the QA Steps defined for a given project. Each step is associated with a WRMS request record, which can be used to attach QA documents etc. and also for final signoff of the task once all the required approvals have been acquired.';
+
+comment on column qa_project_step.project_id is
+'The unique ID for a project. This is actually a WRMS request ID of the master WRMS record  created for this project.';
+
+comment on column qa_project_step.qa_step_id is
+'This is the QA Step being processed for the given project.';
+
+comment on column qa_project_step.request_id is
+'This is the foreign key to the WRMS record for this QA Step. This WRMS record is used during the processing of this QA Step, for attaching docs, making notes etc. in the usual WRMS fashion.';
+
+comment on column qa_project_step.responsible_usr is
+'This user is assigned to the QA Step as the person responsible for delivering it and getting it approved. The person is selected from those allocated to the project.';
+
+comment on column qa_project_step.responsible_datetime is
+'The datetime that the user responsible for this step was assigned to it.';
+
+
 
 CREATE TABLE qa_project_approval (
 qa_approval_id       SERIAL               not null PRIMARY KEY,
@@ -493,36 +546,6 @@ comment on column qa_project_approval.comment is
 
 
 
-CREATE TABLE qa_project_step (
-project_id           INT4                 not null REFERENCES request_project (request_id),
-qa_step_id           INT4                 not null REFERENCES qa_step(qa_step_id),
-request_id           INT4                 not null REFERENCES request(request_id),
-responsible_usr      INT4                 null REFERENCES usr (user_no),
-responsible_datetime TIMESTAMP            null,
-notes                TEXT                 null,
-constraint PK_QA_PROJECT_STEP primary key (project_id, qa_step_id)
-);
-
-
-comment on table qa_project_step is
-'The Project QA Step table contains the QA Steps defined for a given project. Each step is associated with a WRMS request record, which can be used to attach QA documents etc. and also for final signoff of the task once all the required approvals have been acquired.';
-
-comment on column qa_project_step.project_id is
-'The unique ID for a project. This is actually a WRMS request ID of the master WRMS record  created for this project.';
-
-comment on column qa_project_step.qa_step_id is
-'This is the QA Step being processed for the given project.';
-
-comment on column qa_project_step.request_id is
-'This is the foreign key to the WRMS record for this QA Step. This WRMS record is used during the processing of this QA Step, for attaching docs, making notes etc. in the usual WRMS fashion.';
-
-comment on column qa_project_step.responsible_usr is
-'This user is assigned to the QA Step as the person responsible for delivering it and getting it approved. The person is selected from those allocated to the project.';
-
-comment on column qa_project_step.responsible_datetime is
-'The datetime that the user responsible for this step was assigned to it.';
-
-
 CREATE TABLE qa_project_step_approval (
 project_id           INT4                 not null REFERENCES request_project (request_id),
 qa_step_id           INT4                 not null REFERENCES qa_step(qa_step_id),
@@ -542,30 +565,6 @@ comment on column qa_project_step_approval.project_id is
 
 comment on column qa_project_step_approval.qa_step_id is
 'This is the QA Step being processed for the given project.';
-
-
-CREATE TABLE request_project (
-request_id           INT4                 PRIMARY KEY not null REFERENCES request(request_id),
-project_manager      INT4                 null REFERENCES usr (user_no),
-qa_mentor            INT4                 null REFERENCES usr (user_no),
-qa_model_id          INT4                 null REFERENCES qa_model (qa_model_id),
-qa_phase             TEXT                 null REFERENCES qa_phase (qa_phase)
-);
-
-comment on table request_project is
-'Contains the master records for projects. Every project has a master WRMS record associated with it, and this table contains pointers to those.';
-
-comment on column request_project.project_manager is
-'The user who is the designated project manager for this project.';
-
-comment on column request_project.qa_mentor is
-'The user who is designated as the person to help out and guide the project team in quality assurance matters.';
-
-comment on column request_project.qa_model_id is
-'The initial choice by the project creator, of the model that the project is closest to in size.';
-
-comment on column request_project.qa_phase is
-'The current phase that the project is in. Updated whenever approval action takes place. Can be used as a means of high-level project progress viewing.';
 
 
 
@@ -600,3 +599,16 @@ ALTER TABLE usr ADD organisation text;
 ALTER TABLE usr ADD mail_style	character(1);
 ALTER TABLE usr ADD note	character(1);
 ALTER TABLE usr ADD base_rate	numeric;
+
+
+-- Superseded by the AWL revision table, but we'll keep it for the time being
+CREATE TABLE wrms_revision (
+  schema_id  INT4,
+  schema_major INT4,
+  schema_minor INT4,
+  schema_patch INT4,
+  schema_name TEXT,
+  applied_on  TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp
+);
+
+GRANT ALL ON wrms_revision TO PUBLIC;

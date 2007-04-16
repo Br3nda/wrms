@@ -1,26 +1,25 @@
 BEGIN;
 
 -- create a base work_system
-INSERT INTO work_system (system_id, system_code, active) VALUES ('1', 'wrms', true);
+INSERT INTO work_system (system_id, system_code, system_desc, active) VALUES ('1', 'SYS1', 'Our First System', true);
 
--- to have a starting value for nextval()
+-- to have a secret WR to hold any 'removed' attachments.
 INSERT INTO request (request_id, system_id) VALUES ('-1', '1');
 
 -- create a base organisation (NOTE: org_code='0' doesn't go well with the org.php!)
-INSERT INTO organisation (org_code, org_name, abbreviation,  debtor_no, work_rate) VALUES ('1', 'dummy', 'dummy', '0', '0');
+INSERT INTO organisation (org_code, org_name, abbreviation,  debtor_no, work_rate, active) VALUES ('1', 'ALLOFUS', 'Our Organisation', '0', '0', TRUE);
+
+-- Link the organisation to the first system
+insert into org_system (org_code, system_id) values( 1, 1);
 
 -- create a base user to access WRMS
-INSERT INTO usr (user_no, username, password, fullname, org_code, base_rate) VALUES ('1', 'wrms', '**wrms', 'This is the base WRMS user', '1', '120');
+INSERT INTO usr (user_no, username, password, fullname, org_code, base_rate, active) VALUES ('1', 'admin', '**admin', 'WRMS Administrator', 1, '50', TRUE);
 
 -- create base roles for the system
-INSERT INTO roles (role_name, role_no, module_name, seq) VALUES ('Admin', '1', 'wrms', '100'); -- "Support", "Contractor"
+INSERT INTO roles (role_name, role_no, seq) VALUES ('Admin', '1', '100'); -- "Support", "Contractor"
 
 -- assign role
 INSERT INTO role_member (role_no, user_no) VALUES ('1', '1');
-
--- drop down boxes
-INSERT INTO codes (code_type, code_seq, code_id, code_value) VALUES ('urgency', '0', '0', 'Anytime');
-
 
 -- QAMS core stuff
 
@@ -247,4 +246,137 @@ INSERT INTO qa_approval (qa_step_id, qa_approval_type_id, qa_approval_order) VAL
 INSERT INTO qa_approval (qa_step_id, qa_approval_type_id, qa_approval_order) VALUES (25, 2, 0);
 INSERT INTO qa_approval (qa_step_id, qa_approval_type_id, qa_approval_order) VALUES (29, 1, 0);
 
+COMMIT;
+
+BEGIN;
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('10', 'yesno', 0, '0', 'No', NULL);
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('10', 'yesno', 1, '1', 'Yes', NULL);
+
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('codes', 'menus', 1, 'request|status_code', 'Status', NULL);
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('codes', 'menus', 10, 'request|attach_type', 'Attachment Types', '');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('codes', 'menus', 11, 'request_request|link_type', 'Request Links', '');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('codes', 'menus', 12, 'user|theme', 'User Themes', '');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('codes', 'menus', 2, 'request|severity_code', 'Severity', NULL);
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('codes', 'menus', 3, 'request|request_type', 'Request&nbsp;Type', NULL);
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('codes', 'menus', 4, 'request|urgency', 'Urgency', NULL);
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('codes', 'menus', 5, 'request|importance', 'Importance', NULL);
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('codes', 'menus', 6, 'request_quote|quote_units', 'Quote&nbsp;Unit', NULL);
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('codes', 'menus', 7, 'request_quote|quote_type', 'Quote&nbsp;Type', NULL);
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('codes', 'menus', 8, 'system_usr|role', 'System Roles', '');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('codes', 'menus', 9, 'request|sla_response', 'SLA Response', '');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('codes', 'menus', 999, 'codes|menus', 'Codes&nbsp;Tables', NULL);
+
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'attach_type', 10, 'HTML', 'HTML', 'text/html');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'attach_type', 15, 'PDF', 'PDF', 'application/pdf');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'attach_type', 17, 'JPEG', 'JPEG Image', 'image/jpeg');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'attach_type', 20, 'GIF', 'GIF Image', 'image/gif');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'attach_type', 22, 'OOCALC', 'OpenOffice Spreadsheet', 'application/vnd.sun.xml.calc');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'attach_type', 23, 'OOWRITER', 'OpenOffice Writer Document', 'application/vnd.sun.xml.writer');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'attach_type', 25, 'PNG', 'PNG Image', 'image/png');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'attach_type', 30, 'MSWORD', 'MS Word Document', 'application/msword');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'attach_type', 35, 'MSEXCEL', 'Excel Spreadsheet', 'application//vnd.ms-excel');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'attach_type', 36, 'MPP', 'Microsoft Project', 'application/vnd.ms-project');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'attach_type', 37, 'XML', 'XML Text', 'text/xml');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'attach_type', 40, 'BINARY', 'Program Specific', 'application/octet-stream');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'attach_type', 5, 'TEXT', 'Plain Text', 'text/plain');
+
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'importance', 0, '0', 'Minor importance', NULL);
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'importance', 1, '10', 'Average importance', NULL);
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'importance', 2, '20', 'Major importance', NULL);
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'importance', 3, '30', 'Critical!', NULL);
+
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'request_type', 0, '1', 'Maintenance', '');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'request_type', 10, '10', 'System Problem', NULL);
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'request_type', 20, '20', 'Bug', NULL);
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'request_type', 30, '30', 'Enhancement', NULL);
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'request_type', 40, '40', 'Consulting', '');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'request_type', 5, '0', 'Help Request', '');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'request_type', 50, '50', 'Development', '');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'request_type', 60, '60', 'Graphic Design', '');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'request_type', 70, '70', 'Support Page', '');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'request_type', 80, '80', 'Documentation', '');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'request_type', 90, '90', 'Quality Assurance', NULL);
+
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'severity_code', 0, '0', 'If you get around to this one day...', NULL);
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'severity_code', 10, '10', 'An occasional problem', NULL);
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'severity_code', 15, '15', 'This is sometimes annoying', NULL);
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'severity_code', 20, '20', 'This is frequently a problem', '');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'severity_code', 25, '25', 'This can occasionally cause data problems', NULL);
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'severity_code', 30, '30', 'I think this is important', NULL);
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'severity_code', 35, '35', 'It causes ongoing data problems', NULL);
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'severity_code', 40, '40', 'Needs resolving urgently', NULL);
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'severity_code', 45, '45', 'I know this is important!', NULL);
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'severity_code', 5, '5', 'Nice to have', NULL);
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'severity_code', 50, '50', 'Senior management have decided this is an issue', NULL);
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'severity_code', 55, '55', 'This is extremely urgent!', NULL);
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'severity_code', 60, '60', 'This is critical to our day to day operation!  Help!', NULL);
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'severity_code', 7, '7', 'Next time you are on-site please', NULL);
+
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'sla_response', 0, '0|O', 'Other', 'Business');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'sla_response', 10, '2|B', '2 business hours', 'Business');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'sla_response', 15, '8|E', '8 elapsed hours', 'Extended');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'sla_response', 20, '2|E', '2 elapsed hours', 'Extended');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'sla_response', 30, '3|E', '30 minutes', 'Extended');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'sla_response', 5, '8|B', '8 business hours', 'Business');
+
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'status_code', 1, 'N', 'New request', 'Support');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'status_code', 10, 'A', 'Quote Approved', 'Support');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'status_code', 11, 'D', 'Needs Documenting', 'Support');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'status_code', 12, 'S', 'Ready for Staging', 'Client');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'status_code', 13, 'P', 'Production Ready', 'Support');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'status_code', 14, 'Z', 'Failed Testing', 'Support');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'status_code', 15, 'U', 'Catalyst Testing', 'Support');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'status_code', 16, 'V', 'QA Approved', 'Support');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'status_code', 17, 'W', 'Pending QA', 'Support');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'status_code', 18, 'B', 'Need Info', 'Client');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'status_code', 19, 'O', 'Ongoing Maint', 'Support');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'status_code', 2, 'R', 'Reviewed', 'Client');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'status_code', 3, 'H', 'On Hold', 'Client');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'status_code', 4, 'C', 'Cancelled', 'Client');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'status_code', 5, 'I', 'In Progress', 'Support');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'status_code', 6, 'L', 'Allocated', 'Support');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'status_code', 7, 'F', 'Finished', 'Support');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'status_code', 8, 'K', 'Provide Feedback', 'Client');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'status_code', 8, 'T', 'Testing/Signoff', 'Client');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'status_code', 9, 'Q', 'Quoted', 'Client');
+
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'urgency', 0, '0', 'Anytime', NULL);
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'urgency', 1, '10', 'Sometime soon', NULL);
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'urgency', 2, '20', 'Before Specified Date', NULL);
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'urgency', 3, '30', 'On Specified Date', NULL);
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'urgency', 4, '40', 'After Specified Date', NULL);
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'urgency', 5, '50', 'As Soon As Possible', NULL);
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request', 'urgency', 6, '60', '''Yesterday''', NULL);
+
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request_quote', 'quote_type', 0, 'B', 'Ballpark', '');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request_quote', 'quote_type', 0, 'E', 'Estimate', '');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request_quote', 'quote_type', 0, 'G', 'Guess', '');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request_quote', 'quote_type', 0, 'Q', 'Quote', '');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request_quote', 'quote_units', 0, 'amount', 'Amount', '');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request_quote', 'quote_units', 0, 'days', 'Days', '');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request_quote', 'quote_units', 0, 'dollars', 'Dollars', '');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request_quote', 'quote_units', 0, 'hours', 'Hours', '');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request_quote', 'quote_units', 15, 'pounds', 'Pounds', '');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request_quote', 'quote_units', 20, 'euros', 'Euros', '');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request_quote', 'quote_units', 25, 'usd', 'US Dollars', '');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request_quote', 'quote_units', 30, 'aud', 'Aus Dollars', '');
+
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request_request', 'link_type', 20, 'I', 'Implemented in', '');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request_request', 'link_type', 30, 'P', 'Precedes', '');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('request_request', 'link_type', 40, 'D', 'Duplicate of', '');
+
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('status', 'next_responsibility_is', 0, 'Client', 'Awaiting action/decision from client', '');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('status', 'next_responsibility_is', 0, 'Support', 'Awaiting action/decision from support', '');
+
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('system_usr', 'role', 0, 'V', 'View requests', '');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('system_usr', 'role', 1, 'O', 'Own requests', '');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('system_usr', 'role', 2, 'E', 'Enter requests', '');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('system_usr', 'role', 3, 'C', 'Coordinate', '');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('system_usr', 'role', 5, 'A', 'Allocatable', '');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('system_usr', 'role', 6, 'S', 'Support', '');
+
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('user', 'theme', 0, 'Catalyst', 'Catalyst', '');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('user', 'theme', 1, 'Flexible', 'Flexible', '');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('user', 'theme', 2, 'EEC', 'EEC', '');
+INSERT INTO lookup_code (source_table, source_field, lookup_seq, lookup_code, lookup_desc, lookup_misc) VALUES ('user', 'theme', 3, 'PWL', 'PWL', '');
 COMMIT;

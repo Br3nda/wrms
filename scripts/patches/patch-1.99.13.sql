@@ -88,11 +88,6 @@ alter table request_interested
       references usr (user_no)
       on delete restrict on update restrict;
 
-alter table org_system
-   add constraint organisation_fk foreign key (org_code)
-      references organisation (org_code)
-      on delete restrict on update restrict;
-
 alter table request_status
    add constraint usr_fk foreign key (status_by_id)
       references usr (user_no)
@@ -115,10 +110,17 @@ alter table session
 -- And finally commit that to make it a logical unit...
 COMMIT;
 
+DELETE FROM org_system WHERE NOT EXISTS( SELECT 1 FROM organisation WHERE organisation.org_code = org_system.org_code LIMIT 1);
+alter table org_system
+   add constraint organisation_fk foreign key (org_code)
+      references organisation (org_code)
+      on delete restrict on update restrict;
+
+
 VACUUM FULL ANALYZE request_timesheet;
 VACUUM FULL ANALYZE usr;
 
 -- Update the views and procedures in case they have changed
-\i procedures.sql
-\i views.sql
+\i dba/procedures.sql
+\i dba/views.sql
 

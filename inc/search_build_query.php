@@ -30,6 +30,13 @@
       $rlsort = $thisquery->rlsort;
       $rlseq = $thisquery->rlseq;
     }
+
+    if ( !isset($saved_columns['rlsort']) ) {
+      // Enforce some sanity
+      $rlsort = 'last_activity';
+      $rlseq = 'DESC';
+    }
+
   }
   else {
     $flipped_columns = array_flip($columns);

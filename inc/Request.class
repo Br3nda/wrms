@@ -1812,12 +1812,13 @@ EOX;
     if ( intval($this->requester_id) != intval($_POST['requester_id']) ) {
       // This was validated in ::Validate() so we can trust $this->new_requester to have what we need...
       $session->Dbg( "Request", "Old requester: $this->requester_id" );
-      $session->Dbg( "Request", "New requester: ".$this->new_requester->user_no );
-      $session->Dbg( "Request", "requester has changed to %s (%d) on W/R $this-request_id", $this->new_requester->fullname, $this->new_requester->user_no );
-      $this->mail_message_data[]['html'] = sprintf($hfmt, sprintf("New requester: %s  (was: %s)", $this->new_requester->fullname, $this->fullname) );
-      $this->mail_message_data[]['text'] = sprintf($tfmt, sprintf("New requester: %s  (was: %s)", $this->new_requester->fullname, $this->fullname) );
+      $nr = $this->new_requester;
+      $session->Dbg( "Request", "New requester: ".$nr->user_no );
+      $session->Dbg( "Request", "requester has changed to %s (%d) on W/R $this-request_id", $nr->fullname, $nr->user_no );
+      $this->mail_message_data[]['html'] = sprintf($hfmt, sprintf("New requester: %s  (was: %s)", $nr->fullname, $this->fullname) );
+      $this->mail_message_data[]['text'] = sprintf($tfmt, sprintf("New requester: %s  (was: %s)", $nr->fullname, $this->fullname) );
       $this->send_an_email = true;
-      $this->org_code = $this->new_requester->org_code;
+      $this->org_code = $nr->org_code;
     }
 
     if ( isset($_POST['eta']) && "$this->eta" <> $_POST['eta'] )  {

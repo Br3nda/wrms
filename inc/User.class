@@ -231,8 +231,8 @@ class User {
     $html .= $ef->DataEntryLine( "Active?", ($this->status != 'I' ? "Active" : "Inactive"), "checkbox", "active",
               array("_label" => "Uncheck to make the user inactive.") );
 
-    $html .= $ef->DataEntryLine( "Send Email?", ($this->email_ok == 't' ? "Yes" : "No"), "checkbox", "email_ok",
-              array("_label" => "Uncheck to ensure the user gets no e-mail.") );
+    $html .= $ef->DataEntryLine( "Email validated", "%s", "date", "email_ok",
+              array("_label" => "The date that the person's e-mail address was last validated.") );
 
     return $html;
   }

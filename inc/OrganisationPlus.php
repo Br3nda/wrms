@@ -272,7 +272,7 @@ EOSCRIPT;
       $_POST['work_rate'] = $session->work_rate;
     }
     $this->Set("role", 'C' );  // This user will always have coordinate role to start with
-    $this->Set("email_ok", true );
+    $this->Set("email_ok", date('Y-m-d H:i:s') );
     $this->Set("usr_active", true );
     $this->Set("organisation_specific", true );
     $this->Set("system_active", true );

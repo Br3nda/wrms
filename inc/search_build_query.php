@@ -43,14 +43,17 @@
     //provides extra fields that are needed to create a Brief (editable) report
     $search_query .= ", request.active, last_status ";
     $search_query .= ", creator.email AS by_email, creator.fullname AS by_fullname, lower(creator.fullname) AS lby_fullname ";
-    if ( isset($flipped_columns['request_tags']) ) {
+    if ( isset($flipped_columns['request_tags']) || $rlsort == "request_tags" ) {
       $search_query .= ", request_tags(request.request_id) ";
     }
-    if ( isset($flipped_columns['system_code']) ) {
+    if ( isset($flipped_columns['system_code']) || $rlsort == "system_code" ) {
       $search_query .= ", work_system.system_code ";
     }
-    if ( isset($flipped_columns['system_desc']) ) {
+    if ( isset($flipped_columns['system_desc']) || $rlsort == "system_desc" ) {
       $search_query .= ", work_system.system_desc ";
+    }
+    if ( isset($flipped_columns['request_hours']) || $rlsort == "request_hours" ) {
+      $search_query .= ", total_work(request.request_id) AS request_hours ";
     }
     $search_query .= "FROM ";
     if ( intval("$interested_in") > 0 ) $search_query .= "request_interested, ";

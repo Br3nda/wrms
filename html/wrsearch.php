@@ -62,6 +62,7 @@
           "request.last_activity" => "Last Chng",
           "urgency" => "Urgency",
           "importance" => "Importance",
+          "request_hours" => "Hours",
           "active" => "Active",
    );
 

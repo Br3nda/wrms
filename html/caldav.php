@@ -9,9 +9,17 @@ if ( isset($_GET['method']) ) {
   $_SERVER['REQUEST_METHOD'] = $_GET['method'];
 }
 
+require_once("WRMSDAVRequest.php");
+$request = new WRMSDAVRequest();
+
 switch ( $_SERVER['REQUEST_METHOD'] ) {
   case 'OPTIONS':
     include_once("caldav-OPTIONS.php");
+    break;
+
+  case 'PROPFIND':
+    dbg_error_log( "caldav", "RAW: %s", str_replace("\n", "",str_replace("\r", "", $request->raw_post)) );
+    include_once("caldav-PROPFIND.php");
     break;
 
   case 'REPORT':

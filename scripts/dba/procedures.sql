@@ -392,3 +392,104 @@ CREATE or REPLACE FUNCTION comments_without_time( INT ) RETURNS BOOLEAN AS '
 ' LANGUAGE 'plpgsql';
 
 
+-- Create dummy table
+CREATE TABLE dt_request_work_summary(total_work float8, total_amount float8, billed_amount float8, unbilled_amount float8 );
+
+-- How much work has been done on this W/R
+CREATE or REPLACE FUNCTION request_work_summary( INT ) RETURNS dt_request_work_summary AS $$
+  DECLARE
+    in_request ALIAS FOR $1;
+    total_amount FLOAT8;
+    billed_amount FLOAT8;
+    total_work FLOAT8;
+    org_rate FLOAT8;
+    use_rate FLOAT8;
+    use_hours FLOAT8;
+    ts RECORD;
+    rws dt_request_work_summary%ROWTYPE;
+  BEGIN
+    rws.total_work = 0;
+    rws.total_amount = 0;
+    rws.billed_amount = 0;
+    rws.unbilled_amount = 0;
+    SELECT work_rate INTO org_rate FROM request JOIN usr ON (requester_id = user_no) JOIN organisation USING (org_code) WHERE request_id = in_request;
+
+    FOR ts IN SELECT request_timesheet.work_rate, request_timesheet.work_units, request_timesheet.work_quantity,
+                     request_timesheet.charged_amount, usr.base_rate AS worker_rate, supplier.work_rate AS supplier_rate
+           FROM request_timesheet JOIN usr ON ( request_timesheet.work_by_id = usr.user_no )
+                                  JOIN organisation supplier ON (usr.org_code = supplier.org_code )
+           WHERE request_timesheet.request_id = in_request
+    LOOP
+      use_rate = CASE WHEN ts.work_rate > 0   THEN ts.work_rate
+                      WHEN org_rate > 0       THEN org_rate
+                      WHEN ts.worker_rate > 0 THEN ts.worker_rate
+                      ELSE ts.supplier_rate
+                 END;
+      use_hours = CASE WHEN ts.work_units ~ 'day'   THEN 8.0 * ts.work_quantity
+                       WHEN ts.work_units ~ 'hour'  THEN ts.work_quantity
+                       ELSE 0.0
+                  END;
+      total_work := total_work + use_hours;
+      IF use_hours > 0 THEN
+        rws.total_amount := rws.total_amount + use_hours * use_rate;
+        IF ts.charged_amount IS NOT NULL THEN
+          rws.unbilled_amount := rws.unbilled_amount + use_hours * use_rate;
+        ELSE
+          rws.billed_amount := rws.billed_amount + ts.charged_amount;
+        END IF;
+      ELSE
+        rws.total_amount := rws.total_amount + (ts.work_quantity * use_rate);
+        IF ts.charged_amount IS NULL THEN
+          rws.unbilled_amount := rws.unbilled_amount + (ts.work_quantity * use_rate);
+        ELSE
+          rws.billed_amount := rws.billed_amount + ts.charged_amount;
+        END IF;
+      END IF;
+    END LOOP;
+    RETURN rws;
+  END;
+$$
+LANGUAGE 'plpgsql';
+
+
+
+-- How much work has been done on this W/R
+CREATE or REPLACE FUNCTION total_work( INT ) RETURNS FLOAT8 AS $$
+  DECLARE
+    in_request ALIAS FOR $1;
+    total_amount FLOAT8;
+    total_work FLOAT8;
+    org_rate FLOAT8;
+    use_rate FLOAT8;
+    use_hours FLOAT8;
+    ts RECORD;
+  BEGIN
+    total_amount = 0;
+    total_work = 0;
+    SELECT work_rate INTO org_rate FROM request JOIN usr ON (requester_id = user_no) JOIN organisation USING (org_code) WHERE request_id = in_request;
+
+    FOR ts IN SELECT request_timesheet.*, usr.base_rate AS worker_rate, supplier.work_rate AS supplier_rate
+           FROM request_timesheet JOIN usr ON ( request_timesheet.work_by_id = usr.user_no )
+                                  JOIN organisation supplier ON (usr.org_code = supplier.org_code )
+           WHERE request_timesheet.request_id = in_request
+    LOOP
+      use_rate = CASE WHEN ts.work_rate > 0   THEN ts.work_rate
+                      WHEN org_rate > 0       THEN org_rate
+                      WHEN ts.worker_rate > 0 THEN ts.worker_rate
+                      ELSE ts.supplier_rate
+                 END;
+      use_hours = CASE WHEN ts.work_units ~ 'day'   THEN 8.0 * ts.work_quantity
+                       WHEN ts.work_units ~ 'hour'  THEN ts.work_quantity
+                       ELSE 0.0
+                  END;
+      total_work := total_work + use_hours;
+      IF use_hours > 0 THEN
+        total_amount := total_amount + use_hours * use_rate;
+      ELSE
+        total_amount := total_amount + use_rate;
+      END IF;
+    END LOOP;
+    RETURN total_work;
+  END;
+$$
+LANGUAGE 'plpgsql';

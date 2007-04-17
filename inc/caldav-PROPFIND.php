@@ -22,7 +22,7 @@ $attribute_list = array();
 $unsupported = array();
 $arbitrary = array();
 
-$attribute_list['RESOURCETYPE'] = 1;
+// $attribute_list['RESOURCETYPE'] = 1;
 
 foreach( $request->xml_tags AS $k => $v ) {
 
@@ -323,26 +323,6 @@ function get_collection_contents( $depth, $user_no, $collection ) {
   dbg_error_log("PROPFIND","Getting collection contents: Depth %d, User: %d, Path: %s", $depth, $user_no, $collection->dav_name );
 
   $responses = array();
-  if ( $collection->is_calendar != 't' ) {
-    /**
-    * Calendar collections may not contain calendar collections.
-    */
-    $sql = "SELECT user_no, dav_name, dav_etag, ";
-    $sql .= "to_char(created at time zone 'GMT',?) AS created, ";
-    $sql .= "to_char(modified at time zone 'GMT',?) AS modified, ";
-    $sql .= "dav_displayname, is_calendar, FALSE AS is_principal FROM collection ";
-    $sql .= "WHERE parent_container=".qpg($collection->dav_name);
-    $qry = new PgQuery($sql, PgQuery::Plain(iCalendar::HttpDateFormat()), PgQuery::Plain(iCalendar::HttpDateFormat()));
-
-    if( $qry->Exec("PROPFIND",__LINE__,__FILE__) && $qry->rows > 0 ) {
-      while( $subcollection = $qry->Fetch() ) {
-        $responses[] = collection_to_xml( $subcollection );
-        if ( $depth > 0 ) {
-          $responses = array_merge( $responses, get_collection( $depth - 1,  $user_no, $subcollection->dav_name ) );
-        }
-      }
-    }
-  }
 
   /**
   * freebusy permission is not allowed to see the items in a collection.  Must have at least read permission.
@@ -350,12 +330,8 @@ function get_collection_contents( $depth, $user_no, $collection ) {
   if ( $request->AllowedTo('read') ) {
     dbg_error_log("PROPFIND","Getting collection items: Depth %d, User: %d, Path: %s", $depth, $user_no, $collection->dav_name );
 
-    $sql = "SELECT caldav_data.dav_name, caldav_data, caldav_data.dav_etag, ";
-    $sql .= "to_char(coalesce(calendar_item.created, caldav_data.created) at time zone 'GMT',?) AS created, ";
-    $sql .= "to_char(last_modified at time zone 'GMT',?) AS modified, ";
-    $sql .= "summary AS dav_displayname ";
-    $sql .= "FROM caldav_data JOIN calendar_item USING( user_no, dav_name) WHERE dav_name ~ ".qpg('^'.$collection->dav_name.'[^/]+$');
-    $sql .= "AND (calendar_item.class != 'PRIVATE' OR calendar_item.class IS NULL OR get_permissions($session->user_no,caldav_data.user_no) ~ 'A') "; // Must have 'all' permissions to see confidential items
+    $sql = "SELECT caldav_data.dav_name, caldav_data, caldav_data.dav_etag ";
+    $sql .= "FROM caldav_data WHERE dav_name ~ ".qpg('^'.$collection->dav_name.'[^/]+$');
     $sql .= "ORDER BY caldav_data.dav_name ";
     $qry = new PgQuery($sql, PgQuery::Plain(iCalendar::HttpDateFormat()), PgQuery::Plain(iCalendar::HttpDateFormat()));
     if( $qry->Exec("PROPFIND",__LINE__,__FILE__) && $qry->rows > 0 ) {
@@ -421,12 +397,8 @@ function get_item( $item_path ) {
 
   dbg_error_log("PROPFIND","Getting item: Path: %s", $item_path );
 
-  $sql = "SELECT caldav_data.dav_name, caldav_data, caldav_data.dav_etag, ";
-  $sql .= "to_char(coalesce(calendar_item.created, caldav_data.created) at time zone 'GMT',?) AS created, ";
-  $sql .= "to_char(last_modified at time zone 'GMT',?) AS modified, ";
-  $sql .= "summary AS dav_displayname ";
-  $sql .= "FROM caldav_data JOIN calendar_item USING( user_no, dav_name)  WHERE dav_name = ?";
-  $sql .= "AND (calendar_item.class != 'PRIVATE' OR calendar_item.class IS NULL OR get_permissions($session->user_no,caldav_data.user_no) ~ 'A') "; // Must have 'all' permissions to see confidential items
+  $sql = "SELECT caldav_data.dav_name, caldav_data, caldav_data.dav_etag ";
+  $sql .= "FROM caldav_data WHERE dav_name = ?";
   $qry = new PgQuery($sql, PgQuery::Plain(iCalendar::HttpDateFormat()), PgQuery::Plain(iCalendar::HttpDateFormat()), $item_path);
   if( $qry->Exec("PROPFIND",__LINE__,__FILE__) && $qry->rows > 0 ) {
     while( $item = $qry->Fetch() ) {

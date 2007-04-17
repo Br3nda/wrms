@@ -104,10 +104,10 @@ class WRMSDAVRequest
     * RFC2518, 5.2: URL pointing to a collection SHOULD end in '/', and if it does not then
     * we SHOULD return a Content-location header with the correction...
     */
-    if ( !preg_match( '#/$#', $this->path ) ) {
+    if ( preg_match( '#/[^/]$#', $this->path ) ) {
       dbg_error_log( "caldav", "Checking whether path might be a person (collection)" );
-      $username = preg_replace( '#/([^/]+)$#', '\1', $this->path );
-      $qry = new PgQuery( "SELECT count(1) AS is_collection FROM usr WHERE username = $username" );
+      $username = preg_replace( '#^/([^/]+)$#', '\1', $this->path );
+      $qry = new PgQuery( "SELECT count(1) AS is_collection FROM usr WHERE username = ?;", $username );
       if ( $qry->Exec('caldav') && $qry->rows == 1 && ($row = $qry->Fetch()) && $row->is_collection == 1 ) {
         dbg_error_log( "caldav", "Path is actually a user - sending Content-Location header." );
         $this->path .= '/';

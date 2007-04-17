@@ -8,28 +8,9 @@ require_once("vEvent.php");
 $report_path = $_SERVER['PATH_INFO'];
 
 $attributes = array();
-$parser = xml_parser_create_ns('UTF-8');
-xml_parser_set_option ( $parser, XML_OPTION_SKIP_WHITE, 1 );
-
-function xml_start_callback( $parser, $el_name, $el_attrs ) {
-//  dbg_error_log( "REPORT", "Parsing $el_name" );
-  dbg_log_array( "REPORT", "$el_name::attrs", $el_attrs, true );
-  $attributes[$el_name] = $el_attrs;
-}
-
-function xml_end_callback( $parser, $el_name ) {
-//  dbg_error_log( "REPORT", "Finished Parsing $el_name" );
-}
-
-xml_set_element_handler ( $parser, 'xml_start_callback', 'xml_end_callback' );
-
-$rpt_request = array();
-xml_parse_into_struct( $parser, $raw_post, $rpt_request );
-xml_parser_free($parser);
-
 $reportnum = -1;
 $report = array();
-foreach( $rpt_request AS $k => $v ) {
+foreach( $request->xml_tags AS $k => $v ) {
 
   switch ( $v['tag'] ) {
 
@@ -189,6 +170,7 @@ $ical_duration_format = vEvent::SqlDurationFormat();
 for( $i=0; $i <= $reportnum; $i++ ) {
   dbg_error_log("REPORT", "Report[%d] Start:%s, End: %s, Events: %d, Todos: %d, Freebusy: %d",
          $i, $report[$i]['start'], $report[$i]['end'], $report[$i]['calendar-event'], $report[$i]['calendar-todo'], $report[$i]['calendar-freebusy']);
+  if ( $report[$i]['calendar-event'] != 1 ) continue;
   $sql = <<<EOSQL
   SELECT usr.username, dav_etag, timesheet_id,
         to_char(work_on,$ical_date_format) AS dtstamp,

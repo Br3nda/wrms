@@ -10,7 +10,7 @@ foreach( $raw_headers AS $k => $v ) {
   fwrite($fh,sprintf( "$k: %s\n", $v ));
 }
 fwrite($fh,"\n");
-fwrite($fh,$raw_post);
+fwrite($fh,$request->raw_post);
 fclose($fh);
 
 $etag_none_match = str_replace('"','',$_SERVER["HTTP_IF_NONE_MATCH"]);
@@ -22,7 +22,7 @@ $ts_id = intval($ts_id);
 dbg_error_log('PUT', "User: %s, TS_ID: %s", $user, $ts_id );
 
 include_once("vEvent.php");
-$ev = new vEvent(array( 'vevent' => $raw_post ));
+$ev = new vEvent(array( 'vevent' => $request->raw_post ));
 
 /**
 * Attempt to discover a WR that this is related to
@@ -90,6 +90,10 @@ if ( $request_id == 0 ) {
     $ev->Put("summary","Not a timesheet! was: " . $ev->Get("summary") );
   }
   $ev->Put("description", 'No request ID.  Either the location should match #^(WR)?[0-9]+# or the summary should match #^WR[0-9]+/Description of work$# ');
+  $ev->Put("location", $ev->Get("location") );
+  $ev->Put("dtstart", $ev->Get("dtstart") );
+  $ev->Put("dtend", $ev->Get("dtend") );
+  $ev->Put("duration", $ev->Get("duration") );
   $reprocessed_event_data = $ev->Render();
   $etag = md5($reprocessed_event_data);
   if ( $etag_match == '*' || $etag_match == '' ) {

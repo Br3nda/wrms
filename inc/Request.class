@@ -1814,7 +1814,7 @@ EOX;
       $session->Dbg( "Request", "Old requester: $this->requester_id" );
       $nr = $this->new_requester;
       $session->Dbg( "Request", "New requester: ".$nr->user_no );
-      $session->Dbg( "Request", "requester has changed to %s (%d) on W/R $this-request_id", $nr->fullname, $nr->user_no );
+      $session->Dbg( "Request", "requester has changed to %s (%d) on W/R $this->request_id", $nr->fullname, $nr->user_no );
       $this->mail_message_data[]['html'] = sprintf($hfmt, sprintf("New requester: %s  (was: %s)", $nr->fullname, $this->fullname) );
       $this->mail_message_data[]['text'] = sprintf($tfmt, sprintf("New requester: %s  (was: %s)", $nr->fullname, $this->fullname) );
       $this->send_an_email = true;

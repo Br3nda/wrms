@@ -90,10 +90,6 @@ if ( $request_id == 0 ) {
     $ev->Put("summary","Not a timesheet! was: " . $ev->Get("summary") );
   }
   $ev->Put("description", 'No request ID.  Either the location should match #^(WR)?[0-9]+# or the summary should match #^WR[0-9]+/Description of work$# ');
-  $ev->Put("location", $ev->Get("location") );
-  $ev->Put("dtstart", $ev->Get("dtstart") );
-  $ev->Put("dtend", $ev->Get("dtend") );
-  $ev->Put("duration", $ev->Get("duration") );
   $reprocessed_event_data = $ev->Render();
   $etag = md5($reprocessed_event_data);
   if ( $etag_match == '*' || $etag_match == '' ) {

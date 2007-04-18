@@ -629,7 +629,7 @@ class Request {
       if ( $ef->editmode ) $html .= '<th class="pcol">&nbsp;</th>';
       $html .= '</tr>'."\n";
       $attachment_format = '<tr class="row%d"><td class="entry"><a href="/attachment.php/%s?id=%d">%s</a></td>';
-      $attachment_format .= '<td class="entry" style="white-space: nowrap;">%s</td><td class="entry" style="white-space: nowrap;">%s</td><td class="entry" style="white-space: nowrap;">%s</td><td class="entry">%s</td>';
+      $attachment_format .= '<td class="entry">%s</td><td class="entry" style="white-space: nowrap;">%s</td><td class="entry" style="white-space: nowrap;">%s</td><td class="entry">%s</td>';
       $attachment_format .= ( $ef->editmode ? '<td class="entry" width="2%%">%s</td>' : '%s');
       $attachment_format .= '</tr>'."\n";
       $delete_link_format = '<a href="/wr.php?request_id=%d&action=removeatt&attachment_id=%d&edit=1" title="Remove attachment from this request">'.$theme->Image("delete.png").'</a>';

@@ -978,7 +978,7 @@ class Request {
     if ( $ef->editmode || $q->rows ) {
       $html .= $ef->BreakLine("Work Done");
       $line_format = '<tr class="row%d"><td class="entry" width="15%%">%s</td>';
-      $line_format .= '<td class="entry" style="white-space: nowrap;">%s</td>';
+      $line_format .= '<td class="entry" style="white-space: nowrap;">%s%s</td>';
       $line_format .= '<td class="entry" style="white-space: nowrap; text-align: right; ">%s %s</td>';
       $line_format .= '<td class="entry" style="white-space: nowrap; text-align: right; ">%s</td>';
       $entry_line_format = $line_format;
@@ -1027,12 +1027,14 @@ class Request {
         $invoice_details = $row->charged_details;
         $amount_chargeable = $row->work_quantity * $rate * ($row->work_units == 'days' ? 8 : 1);
         $amount_charged = sprintf("$%.2lf", $amount_chargeable );
+        if ( $row->work_charged != "" ) {
+          $amount_charged = sprintf('$%.2lf', $row->charged_amount);
+        }
         if ( $ef->editmode ) {
           $bill_ok_options = array("title" => "Check this if it is OK to bill this work now." );
           if ( $row->ok_to_charge == 't' ) $this->ts_ok_to_charge["$row->timesheet_id"] = 't';
           if ( $row->work_charged != "" ) {
             $bill_ok_options["_disabled"] = "yes";
-            $amount_charged = sprintf('$%.2lf', $row->charged_amount);
           }
           else {
             $invoice_details = $ef->DataEntryField( "", "text", "ts_invoice_no[$row->timesheet_id]",
@@ -1050,8 +1052,9 @@ class Request {
           $bill_ok = "";
         }
         $delete_link = ( $ef->editmode && $row->charged_details == "" ? sprintf( $delete_link_format, $this->request_id, $row->timesheet_id ) : '');
+        $review_needed = ($row->review_needed == "t" ? "<br /><span style=\"color:red;\">(needs review)</span>" : "");
         $html .= sprintf( $line_format,
-                    ($q->rownum % 2), $row->fullname, $row->work_on, $row->work_quantity, $row->work_units,
+                    ($q->rownum % 2), $row->fullname, $row->work_on, $review_needed, $row->work_quantity, $row->work_units,
                     $rate, $row->work_description,
                     $row->charged_by, $row->charged_on, $invoice_details, $amount_charged, $bill_ok, $delete_link
                   );
@@ -1062,7 +1065,7 @@ class Request {
       $html .= sprintf( $line_format,
                     (($q->rownum + 1) % 2), "<b>Total</b>", "", "", "<b>$total_hours hours</b>", "",
                     (( $q->rows == 50 && (!isset($allwork) || $allwork == 0) )?"(not all work is shown)":""),
-                    "", "", "", sprintf('<b>$%.2lf</b>',$total), "", "", "" );
+                    "", "", "", "", sprintf('<b>$%.2lf</b>',$total), "", "", "" );
     }
 
     if ( $ef->editmode ) {
@@ -1090,6 +1093,10 @@ class Request {
                   array("title" => "Enter the rate / unit for this work",
                         "size" => 4, "onblur" => "this.value=CheckNumber(this,0,999999999)" ) );
 
+      $review_needed = $ef->DataEntryField( "", "checkbox", "review_needed",
+                        array("title" => "Check this if the project manager might need to review the amount of work entered here." )
+                      );
+
       $work_desc = $ef->DataEntryField( "", "text", "work_description",
                   array("title" => "Enter brief description of the work done", "size" => 55 ) );
 
@@ -1097,6 +1104,7 @@ class Request {
       $html .= sprintf( $entry_line_format, ($q->rownum % 2),
                 $session->fullname,
                 $work_on,
+                '<br />Please&nbsp;review:'.$review_needed,
                 $work_quantity,
                 "<br />$work_units",
                 $work_rate,
@@ -2095,6 +2103,7 @@ EOX;
     $row = $qry->Fetch();
     $id = $row->id;
     $work_description = htmlspecialchars($_POST['work_description']);
+    $review_needed = (isset($_POST['review_needed']) && $_POST['review_needed'] == "on");
 
     $extra_target = '';
     $extra_values = '';
@@ -2115,11 +2124,11 @@ EOX;
     }
 
     $sql = "INSERT INTO request_timesheet ( timesheet_id, request_id, work_by_id, ";
-    $sql .= "work_on, work_quantity, work_units, work_rate, work_description$extra_target ) ";
-    $sql .= "VALUES( ?, ?, ?, ?, ?, ?, ?, ?$extra_values );";
+    $sql .= "work_on, work_quantity, work_units, work_rate, review_needed, work_description$extra_target ) ";
+    $sql .= "VALUES( ?, ?, ?, ?, ?, ?, ?, ?, ?$extra_values );";
     $sql .= $caldav_update;
     $qry = new PgQuery( $sql, $id, $this->request_id, $session->user_no,
-                        $_POST['work_on'], $_POST['work_quantity'], $_POST['work_units'], $_POST['work_rate'], $work_description ) ;
+                        $_POST['work_on'], $_POST['work_quantity'], $_POST['work_units'], $_POST['work_rate'], $review_needed, $work_description ) ;
     if ( ! $qry->Exec('WR::AddWork') ) {
       $client_messages[] = "$qry->errorstring";
       return false;

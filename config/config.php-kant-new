@@ -8,8 +8,8 @@ $basefont = "verdana,sans-serif";
 $system_name = "Andrew's WRMS";
 $sysabbr = "wrms";
 $debuglevel = 3;
-$debug_email = 'cristina@catalyst.net.nz';
-$pg_version = 8.1;
+$debug_email = 'andrew@catalyst.net.nz';
+$pg_version = 8.2;
 
 // Turn on all debugging...
 $c->dbg['ALL'] = 1;
@@ -30,6 +30,9 @@ $debuggroups['querystring'] = 1;
 // $debuggroups['DataEntry'] = 1;
 $debuggroups['SavedSearches'] = 1;
 $debuggroups['simpletimelist'] = 1;
+
+$c->dbg['report'] = 1;
+$c->dbg['propfind'] = 1;
 
 // User can choose theme
 $c->can_set_theme = true;

@@ -1,3 +1,29 @@
+wrms (2.5.0) unstable; urgency=low
+
+  * Overhauled DB creation, building on Dennie's work, so we can now create a
+    working WRMS without using an existing DB as a starting point.
+  * Patch to retrofit many more relational integrity constraints, pointed out
+    by Guillaume.
+  * Added a total_work(request_id) function and the facility to include this
+    as a column in request searches. WR40502
+  * Fix CalDAV handling to cope with Sunbird changes. WR40424
+  * Fix PHP5 compatibility with Request updates.
+  * Fix display of actual charged amount on non-entry request form.
+  * Add a "Please review" field onto the time entry part of the request form.
+    WR 40305
+  * Fix display of attachments with very long descriptions. WR 40385
+
+ -- Andrew McMillan <debian@mcmillan.net.nz>  Wed, 18 Apr 2007 20:04:04 +1200
+
+wrms (2.4.12) unstable; urgency=low
+
+  * Set title on new WR creation.
+  * Note that Brief Editable view will not send e-mails.
+  * Fix link for "New Related" so that it defaults org/requester/system.
+  * Set a couple of reasonable-ish defaults when people are creating a new WR.
+
+ -- Andrew McMillan <debian@mcmillan.net.nz>  Thu, 15 Mar 2007 15:53:27 +1300
+
 wrms (2.4.11) unstable; urgency=low
 
   * Allow various request attributes to be set as part of the GET on wr.php,

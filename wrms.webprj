@@ -27,11 +27,8 @@
     <item modified_time="1125440372" url="html/requestlist.php" uploadstatus="0" />
     <item modified_time="1110505759" url="html/usr.php" uploadstatus="0" />
     <item modified_time="1110256588" url="html/usrsearch.php" uploadstatus="0" />
-    <item modified_time="1110529515" url="scripts/create-wrms.sql" uploadstatus="0" />
     <item url="scripts/dump-db.sh" uploadstatus="0" />
-    <item url="scripts/finish-load.sql" uploadstatus="0" />
     <item url="scripts/get-latest.sh" uploadstatus="0" />
-    <item modified_time="1112089229" url="scripts/procedures.sql" uploadstatus="0" />
     <item url="scripts/recreate-wrms.sh" uploadstatus="0" />
     <item url="scripts/retire-tested.pl" uploadstatus="0" />
     <item modified_time="1117672475" url="html/attachment.php" uploadstatus="0" />
@@ -107,7 +104,6 @@
     <item url="html/js/overlib.js" uploadstatus="0" />
     <item modified_time="1118226539" url="html/billing.php" uploadstatus="0" />
     <item modified_time="1109633360" url="html/requestchange.php" uploadstatus="0" />
-    <item url="scripts/conversion-200402.sql" uploadstatus="0" />
     <item url="scripts/grant-perms.sh" uploadstatus="0" />
     <item modified_time="1118277030" url="html/wr.php" uploadstatus="0" />
     <item modified_time="1109702493" url="inc/authorisation-page.php" uploadstatus="0" />
@@ -207,16 +203,13 @@
     <item url="html/pwimg/up.gif" uploadstatus="0" />
     <item url="html/pwimg/wrmsTOP.gif" uploadstatus="0" />
     <item url="scripts/.cvsignore" uploadstatus="0" />
-    <item url="scripts/conversion-200410.sql" uploadstatus="0" />
     <item url="wrms.webprj" uploadstatus="0" />
     <item modified_time="1109880410" url="config/config.php" uploadstatus="0" />
     <item modified_time="1125440258" url="inc/simpletimelist-form.php" uploadstatus="0" />
     <item modified_time="1125285789" url="inc/class.phpmailer.php" uploadstatus="1" />
     <item url="inc/class.smtp.php" uploadstatus="1" />
     <item modified_time="1125285789" url="inc/phpmailer.lang-en.php" uploadstatus="1" />
-    <item modified_time="1101250853" url="scripts/conversion-200411.sql" uploadstatus="1" />
     <item modified_time="1111088548" url="inc/indexextsupport.php" uploadstatus="1" />
-    <item modified_time="1108354656" url="scripts/conversion-200501.sql" uploadstatus="1" />
     <item modified_time="1118783486" url="html/wrsearch.php" uploadstatus="1" />
     <item modified_time="1125285789" url="inc/search_listing_functions.php" uploadstatus="1" />
     <item modified_time="1125285789" url="inc/search_form.php" uploadstatus="1" />
@@ -233,7 +226,6 @@
     <item modified_time="1123022329" url="config/config.php-kant-new" uploadstatus="1" />
     <item modified_time="1109879975" url="config/config.php-levy" uploadstatus="1" />
     <item modified_time="1110939455" url="html/system_users.php" uploadstatus="1" />
-    <item modified_time="1110750162" url="scripts/wrms.sql" uploadstatus="1" />
     <item modified_time="1110749071" url="scripts/patches/patch-2.0.1.sql" uploadstatus="1" />
     <item url="scripts/patches/" uploadstatus="1" />
     <item url="scripts/patches/patch-1.99.2.sql" uploadstatus="1" />
@@ -269,7 +261,6 @@
     <item url="html/temppass.php" uploadstatus="1" />
     <item url="html/new_organisation.php" uploadstatus="1" />
     <item url="inc/OrganisationPlus.php" uploadstatus="1" />
-    <item url="scripts/views.sql" uploadstatus="1" />
     <item url="scripts/patches/patch-1.99.11.sql" uploadstatus="1" />
     <item url="inc/wrms_configuration_missing.php" uploadstatus="1" />
     <item url="html/saved_searches.php" uploadstatus="1" />
@@ -319,5 +310,13 @@
     <item url="debian/control" uploadstatus="1" />
     <item url="doc/CalDAV_Testing.txt" uploadstatus="1" />
     <item url="doc/" uploadstatus="1" />
+    <item url="scripts/dba/" uploadstatus="1" />
+    <item url="scripts/dba/base-data.sql" uploadstatus="1" />
+    <item url="scripts/dba/procedures.sql" uploadstatus="1" />
+    <item url="scripts/dba/views.sql" uploadstatus="1" />
+    <item url="scripts/dba/wrms.sql" uploadstatus="1" />
+    <item url="scripts/patches/patch-1.99.13.sql" uploadstatus="1" />
+    <item url="inc/caldav-PROPFIND.php" />
+    <item url="inc/WRMSDAVRequest.php" />
   </project>
 </webproject>

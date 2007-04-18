@@ -5,6 +5,7 @@
 --     updates more consistent.
 
 -- This _should_ fail, unless we are retrying this patch, so we keep it outside of the transaction
+\echo The following statement will generate an error _unless_ this patch is being retried
 DROP SEQUENCE qa_project_approval_qa_approval_id_seq;
 
 BEGIN;
@@ -22,6 +23,10 @@ UPDATE usr SET email_ok_time = current_timestamp WHERE email_ok;
 ALTER TABLE usr DROP email_ok CASCADE;
 ALTER TABLE usr RENAME COLUMN email_ok_time TO email_ok;
 
+
+ALTER TABLE request_timesheet ADD COLUMN review_needed BOOLEAN;
+ALTER TABLE request_timesheet ALTER COLUMN review_needed SET DEFAULT FALSE;
+UPDATE request_timesheet SET review_needed=FALSE;
 
 -- Add some interesting constraints...
 alter table request_allocated
@@ -119,6 +124,19 @@ alter table org_system
 
 VACUUM FULL ANALYZE request_timesheet;
 VACUUM FULL ANALYZE usr;
+
+CLUSTER role_member;
+CLUSTER system_usr;
+CLUSTER request_interested;
+CLUSTER request_note;
+CLUSTER request_status;
+CLUSTER request_allocated;
+CLUSTER request_attachment;
+CLUSTER request_quote;
+CLUSTER request_action;
+CLUSTER request_tag;
+CLUSTER request_request;
+CLUSTER request_timesheet;
 
 -- Update the views and procedures in case they have changed
 \i dba/procedures.sql

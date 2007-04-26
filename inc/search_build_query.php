@@ -33,7 +33,7 @@
 
     if ( !isset($saved_columns['rlsort']) ) {
       // Enforce some sanity
-      $rlsort = 'last_activity';
+      $rlsort = (isset($_GET['rlsort']) ? $_GET['rlsort'] : 'last_activity');
       $rlseq = 'DESC';
     }
 

@@ -139,7 +139,6 @@ function nice_time( $in_time ) {
           $header_cell .= "&incstat[$k]=$v";
         }
       }
-      if ( "$qry" != "" ) $header_cell .= "&qry=$qry";
       if ( "$style" != "" ) $header_cell .= "&style=$style";
       if ( "$format" != "" ) $header_cell .= "&format=$format";
       $header_cell .= "\">%s";      // %s for the Cell heading
@@ -167,6 +166,7 @@ function nice_time( $in_time ) {
           column_header("Charged on", "work_charged");
         column_header("Description", "work_description" );
         column_header("Request", "brief" );
+        column_header("Review?", "review_needed" );
         column_header("OK to charge", "" );
         column_header("Invoice", "charged_details" );
         column_header("Amount", "charged_amount" );
@@ -214,7 +214,8 @@ function nice_time( $in_time ) {
         echo "<td class=sml>" . html_format( $timesheet->work_description) . "</td>";
 
         if ( "$uncharged" != "" ) {
-          echo "<td class=sml <a href=\"$base_url/wr.php?request_id=$timesheet->request_id\">$timesheet->brief</a></td>\n";
+          echo "<td class=\"sml\"><a href=\"$base_url/wr.php?request_id=$timesheet->request_id\">$timesheet->brief</a></td>\n";
+          printf( "<td class=\"sml\">%s</td>\n", ($timesheet->review_needed == 't' ? '<span style="color:red;">Review</span>' : '&nbsp;') );
           echo "<td class=sml align=right>";
           printf("<input type=\"checkbox\" value=\"1\" id=\"$timesheet->timesheet_id\" name=\"chg_ok[$timesheet->timesheet_id]\"%s>", ( "$timesheet->ok_to_charge" == "t" ? " checked" : ""));
           printf("<input type=hidden name=\"chg_worker[$timesheet->timesheet_id]\" value=\"%s\">", htmlspecialchars($timesheet->worker_name));
@@ -243,7 +244,6 @@ function nice_time( $in_time ) {
 
     if ( is_member_of('Admin','Support') && ( "$style" != "stripped" )) {
       $this_page = "$PHP_SELF?f=$form&style=%s&format=%s";
-      if ( "$qry" != "" ) $this_page .= "&qry=$qry";
       if ( "$search_for" != "" ) $this_page .= "&search_for=$search_for";
       if ( isset($org_code) && $org_code > 0 ) $this_page .= "&org_code=$org_code";
       if ( isset($system_id) && $system_id > 0 ) $this_page .= "&system_id=$system_id";

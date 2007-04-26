@@ -23,6 +23,7 @@ function header_row() {
   column_header("Done On", "work_on" );
   column_header("Duration", "work_quantity" );
   column_header("Rate", "work_rate");
+  column_header("Review?", "review_needed");
   if ( "$GLOBALS[uncharged]" == "" )
     column_header("Charged on", "work_charged");
   column_header("Description", "work_description" );
@@ -181,6 +182,7 @@ EOHTML;
       echo "<td class=sml>" . substr( nice_date($timesheet->work_on), 7) . "</td>\n";
       echo "<td class=sml>$timesheet->work_quantity $timesheet->work_units</td>\n";
       echo "<td class=sml align=right>$timesheet->work_rate&nbsp;</td>\n";
+      printf( "<td class=\"sml\">%s</td>\n", ($timesheet->review_needed == 't' ? '<span style="color:red;">Review</span>' : '&nbsp;') );
 
       if ( "$timesheet->work_charged" == "" ) {
         if ( "$uncharged" == "" ) echo "<td class=sml>uncharged</td>";

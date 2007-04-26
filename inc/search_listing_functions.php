@@ -127,6 +127,9 @@ EOHTML;
     case "system_desc":
       printf( '<td class="sml" align="left"><a href="%s&system_id=%d">%s</td>%s', sprintf($GLOBALS['get_uri'], $GLOBALS['rlsort'], $GLOBALS['rlseq']), $row->system_id, $row->{$column_name}, "\n");
       break;
+    case "request_hours":
+      echo "<td class=\"sml\" align=\"right\">" . $row->{$column_name} . "</td>\n";
+      break;
     default:
       echo "<td class=\"sml\" align=\"left\">" . $row->{$column_name} . "</td>\n";
       break;

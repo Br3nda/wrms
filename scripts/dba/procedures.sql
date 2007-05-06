@@ -178,6 +178,7 @@ CREATE or REPLACE FUNCTION last_org_request ( int4 ) RETURNS timestamp AS '
    BEGIN
       SELECT request_on INTO out_date FROM request, usr
                 WHERE request.requester_id = usr.user_no AND request.active
+                  AND usr.org_code = in_org_code
                 ORDER BY request.request_on DESC LIMIT 1;
       IF NOT FOUND THEN
         RETURN NULL;

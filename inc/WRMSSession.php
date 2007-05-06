@@ -151,6 +151,7 @@ class WRMSSession extends Session
     if ( $this->logged_in && $groups == "" ) return;
     if ( ! $this->logged_in ) {
       $c->messages[] = "You must log in to use this system.";
+      $c->page_title = "Log in please";
       include_once("page-header.php");
       if ( function_exists("local_index_not_logged_in") ) {
         local_index_not_logged_in();

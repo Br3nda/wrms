@@ -3,7 +3,7 @@ wrms (2.5.3) unstable; urgency=low
   * Fix last_org_request(org_code) to actually work.
   * Correct handling of sorting for saved searches.
 
- -- Andrew McMillan <debian@mcmillan.net.nz>  Mon, 07 May 2007 11:17:25 +1200
+ -- Andrew McMillan <debian@mcmillan.net.nz>  Mon, 07 May 2007 11:22:28 +1200
 
 wrms (2.5.2) unstable; urgency=low
 

@@ -1,6 +1,7 @@
 <?php
   include("always.php");
   require_once("authorisation-page.php");
+$session->LoginRequired();
   require_once("maintenance-page.php");
 
   include("tidy.php");

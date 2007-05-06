@@ -1,3 +1,25 @@
+wrms (2.5.3) unstable; urgency=low
+
+  * Fix last_org_request(org_code) to actually work.
+  * Correct handling of sorting for saved searches.
+
+ -- Andrew McMillan <debian@mcmillan.net.nz>  Mon, 07 May 2007 11:17:25 +1200
+
+wrms (2.5.2) unstable; urgency=low
+
+  * Add a "Review?" column to these reports to present the review_needed field.
+  * Make the hours column right justified.
+  * Allow $rlsort to be set from the GET URL.
+  * Switch description of active flag.
+
+ -- Andrew McMillan <debian@mcmillan.net.nz>  Thu, 26 Apr 2007 13:14:01 +1200
+
+wrms (2.5.1) unstable; urgency=low
+
+  * Fix handling of active flag in user maintenance.
+
+ -- Andrew McMillan <debian@mcmillan.net.nz>  Tue, 24 Apr 2007 16:32:55 +1200
+
 wrms (2.5.0) unstable; urgency=low
 
   * Overhauled DB creation, building on Dennie's work, so we can now create a

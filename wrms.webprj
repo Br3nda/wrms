@@ -1,6 +1,6 @@
 <!DOCTYPE webproject>
 <webproject>
-  <project usePreviewPrefix="0" preview="http://mywrms/" previewPrefix="file:file%3A" type="Local" newfiles="php" name="WRMS" encoding="iso 8859-1" >
+  <project usePreviewPrefix="0" preview="http://mywrms/" type="Local" previewPrefix="file:file%3A" newfiles="php" name="WRMS" encoding="iso 8859-1" >
     <upload/>
     <author>Andrew McMillan</author>
     <email>wrms@catalyst.net.nz</email>
@@ -316,7 +316,7 @@
     <item url="scripts/dba/views.sql" uploadstatus="1" />
     <item url="scripts/dba/wrms.sql" uploadstatus="1" />
     <item url="scripts/patches/patch-1.99.13.sql" uploadstatus="1" />
-    <item url="inc/caldav-PROPFIND.php" />
-    <item url="inc/WRMSDAVRequest.php" />
+    <item url="inc/caldav-PROPFIND.php" uploadstatus="1" />
+    <item url="inc/WRMSDAVRequest.php" uploadstatus="1" />
   </project>
 </webproject>

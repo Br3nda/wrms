@@ -30,11 +30,12 @@
       $rlsort = $thisquery->rlsort;
       $rlseq = $thisquery->rlseq;
     }
-
-    if ( !isset($saved_columns['rlsort']) ) {
-      // Enforce some sanity
-      $rlsort = (isset($_GET['rlsort']) ? $_GET['rlsort'] : 'last_activity');
-      $rlseq = 'DESC';
+    else {
+      if ( !isset($saved_columns['rlsort']) ) {
+        // Enforce some sanity
+        $rlsort = (isset($_GET['rlsort']) ? $_GET['rlsort'] : 'last_activity');
+        $rlseq = (isset($_GET['rlseq']) && $_GET['rlseq'] == 'ASC' ? 'ASC' : 'DESC');
+      }
     }
 
   }

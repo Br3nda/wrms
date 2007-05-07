@@ -227,7 +227,7 @@ class User {
     $html .= $ef->DataEntryLine( "Mobile", "%s", "text", "mobile",
               array( "size" => 20, "title" => "The user's mobile phone number.") );
 
-    $html .= $ef->DataEntryLine( "Active?", ($this->status ? "Active" : "Inactive"), "checkbox", "active",
+    $html .= $ef->DataEntryLine( "Active?", ($this->active == "t" ? "Active" : "Inactive"), "checkbox", "active",
               array("_label" => "Check to make the user active.") );
 
     $html .= $ef->DataEntryLine( "Email validated", "%s", "date", "email_ok",

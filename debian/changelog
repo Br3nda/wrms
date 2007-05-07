@@ -1,3 +1,9 @@
+wrms (2.5.4) unstable; urgency=low
+
+  * Fix active/inactive flag.
+
+ -- Andrew McMillan <debian@mcmillan.net.nz>  Mon, 07 May 2007 14:59:22 +1200
+
 wrms (2.5.3) unstable; urgency=low
 
   * Fix last_org_request(org_code) to actually work.

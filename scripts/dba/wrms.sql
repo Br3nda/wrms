@@ -145,6 +145,14 @@ CREATE TABLE request_note (
   PRIMARY KEY ( request_id, note_on )
 );
 
+CREATE TABLE request_qa_action (
+  request_id INT4 REFERENCES request ( request_id ),
+  action_on TIMESTAMP DEFAULT current_timestamp,
+  action_by INT4 REFERENCES usr ( user_no ),
+  action_detail TEXT,
+  PRIMARY KEY ( request_id, action_on )
+);
+
 CREATE TABLE request_interested (
   request_id INT4 REFERENCES request(request_id),
   user_no INT4 REFERENCES usr(user_no),
@@ -213,12 +221,12 @@ CREATE TABLE attachment_type (
 );
 
 -- Deprecated.  Nothing should use this, but need to check.
-CREATE TABLE module (
-   module_name TEXT PRIMARY KEY,
-   module_description TEXT,
-   module_seq INT4
-);
-CREATE INDEX xak1module ON module ( module_seq, module_name );
+--CREATE TABLE module (
+--   module_name TEXT PRIMARY KEY,
+--   module_description TEXT,
+--   module_seq INT4
+--);
+--CREATE INDEX xak1module ON module ( module_seq, module_name );
 
 
 CREATE TABLE system_usr (
@@ -327,50 +335,6 @@ CREATE TABLE organisation_action (
   action_sequence INT4 DEFAULT 0,
   active  BOOL DEFAULT TRUE
 );
-
-
-GRANT INSERT, UPDATE, SELECT ON
-  request,
-  request_quote,
-  request_status, request_note,
-  request_request, request_history,
-  request_attachment,
-  lookup_code,
-  attachment_type,
-  session,
-  work_system,
-  usr, usr_setting,
-  organisation,
-  help, help_hit,
-  infonode, wu, wu_vote, nodetrack
-  TO general;
-
-
-GRANT INSERT,UPDATE,SELECT,DELETE ON
-  request_timesheet,
-  request_allocated, request_interested,
-  org_system,
-  timesheet_note,
-  role_member,
-  organisation_action,
-  request_tag, organisation_tag,
-  system_usr,
-  saved_queries
-  TO general;
-
-
-GRANT USAGE, UPDATE, SELECT ON
-  request_attachment_attachment_id_seq,
-  request_request_id_seq,
-  request_quote_quote_id_seq,
-  session_session_id_seq,
-  usr_user_no_seq,
-  organisation_org_code_seq,
-  infonode_node_id_seq,
-  organisation_action_action_id_seq,
-  organisation_tag_tag_id_seq,
-  request_timesheet_timesheet_id_seq
-  TO general;
 
 
 

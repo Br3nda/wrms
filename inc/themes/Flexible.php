@@ -41,6 +41,7 @@ class MyTheme extends Theme {
     parent::Theme();
     $this->stylesheets[0] = "/fleximg/flexwrms.css";
     $this->images = "fleximg";
+    $this->favicon = "/fleximg/flexible.ico";
     $c->images = "fleximg";
   }
 

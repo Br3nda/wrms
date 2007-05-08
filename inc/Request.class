@@ -2299,7 +2299,8 @@ EOX;
     $new_subscriptions  = preg_replace( "/,[^0-9]*,/", ",", $new_subscriptions );  // Single any double commas
     $new_subscriptions  = preg_replace( "/,[^0-9]*$/", "", $new_subscriptions );  // Trim any trailling comma
     $new_subscriptions  = preg_replace( "/^[^0-9]*,/", "", $new_subscriptions );  // Trim any leadling comma
-    if ( $new_subscriptions == "" ) $new_subscriptions = $session->user_no;
+
+    if ( $new_subscriptions == "" ) $new_subscriptions = $session->user_no; // Ensure it doesn't crash in minimal case
 
     $sql = "SELECT fullname FROM usr WHERE user_no IN ( $new_subscriptions ) ";
     $sql .= "AND NOT EXISTS( SELECT 1 FROM request_interested WHERE request_id = $this->request_id ";

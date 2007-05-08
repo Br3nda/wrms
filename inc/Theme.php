@@ -47,6 +47,12 @@ class Theme {
   var $images;
 
   /**
+  * The path to a favicon file for the site
+  * @var string
+  */
+  var $favicon;
+
+  /**
   * Do we display the top panel?
   * @var boolean
   */
@@ -236,12 +242,16 @@ INDEXNOTLOGGEDIN;
     echo "<!DOC"."TYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\" \"http://www.w3.org/TR/REC-html40/loose.dtd\">\n";
     echo "<html>\n<head>\n<title>$title</title>\n";
 
+    if ( isset($this->favicon) ) {
+      printf( '<link rel="shortcut icon" href="%s" type="image/x-icon" />', $this->favicon);
+      echo "\n";
+    }
+
     if ( isset($this->stylesheets) ) {
       foreach ( $this->stylesheets AS $stylesheet ) {
         echo "<link rel=\"stylesheet\" type=\"text/css\" href=\"$stylesheet\" />\n";
       }
     }
-
     if ( isset($c->local_styles) ) {
       // Always load local styles last, so they can override prior ones...
       foreach ( $c->local_styles AS $stylesheet ) {

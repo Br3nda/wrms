@@ -28,6 +28,7 @@ psql -q -f "${AWLDBA}/schema-management.sql" "${DBNAME}" 2>&1 | egrep -v "${FINE
 
 # Now load the WRMS bits on top of that
 psql -q -f "${DBADIR}/wrms.sql" "${DBNAME}" 2>&1 | egrep -v "${FINE}"
+psql -q -f "${DBADIR}/grants.sql" "${DBNAME}" 2>&1 | egrep -v "${FINE}"
 
 psql -q -f "${DBADIR}/procedures.sql" "${DBNAME}"
 psql -q -f "${DBADIR}/views.sql" "${DBNAME}"

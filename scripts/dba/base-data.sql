@@ -17,9 +17,21 @@ INSERT INTO usr (user_no, username, password, fullname, org_code, base_rate, act
 
 -- create base roles for the system
 INSERT INTO roles (role_name, role_no, seq) VALUES ('Admin', '1', '100'); -- "Support", "Contractor"
+INSERT INTO roles (role_name, role_no, seq) VALUES ('Support', '2', '200'); -- "Support", "Contractor"
+INSERT INTO roles (role_name, role_no, seq) VALUES ('Manage', '3', '300'); -- "Support", "Contractor"
+INSERT INTO roles (role_name, role_no, seq) VALUES ('Request', '4', '400'); -- "Support", "Contractor"
+INSERT INTO roles (role_name, role_no, seq) VALUES ('Accounts', '5', '230'); -- "Support", "Contractor"
+INSERT INTO roles (role_name, role_no, seq) VALUES ('OrgMgr', '6', '270'); -- "Support", "Contractor"
+INSERT INTO roles (role_name, role_no, seq) VALUES ('Contractor', '7', '250'); -- "Support", "Contractor"
+INSERT INTO roles (role_name, role_no, seq) VALUES ('QA', '8', '500'); -- "Support", "Contractor"
 
 -- assign role
 INSERT INTO role_member (role_no, user_no) VALUES ('1', '1');
+
+-- Set values for systems, organisations, users to be added through the system.
+SELECT setval( 'work_system_system_id_seq', 10);
+SELECT setval( 'organisation_org_code_seq', 10);
+SELECT setval( 'usr_user_no_seq', 10);
 
 -- QAMS core stuff
 

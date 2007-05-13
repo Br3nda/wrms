@@ -10,7 +10,7 @@
 /*                                                                      */
 /************************************************************************/
 include_once("qams-request-defs.php");
-include_once("axyl-datetime-defs.php");
+// include_once("axyl-datetime-defs.php");
 include_once("DataEntry.php");
 include_once("DataUpdate.php");
 
@@ -433,7 +433,7 @@ class qa_project extends qams_request {
     if ($this->qa_mentor_email != "") {
       $recips[$this->qa_mentor_email] = $this->qa_mentor_fullname;
     }
-    return $recips;    
+    return $recips;
   } // GetRecipients
   // .....................................................................
   /**
@@ -2062,9 +2062,11 @@ class qa_project_step extends qa_step {
     $approved = array();
     $this->get_approvals();
     foreach ($this->approvals_required() as $ap_type_id => $ap_desc) {
-      foreach ($this->approvals_history[$ap_type_id] as $approval) {
+      $history = $this->approvals_history[$ap_type_id];
+      if ( !is_array($history) ) continue;
+      foreach ( $history as $approval) {
         if ($approval->approval_status == "y") {
-          $approved[$ap_type_id] = datetime_to_timestamp($approval->approval_datetime);
+          $approved[$ap_type_id] = strtotime($approval->approval_datetime);
           break;
         }
       } // foreach
@@ -2137,7 +2139,7 @@ class qa_project_step extends qa_step {
     // Assign the data..
     $approval->approval_status = "p"; // In Progress
     $approval->assigned_to_usr = $user_no;
-    $approval->assigned_datetime = timestamp_to_datetime();
+    $approval->assigned_datetime = date('Y-m-d H:i:s');
     $approval->approval_by_usr = "";
     $approval->approval_datetime = "";
     $approval->comment = "";
@@ -2212,7 +2214,7 @@ class qa_project_step extends qa_step {
       $approval->qa_step_id = $this->qa_step_id;
       $approval->qa_approval_type_id = $ap_type_id;
       $approval->assigned_to_usr = $user_no;
-      $approval->assigned_datetime = timestamp_to_datetime();
+      $approval->assigned_datetime = date('Y-m-d H:i:s');
     }
     // Assign the approval data. We may be writing an 'unapproved'
     // approval here, which is when status is nullstring. This is done
@@ -2229,7 +2231,7 @@ class qa_project_step extends qa_step {
     else {
       // Normal approval..
       $approval->approval_by_usr = $user_no;
-      $approval->approval_datetime = timestamp_to_datetime();
+      $approval->approval_datetime = date('Y-m-d H:i:s');
       $approval->comment = addslashes($comment);
     }
 
@@ -2349,6 +2351,7 @@ class qa_project_step extends qa_step {
    * @param boolean $aptypeid If defined, then show only this approval type
    */
   function render_approval_types($have_admin=false, $summary=false, $aptypeid=false) {
+    global $session;
     $s = "";
 
     // Inner table containing rows - all approval types..
@@ -2364,17 +2367,16 @@ class qa_project_step extends qa_step {
       $this->get_approvals();
       if ($this->approvals[$ap_type_id]->approved_datetime != "") {
         $suffix = "(as of "
-                . datetime_to_displaydate(
-                      NICE_FULLDATETIME,
-                      $this->approvals[$ap_type_id]->approval_datetime)
+                . $session->FormattedDate(
+                      date('Y-m-d H:i:s',$this->approvals[$ap_type_id]->approval_datetime),
+                      'timestamp')
                 . ")";
       }
       elseif ($this->approvals[$ap_type_id]->assigned_datetime != "") {
         $suffix = "(as of "
-                . datetime_to_displaydate(
-                      NICE_FULLDATETIME,
-                      $this->approvals[$ap_type_id]->assigned_datetime
-                      )
+                . $session->FormattedDate(
+                      date('Y-m-d H:i:s',$this->approvals[$ap_type_id]->assigned_datetime),
+                      'timestamp')
                 . ")";
       }
       $desc = qa_status_coloured($last_approval_status, $ap_type_desc, $suffix);
@@ -2447,6 +2449,7 @@ class qa_project_step extends qa_step {
    * @return string An HTML table containing the approval history
    */
   function render_approvals_history() {
+    global $session;
     $s = "";
     $this->get_approvals();
     if (count($this->approvals_history) > 0) {
@@ -2480,7 +2483,7 @@ class qa_project_step extends qa_step {
           // Assignment..
           if ($approval->assigned_datetime != "") {
             $ass = $approval->assigned_fullname . "<br>";
-            $ass .= datetime_to_displaydate(NICE_FULLDATETIME, $approval->assigned_datetime);
+            $ass .= $session->FormattedDate($approval->assigned_datetime, 'timestamp');
           }
           else {
             $ass = "&nbsp;";
@@ -2498,7 +2501,7 @@ class qa_project_step extends qa_step {
               $app .= $approval->approval_fullname;
             }
             $app .= "<br>";
-            $app .= datetime_to_displaydate(NICE_FULLDATETIME, $approval->approval_datetime);
+            $app .= $session->FormattedDate($approval->approval_datetime,'timestamp');
             if ($approval->comment != "") {
               $app .= "<br>$approval->comment";
             }
@@ -2585,7 +2588,7 @@ class qa_project_approval {
   function since_assignment_days() {
     $res = 0;
     if ($this->assigned_datetime != "") {
-      $res = number_format((time() - datetime_to_timestamp($this->assigned_datetime)) / (3600 * 24), 0);
+      $res = number_format((time() - strtotime($this->assigned_datetime)) / (3600 * 24), 0);
       if ($res < 0) {
         $res = 0;
       }

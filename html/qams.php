@@ -113,7 +113,7 @@ $s .= "</tr>\n";
 if ($projectset->project_count() > 0) {
   $rowclass = "row1";
   foreach ($projectset->projects as $request_id => $project) {
-    $project_on = datetime_to_displaydate(NICE_FULLDATETIME, $project->request_on);
+    $project_on = $session->FormattedDate($project->request_on, 'timestamp' );
 
     // Project href link..
     $href = "/qams-project.php?request_id=$request_id";

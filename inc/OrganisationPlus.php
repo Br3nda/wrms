@@ -2,7 +2,7 @@
 /**
 * A class to handle writing and validating usr_client_bank records.
 *
-* @package   wrms
+* @package   WRMS
 * @author    Andrew McMillan <andrew@catalyst.net.nz>
 * @copyright Catalyst .Net Ltd
 * @license   GPLv2

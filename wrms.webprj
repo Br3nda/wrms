@@ -319,5 +319,6 @@
     <item url="inc/caldav-PROPFIND.php" uploadstatus="1" />
     <item url="inc/WRMSDAVRequest.php" uploadstatus="1" />
     <item url="scripts/dba/grants.sql" uploadstatus="1" />
+    <item url="scripts/create-database.sh" uploadstatus="1" />
   </project>
 </webproject>

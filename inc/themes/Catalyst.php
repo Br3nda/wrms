@@ -2,7 +2,7 @@
 /**
 * CatalystTheme for WRMS
 *
-* @package   awl
+* @package   WRMS
 * @subpackage   CatalystTheme
 * @author    Andrew McMillan <andrew@catalyst.net.nz>
 * @copyright Catalyst IT Ltd

@@ -7,7 +7,7 @@
 *  - Utility functions which we can use to decide whether this
 *    is a permitted activity for this user.
 *
-* @package   wrms
+* @package   WRMS
 * @subpackage   WRMSDAVRequest
 * @author    Andrew McMillan <andrew@mcmillan.net.nz>
 * @copyright Catalyst .Net Ltd

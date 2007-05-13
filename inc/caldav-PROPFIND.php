@@ -2,7 +2,7 @@
 /**
 * CalDAV Server - handle PROPFIND method
 *
-* @package   wrms
+* @package   WRMS
 * @subpackage   caldav
 * @author    Andrew McMillan <andrew@catalyst.net.nz>
 * @copyright Catalyst .Net Ltd

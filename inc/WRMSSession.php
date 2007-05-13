@@ -16,7 +16,7 @@
 *  - "Remember me" cookies are supported, and will result in a new
 *    Session for each browser session.
 *
-* @package   wrms
+* @package   WRMS
 * @subpackage   WRMSSession
 * @author    Andrew McMillan <andrew@catalyst.net.nz>
 * @copyright Catalyst .Net Ltd

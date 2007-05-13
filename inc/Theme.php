@@ -2,7 +2,7 @@
 /**
 * Theming support for AWL based applications.
 *
-* @package   awl
+* @package   WRMS
 * @subpackage   Theme
 * @author    Andrew McMillan <andrew@catalyst.net.nz>
 * @copyright Catalyst IT Ltd

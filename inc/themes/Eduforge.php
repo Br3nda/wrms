@@ -2,7 +2,7 @@
 /**
 * Eduforge Theme for WRMS
 *
-* @package   awl
+* @package   WRMS
 * @subpackage   EduforgeTheme
 * @author    Andrew McMillan <andrew@catalyst.net.nz>
 * @copyright Catalyst IT Ltd

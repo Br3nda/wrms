@@ -160,7 +160,7 @@ function nice_time( $in_time ) {
         column_header("WR&nbsp;#", "request_timesheet.request_id" );
         column_header("Done On", "work_on" );
         column_header("Duration", "work_quantity" );
-        column_header("Rate", "work_rate");
+        column_header("Rate", "request_timesheet.work_rate");
         column_header("Done By", "worker_name" );
         if ( "$GLOBALS[uncharged]" == "" )
           column_header("Charged on", "work_charged");

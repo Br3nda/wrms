@@ -18,7 +18,7 @@
   $show = 0;
 
   if ( isset($_POST['submit']) ) {
-              || ($user->user_no > 0 && $user->user_no == $session->user_no) ) {
+    if ( ($user->user_no > 0 && $user->user_no == $session->user_no) ) {
       if ( $user->Validate($userf) ) {
         $user->Write($userf);
         $user = new User($user->user_no);

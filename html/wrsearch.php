@@ -62,10 +62,15 @@
           "request.last_activity" => "Last Chng",
           "urgency" => "Urgency",
           "importance" => "Importance",
-          "request_hours" => "Hours",
           "active" => "Active",
    );
 
+  /**
+  * The hours column is not visible to clients.
+  */
+  if ( $session->AllowedTo("Support") || $session->AllowedTo("Admin") ) {
+    $available_columns["request_hours"] = "Hours";
+  }
 
   include_once("search_listing_functions.php");
   include_once("search_build_query.php");

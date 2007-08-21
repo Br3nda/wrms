@@ -858,7 +858,7 @@ class Request {
       $line_format .= '</tr>'."\n";
       while( $row = $q->Fetch() ) {
         if ( trim($row->brief) == '' ) $row->brief = substr($row->detailed,0,50) . "...";
-        $delete_link = ( $ef->editmode ? sprintf( $delete_link_format, $this->request_id, $row->child_id) : '');
+        $delete_link = ( $ef->editmode ? sprintf( $delete_link_format, $this->request_id, $row->child_id, $row->link_type) : '');
         $html .= sprintf( $line_format,
                     ($q->rownum % 2), $this->request_id, $row->link_type_desc, $row->child_id,
                     $row->child_id, $row->child_id, $row->brief, $row->last_status_desc, $delete_link

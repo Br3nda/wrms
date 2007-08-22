@@ -2287,12 +2287,16 @@ EOX;
   function NewSubscriptions( ) {
     global $sysabbr, $session, $client_messages;
 
+    $new_subscriptions = array();
+    $new_allocations = array();
+    if ( is_array($_POST['new_subscriptions']) ) $new_subscriptions = $_POST['new_subscriptions'];
+    if ( is_array($_POST['new_allocations']) ) $new_allocations = $_POST['new_allocations'];
     if ( $this->chtype == 'create' ) {
       $subscribers = array_merge( array( $_POST['requester_id'], $session->user_no  ),
-                                  $_POST['new_allocations'], $_POST['new_subscriptions'] );
+                                  $new_allocations, $new_subscriptions );
     }
     else {
-      $subscribers = array_merge( $_POST['new_allocations'], $_POST['new_subscriptions'] );
+      $subscribers = array_merge( $new_allocations, $new_subscriptions );
     }
 
     $new_subscriptions = preg_replace( "/[^0-9,]/", "", join(",", $subscribers));

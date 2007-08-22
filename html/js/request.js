@@ -190,13 +190,22 @@ function CheckRequestForm() {
   if ( person_id < 0 || system_id == "" || organisation_id < 0 ) {
     per_sel = document.forms.form.requester_id;
     person_id = per_sel.value;
-    org_sel = document.forms.form.org_code;
-    organisation_id = org_sel.value;
     sys_sel = document.forms.form.system_id;
     system_id = sys_sel.value;
-    if ( person_id <= 0 || system_id == "" || organisation_id <= 0 ) {
-      alert("You must select appropriate organisation,\nperson and system details!" );
-      return false;
+    org_sel = document.forms.form.org_code;
+    if ( typeof(org_sel) == 'undefined' ) {
+      // No org_code field on page
+      if ( person_id <= 0 || system_id == "" ) {
+        alert("You must select appropriate person and system details!" );
+        return false;
+      }
+    }
+    else {
+      organisation_id = org_sel.value;
+      if ( person_id <= 0 || system_id == "" || organisation_id <= 0 ) {
+        alert("You must select appropriate organisation,\nperson and system details!" );
+        return false;
+      }
     }
   }
   if ( document.forms.form.brief.value == "" ) {
@@ -229,6 +238,24 @@ function CheckRequestForm() {
     if ( ! document.forms.form.work_quantity.value.match( number_rx ) ) {
       alert("The amount of work should be a plain number!" );
       document.forms.form.work_quantity.focus();
+      return false;
+    }
+  }
+
+  // Validate that they enter a date for the requested_by_date field
+  if ( document.forms.form.requested_by_date.value != "" ) {
+    if ( ! document.forms.form.requested_by_date.value.match( date_rx ) ) {
+      alert("The 'Requested by' field should be a date!" );
+      document.forms.form.requested_by_date.focus();
+      return false;
+    }
+  }
+
+  // Validate that they enter a date for the agreed_due_date field
+  if ( document.forms.form.agreed_due_date.value != "" ) {
+    if ( ! document.forms.form.agreed_due_date.value.match( date_rx ) ) {
+      alert("The 'Agreed Due' field should be a date!" );
+      document.forms.form.agreed_due_date.focus();
       return false;
     }
   }

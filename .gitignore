@@ -2,3 +2,4 @@ build
 wrms.bfproject
 wrms.session
 *.pgdump
+*~

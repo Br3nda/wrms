@@ -7,6 +7,11 @@ CREATE TABLE work_system (
   active BOOL
 );
 
+--  We will use three initial codes:  0 = Client, 1 = Support, 2 = Contractor
+CREATE TABLE organisation_types (
+  org_type INT PRIMARY KEY,
+  type_name TEXT
+);
 
 CREATE TABLE organisation (
   org_code SERIAL PRIMARY KEY,
@@ -18,7 +23,11 @@ CREATE TABLE organisation (
   abbreviation TEXT,
   current_sla BOOL,
   org_name TEXT,
-  general_system INT REFERENCES work_system(system_id)
+  general_system INT REFERENCES work_system(system_id),
+  org_type INT DEFAULT 0,
+  CONSTRAINT organisation_type_fk
+      FOREIGN KEY (org_type) REFERENCES organisation_types(org_type)
+      ON DELETE RESTRICT ON UPDATE RESTRICT;
 ) ;
 
 CREATE TABLE org_system (
@@ -63,7 +72,7 @@ CREATE TABLE request (
   detailed TEXT,
   system_id	INT4 NOT NULL REFERENCES work_system(system_id),
   entered_by INT4 REFERENCES usr(user_no),
-  parent_request INT4 REFERENCES request(request_id)
+  parent_request INT4 REFERENCES request(request_id) ON UPDATE CASCADE
 ) ;
 CREATE INDEX xak0_request ON request ( active, request_id );
 CREATE INDEX xak1_request ON request ( active, severity_code );
@@ -72,7 +81,7 @@ CREATE INDEX xak3_request ON request ( active, request_by );
 CREATE INDEX xak4_request ON request ( active, last_status );
 
 CREATE TABLE request_status (
-  request_id INT4 REFERENCES request(request_id),
+  request_id INT4 REFERENCES request(request_id) ON UPDATE CASCADE,
   status_on TIMESTAMP,
   status_by_id INT4 REFERENCES usr(user_no),
   status_by TEXT,
@@ -82,7 +91,7 @@ CREATE INDEX xpk_request_status ON request_status ( request_id, status_on );
 
 CREATE TABLE request_quote (
   quote_id SERIAL PRIMARY KEY,
-  request_id INT4 REFERENCES request(request_id),
+  request_id INT4 REFERENCES request(request_id) ON UPDATE CASCADE,
   quoted_on TIMESTAMP DEFAULT current_timestamp,
   quote_amount FLOAT8,
   quote_by_id INT4 REFERENCES usr(user_no),
@@ -99,7 +108,7 @@ CREATE INDEX request_quote_sk1 ON request_quote ( request_id );
 
 
 CREATE TABLE request_allocated (
-  request_id INT4 REFERENCES request(request_id),
+  request_id INT4 REFERENCES request(request_id) ON UPDATE CASCADE,
   allocated_on TIMESTAMP DEFAULT current_timestamp,
   allocated_to_id INT4 REFERENCES usr(user_no),
   allocated_to TEXT
@@ -107,7 +116,7 @@ CREATE TABLE request_allocated (
 
 CREATE TABLE request_timesheet (
   timesheet_id SERIAL PRIMARY KEY,
-  request_id INT4 REFERENCES request(request_id),
+  request_id INT4 REFERENCES request(request_id) ON UPDATE CASCADE,
   work_on TIMESTAMP WITHOUT TIME ZONE,
   ok_to_charge BOOL,
   work_quantity FLOAT8,
@@ -137,7 +146,7 @@ CREATE TABLE timesheet_note (
 ) ;
 
 CREATE TABLE request_note (
-  request_id INT4 REFERENCES request(request_id),
+  request_id INT4 REFERENCES request(request_id) ON UPDATE CASCADE,
   note_on TIMESTAMP DEFAULT current_timestamp,
   note_by_id INT4 REFERENCES usr(user_no),
   note_by TEXT,
@@ -146,7 +155,7 @@ CREATE TABLE request_note (
 );
 
 CREATE TABLE request_qa_action (
-  request_id INT4 REFERENCES request ( request_id ),
+  request_id INT4 REFERENCES request ( request_id ) ON UPDATE CASCADE,
   action_on TIMESTAMP DEFAULT current_timestamp,
   action_by INT4 REFERENCES usr ( user_no ),
   action_detail TEXT,
@@ -154,15 +163,15 @@ CREATE TABLE request_qa_action (
 );
 
 CREATE TABLE request_interested (
-  request_id INT4 REFERENCES request(request_id),
+  request_id INT4 REFERENCES request(request_id) ON UPDATE CASCADE,
   user_no INT4 REFERENCES usr(user_no),
   username TEXT,
   PRIMARY KEY ( request_id, user_no )
 ) ;
 
 CREATE TABLE request_request (
-  request_id INT4 REFERENCES request(request_id),
-  to_request_id INT4 REFERENCES request(request_id),
+  request_id INT4 REFERENCES request(request_id) ON UPDATE CASCADE,
+  to_request_id INT4 REFERENCES request(request_id) ON UPDATE CASCADE,
   link_type CHAR,
   link_data TEXT,
   PRIMARY KEY ( request_id, link_type, to_request_id )
@@ -181,7 +190,7 @@ CREATE INDEX xpk_request_history ON request_history ( request_id, modified_on );
 ---------------------------------------------------------------
 CREATE TABLE request_attachment (
   attachment_id SERIAL PRIMARY KEY,
-  request_id INT4 REFERENCES request(request_id),
+  request_id INT4 REFERENCES request(request_id) ON UPDATE CASCADE,
   attached_on TIMESTAMP DEFAULT current_timestamp,
   attached_by INT4 REFERENCES usr(user_no),
   att_brief TEXT,
@@ -321,7 +330,7 @@ CREATE TABLE organisation_tag (
 CREATE INDEX organisation_tag_sk1 ON organisation_tag( org_code, tag_sequence, lower(tag_description) );
 
 CREATE TABLE request_tag (
-   request_id INT4 REFERENCES request,
+   request_id INT4 REFERENCES request(request_id) ON UPDATE CASCADE,
    tag_id INT4 REFERENCES organisation_tag,
    tagged_on TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp,
    PRIMARY KEY ( request_id, tag_id )
@@ -422,7 +431,7 @@ constraint PK_QA_MODEL_STEP primary key (qa_model_id, qa_step_id)
 
 
 CREATE TABLE request_project (
-request_id           INT4                 PRIMARY KEY not null REFERENCES request(request_id),
+request_id           INT4                 PRIMARY KEY not null REFERENCES request(request_id) ON UPDATE CASCADE,
 project_manager      INT4                 null REFERENCES usr (user_no),
 qa_mentor            INT4                 null REFERENCES usr (user_no),
 qa_model_id          INT4                 null REFERENCES qa_model (qa_model_id),
@@ -447,13 +456,13 @@ comment on column request_project.qa_phase is
 
 
 CREATE TABLE qa_project_step (
-project_id           INT4                 not null REFERENCES request_project (request_id),
+project_id           INT4                 not null REFERENCES request_project (request_id) ON UPDATE CASCADE,
 qa_step_id           INT4                 not null REFERENCES qa_step(qa_step_id),
-request_id           INT4                 not null REFERENCES request(request_id),
+request_id           INT4                 not null REFERENCES request(request_id) ON UPDATE CASCADE,
 responsible_usr      INT4                 null REFERENCES usr (user_no),
 responsible_datetime TIMESTAMP            null,
 notes                TEXT                 null,
-constraint PK_QA_PROJECT_STEP primary key (project_id, qa_step_id)
+constraint PK_QA_PROJECT_STEP primary key (project_id, qa_step_id) ON UPDATE CASCADE
 );
 
 
@@ -479,7 +488,7 @@ comment on column qa_project_step.responsible_datetime is
 
 CREATE TABLE qa_project_approval (
 qa_approval_id       SERIAL               not null PRIMARY KEY,
-project_id           INT4                 not null REFERENCES request_project (request_id),
+project_id           INT4                 not null REFERENCES request_project (request_id) ON UPDATE CASCADE,
 qa_step_id           INT4                 not null REFERENCES qa_step(qa_step_id),
 qa_approval_type_id  INT4                 not null REFERENCES qa_approval_type(qa_approval_type_id),
 approval_status      TEXT                 null
@@ -490,7 +499,7 @@ approval_by_usr      INT4                 null REFERENCES usr (user_no),
 approval_datetime    TIMESTAMP            null,
 comment              TEXT                 null,
 constraint FK_PROJECT_QA_APPROVAL_STEP FOREIGN KEY (project_id, qa_step_id)
-      REFERENCES qa_project_step (project_id, qa_step_id)
+      REFERENCES qa_project_step (project_id, qa_step_id) ON UPDATE CASCADE
 );
 
 comment on table qa_project_approval is
@@ -511,13 +520,13 @@ comment on column qa_project_approval.comment is
 
 
 CREATE TABLE qa_project_step_approval (
-project_id           INT4                 not null REFERENCES request_project (request_id),
+project_id           INT4                 not null REFERENCES request_project (request_id) ON UPDATE CASCADE,
 qa_step_id           INT4                 not null REFERENCES qa_step(qa_step_id),
 qa_approval_type_id  INT4                 not null REFERENCES qa_approval_type (qa_approval_type_id),
 last_approval_status TEXT                 null
       constraint CKC_LAST_APPROVAL_STA_QA_PROJE check (last_approval_status is null or ( last_approval_status in ('p','y','n','s') )),
 constraint PK_QA_PROJECT_STEP_APPROVAL primary key (project_id, qa_step_id, qa_approval_type_id),
-constraint FK_PROJ_STEP_APPROVAL FOREIGN KEY (project_id, qa_step_id) REFERENCES qa_project_step (project_id, qa_step_id)
+constraint FK_PROJ_STEP_APPROVAL FOREIGN KEY (project_id, qa_step_id) REFERENCES qa_project_step (project_id, qa_step_id) ON UPDATE CASCADE
 );
 
 

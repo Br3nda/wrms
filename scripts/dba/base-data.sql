@@ -6,8 +6,13 @@ INSERT INTO work_system (system_id, system_code, system_desc, active) VALUES ('1
 -- to have a secret WR to hold any 'removed' attachments.
 INSERT INTO request (request_id, system_id) VALUES ('-1', '1');
 
+-- create the different organisation types
+INSERT INTO organisation_types VALUES( 0, 'Client' );
+INSERT INTO organisation_types VALUES( 1, 'Support' );
+INSERT INTO organisation_types VALUES( 2, 'Contractor' );
+
 -- create a base organisation (NOTE: org_code='0' doesn't go well with the org.php!)
-INSERT INTO organisation (org_code, org_name, abbreviation,  debtor_no, work_rate, active) VALUES ('1', 'ALLOFUS', 'Our Organisation', '0', '0', TRUE);
+INSERT INTO organisation (org_code, org_name, abbreviation,  debtor_no, work_rate, active, org_type) VALUES ('1', 'ALLOFUS', 'Our Organisation', '0', '0', TRUE, 1);
 
 -- Link the organisation to the first system
 insert into org_system (org_code, system_id) values( 1, 1);

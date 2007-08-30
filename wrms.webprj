@@ -233,7 +233,6 @@
     <item url="scripts/patches/patch-1.99.4.sql" uploadstatus="1" />
     <item url="scripts/patches/patch-1.99.5.sql" uploadstatus="1" />
     <item url="scripts/patches/patch-1.99.6.sql" uploadstatus="1" />
-    <item url="html/wiki.php" uploadstatus="1" />
     <item url="html/eduforge.css" uploadstatus="1" />
     <treestatus>
       <openfolder url="config" />

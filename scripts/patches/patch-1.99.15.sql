@@ -4,10 +4,6 @@
 --  2) We apply the whole lot, or none at all, which should make
 --     updates more consistent.
 
--- This _should_ fail, unless we are retrying this patch, so we keep it outside of the transaction
-\echo The following statement will generate an error _unless_ this patch is being retried
-DROP SEQUENCE qa_project_approval_qa_approval_id_seq;
-
 BEGIN;
 
 SELECT check_wrms_revision(1,99,14);  -- Will fail if this revision doesn't exist, or a later one does
@@ -42,6 +38,8 @@ ALTER TABLE :table ADD CONSTRAINT :constraint FOREIGN KEY (:field) REFERENCES re
 ALTER TABLE :table DROP CONSTRAINT :constraint;
 ALTER TABLE :table ADD CONSTRAINT :constraint FOREIGN KEY (:field) REFERENCES request(request_id) ON DELETE RESTRICT ON UPDATE CASCADE DEFERRABLE INITIALLY DEFERRED;
 
+-- Kind of unclean, but there shouldn't be much like this
+DELETE FROM request_history WHERE NOT EXISTS( SELECT 1 FROM request WHERE request.request_id = request_history.request_id);
 \set table request_history
 -- ALTER TABLE :table DROP CONSTRAINT :constraint;
 ALTER TABLE :table ADD CONSTRAINT :constraint FOREIGN KEY (:field) REFERENCES request(request_id) ON DELETE RESTRICT ON UPDATE CASCADE DEFERRABLE INITIALLY DEFERRED;
@@ -111,8 +109,6 @@ ALTER TABLE :table ADD CONSTRAINT :constraint FOREIGN KEY (:field) REFERENCES :r
 
 -- This table has a pair of identical constraints.  Nice.
 \set table qa_project_approval
-\set constraint fk_proj_qa_approval_step
-ALTER TABLE :table DROP CONSTRAINT :constraint;
 \set constraint fk_project_qa_approval_step
 ALTER TABLE :table DROP CONSTRAINT :constraint;
 ALTER TABLE :table ADD CONSTRAINT :constraint FOREIGN KEY (:field) REFERENCES :references ON DELETE RESTRICT ON UPDATE CASCADE DEFERRABLE INITIALLY DEFERRED;
@@ -123,8 +119,7 @@ COMMIT;
 
 VACUUM FULL ANALYZE;
 
-CLUSTER role_member;
-CLUSTER system_usr;
+CLUSTER request;
 CLUSTER request_interested;
 CLUSTER request_note;
 CLUSTER request_status;

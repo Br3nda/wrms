@@ -44,23 +44,7 @@ UPDATE organisation SET org_type = 1 WHERE EXISTS( SELECT 1 FROM roles JOIN role
 -- And finally commit that to make it a logical unit...
 COMMIT;
 
-
-VACUUM FULL ANALYZE request_timesheet;
-VACUUM FULL ANALYZE usr;
 VACUUM FULL ANALYZE organisation;
-
-CLUSTER role_member;
-CLUSTER system_usr;
-CLUSTER request_interested;
-CLUSTER request_note;
-CLUSTER request_status;
-CLUSTER request_allocated;
-CLUSTER request_attachment;
-CLUSTER request_quote;
-CLUSTER request_action;
-CLUSTER request_tag;
-CLUSTER request_request;
-CLUSTER request_timesheet;
 
 -- Update the views and procedures in case they have changed
 \i dba/procedures.sql

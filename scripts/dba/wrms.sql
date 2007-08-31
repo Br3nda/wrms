@@ -27,7 +27,7 @@ CREATE TABLE organisation (
   org_type INT DEFAULT 0,
   CONSTRAINT organisation_type_fk
       FOREIGN KEY (org_type) REFERENCES organisation_types(org_type)
-      ON DELETE RESTRICT ON UPDATE RESTRICT;
+      ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ;
 
 CREATE TABLE org_system (
@@ -72,7 +72,7 @@ CREATE TABLE request (
   detailed TEXT,
   system_id	INT4 NOT NULL REFERENCES work_system(system_id),
   entered_by INT4 REFERENCES usr(user_no),
-  parent_request INT4 REFERENCES request(request_id) ON UPDATE CASCADE
+  parent_request INT4 REFERENCES request(request_id) ON UPDATE CASCADE ON DELETE RESTRICT DEFERRABLE INITIALLY DEFERRED
 ) ;
 CREATE INDEX xak0_request ON request ( active, request_id );
 CREATE INDEX xak1_request ON request ( active, severity_code );
@@ -81,7 +81,7 @@ CREATE INDEX xak3_request ON request ( active, request_by );
 CREATE INDEX xak4_request ON request ( active, last_status );
 
 CREATE TABLE request_status (
-  request_id INT4 REFERENCES request(request_id) ON UPDATE CASCADE,
+  request_id INT4 REFERENCES request(request_id) ON UPDATE CASCADE ON DELETE RESTRICT DEFERRABLE INITIALLY DEFERRED,
   status_on TIMESTAMP,
   status_by_id INT4 REFERENCES usr(user_no),
   status_by TEXT,
@@ -91,7 +91,7 @@ CREATE INDEX xpk_request_status ON request_status ( request_id, status_on );
 
 CREATE TABLE request_quote (
   quote_id SERIAL PRIMARY KEY,
-  request_id INT4 REFERENCES request(request_id) ON UPDATE CASCADE,
+  request_id INT4 REFERENCES request(request_id) ON UPDATE CASCADE ON DELETE RESTRICT DEFERRABLE INITIALLY DEFERRED,
   quoted_on TIMESTAMP DEFAULT current_timestamp,
   quote_amount FLOAT8,
   quote_by_id INT4 REFERENCES usr(user_no),
@@ -108,7 +108,7 @@ CREATE INDEX request_quote_sk1 ON request_quote ( request_id );
 
 
 CREATE TABLE request_allocated (
-  request_id INT4 REFERENCES request(request_id) ON UPDATE CASCADE,
+  request_id INT4 REFERENCES request(request_id) ON UPDATE CASCADE ON DELETE RESTRICT DEFERRABLE INITIALLY DEFERRED,
   allocated_on TIMESTAMP DEFAULT current_timestamp,
   allocated_to_id INT4 REFERENCES usr(user_no),
   allocated_to TEXT
@@ -116,7 +116,7 @@ CREATE TABLE request_allocated (
 
 CREATE TABLE request_timesheet (
   timesheet_id SERIAL PRIMARY KEY,
-  request_id INT4 REFERENCES request(request_id) ON UPDATE CASCADE,
+  request_id INT4 REFERENCES request(request_id) ON UPDATE CASCADE ON DELETE RESTRICT DEFERRABLE INITIALLY DEFERRED,
   work_on TIMESTAMP WITHOUT TIME ZONE,
   ok_to_charge BOOL,
   work_quantity FLOAT8,
@@ -131,7 +131,8 @@ CREATE TABLE request_timesheet (
   work_units TEXT,
   charged_details TEXT,
   entry_details TEXT,
-  dav_etag TEXT
+  dav_etag TEXT,
+  review_needed BOOLEAN DEFAULT FALSE
 );
 CREATE INDEX request_timesheet_skey1 ON request_timesheet ( work_on, work_by_id, request_id );
 CREATE INDEX request_timesheet_skey2 ON request_timesheet ( ok_to_charge, request_id );
@@ -146,7 +147,7 @@ CREATE TABLE timesheet_note (
 ) ;
 
 CREATE TABLE request_note (
-  request_id INT4 REFERENCES request(request_id) ON UPDATE CASCADE,
+  request_id INT4 REFERENCES request(request_id) ON UPDATE CASCADE ON DELETE RESTRICT DEFERRABLE INITIALLY DEFERRED,
   note_on TIMESTAMP DEFAULT current_timestamp,
   note_by_id INT4 REFERENCES usr(user_no),
   note_by TEXT,
@@ -155,7 +156,7 @@ CREATE TABLE request_note (
 );
 
 CREATE TABLE request_qa_action (
-  request_id INT4 REFERENCES request ( request_id ) ON UPDATE CASCADE,
+  request_id INT4 REFERENCES request ( request_id ) ON UPDATE CASCADE ON DELETE RESTRICT DEFERRABLE INITIALLY DEFERRED,
   action_on TIMESTAMP DEFAULT current_timestamp,
   action_by INT4 REFERENCES usr ( user_no ),
   action_detail TEXT,
@@ -163,15 +164,15 @@ CREATE TABLE request_qa_action (
 );
 
 CREATE TABLE request_interested (
-  request_id INT4 REFERENCES request(request_id) ON UPDATE CASCADE,
+  request_id INT4 REFERENCES request(request_id) ON UPDATE CASCADE ON DELETE RESTRICT DEFERRABLE INITIALLY DEFERRED,
   user_no INT4 REFERENCES usr(user_no),
   username TEXT,
   PRIMARY KEY ( request_id, user_no )
 ) ;
 
 CREATE TABLE request_request (
-  request_id INT4 REFERENCES request(request_id) ON UPDATE CASCADE,
-  to_request_id INT4 REFERENCES request(request_id) ON UPDATE CASCADE,
+  request_id INT4 REFERENCES request(request_id) ON UPDATE CASCADE ON DELETE RESTRICT DEFERRABLE INITIALLY DEFERRED,
+  to_request_id INT4 REFERENCES request(request_id) ON UPDATE CASCADE ON DELETE RESTRICT DEFERRABLE INITIALLY DEFERRED,
   link_type CHAR,
   link_data TEXT,
   PRIMARY KEY ( request_id, link_type, to_request_id )
@@ -190,7 +191,7 @@ CREATE INDEX xpk_request_history ON request_history ( request_id, modified_on );
 ---------------------------------------------------------------
 CREATE TABLE request_attachment (
   attachment_id SERIAL PRIMARY KEY,
-  request_id INT4 REFERENCES request(request_id) ON UPDATE CASCADE,
+  request_id INT4 REFERENCES request(request_id) ON UPDATE CASCADE ON DELETE RESTRICT DEFERRABLE INITIALLY DEFERRED,
   attached_on TIMESTAMP DEFAULT current_timestamp,
   attached_by INT4 REFERENCES usr(user_no),
   att_brief TEXT,
@@ -330,7 +331,7 @@ CREATE TABLE organisation_tag (
 CREATE INDEX organisation_tag_sk1 ON organisation_tag( org_code, tag_sequence, lower(tag_description) );
 
 CREATE TABLE request_tag (
-   request_id INT4 REFERENCES request(request_id) ON UPDATE CASCADE,
+   request_id INT4 REFERENCES request(request_id) ON UPDATE CASCADE ON DELETE RESTRICT DEFERRABLE INITIALLY DEFERRED,
    tag_id INT4 REFERENCES organisation_tag,
    tagged_on TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp,
    PRIMARY KEY ( request_id, tag_id )
@@ -338,7 +339,7 @@ CREATE TABLE request_tag (
 CREATE INDEX request_tag_sk1 ON request_tag( tag_id );
 
 CREATE TABLE organisation_action (
-  action_id SERIAL,
+  action_id SERIAL PRIMARY KEY,
   org_code  INT4 REFERENCES organisation(org_code),
   action_description  TEXT,
   action_sequence INT4 DEFAULT 0,
@@ -431,7 +432,7 @@ constraint PK_QA_MODEL_STEP primary key (qa_model_id, qa_step_id)
 
 
 CREATE TABLE request_project (
-request_id           INT4                 PRIMARY KEY not null REFERENCES request(request_id) ON UPDATE CASCADE,
+request_id           INT4                 PRIMARY KEY not null REFERENCES request(request_id) ON UPDATE CASCADE ON DELETE RESTRICT DEFERRABLE INITIALLY DEFERRED,
 project_manager      INT4                 null REFERENCES usr (user_no),
 qa_mentor            INT4                 null REFERENCES usr (user_no),
 qa_model_id          INT4                 null REFERENCES qa_model (qa_model_id),
@@ -456,13 +457,13 @@ comment on column request_project.qa_phase is
 
 
 CREATE TABLE qa_project_step (
-project_id           INT4                 not null REFERENCES request_project (request_id) ON UPDATE CASCADE,
+project_id           INT4                 not null REFERENCES request_project (request_id) ON UPDATE CASCADE ON DELETE RESTRICT DEFERRABLE INITIALLY DEFERRED,
 qa_step_id           INT4                 not null REFERENCES qa_step(qa_step_id),
-request_id           INT4                 not null REFERENCES request(request_id) ON UPDATE CASCADE,
+request_id           INT4                 not null REFERENCES request(request_id) ON UPDATE CASCADE ON DELETE RESTRICT DEFERRABLE INITIALLY DEFERRED,
 responsible_usr      INT4                 null REFERENCES usr (user_no),
 responsible_datetime TIMESTAMP            null,
 notes                TEXT                 null,
-constraint PK_QA_PROJECT_STEP primary key (project_id, qa_step_id) ON UPDATE CASCADE
+constraint PK_QA_PROJECT_STEP primary key (project_id, qa_step_id)
 );
 
 
@@ -488,7 +489,7 @@ comment on column qa_project_step.responsible_datetime is
 
 CREATE TABLE qa_project_approval (
 qa_approval_id       SERIAL               not null PRIMARY KEY,
-project_id           INT4                 not null REFERENCES request_project (request_id) ON UPDATE CASCADE,
+project_id           INT4                 not null REFERENCES request_project (request_id) ON UPDATE CASCADE ON DELETE RESTRICT DEFERRABLE INITIALLY DEFERRED,
 qa_step_id           INT4                 not null REFERENCES qa_step(qa_step_id),
 qa_approval_type_id  INT4                 not null REFERENCES qa_approval_type(qa_approval_type_id),
 approval_status      TEXT                 null
@@ -499,7 +500,7 @@ approval_by_usr      INT4                 null REFERENCES usr (user_no),
 approval_datetime    TIMESTAMP            null,
 comment              TEXT                 null,
 constraint FK_PROJECT_QA_APPROVAL_STEP FOREIGN KEY (project_id, qa_step_id)
-      REFERENCES qa_project_step (project_id, qa_step_id) ON UPDATE CASCADE
+      REFERENCES qa_project_step (project_id, qa_step_id) ON UPDATE CASCADE ON DELETE RESTRICT DEFERRABLE INITIALLY DEFERRED
 );
 
 comment on table qa_project_approval is
@@ -520,13 +521,13 @@ comment on column qa_project_approval.comment is
 
 
 CREATE TABLE qa_project_step_approval (
-project_id           INT4                 not null REFERENCES request_project (request_id) ON UPDATE CASCADE,
+project_id           INT4                 not null REFERENCES request_project (request_id) ON UPDATE CASCADE ON DELETE RESTRICT DEFERRABLE INITIALLY DEFERRED,
 qa_step_id           INT4                 not null REFERENCES qa_step(qa_step_id),
 qa_approval_type_id  INT4                 not null REFERENCES qa_approval_type (qa_approval_type_id),
 last_approval_status TEXT                 null
       constraint CKC_LAST_APPROVAL_STA_QA_PROJE check (last_approval_status is null or ( last_approval_status in ('p','y','n','s') )),
 constraint PK_QA_PROJECT_STEP_APPROVAL primary key (project_id, qa_step_id, qa_approval_type_id),
-constraint FK_PROJ_STEP_APPROVAL FOREIGN KEY (project_id, qa_step_id) REFERENCES qa_project_step (project_id, qa_step_id) ON UPDATE CASCADE
+constraint FK_PROJ_STEP_APPROVAL FOREIGN KEY (project_id, qa_step_id) REFERENCES qa_project_step (project_id, qa_step_id) ON UPDATE CASCADE ON DELETE RESTRICT DEFERRABLE INITIALLY DEFERRED
 );
 
 
@@ -539,6 +540,33 @@ comment on column qa_project_step_approval.project_id is
 comment on column qa_project_step_approval.qa_step_id is
 'This is the QA Step being processed for the given project.';
 
+
+CREATE TABLE request_action (
+   request_id INT4 REFERENCES request(request_id) ON UPDATE CASCADE ON DELETE RESTRICT DEFERRABLE INITIALLY DEFERRED,
+   action_id INT4 REFERENCES organisation_action(action_id),
+   completed_on TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp,
+   updated_by_id INT4 REFERENCES usr( user_no ),
+   PRIMARY KEY ( request_id, action_id )
+);
+CREATE INDEX request_action_sk1 ON request_action( action_id );
+
+GRANT INSERT, UPDATE, SELECT, DELETE ON
+  request_action, organisation_action, organisation_action_action_id_seq,
+  attachment_type
+  TO general;
+
+CREATE TABLE caldav_data (
+  user_no INT references usr(user_no) ON UPDATE CASCADE ON DELETE CASCADE DEFERRABLE,
+  dav_name TEXT,
+  dav_etag TEXT,
+  caldav_data TEXT,
+  caldav_type TEXT,
+  logged_user INT references usr(user_no),
+
+  PRIMARY KEY ( user_no, dav_name )
+);
+
+GRANT SELECT,INSERT,UPDATE,DELETE ON caldav_data TO general;
 
 
 -- Alterations to the tables added by the AWL initialisation
@@ -572,6 +600,8 @@ ALTER TABLE usr ADD organisation text;
 ALTER TABLE usr ADD mail_style	character(1);
 ALTER TABLE usr ADD note	character(1);
 ALTER TABLE usr ADD base_rate	numeric;
+
+ALTER TABLE session ADD COLUMN help BOOLEAN DEFAULT FALSE;
 
 
 -- Superseded by the AWL revision table, but we'll keep it for the time being

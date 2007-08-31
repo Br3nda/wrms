@@ -2614,7 +2614,7 @@ class qa_project_approval {
 
     if ($this->qa_approval_id == 0) {
       // New record - grab next sequence value..
-      $qry = new PgQuery("SELECT NEXTVAL('seq_qa_approval_id')");
+      $qry = new PgQuery("SELECT NEXTVAL('qa_project_approval_qa_approval_id_seq')");
       if ($qry->Exec()) {
         $row = $qry->Fetch(true);
         $this->qa_approval_id = $row[0];

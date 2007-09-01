@@ -160,16 +160,20 @@ EOSCRIPT;
               array( "size" => 70, "title" => "The name of the organisation.") );
 
     // Abbreviation
-    $html .= $ef->DataEntryLine( "Abbrev", $this->abbreviation, "text", "abbreviation",
+    $html .= $ef->DataEntryLine( "Abbrev", "%s", "text", "abbreviation",
               array("size" => "8", "title" => "A short abbreviation for the organisation.") );
 
-    $html .= $ef->DataEntryLine( "SLA?", ($this->current_sla == 't' ? "Current SLA" : "No SLA"), "checkbox", "current_sla",
+    $html .= $ef->DataEntryLine( "Type", $this->Get("org_type_desc"), "lookup", "org_type",
+              array("title" => "The type of organisation: Client, Primary Support or Subcontractor.",
+                    "_sql" => "SELECT org_type, type_name FROM organisation_types ORDER BY org_type") );
+
+    $html .= $ef->DataEntryLine( "SLA?", ($this->Get("current_sla") == 't' ? "Current SLA" : "No SLA"), "checkbox", "current_sla",
               array("title" => "Does this organisation have an SLA?") );
 
-    $html .= $ef->DataEntryLine( "Debtor #", $this->debtor_no, "integer", "debtor_no",
+    $html .= $ef->DataEntryLine( "Debtor #", "%s", "integer", "debtor_no",
               array("size" => "5", "title" => "The code for this organisation in the accounting system.") );
 
-    $html .= $ef->DataEntryLine( "Hourly Rate", $this->work_rate, "numeric", "work_rate",
+    $html .= $ef->DataEntryLine( "Hourly Rate", "%s", "numeric", "work_rate",
               array("size" => "8", "title" => "The default hourly rate for this organisation.") );
 
     return $html;

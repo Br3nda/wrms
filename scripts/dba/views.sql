@@ -9,11 +9,12 @@ CREATE OR REPLACE VIEW organisation_plus AS
       abbreviation, org_name, current_sla, admin_user_no, general_system,
       work_system.system_id, work_system.system_code, work_system.active AS system_active, system_desc, organisation_specific,
       usr.active AS usr_active, email_ok, joined, last_update, username, password, fullname, email, location, mobile, phone,
-      system_usr.role
+      system_usr.role, org_type, organisation_types.type_name AS org_type_desc
     FROM organisation
       LEFT JOIN work_system ON organisation.general_system = work_system.system_id
       LEFT JOIN usr ON organisation.admin_user_no = usr.user_no
-      LEFT JOIN system_usr ON system_usr.user_no = usr.user_no AND system_usr.system_id = work_system.system_id;
+      LEFT JOIN system_usr ON system_usr.user_no = usr.user_no AND system_usr.system_id = work_system.system_id
+      LEFT JOIN organisation_types USING (org_type );
 
 CREATE or REPLACE RULE organisation_plus_insert AS ON INSERT TO organisation_plus
 DO INSTEAD
@@ -35,14 +36,15 @@ DO INSTEAD
       COALESCE( NEW.last_update, current_timestamp),
       NEW.username, NEW.password, NEW.fullname, NEW.email, NEW.location, NEW.mobile, NEW.phone
     );
-  INSERT INTO organisation ( org_code, active, debtor_no, work_rate, abbreviation, org_name, current_sla, admin_user_no, general_system )
+  INSERT INTO organisation ( org_code, active, debtor_no, work_rate, abbreviation, org_name, current_sla, admin_user_no, general_system, org_type )
     VALUES(
       COALESCE( NEW.org_code, nextval('organisation_org_code_seq')),
       COALESCE( NEW.org_active, TRUE),
       NEW.debtor_no, NEW.work_rate, NEW.abbreviation, NEW.org_name,
       COALESCE( NEW.current_sla, FALSE),
       COALESCE( NEW.admin_user_no, currval('usr_user_no_seq')),
-      COALESCE( NEW.general_system, currval('work_system_system_id_seq'))
+      COALESCE( NEW.general_system, currval('work_system_system_id_seq')),
+      COALESCE( NEW.org_type, 0)
     );
   UPDATE usr SET org_code = COALESCE( NEW.org_code, currval('organisation_org_code_seq'))
     WHERE user_no = COALESCE( NEW.admin_user_no, currval('usr_user_no_seq'));
@@ -87,7 +89,8 @@ DO INSTEAD
       work_rate=NEW.work_rate,
       abbreviation=NEW.abbreviation,
       org_name=NEW.org_name,
-      current_sla=NEW.current_sla
+      current_sla=NEW.current_sla,
+      org_type=NEW.org_type
     WHERE org_code=OLD.org_code;
 );
 

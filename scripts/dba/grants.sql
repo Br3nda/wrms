@@ -26,7 +26,8 @@ GRANT INSERT, UPDATE, SELECT ON
   qa_project_step_approval,
   qa_step,
   request_project,
-  request_qa_action
+  request_qa_action,
+  organisation_types
   TO general;
 
 

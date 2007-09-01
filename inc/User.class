@@ -29,8 +29,8 @@ class User {
       $this->box_rows  = "10";
       $this->box_cols  = "60";
 
-      if ( isset($GLOBALS['org_code']) && !($session->AllowedTo('Admin') || $session->AllowedTo('Support'))) {
-        $this->org_code = intval($GLOBALS['org_code']);
+      if ( !$session->AllowedTo('see_other_orgs') ) {
+        $this->org_code = $session->org_code;
       }
 
       // Assign some template-based defaults

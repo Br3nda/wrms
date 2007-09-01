@@ -169,7 +169,6 @@ SCRIPT;
 
       $html .= '<td class="entry" align="center">';
       $options = array_merge($roles, array("title" => "Select the default role people have in relation to this system"));
-      $this->role[$row->system_id] = $row->role;
       $html .= $ef->DataEntryField( "", "select", "default_role", $options );
       $html .= "</td></tr>";
       echo $html;

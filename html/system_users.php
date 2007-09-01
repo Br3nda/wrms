@@ -81,8 +81,7 @@ function write_system_roles( $roles, $system_id ) {
 
   $sql .= "AND ( EXISTS(SELECT 1 FROM org_system WHERE organisation.org_code = org_system.org_code AND org_system.system_id = ".qpg($system_id) .") ";
   if ( ( $session->AllowedTo("Admin") || $session->AllowedTo("Support") ) ) {
-    $sql .= "OR EXISTS(SELECT 1 FROM usr u JOIN role_member USING (user_no) JOIN roles USING (role_no) ";
-    $sql .= "WHERE organisation.org_code = u.org_code AND roles.role_name = 'Support') ";
+    $sql .= "OR organisation.org_type = 1 ";  /** Primary Support Organisation */
   }
   $sql .= ") ";
 

@@ -40,14 +40,20 @@ class Organisation {
   function ReadOrganisation( $id ) {
     global $session, $client_messages, $debuggroups;
 
+    $this->org_code = intval($id);
+
     // Try and load it from file
-    $sql = "SELECT organisation.*, usr.fullname AS admin_user_fullname, work_system.system_desc AS general_system_name ";
+    $sql = "SELECT organisation.*, usr.fullname AS admin_user_fullname, work_system.system_desc AS general_system_name, organisation_types.type_name AS org_type_desc ";
     $sql .= " FROM organisation ";
     $sql .= "LEFT JOIN usr ON usr.user_no = organisation.admin_user_no ";
     $sql .= "LEFT JOIN work_system ON work_system.system_id = organisation.general_system ";
-    $sql .= " WHERE organisation.org_code = '$id'";
-    if ( !($session->AllowedTo('Admin') || $session->AllowedTo('Support')) )
-      $sql .= " AND organisation.org_code = '$session->org_code' ";
+    $sql .= "LEFT JOIN organisation_types USING( org_type ) ";
+    if ( $this->AllowedTo('see_other_orgs')  ) {
+      $sql .= " WHERE organisation.org_code = '$this->org_code'";
+    }
+    else {
+      $sql .= " WHERE organisation.org_code = '$session->org_code' ";
+    }
 
     if ( $qry = new PgQuery($sql) ) {
       if ( $qry->Exec("newOrganisation")
@@ -80,37 +86,35 @@ class Organisation {
   }
 
 
-  /////////////////////////////////////////////////////////////
-  // AllowedTo - Can the user do that to this rorganisation
-  /////////////////////////////////////////////////////////////
+  /**
+  * AllowedTo - Can the user do that to this organisation?
+  *
+  * @param string $action The role we want to know if the user has.
+  * @return boolean Whether or not the user may perform the action.
+  */
   function AllowedTo( $action ) {
-    global $session, $debuggroups;
+    global $session;
 
-    $answer = false;
     if ( $session->AllowedTo('Admin') || $session->AllowedTo('Support') ) {
-      $answer = true;  // Of course they can!
+      return true;  // Of course they can!
     }
-    elseif ( $action == 'view' && $session->org_code == $this->org_code ) {
-      $answer = true;
+    switch( $action ) {
+      case 'view':
+        return ($session->org_code == $this->org_code);
+      case 'update':
+        return (($session->org_code == $this->org_code) && $session->AllowedTo("OrgMgr") );
+      case 'see_other_orgs':
+      case 'edit_extras':
+        return false;   /** just to make it clear */
     }
-    elseif ( $action == 'update' && $session->org_code == $this->org_code
-                && ($session->AllowedTo("Manage") || $session->AllowedTo("OrgMgr"))) {
-      $answer = true;
-    }
-    if ( isset($debuggroups['WorkSystem']) && $debuggroups['WorkSystem'] ) {
-      $roles = "";
-      foreach( $session->system_roles AS $k => $v ) { $roles .= ($roles == "" ? "":",") . "$k=$v"; }
-      $session->Log("WS::AllowedTo: action '%s' to %s, Org:%d, userOrg:%d - result is: %d",
-                        $action, $session->username, $this->org_code, $session->org_code, $answer );
-    }
-    return $answer;
+    return false;
   }
 
-  /////////////////////////////////////////////////////////////
-  // Render - Return HTML to show the W/R
-  //   A separate function is called for each logical area
-  //   on the W/R.
-  /////////////////////////////////////////////////////////////
+  /**
+  * Render - Return HTML to show the W/R
+  *   A separate function is called for each logical area
+  *   on the W/R.
+  */
   function Render( ) {
 
     if ( ! $this->AllowedTo('view') ) {
@@ -162,11 +166,14 @@ class Organisation {
     $html .= $ef->DataEntryLine( "Abbrev", $this->abbreviation, "text", "abbreviation",
               array("size" => "8", "title" => "A short abbreviation for the organisation.") );
 
-    // Active?
-    $html .= $ef->DataEntryLine( "Active?", ($this->active == 't' ? "Active" : "Inactive"), "checkbox", "active",
+    if ( $this->AllowedTo('edit_extras') ) {
+      $html .= $ef->DataEntryLine( "Active?", ($this->active == 't' ? "Active" : "Inactive"), "checkbox", "active",
               array("title" => "Is this organisation still active?") );
 
-    if ( $this->AllowedTo('adminfields') ) {
+      $html .= $ef->DataEntryLine( "Type", $this->org_type_desc, "lookup", "org_type",
+              array("title" => "The type of organisation: Client, Primary Support or Subcontractor.",
+                    "_sql" => "SELECT org_type, type_name FROM organisation_types ORDER BY org_type") );
+
       $html .= $ef->DataEntryLine( "SLA?", ($this->current_sla == 't' ? "Current SLA" : "No SLA"), "checkbox", "current_sla",
                 array("title" => "Does this organisation have an SLA?") );
 
@@ -188,6 +195,9 @@ class Organisation {
                       "_null" => "--- select system ---",
                       "title" => "The system for general requests for this organisation." ) );
     }
+    else {
+      $html .= $ef->DataEntryLine( "SLA?", ($this->current_sla == 't' ? "Current SLA" : "No SLA") );
+    }
 
     return $html;
   }
@@ -198,22 +208,18 @@ class Organisation {
     $html = "";
     $sql = "SELECT DISTINCT work_system.*, lower(system_desc) AS lower_desc, ";
     $sql .= "EXISTS( SELECT 1 FROM org_system WHERE org_system.system_id = work_system.system_id AND org_code = $this->org_code ) AS applies ";
-    if ( $ef->editmode && ($session->AllowedTo('Admin') || $session->AllowedTo('Support')) ) {
+    if ( $ef->editmode && $this->AllowedTo('edit_extras') ) {
       $sql .= "FROM work_system LEFT JOIN org_system USING ( system_id ) ";
       $sql .= "WHERE active ";
       $sql .= "AND (org_system.org_code = $this->org_code OR work_system.organisation_specific = FALSE) ";
     }
-    elseif ( $session->AllowedTo('Admin') || $session->AllowedTo('Support') ) {
+    else {
       $sql .= "FROM work_system JOIN org_system USING ( system_id ) ";
       $sql .= "WHERE active AND org_system.org_code = $this->org_code ";
     }
-    else {
-      $sql .= "FROM work_system JOIN org_system USING ( system_id ) ";
-      $sql .= "WHERE active AND org_system.org_code = $session->org_code ";
-    }
     $sql .= "ORDER BY lower(system_desc)";
 
-    # Select the records
+    // Select the records
     $q = new PgQuery($sql);
     $column = 0;
     if ( $q && $q->Exec("Organisation") && $q->rows ) {
@@ -222,7 +228,7 @@ class Organisation {
       while( $row = $q->Fetch() ) {
         if ( $column % 3 == 0 ) $html .= "<tr>";
         $html .= "<td width=\"33%\">";
-        if ( $ef->editmode  && ($session->AllowedTo('Admin') || $session->AllowedTo('Support')) ) {
+        if ( $ef->editmode  && $this->AllowedTo('edit_extras') ) {
           $ef->record->applies[$row->system_id] = "$row->applies";
           $html .= sprintf("<label style=\"color: %s\">", ( "$row->applies" == "t" ? "red" : "black") );
           $html .= $ef->DataEntryField( "", "checkbox", "applies[$row->system_id]",
@@ -246,15 +252,14 @@ class Organisation {
   }
 
   function RenderTags( $ef ) {
-    global $session, $org_code;
+    global $session;
     $html = "";
-    $sql = "SELECT * ";
-    $sql .= "FROM organisation_tag  ";
-    if ( $session->AllowedTo('Admin') || $session->AllowedTo('Support') ) {
-      $sql .= "WHERE organisation_tag.org_code = ".intval($org_code);
+    $sql = "SELECT * FROM organisation_tag ";
+    if ( $this->AllowedTo('see_other_orgs') ) {
+      $sql .= "WHERE organisation_tag.org_code = ".$this->org_code;
     }
     else {
-      $sql .= "WHERE organisation_tag.org_code = ".intval($session->org_code);
+      $sql .= "WHERE organisation_tag.org_code = ".$session->org_code;
     }
     $sql .= " ORDER BY tag_sequence, lower(tag_description)";
 
@@ -268,7 +273,7 @@ class Organisation {
       while( $row = $q->Fetch() ) {
         if ( $column % 3 == 0 ) $html .= "<tr>";
         $html .= "<td width=\"33%\">";
-        if ( $ef->editmode  && ($session->AllowedTo('Admin') || $session->AllowedTo('Support')) ) {
+        if ( $ef->editmode  && $this->AllowedTo('update') ) {
           $ef->record->tag_active[$row->tag_id] = "$row->active";
           $session->Log( "DBG: Tag active: $row->tag_id, $row->active" );
           $_POST['tag_active'][$row->tag_id] = $row->active;
@@ -303,16 +308,9 @@ class Organisation {
 
 
   function RenderActions( $ef ) {
-    global $session, $org_code;
+    global $session;
     $html = "";
-    $sql = "SELECT * ";
-    $sql .= "FROM organisation_action  ";
-    if ( $session->AllowedTo('Admin') || $session->AllowedTo('Support') ) {
-      $sql .= "WHERE organisation_action.org_code = ".intval($org_code);
-    }
-    else {
-      $sql .= "WHERE organisation_action.org_code = ".intval($session->org_code);
-    }
+    $sql = "SELECT * FROM organisation_action WHERE organisation_action.org_code = ".$this->org_code;
     $sql .= " ORDER BY action_sequence, lower(action_description)";
 
     # Select the records
@@ -327,7 +325,7 @@ class Organisation {
         if ( $row->action_sequence >= $max_sequence ) $max_sequence = $row->action_sequence + 100;
         if ( $column % 3 == 0 ) $html .= "<tr>";
         $html .= "<td width=\"33%\">";
-        if ( $ef->editmode  && ($session->AllowedTo('Admin') || $session->AllowedTo('Support')) ) {
+        if ( $ef->editmode  && $this->AllowedTo('update') ) {
           $ef->record->action_active[$row->action_id] = "$row->active";
           $session->Log( "DBG: Action active: $row->action_id, $row->active" );
           $_POST['action_active'][$row->action_id] = $row->active;
@@ -377,7 +375,7 @@ class Organisation {
     if ( isset($_POST) ) {
       $valid = true;
       $_POST['abbreviation'] = substr(strtoupper(trim("$_POST[abbreviation]")), 0, 12);
-      if ( $this->AllowedTo('adminfields') ) {
+      if ( $this->AllowedTo('edit_extras') ) {
         $_POST['active'] = ( isset($_POST['active']) ? $_POST['active'] : 'f' );
         $_POST['current_sla'] = ( isset($_POST['current_sla']) ? $_POST['current_sla'] : 'f' );
         $_POST['debtor_no'] = intval($_POST['debtor_no']);
@@ -434,8 +432,8 @@ class Organisation {
       }
 
       // If the organisation is inactive, ensure all users are also inactive
-      if ( $_POST['active'] != 'on' ) {
-        $qry = new PgQuery("UPDATE usr SET status = 'I' WHERE org_code = $this->org_code;" );
+      if ( isset($_POST['active']) && $_POST['active'] != 'on' ) {
+        $qry = new PgQuery("UPDATE usr SET active = false WHERE org_code = $this->org_code;" );
         $qry->Exec("Org::Write");
       }
 

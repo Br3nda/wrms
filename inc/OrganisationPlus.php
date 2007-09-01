@@ -57,6 +57,7 @@ class OrganisationPlus extends DBRecord {
     $this->DBRecord();
 
     $this->org_code = $id;
+    if ( ! $this->AllowedTo('see_other_orgs')  ) $this->org_code = $session->org_code;
     $keys['org_code'] = $this->org_code;
 
     // Initialise the record
@@ -92,6 +93,32 @@ class OrganisationPlus extends DBRecord {
     $this->validation->AddRule("email", "You have not entered an email address.", "not_empty");
     $this->validation->AddRule("email", "Your email address is invalid.", "valid_email_format");
   }
+
+
+  /**
+  * AllowedTo - Can the user do that to this organisation?
+  *
+  * @param string $action The role we want to know if the user has.
+  * @return boolean Whether or not the user may perform the action.
+  */
+  function AllowedTo( $action ) {
+    global $session;
+
+    if ( $session->AllowedTo('Admin') || $session->AllowedTo('Support') ) {
+      return true;  // Of course they can!
+    }
+    switch( $action ) {
+      case 'view':
+        return ($session->org_code == $this->org_code);
+      case 'update':
+        return (($session->org_code == $this->org_code) && $session->AllowedTo("OrgMgr") );
+      case 'see_other_orgs':
+      case 'edit_extras':
+        return false;   /** just to make it clear */
+    }
+    return false;
+  }
+
 
   /**
   * Render the form / viewer as HTML to show the userclient
@@ -163,18 +190,23 @@ EOSCRIPT;
     $html .= $ef->DataEntryLine( "Abbrev", "%s", "text", "abbreviation",
               array("size" => "8", "title" => "A short abbreviation for the organisation.") );
 
-    $html .= $ef->DataEntryLine( "Type", $this->Get("org_type_desc"), "lookup", "org_type",
+    if ( $this->AllowedTo('edit_extras') ) {
+      $html .= $ef->DataEntryLine( "Type", $this->Get("org_type_desc"), "lookup", "org_type",
               array("title" => "The type of organisation: Client, Primary Support or Subcontractor.",
                     "_sql" => "SELECT org_type, type_name FROM organisation_types ORDER BY org_type") );
 
-    $html .= $ef->DataEntryLine( "SLA?", ($this->Get("current_sla") == 't' ? "Current SLA" : "No SLA"), "checkbox", "current_sla",
+      $html .= $ef->DataEntryLine( "SLA?", ($this->Get("current_sla") == 't' ? "Current SLA" : "No SLA"), "checkbox", "current_sla",
               array("title" => "Does this organisation have an SLA?") );
 
-    $html .= $ef->DataEntryLine( "Debtor #", "%s", "integer", "debtor_no",
+      $html .= $ef->DataEntryLine( "Debtor #", "%s", "integer", "debtor_no",
               array("size" => "5", "title" => "The code for this organisation in the accounting system.") );
 
-    $html .= $ef->DataEntryLine( "Hourly Rate", "%s", "numeric", "work_rate",
+      $html .= $ef->DataEntryLine( "Hourly Rate", "%s", "numeric", "work_rate",
               array("size" => "8", "title" => "The default hourly rate for this organisation.") );
+    }
+    else {
+      $html .= $ef->DataEntryLine( "SLA?", ($this->current_sla == 't' ? "Current SLA" : "No SLA") );
+    }
 
     return $html;
   }
@@ -260,6 +292,20 @@ EOSCRIPT;
     $session->Dbg("OrganisationPlus", "Validate: Validating registration");
 
     $valid = $this->validation->Validate($this);
+
+    if ( ! $this->AllowedTo('edit_extras') ) {
+      if ( isset($_POST['org_type']) || isset($_POST['current_sla']) || isset($_POST['debtor_no']) || isset($_POST['work_rate']) ) {
+        $c->messages[] = "ERROR: You may not modify that data.";
+        $valid = false;
+      }
+    }
+
+    if ( ! $this->AllowedTo('see_other_orgs') ) {
+      if ( isset($_POST['org_code']) && $_POST['org_code'] != $session->org_code ) {
+        $c->messages[] = "ERROR: You may not modify that data.";
+        $valid = false;
+      }
+    }
 
     // Password changing is a little special...
     if ( $_POST['new_password'] != "******" && $_POST['new_password'] != ""  ) {

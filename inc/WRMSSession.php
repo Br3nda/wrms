@@ -78,6 +78,27 @@ class WRMSSession extends Session
   }
 
 
+  /**
+  * Checks whether a user is allowed to do something.
+  *
+  * @param string $whatever The role we want to know if the user has.
+  * @return boolean Whether or not the user has the specified role.
+  */
+  function AllowedTo ( $action ) {
+    if ( ! $this->logged_in ) return false;
+
+    /** Centralised recognition of more specific permissions */
+    switch( $action ) {
+      case 'see_other_orgs':
+        return ( (isset($this->roles['Support']) && $this->roles['Support']) || (isset($this->roles['Admin']) && $this->roles['Admin']) );
+        break;
+
+      default:
+        /** Fall back to older style of looking at the roles directly. */
+        return ( isset($this->roles[$action]) && $this->roles[$action] );
+    }
+  }
+
 
   /**
   * Checks whether this user is an admin

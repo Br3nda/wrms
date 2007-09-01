@@ -1,4 +1,7 @@
 <?php
+/**
+* TODO: 2007-09-01 AndrewMcMillan.  It looks to me like this code is ancient and no longer used.
+*/
   if ( isset($request_id) && $request_id > 0 ) {
 
     /* Complex request mainly because we hook in all of the codes tables for easy display */
@@ -21,7 +24,7 @@
     $query .= " LEFT OUTER JOIN lookup_code AS importance ON importance.source_table='request' AND importance.source_field='importance' AND int4(importance.lookup_code)=request.importance";
     $query .= " LEFT OUTER JOIN work_system USING( system_id )";
     $query .= " WHERE request.request_id = '$request_id'";
-    if (! is_member_of('Admin','Support') ) $query .= " AND organisation.org_code = '$session->org_code' ";
+    if (! $session->AllowedTo('see_other_orgs') ) $query .= " AND organisation.org_code = '$session->org_code' ";
 
     /* now actually query the database... */
     $rid = awm_pgexec( $dbconn, $query, "getrequest", false, 7);

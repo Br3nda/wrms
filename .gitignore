@@ -3,3 +3,7 @@ wrms.bfproject
 wrms.session
 *.pgdump
 *~
+built-docs
+doc/api
+inc/always.php
+

@@ -247,6 +247,9 @@ INDEXNOTLOGGEDIN;
       echo "\n";
     }
 
+    printf( '<link rel="search" type="application/opensearchdescription+xml" title="Get Work Request" href="%s/opensearch.php/request.xml">', $c->base_dns );
+    printf( '<link rel="search" type="application/opensearchdescription+xml" title="Search W/R Text" href="%s/opensearch.php/search.xml">', $c->base_dns );
+
     if ( isset($this->stylesheets) ) {
       foreach ( $this->stylesheets AS $stylesheet ) {
         echo "<link rel=\"stylesheet\" type=\"text/css\" href=\"$stylesheet\" />\n";

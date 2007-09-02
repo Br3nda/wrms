@@ -1,4 +1,12 @@
 <?php
+/**
+* Program to present a pie chart of types of requests, broken down by request status.
+* @package wrms
+* @author    Andrew McMillan <andrew@catalyst.net.nz>
+* @copyright Catalyst .Net Ltd
+* @license   GPLv2
+*/
+
   include("always.php");
   require_once("authorisation-page.php");
   $session->LoginRequired();
@@ -6,12 +14,14 @@
   require_once("maintenance-page.php");
   require_once("organisation-selectors-sql.php");
 
+  /**
+  * We use the same javascript source as the request search screen
+  */
+  $c->scripts[] = "/js/statuspie.js";
 
-  /////////////////////////////////////////////////////////////
-  // Render - Return HTML to show the W/R
-  //   A separate function is called for each logical area
-  //   on the W/R.
-  /////////////////////////////////////////////////////////////
+  /**
+  * Render the form controlling the data for the pie graph.
+  */
   function RenderPieForm( ) {
     global $session, $theme, $search_record;
 
@@ -72,7 +82,7 @@
                     "style" => "width: 12em" ) );
 
     // Type of Request
-    $html .= $ef->DataEntryLine( "Type", $this->request_type_desc, "lookup", "type_code",
+    $html .= $ef->DataEntryLine( "Type", $search_record->request_type_desc, "lookup", "type_code",
               array("_type" => "request|request_type",
                     "_null" => "-- All Types --",
                     "class" => "srchf",
@@ -90,18 +100,6 @@
                     "title" => "Only show requests with action before this date." ) );
     $html .= "<a href=\"javascript:show_calendar('forms.form.to_date');\" onmouseover=\"window.status='Date Picker';return true;\" onmouseout=\"window.status='';return true;\">".$theme->Image("date-picker.gif")."</a> &nbsp; \n";
 
-/*
-    if ( ($session->AllowedTo("Admin") ) ) {
-  //    $html .= "<div id=\"whereclause\">";
-      $html .= $ef->DataEntryLine( "Where", "%s", "text", "where_clause",
-                array( "size" => 60, "class" => "srchf",
-                      "title" => "Add an SQL 'WHERE' clause to further refine the search - you will need to know what you are doing..." ) );
-  //    $html .= "</div>";
-    }
-
-    $html .= $ef->DataEntryField( "%s", "checkbox", "inactive",
-                array("_label" => "inactive", "class" => "srchf", "value" => 1 ) );
-*/
     $html .= $ef->SubmitButton( "submit", "Make Pie",
               array("title" => "Build a Pie Chart with these settings" ) );
 
@@ -115,7 +113,6 @@
 
 
   include("page-header.php");
-  echo '<script language="JavaScript" src="/js/statuspie.js"></script>' . "\n";
 
   echo RenderPieForm();
 

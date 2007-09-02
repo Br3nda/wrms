@@ -50,6 +50,9 @@ function RenderSearchForm( $target_url ) {
   $html .= "<table border=0 cellspacing=2 cellpadding=0 align=center class=row0 width=100% style=\"border: 1px dashed #aaaaaa;\">\n";
   $html .= "<tr><td width=100%><table border=0 cellspacing=0 cellpadding=0 width=100%><tr valign=middle><td width=100%>\n";
 
+  if ( isset($_GET['search_for']) && ! isset( $_POST['search_for']) ) {
+    $_POST['search_for'] = $_GET['search_for'];
+  }
   $html .= $ef->DataEntryLine( "Find", "%s", "text", "search_for",
             array( "size" => 10, "class" => "srchf",
                    "title" => "Search for free text in the request or notes.  Regular expressions are OK too." ) );

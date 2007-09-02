@@ -42,7 +42,7 @@ ALTER TABLE usr_setting ADD COLUMN user_no INT;
 UPDATE usr_setting SET user_no = usr.user_no FROM usr WHERE usr.username = usr_setting.username;
 ALTER TABLE usr_setting DROP COLUMN username;
 DELETE FROM usr_setting WHERE user_no IS NULL;
-ALTER TABLE usr_setting ADD CONSTRAINT user_no_fk FOREIGN KEY (user_no) REFERENCES usr (user_no);
+ALTER TABLE usr_setting ADD CONSTRAINT usr_setting_user_no_fkey FOREIGN KEY (user_no) REFERENCES usr (user_no) ON DELETE CASCADE ON UPDATE CASCADE;
 
 
 -- And finally commit that to make it a logical unit...

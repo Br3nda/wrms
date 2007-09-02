@@ -1,6 +1,6 @@
 <!DOCTYPE webproject>
 <webproject>
-  <project usePreviewPrefix="0" preview="http://mywrms/" type="Local" previewPrefix="file:file%3A" newfiles="php" name="WRMS" encoding="iso 8859-1" >
+  <project usePreviewPrefix="0" preview="http://mywrms/" previewPrefix="file:file%3A" type="Local" newfiles="php" name="WRMS" encoding="iso 8859-1" >
     <upload/>
     <author>Andrew McMillan</author>
     <email>wrms@catalyst.net.nz</email>
@@ -41,7 +41,6 @@
     <item url="config/" uploadstatus="0" />
     <item modified_time="1066609898" url="config/config-example.php" uploadstatus="0" />
     <item url="inc/" uploadstatus="0" />
-    <item modified_time="1126042144" url="inc/always.php" uploadstatus="0" />
     <item modified_time="1065339507" url="inc/sidebarright.php" uploadstatus="0" />
     <item url="inc/error.php" uploadstatus="0" />
     <item url="inc/help-action.php" uploadstatus="0" />
@@ -321,6 +320,9 @@
     <item url="scripts/create-database.sh" uploadstatus="1" />
     <item url="scripts/patches/patch-1.99.14.sql" uploadstatus="1" />
     <item url="scripts/patches/patch-1.99.15.sql" uploadstatus="1" />
-    <item url="scripts/patches/patch-1.99.16.sql" />
+    <item url="scripts/patches/patch-1.99.16.sql" uploadstatus="1" />
+    <item url="html/opensearch.php" />
+    <item url="html/js/statuspie.js" />
+    <item url="inc/in.always.php" />
   </project>
 </webproject>

@@ -1,3 +1,18 @@
+wrms (2.6.0) unstable; urgency=low
+
+  * Large adjustment to referential integrity constraints to allow usr,
+    work_system, organisation and request records to be renumbered.
+  * Fixed status pie chart.
+  * Fix some javascript errors.
+  * Add organisation_types table and allow assignment of types to
+    organisations.
+  * Some improvements to permissions handling.
+  * Essentially complete attempts to synchronise database migrated forward
+    with a database which is freshly created.  Full SQL inserts should now
+    work.
+
+ -- Andrew McMillan <debian@mcmillan.net.nz>  Sun, 02 Sep 2007 21:21:17 +1200
+
 wrms (2.5.5) unstable; urgency=low
 
   * Support icons for themes.

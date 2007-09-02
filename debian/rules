@@ -7,7 +7,7 @@ dt=debian/$(package)
 
 build: inc html
 	$(checkdir)
-	phpdoc -c debian/$(package)-phpdoc.ini
+	make
 	touch build
 
 clean:
@@ -24,8 +24,8 @@ binary-indep: checkroot build
 	install -d $(dt) $(dt)/DEBIAN $(dt)/etc/$(package) \
 		$(dt)/usr/share/$(package) $(dt)/usr/share/doc/$(package) \
 		$(dt)/var/lib/$(package)
-	cp -a html $(dt)/usr/share/$(package)
-	-rm $(dt)/usr/share/$(package)/html/attachments
+	find html -type d ! -name 'attachments' -print0 | xargs -0 -i mkdir $(dt)/usr/share/$(package)/{}
+	find html -type f ! -regex 'html/attachments/[0-9]+' -print0 | xargs -0 -i cp {} $(dt)/usr/share/$(package)/{}
 	cd $(dt)/usr/share/$(package)/html && ln -s /var/lib/$(package)/attachments
 	cp -a scripts $(dt)/usr/share/$(package)
 	cp -a inc $(dt)/usr/share/$(package)

@@ -698,7 +698,7 @@ EOHDR;
   <tr>
     <td width="41%" height="10" valign="top"><img src="$this->images/WRMSbottom.gif" width="473" height="16">
     </td>
-    <td width="37%" height="10">WRMS: $c->code_major.$c->code_minor.$c->code_patch-$c->code_debian , DB: $c->schema_major.$c->schema_minor.$c->schema_patch</td>
+    <td width="37%" height="10">WRMS: $c->code_major.$c->code_minor.$c->code_patch , DB: $c->schema_major.$c->schema_minor.$c->schema_patch</td>
     <td width="22%" align="right" height="10" valign="top"><img src="$this->images/WRMSbottom1.gif" width="155" height="16"></td>
   </tr>
 </table>

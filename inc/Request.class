@@ -491,7 +491,7 @@ class Request {
   // Display the core W/R details
   /////////////////////////////////////////////////////////////
   function RenderDetails( $ef ) {
-    global $session, $bigboxcols, $bigboxrows;
+    global $session, $bigboxcols, $bigboxrows, $theme;
     $html = "";
     $html .= $ef->BreakLine("Request Details");
     if ( !$this->new_record ) {
@@ -542,15 +542,20 @@ class Request {
     $html .= $ef->DataEntryLine( "Importance", $this->importance_desc, "lookup", "importance",
               array("_type" => "request|importance", "title" => "The relative long-term importance of the request, separate from the urgency") );
 
+    $date_picker_fmt = "<a href=\"javascript:show_calendar('forms.form.%s');\" onmouseover=\"window.status='Date Picker';return true;\" onmouseout=\"window.status='';return true;\">".$theme->Image("date-picker.gif")."</a>";
+    $date_picker = sprintf( $date_picker_fmt, requested_by_date );
     // Requested By Date
+    $ef->TempLineFormat();
+    $ef->HelpInLine();
     $html .= $ef->DataEntryLine( "Requested By", $this->requested_by_date, "date", "requested_by_date",
-              array("title" => "The date that you would like this request completed by",
+              array("title" => "The date that you would like this request completed by", "_help" => $date_picker,
                         "onblur" => "this.value=CheckDate(this)" ) );
-
     // Agreed Due Date
+    $date_picker = sprintf( $date_picker_fmt, agreed_due_date );
     $html .= $ef->DataEntryLine( "Agreed Due", $this->agreed_due_date, "date", "agreed_due_date",
-              array("title" => "The date that has been agreed that the request will be completed by / on",
+              array("title" => "The date that has been agreed that the request will be completed by / on", "_help" => $date_picker,
                         "onblur" => "this.value=CheckDate(this)" ) );
+    $ef->RevertLineFormat();
 
     // Detailed description
     $html .= $ef->DataEntryLine( "Details", str_replace('%','%%', html_format($this->detailed)), "textarea", "detailed",

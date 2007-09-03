@@ -1403,6 +1403,7 @@ class Request {
     $session->Dbg( "Request", "Validate: Validating request");
 
     $this->chtype = strtolower($_POST['submit']);
+    $valid = true;
 
     // Sanitise the system_id
     $_POST['system_id'] = intval($_POST['system_id']);
@@ -1415,7 +1416,19 @@ class Request {
       $client_messages[] = "ERROR: A brief description is required when adding a quote. ##AddingQuotes##";
     }
 
-    if ( ! $this->_CheckNewRequester() ) return false;
+    $date_rx = '^([0-9][0-9]?[\/-][0-1]?[0-9][\/-][0-9][0-9][0-9]*|today|yesterday|now|tomorrow|[0-9][0-9]([0-9][0-9])?-?[0-9][0-9]-?[0-9][0-9])$';
+
+    if ( trim($_POST['requested_by_date']) != "" && ! ereg( $date_rx, $_POST['requested_by_date']) ) {
+      $client_messages[] = "ERROR: The Requested By field should be a date. ##EnteringDates##";
+      $valid = false;
+    }
+
+    if ( trim($_POST['agreed_due_date']) != "" && ! ereg( $date_rx, $_POST['agreed_due_date']) ) {
+      $client_messages[] = "ERROR: The Agreed Due field should be a date. ##EnteringDates##";
+      $valid = false;
+    }
+
+    if ( ! $this->_CheckNewRequester() ) $valid = false;
 
     // Set the entered_by if this is a new request
     if ( $this->chtype == 'create' ) {
@@ -1424,8 +1437,9 @@ class Request {
     else if ( $_POST['old_last_activity'] != $this->last_activity ) {
       dbg_error_log("Request", "Submitted last_activity: %s, Current last_activity: %s", $_POST['old_last_activity'], $this->last_activity );
       $client_messages[] = "ERROR: The request has been updated since you started editing. To force the update you should submit it again. ##RequestChangedMeantime##";
-      return false;
+      $valid = false;
     }
+    if ( ! $valid ) return false;
 
     // If we validated OK, make sure the request.last_status is synced with any submitted status.
     $_POST['last_status'] = $_POST['status_code'];

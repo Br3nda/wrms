@@ -15,6 +15,9 @@ require_once("organisation-selectors-sql.php");
 * Due to browsers submitting differently, we simplify a whole
 * lot of the string before we compare these to see if the
 * user has actually changed stuff.  Bizarre but true.
+*
+* @param string str The string to be simplified.
+* @return string The simplified string.
 */
 function simplify_string( $str ) {
 
@@ -56,6 +59,11 @@ class Request {
   var $chtype;             // What sort of change is this?
   var $send_an_email;      // Should we notify this change
 
+  /**
+  * Constructor
+  *
+  * @param int $id The id of a request to try and read
+  */
   function Request( $id = 0 ) {
     global $session, $tmnu, $edit;
     if ( !$session->logged_in ) return false;
@@ -105,6 +113,8 @@ class Request {
 
   /**
   * ReadRequest - Read the actual request record and assign the fields.
+  *
+  * @param int $id The ID of the request to read.
   */
   function ReadRequest( $id ) {
     global $session, $tmnu, $client_messages, $debuggroups;
@@ -175,6 +185,9 @@ class Request {
 
   /**
   * AllowedTo - Can the user do that to this request?
+  *
+  * @param string $action The action the user wants to perform.
+  * @return boolean Whether they are allowed to do that.
   */
   function AllowedTo( $action ) {
     global $session, $debuggroups;
@@ -261,6 +274,8 @@ class Request {
   *   A separate function is called for each action and this
   *   function is really only checking that permissions and
   *   data are appropriate.
+  *
+  * @param string $action The type of action the user wishes to apply to this request
   */
   function Actions( $action ) {
     global $session, $sysabbr, $client_messages;
@@ -291,6 +306,8 @@ class Request {
 
   /**
   * Detach the specified attachment from the W/R
+  *
+  * @param int $attachment_id The attachment to be removed.
   */
   function RemoveAttachment( $attachment_id ) {
     global $client_messages;
@@ -314,9 +331,10 @@ class Request {
   }
 
 
-  /////////////////////////////////////////////////////////////
-  // RemoveTimesheet - Remove the specified timesheet from the W/R
-  /////////////////////////////////////////////////////////////
+  /**
+  * RemoveTimesheet - Remove the specified timesheet from the W/R
+  * @param int $timesheet_id The timesheet to be removed.
+  */
   function RemoveTimesheet( $timesheet_id ) {
     global $client_messages;
     $sql = "SELECT *, to_char(work_on, 'DD-MM-YYYY') AS work_on ";
@@ -339,9 +357,10 @@ class Request {
     }
   }
 
-  /////////////////////////////////////////////////////////////
-  // Unsubscribe - Unsubscribe the specified user from the W/R
-  /////////////////////////////////////////////////////////////
+  /**
+  * Unsubscribe - Unsubscribe the specified user from the W/R
+  * @param int $user_no The user to be unsubscribed.
+  */
   function Unsubscribe( $user_no ) {
     global $client_messages;
 
@@ -365,9 +384,10 @@ class Request {
     }
   }
 
-  /////////////////////////////////////////////////////////////
-  // Deallocate - De-allocate the specified user from the W/R
-  /////////////////////////////////////////////////////////////
+  /**
+  * Deallocate - De-allocate the specified user from the W/R
+  * @param int $user_no The user to be de-allocated.
+  */
   function Deallocate( $user_no ) {
     global $client_messages;
 
@@ -391,9 +411,10 @@ class Request {
     }
   }
 
-  /////////////////////////////////////////////////////////////
-  // Untag - Remove a tag from the W/R
-  /////////////////////////////////////////////////////////////
+  /**
+  * Untag - Remove a tag from the W/R
+  * @param int $tag_id The tag to be removed.
+  */
   function Untag( $tag_id ) {
     global $client_messages;
 
@@ -419,6 +440,8 @@ class Request {
 
   /**
   * Disassociate - Unlink from a related W/R
+  * @param int $link_type The type of the link to be removed.
+  * @param int $other_id The ID of the request at the other end of the link to be removed.
   */
   function Disassociate( $link_type, $other_id ) {
     global $client_messages;
@@ -487,9 +510,11 @@ class Request {
   }
 
 
-  /////////////////////////////////////////////////////////////
-  // Display the core W/R details
-  /////////////////////////////////////////////////////////////
+  /**
+  * Display the core W/R details
+  * @param object $ef An EntryForm object which we will be using for rendering
+  * @return string Some HTML which we will be displaying
+  */
   function RenderDetails( $ef ) {
     global $session, $bigboxcols, $bigboxrows, $theme;
     $html = "";
@@ -563,9 +588,11 @@ class Request {
     return $html;
   }
 
-  /////////////////////////////////////////////////////////////
-  // Display the organisationally defined actions and dates
-  /////////////////////////////////////////////////////////////
+  /**
+  * Display the organisationally defined actions and dates
+  * @param object $ef An EntryForm object which we will be using for rendering
+  * @return string Some HTML which we will be displaying
+  */
   function RenderActions( $ef ) {
     global $session;
 
@@ -606,9 +633,11 @@ class Request {
   }
 
 
-  /////////////////////////////////////////////////////////////
-  // Display the files attached to the W/R
-  /////////////////////////////////////////////////////////////
+  /**
+  * Display the files attached to the W/R
+  * @param object $ef An EntryForm object which we will be using for rendering
+  * @return string Some HTML which we will be displaying
+  */
   function RenderAttachments( $ef ) {
     global $session, $theme;
     $html = "";
@@ -668,9 +697,11 @@ class Request {
   }
 
 
-  /////////////////////////////////////////////////////////////
-  // Render the Quotations section of the W/R
-  /////////////////////////////////////////////////////////////
+  /**
+  * Render the Quotations section of the W/R
+  * @param object $ef An EntryForm object which we will be using for rendering
+  * @return string Some HTML which we will be displaying
+  */
   function RenderQuotations( $ef ) {
     global $session;
     $html = "";
@@ -779,9 +810,11 @@ class Request {
   }
 
 
-  /////////////////////////////////////////////////////////////
-  // Render the details of any requests related to/from this one
-  /////////////////////////////////////////////////////////////
+  /**
+  * Render the details of any requests related to/from this one
+  * @param object $ef An EntryForm object which we will be using for rendering
+  * @return string Some HTML which we will be displaying
+  */
   function RenderRelations( $ef ) {
     global $session, $theme;
     $html = "";
@@ -895,9 +928,11 @@ class Request {
     return $html;
   }
 
-  /////////////////////////////////////////////////////////////
-  // Display the people who are allocated to work on this
-  /////////////////////////////////////////////////////////////
+  /**
+  * Display the people who are allocated to work on this
+  * @param object $ef An EntryForm object which we will be using for rendering
+  * @return string Some HTML which we will be displaying
+  */
   function RenderAllocations( $ef ) {
     global $session, $theme;
     $html = "";
@@ -952,6 +987,8 @@ class Request {
 
   /**
   * Render the block for displaying / entering timesheet information for a request.
+  * @param object $ef An EntryForm object which we will be using for rendering
+  * @return string Some HTML which we will be displaying
   */
   function RenderTimesheets( $ef ) {
     global $session, $c, $theme, $sysabbr, $allwork;
@@ -1124,9 +1161,11 @@ class Request {
     return $html;
   }
 
-  /////////////////////////////////////////////////////////////
-  // Display the people who are being notified about changes
-  /////////////////////////////////////////////////////////////
+  /**
+  * Display the people who are being notified about changes
+  * @param object $ef An EntryForm object which we will be using for rendering
+  * @return string Some HTML which we will be displaying
+  */
   function RenderInterests( $ef ) {
     global $session, $theme;
     $html = "";
@@ -1182,7 +1221,8 @@ class Request {
   /**
   * Display the tags that have been assigned to this W/R
   *
-  * @var object $ef The DataEntryForm with our record in it.
+  * @param object $ef An EntryForm object which we will be using for rendering
+  * @return string Some HTML which we will be displaying
   */
   function RenderTags( $ef ) {
     global $session, $theme;
@@ -1243,9 +1283,11 @@ class Request {
     return $html;
   }
 
-  /////////////////////////////////////////////////////////////
-  // Display the QA Actions and entry panel
-  /////////////////////////////////////////////////////////////
+  /**
+  * Display the QA Actions and entry panel
+  * @param object $ef An EntryForm object which we will be using for rendering
+  * @return string Some HTML which we will be displaying
+  */
   function RenderQAActions( $ef ) {
     global $session;
     $html = "";
@@ -1288,9 +1330,11 @@ class Request {
     return $html;
   }
 
-  /////////////////////////////////////////////////////////////
-  // Display the notes + notes entry panel
-  /////////////////////////////////////////////////////////////
+  /**
+  * Display the notes + notes entry panel
+  * @param object $ef An EntryForm object which we will be using for rendering
+  * @return string Some HTML which we will be displaying
+  */
   function RenderNotes( $ef ) {
     global $session;
     $html = "";
@@ -1342,8 +1386,12 @@ class Request {
     return $html;
   }
 
-  /////////////////////////////////////////////////////////////
-  /////////////////////////////////////////////////////////////
+  /**
+  * Render the various changes in status of this request.
+  *
+  * @param object $ef An EntryForm object which we will be using for rendering
+  * @return string Some HTML which we will be displaying
+  */
   function RenderStatuses( $ef ) {
     global $session;
     $html = "";
@@ -1449,6 +1497,10 @@ class Request {
   }
 
 
+  /**
+  * Check that the requester of this is someone reasonable for the logged in user
+  * to be making a request on behalf of.
+  */
   function _CheckNewRequester() {
     global $client_messages, $session;
 
@@ -1658,9 +1710,9 @@ class Request {
   }
 
 
-  /////////////////////////////////////////////////////////////
-  // Send an e-mail notifying changes to the W/R
-  /////////////////////////////////////////////////////////////
+  /**
+  * Send an e-mail notifying changes to the W/R
+  */
   function NotifyEmail ()
   {
     global $session, $sysabbr, $system_name, $admin_email, $debug_email;
@@ -1792,9 +1844,10 @@ EOX;
     }
   }
 
-  /////////////////////////////////////////////////////////////
-  // Return an array of recipients for the e-mail
-  /////////////////////////////////////////////////////////////
+  /**
+  * Return an array of recipients for the e-mail
+  * @return array An array associating e-mail addresses with full names.
+  */
   function GetRecipients ()
   {
       $query = "SELECT email, fullname FROM usr, request_interested ";
@@ -1818,9 +1871,10 @@ EOX;
       return $to;
   }
 
-  /////////////////////////////////////////////////////////////
-  // Detect if stuff on the request record needs notification
-  /////////////////////////////////////////////////////////////
+  /**
+  * Detect if stuff on the request record needs notification
+  * @return boolean Whether we should e-mail a notificaion of this change.
+  */
   function DetectEmailChanges( ) {
     global $session, $debuggroups, $client_messages, $sysabbr;
 
@@ -1893,9 +1947,12 @@ EOX;
   }
 
 
-  /////////////////////////////////////////////////////////////
-  // Attach a file to the W/R
-  /////////////////////////////////////////////////////////////
+  /**
+  * Attach a file to the W/R
+  * @param string $fname The name of the file
+  * @param string $description A description of the file.
+  * @return boolean Whether it is OK to continue with writing this change.
+  */
   function AttachFile( $fname, $description ) {
     global $session, $client_messages, $attachment_dir;
     $session->Dbg( "Request", "Adding attachment: " . $_FILES[$fname]['name'], 0);
@@ -1934,9 +1991,10 @@ EOX;
     return true;
   }
 
-  /////////////////////////////////////////////////////////////
-  // Add a quote to the W/R
-  /////////////////////////////////////////////////////////////
+  /**
+  * Add a quote to the W/R
+  * @return boolean Whether it is OK to continue with writing this change.
+  */
   function AddQuote( ) {
     global $session, $client_messages;
     $session->Dbg( "Request", "Adding quote: " . $_POST['quote_brief'], 0);
@@ -1967,9 +2025,10 @@ EOX;
     return true;
   }
 
-  /////////////////////////////////////////////////////////////
-  // Add a quote to the W/R
-  /////////////////////////////////////////////////////////////
+  /**
+  * Add a quote to the W/R
+  * @return boolean Whether it is OK to continue with writing this change.
+  */
   function ApproveQuotes( $approvals ) {
     global $session, $client_messages;
 
@@ -2012,6 +2071,7 @@ EOX;
 
   /**
   * Update an existing quote with the details of some invoicing.
+  * @return boolean Whether it is OK to continue with writing this change.
   */
   function InvoiceQuotes( $invoices ) {
     global $session, $client_messages;
@@ -2050,9 +2110,10 @@ EOX;
   }
 
 
-  /////////////////////////////////////////////////////////////
-  // Update the details of existing timesheets with invoicing
-  /////////////////////////////////////////////////////////////
+  /**
+  * Update the details of existing timesheets with invoicing
+  * @return boolean Whether it is OK to continue with writing this change.
+  */
   function UpdateInvoiceDetails( $ts_id ) {
     global $session, $client_messages;
 
@@ -2109,6 +2170,7 @@ EOX;
 
   /**
   * Add a timesheet entry to this request.
+  * @return boolean Whether it is OK to continue with writing this change.
   */
   function AddWork( ) {
     global $session, $client_messages;
@@ -2157,9 +2219,10 @@ EOX;
     return true;
   }
 
-  /////////////////////////////////////////////////////////////
-  // Write the actions to the file which have changed
-  /////////////////////////////////////////////////////////////
+  /**
+  * Write the actions to the file which have changed
+  * @return boolean Whether it is OK to continue with writing this change.
+  */
   function UpdateActions( ) {
     global $session, $client_messages;
 
@@ -2217,8 +2280,10 @@ EOX;
     return true;
   }
 
-  /////////////////////////////////////////////////////////////
-  /////////////////////////////////////////////////////////////
+  /**
+  * Add a parent to this work request.
+  * @return boolean Whether it is OK to continue with writing this change.
+  */
   function AddParent( ) {
     global $session, $client_messages;
 
@@ -2241,9 +2306,10 @@ EOX;
     return true;
   }
 
-  /////////////////////////////////////////////////////////////
-  // Write the new allocations for the W/R
-  /////////////////////////////////////////////////////////////
+  /**
+  * Write the new allocations for the W/R
+  * @return boolean Whether it is OK to continue with writing this change.
+  */
   function NewAllocations( ) {
     global $session, $client_messages, $sysabbr;
     $session->Dbg( "Request", "Adding allocations: " . join(",", $_POST['new_allocations']), 0);
@@ -2300,9 +2366,10 @@ EOX;
     return true;
   }
 
-  /////////////////////////////////////////////////////////////
-  //
-  /////////////////////////////////////////////////////////////
+  /**
+  * Add any new subscriptions to this request.
+  * @return boolean Whether it is OK to continue with writing this change.
+  */
   function NewSubscriptions( ) {
     global $sysabbr, $session, $client_messages;
 
@@ -2389,9 +2456,10 @@ EOX;
     return true;
   }
 
-  /////////////////////////////////////////////////////////////
-  // Write the new tags to the W/R
-  /////////////////////////////////////////////////////////////
+  /**
+  * Write the new tags to the W/R
+  * @return boolean Whether it is OK to continue with writing this change.
+  */
   function NewTags( ) {
     global $session, $client_messages;
     $session->Dbg( "Request", "Adding tags: " . join(",", $_POST['new_tags']), 0);
@@ -2417,8 +2485,10 @@ EOX;
     return true;
   }
 
-  /////////////////////////////////////////////////////////////
-  /////////////////////////////////////////////////////////////
+  /**
+  * Set the new status on the work request
+  * @return boolean Whether it is OK to continue with writing this change.
+  */
   function NewStatusCode( ) {
     global $session, $client_messages;
 
@@ -2451,8 +2521,10 @@ EOX;
     return true;
   }
 
-  /////////////////////////////////////////////////////////////
-  /////////////////////////////////////////////////////////////
+  /**
+  * Add a note to the work request.
+  * @return boolean Whether it is OK to continue with writing this change.
+  */
   function AddNote( ) {
     global $session, $client_messages;
     $session->Dbg( "Request", "Note added to request", 0);
@@ -2482,8 +2554,10 @@ EOX;
     return true;
   }
 
-  /////////////////////////////////////////////////////////////
-  /////////////////////////////////////////////////////////////
+  /**
+  * Add a QA action to the reequest.
+  * @return boolean Whether it is OK to continue with writing this change.
+  */
   function AddQAAction( ) {
     global $session, $client_messages;
     $session->Dbg( "Request", "QA Action added to request", 0);

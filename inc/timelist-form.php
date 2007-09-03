@@ -25,7 +25,7 @@ function nice_time( $in_time ) {
   if ( isset($org_code) )  $org_code  = intval($org_code);
 
   if (  "$style" != "stripped" ) {
-    echo "<form method=get action=\"$base_url/form.php\">\n";
+    echo "<form method=\"GET\" action=\"$base_url/form.php\" name=\"form\" id=\"form\">\n";
     echo "<input type=hidden value=\"timelist\" name=f>\n";
     echo "<table border=0 cellpadding=0 cellspacing=2 align=center class=row0 style=\"border: 1px dashed #aaaaaa;\"><tr><td><table border=0 cellpadding=0 cellspacing=0 width=100%><tr>\n";
     echo "<td class=smb>Find:</td>\n";
@@ -61,12 +61,12 @@ function nice_time( $in_time ) {
 <tr><td><table border=0 cellspacing=0 cellpadding=0 width=100%><tr valign=middle>
 <td class=smb align=right>Work&nbsp;From:</td>
 <td nowrap class=smb><input type=text size=10 name=from_date class=sml value=\"$from_date\">
-<a href=\"javascript:show_calendar('forms[0].from_date');\" onmouseover=\"window.status='Date Picker';return true;\" onmouseout=\"window.status='';return true;\">".$theme->Image("date-picker.gif")."</a>
+<a href=\"javascript:show_calendar('forms.form.from_date');\" onmouseover=\"window.status='Date Picker';return true;\" onmouseout=\"window.status='';return true;\">".$theme->Image("date-picker.gif")."</a>
 </td>
 
 <td class=smb align=right>&nbsp;To:</td>
 <td nowrap class=smb><input type=text size=10 name=to_date class=sml value=\"$to_date\">
-<a href=\"javascript:show_calendar('forms[0].to_date');\" onmouseover=\"window.status='Date Picker';return true;\" onmouseout=\"window.status='';return true;\">".$theme->Image("date-picker.gif")."</a>
+<a href=\"javascript:show_calendar('forms.form.to_date');\" onmouseover=\"window.status='Date Picker';return true;\" onmouseout=\"window.status='';return true;\">".$theme->Image("date-picker.gif")."</a>
 </td>
 <td class=smb align=right>&nbsp;Type:</td>
 <td nowrap class=smb><select name=\"type_code\" class=sml><option value=\"\">-- All Types --</option>$request_types</select></td>

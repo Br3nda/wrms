@@ -567,8 +567,13 @@ class Request {
     $html .= $ef->DataEntryLine( "Importance", $this->importance_desc, "lookup", "importance",
               array("_type" => "request|importance", "title" => "The relative long-term importance of the request, separate from the urgency") );
 
-    $date_picker_fmt = "<a href=\"javascript:show_calendar('forms.form.%s');\" onmouseover=\"window.status='Date Picker';return true;\" onmouseout=\"window.status='';return true;\">".$theme->Image("date-picker.gif")."</a>";
-    $date_picker = sprintf( $date_picker_fmt, requested_by_date );
+    if ( $ef->editmode ) {
+      $date_picker_fmt = "<a href=\"javascript:show_calendar('forms.form.%s');\" onmouseover=\"window.status='Date Picker';return true;\" onmouseout=\"window.status='';return true;\">".$theme->Image("date-picker.gif")."</a>";
+      $date_picker = sprintf( $date_picker_fmt, requested_by_date );
+    }
+    else
+      $date_picker = "";
+
     // Requested By Date
     $ef->TempLineFormat();
     $ef->HelpInLine();
@@ -576,7 +581,9 @@ class Request {
               array("title" => "The date that you would like this request completed by", "_help" => $date_picker,
                         "onblur" => "this.value=CheckDate(this)" ) );
     // Agreed Due Date
-    $date_picker = sprintf( $date_picker_fmt, agreed_due_date );
+    if ( $ef->editmode )
+      $date_picker = sprintf( $date_picker_fmt, agreed_due_date );
+
     $html .= $ef->DataEntryLine( "Agreed Due", $this->agreed_due_date, "date", "agreed_due_date",
               array("title" => "The date that has been agreed that the request will be completed by / on", "_help" => $date_picker,
                         "onblur" => "this.value=CheckDate(this)" ) );

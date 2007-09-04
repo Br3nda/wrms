@@ -2,6 +2,9 @@
 require_once("always.php");
 require_once("authorisation-page.php");
 
+  $session->LoginRequired();
+
+
 $systems = array();
 $qry = new PgQuery( "SELECT * FROM work_system WHERE active ORDER BY system_desc ASC;" );
 if ( !$qry->Exec("rqchange") || $qry->rows == 0 ) {

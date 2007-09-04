@@ -1,12 +1,8 @@
 <?php
 require_once("always.php");
 require_once("authorisation-page.php");
-if ( !$session->logged_in ) {
-  include("page-header.php");
-  echo "<h3>Please log on for access to work requests</h3>\n";
-  include("page-footer.php");
-  exit;
-}
+
+$session->LoginRequired();
 
 require_once("maintenance-page.php");
 require_once("WorkSystem.class");

@@ -10,8 +10,13 @@ wrms (2.6.0) unstable; urgency=low
   * Essentially complete attempts to synchronise database migrated forward
     with a database which is freshly created.  Full SQL inserts should now
     work.
+  * Fix date picker to properly display back month/year buttons.
+  * Add date picker onto Requested By and Agreed Due fields.
+  * Fix date picker on timelist form.
+  * Don't show people in the 'Requester' drop-down unless they have some
+    system which you also have, and so could be applicable.
 
- -- Andrew McMillan <debian@mcmillan.net.nz>  Sun, 02 Sep 2007 21:21:17 +1200
+ -- Andrew McMillan <debian@mcmillan.net.nz>  Tue, 04 Sep 2007 17:13:34 +1200
 
 wrms (2.5.5) unstable; urgency=low
 

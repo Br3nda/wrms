@@ -1,6 +1,9 @@
 <?php
   require_once("always.php");
   require_once("authorisation-page.php");
+
+  $session->LoginRequired();
+
   require_once("code-list.php");
   require_once("user-list.php" );
   require_once("maintenance-page.php");

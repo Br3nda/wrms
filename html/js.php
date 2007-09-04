@@ -1,17 +1,17 @@
 <?php
 require_once("always.php");
 require_once("authorisation-page.php");
+if ( !$session->logged_in ) {
+  // Very quiet
+  echo "Error: Not authorised";
+  exit;
+}
 require_once("organisation-selectors-sql.php");
 
 header( 'Expires: ' . gmdate( 'D, d M Y H:i:s T') );
 header( 'Cache-control: max-age=1, private' );
 header( 'Pragma: no-cache' );
 
-if ( !$session->logged_in ) {
-  // Very quiet
-  echo "Error: Not authorised";
-  exit;
-}
 
 if ( isset($org_code) ) {
 

@@ -1,3 +1,10 @@
+wrms (2.6.1) unstable; urgency=low
+
+  * Add login requirement to all places it should be on.
+  * Remove some dead code.
+
+ -- Andrew McMillan <debian@mcmillan.net.nz>  Tue, 04 Sep 2007 21:22:24 +1200
+
 wrms (2.6.0) unstable; urgency=low
 
   * Large adjustment to referential integrity constraints to allow usr,

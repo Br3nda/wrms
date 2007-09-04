@@ -49,8 +49,6 @@ ALTER TABLE usr_setting ADD CONSTRAINT usr_setting_user_no_fkey FOREIGN KEY (use
 COMMIT;
 
 ALTER TABLE role_member SET WITHOUT CLUSTER;
-DROP INDEX group_member_user_no_key ;
-DROP CONSTRAINT group_member_user_no_key ON role_member;
 ALTER TABLE role_member DROP constraint group_member_user_no_key ;
 ALTER TABLE role_member ADD CONSTRAINT role_member_user_no_key PRIMARY KEY (user_no, role_no);
 ALTER TABLE role_member CLUSTER ON role_member_user_no_key;

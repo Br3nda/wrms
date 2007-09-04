@@ -4,6 +4,14 @@
 --  2) We apply the whole lot, or none at all, which should make
 --     updates more consistent.
 
+ALTER TABLE qa_project_step DROP CONSTRAINT fk_proj_qa_step_project;
+
+ALTER TABLE qa_project_step_approval DROP CONSTRAINT fk_proj_step_approval;
+ALTER TABLE qa_project_step_approval ADD CONSTRAINT request_id_fk FOREIGN KEY (project_id,qa_step_id) REFERENCES qa_project_step(project_id,qa_step_id) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+ALTER TABLE qa_project_approval DROP CONSTRAINT fk_project_qa_approval_step;
+ALTER TABLE qa_project_approval ADD CONSTRAINT request_id_fk FOREIGN KEY (project_id,qa_step_id) REFERENCES qa_project_step(project_id,qa_step_id) ON DELETE RESTRICT ON UPDATE CASCADE;
+
 BEGIN;
 
 SELECT check_wrms_revision(1,99,14);  -- Will fail if this revision doesn't exist, or a later one does
@@ -14,102 +22,107 @@ SELECT new_wrms_revision(1,99,15, 'Brioche' );
 ----------------------------------------------------------------------------------
 -- Fix names of foreign keys coming from buggy PostgreSQL version (pre 8.0)
 UPDATE pg_constraint SET conname = 'request_id_fk'
-                   WHERE confrelid = (SELECT oid FROM pg_class WHERE relname = 'request') AND conname ='$1' AND contype = 'f';
+                   WHERE confrelid = (SELECT oid FROM pg_class WHERE relname = 'request') AND contype = 'f';
 
 \set table request
-\set constraint parent_request_fk
 \set field parent_request
--- ALTER TABLE :table DROP CONSTRAINT :constraint;
+\set constraint :table _ :field _fkey
 ALTER TABLE :table ADD CONSTRAINT :constraint FOREIGN KEY (:field) REFERENCES request(request_id) ON DELETE RESTRICT ON UPDATE CASCADE;
 
-\set constraint request_id_fk
 \set field request_id
-
 \set table request_action
-ALTER TABLE :table DROP CONSTRAINT :constraint;
+ALTER TABLE :table DROP CONSTRAINT request_id_fk;
+\set constraint :table _ :field _fkey
 ALTER TABLE :table ADD CONSTRAINT :constraint FOREIGN KEY (:field) REFERENCES request(request_id) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 \set table request_allocated
-ALTER TABLE :table DROP CONSTRAINT :constraint;
+ALTER TABLE :table DROP CONSTRAINT request_id_fk;
+\set constraint :table _ :field _fkey
 ALTER TABLE :table ADD CONSTRAINT :constraint FOREIGN KEY (:field) REFERENCES request(request_id) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 \set table request_attachment
-ALTER TABLE :table DROP CONSTRAINT :constraint;
+ALTER TABLE :table DROP CONSTRAINT request_id_fk;
+\set constraint :table _ :field _fkey
 ALTER TABLE :table ADD CONSTRAINT :constraint FOREIGN KEY (:field) REFERENCES request(request_id) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- Kind of unclean, but there shouldn't be much like this
 DELETE FROM request_history WHERE NOT EXISTS( SELECT 1 FROM request WHERE request.request_id = request_history.request_id);
 \set table request_history
--- ALTER TABLE :table DROP CONSTRAINT :constraint;
+\set constraint :table _ :field _fkey
 ALTER TABLE :table ADD CONSTRAINT :constraint FOREIGN KEY (:field) REFERENCES request(request_id) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 \set table request_interested
-ALTER TABLE :table DROP CONSTRAINT :constraint;
+ALTER TABLE :table DROP CONSTRAINT request_id_fk;
+\set constraint :table _ :field _fkey
 ALTER TABLE :table ADD CONSTRAINT :constraint FOREIGN KEY (:field) REFERENCES request(request_id) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 \set table request_note
-ALTER TABLE :table DROP CONSTRAINT :constraint;
+ALTER TABLE :table DROP CONSTRAINT request_id_fk;
+\set constraint :table _ :field _fkey
 ALTER TABLE :table ADD CONSTRAINT :constraint FOREIGN KEY (:field) REFERENCES request(request_id) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 \set table request_qa_action
-ALTER TABLE :table DROP CONSTRAINT :constraint;
+ALTER TABLE :table DROP CONSTRAINT request_id_fk;
+\set constraint :table _ :field _fkey
 ALTER TABLE :table ADD CONSTRAINT :constraint FOREIGN KEY (:field) REFERENCES request(request_id) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 \set table request_quote
-ALTER TABLE :table DROP CONSTRAINT :constraint;
+ALTER TABLE :table DROP CONSTRAINT request_id_fk;
+\set constraint :table _ :field _fkey
 ALTER TABLE :table ADD CONSTRAINT :constraint FOREIGN KEY (:field) REFERENCES request(request_id) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 \set table request_status
-ALTER TABLE :table DROP CONSTRAINT :constraint;
+ALTER TABLE :table DROP CONSTRAINT request_id_fk;
+\set constraint :table _ :field _fkey
 ALTER TABLE :table ADD CONSTRAINT :constraint FOREIGN KEY (:field) REFERENCES request(request_id) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 \set table request_tag
-ALTER TABLE :table DROP CONSTRAINT :constraint;
+ALTER TABLE :table DROP CONSTRAINT request_id_fk;
+\set constraint :table _ :field _fkey
 ALTER TABLE :table ADD CONSTRAINT :constraint FOREIGN KEY (:field) REFERENCES request(request_id) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 \set table request_timesheet
-ALTER TABLE :table DROP CONSTRAINT :constraint;
+ALTER TABLE :table DROP CONSTRAINT request_id_fk;
+\set constraint :table _ :field _fkey
 ALTER TABLE :table ADD CONSTRAINT :constraint FOREIGN KEY (:field) REFERENCES request(request_id) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 \set table request_request
-\set constraint request_fk
-ALTER TABLE :table DROP CONSTRAINT :constraint;
+ALTER TABLE :table DROP CONSTRAINT request_id_fk;
+\set constraint :table _ :field _fkey
 ALTER TABLE :table ADD CONSTRAINT :constraint FOREIGN KEY (:field) REFERENCES request(request_id) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 \set field to_request_id
-\set constraint to_request_fk
-ALTER TABLE :table DROP CONSTRAINT :constraint;
+\set constraint :table _ :field _fkey
 ALTER TABLE :table ADD CONSTRAINT :constraint FOREIGN KEY (:field) REFERENCES request(request_id) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 \set field request_id
 \set table request_project
 \set constraint fk_request__fk_req_pr_request
-ALTER TABLE :table DROP CONSTRAINT :constraint;
+ALTER TABLE :table DROP CONSTRAINT request_id_fk;
 ALTER TABLE :table ADD CONSTRAINT :constraint FOREIGN KEY (:field) REFERENCES request(request_id) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 \set table qa_project_step
 \set constraint fk_qa_proj_step_reqid
-ALTER TABLE :table DROP CONSTRAINT :constraint;
+ALTER TABLE :table DROP CONSTRAINT request_id_fk;
 ALTER TABLE :table ADD CONSTRAINT :constraint FOREIGN KEY (:field) REFERENCES request(request_id) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- Some of the ones below this are a little more complicated, since project_id becomes a proxy for request_id
 \set field project_id
 \set constraint fk_proj_qa_step_project
 \set references request_project(request_id)
-ALTER TABLE :table DROP CONSTRAINT :constraint;
 ALTER TABLE :table ADD CONSTRAINT :constraint FOREIGN KEY (:field) REFERENCES :references ON DELETE RESTRICT ON UPDATE CASCADE;
 
 \set field project_id,qa_step_id
 \set table qa_project_step_approval
 \set constraint fk_proj_step_approval
 \set references qa_project_step(project_id,qa_step_id)
-ALTER TABLE :table DROP CONSTRAINT :constraint;
+ALTER TABLE :table DROP CONSTRAINT request_id_fk;
 ALTER TABLE :table ADD CONSTRAINT :constraint FOREIGN KEY (:field) REFERENCES :references ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- This table has a pair of identical constraints.  Nice.
 \set table qa_project_approval
 \set constraint fk_project_qa_approval_step
-ALTER TABLE :table DROP CONSTRAINT :constraint;
+ALTER TABLE :table DROP CONSTRAINT request_id_fk;
 ALTER TABLE :table ADD CONSTRAINT :constraint FOREIGN KEY (:field) REFERENCES :references ON DELETE RESTRICT ON UPDATE CASCADE;
 
 

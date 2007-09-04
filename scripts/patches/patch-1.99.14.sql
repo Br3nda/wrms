@@ -42,8 +42,6 @@ UPDATE organisation SET org_type = 2 WHERE EXISTS( SELECT 1 FROM roles JOIN role
 -- Find the support organisations
 UPDATE organisation SET org_type = 1 WHERE EXISTS( SELECT 1 FROM roles JOIN role_member USING ( role_no ) JOIN usr USING (user_no) WHERE usr.org_code = organisation.org_code AND role_name = 'Support');
 
-DROP VIEW organisation_plus;
-
 -- And finally commit that to make it a logical unit...
 COMMIT;
 
@@ -51,5 +49,7 @@ VACUUM FULL ANALYZE organisation;
 
 -- Update the views and procedures in case they have changed
 \i dba/procedures.sql
+
+DROP VIEW organisation_plus;
 \i dba/views.sql
 

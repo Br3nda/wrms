@@ -76,6 +76,7 @@ alter table request_timesheet
       references usr (user_no)
       on delete restrict on update restrict;
 
+DELETE FROM saved_queries WHERE NOT EXISTS(SELECT 1 FROM usr WHERE usr.user_no = saved_queries.user_no);
 alter table saved_queries
    add constraint usr_fk foreign key (user_no)
       references usr (user_no)

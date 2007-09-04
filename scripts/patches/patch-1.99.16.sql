@@ -48,6 +48,16 @@ ALTER TABLE usr_setting ADD CONSTRAINT usr_setting_user_no_fkey FOREIGN KEY (use
 -- And finally commit that to make it a logical unit...
 COMMIT;
 
+ALTER TABLE role_member SET WITHOUT CLUSTER;
+DROP INDEX group_member_user_no_key ;
+DROP CONSTRAINT group_member_user_no_key ON role_member;
+ALTER TABLE role_member DROP constraint group_member_user_no_key ;
+ALTER TABLE role_member ADD CONSTRAINT role_member_user_no_key PRIMARY KEY (user_no, role_no);
+ALTER TABLE role_member CLUSTER ON role_member_user_no_key;
+
+ALTER TABLE system_usr ADD CONSTRAINT system_usr_pkey PRIMARY KEY (user_no, system_id);
+ALTER TABLE system_usr CLUSTER ON system_usr_pkey;
+
 -- Update the views and procedures in case they have changed
 \i dba/procedures.sql
 \i dba/views.sql

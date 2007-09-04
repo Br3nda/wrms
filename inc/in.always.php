@@ -26,11 +26,12 @@ else {
   include_once("wrms_configuration_missing.php");
   exit;
 }
-$c->sysabbr     = $sysabbr;
-$c->admin_email = $admin_email;
-$c->debug_email = $debug_email;
-$c->system_name = $system_name;
-$c->base_dns    = $base_dns;
+if ( ! isset($c->sysabbr) )     $c->sysabbr     = $sysabbr;
+if ( ! isset($c->admin_email) ) $c->admin_email = $admin_email;
+if ( ! isset($c->debug_email) ) $c->debug_email = $debug_email;
+if ( ! isset($c->system_name) ) $c->system_name = $system_name;
+if ( ! isset($c->shortname) )   $c->shortname   = preg_replace('/ .*$/', '', $c->system_name );
+if ( ! isset($c->base_dns) )    $c->base_dns    = $base_dns;
 $c->scripts[]   = "js/date-picker.js";
 
 if ( isset($stylesheet) ) $c->stylesheets[0] = $stylesheet;

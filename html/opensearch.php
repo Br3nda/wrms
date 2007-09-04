@@ -11,7 +11,7 @@ switch( $EngineName ) {
     <Param name="search_for" value="{searchTerms}"/>
   </Url>
 EOURL;
-    $short = "Search W/R Text";
+    $short = sprintf( 'Search %s WRMS', $c->shortname );
     $full  = "Search for text within a Work Request";
     break;
 
@@ -19,7 +19,7 @@ EOURL;
     $url = <<<EOURL
 <Url type="text/html" method="GET" template="$c->base_dns/wr.php?request_id={searchTerms}" />
 EOURL;
-    $short = "Get Work Request";
+    $short = sprintf( 'Get %s W/R', $c->shortname );
     $full  = "Go to a Work Request by number";
     break;
 

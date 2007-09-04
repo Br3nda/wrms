@@ -87,8 +87,18 @@ function SqlSelectRequesters( $org_code = 0, $allow_inactive_user = 0 ) {
     $sql .= "AND usr.org_code = $org_code ) )";
     }
   }
-  else if ( $org_code == 0 || ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") || $session->AllowedTo("Contractor") ) )
+  else if ( $org_code == 0 || ! ($session->AllowedTo("Admin") || $session->AllowedTo("Support") || $session->AllowedTo("Contractor") ) ) {
     $sql .= "AND organisation.org_code = $session->org_code ";
+    $sql .= "AND ( EXISTS ";
+    $sql .= "(SELECT 1 FROM usr u1 JOIN system_usr su1 USING (user_no) ";
+    $sql .= "JOIN usr u2 ON (u1.org_code=u2.org_code AND u1.user_no != u2.user_no) ";
+    $sql .= "JOIN system_usr su2 ON (su1.system_id=su2.system_id AND su2.user_no=u2.user_no) ";
+    $sql .= "WHERE su2.role IN ('V','E','C') ";
+    $sql .= "AND u1.user_no = $session->user_no ";
+    $sql .= "AND u1.org_code = $session->org_code ";
+    $sql .= "AND u2.user_no = usr.user_no) ";
+    $sql .= " OR usr.user_no = $session->user_no ) ";
+  }
   $sql .= " ORDER BY 3";
 
   return $sql;

@@ -19,7 +19,11 @@ see their currently active requests.
 
   $query = "SELECT *, to_char( last_org_request(org_code), 'D Mon YYYY') AS last_request_date, ";
   $query .= "active_org_requests(org_code) ";
-  $query .= "FROM organisation WHERE active AND last_org_request(org_code) IS NOT NULL AND active_org_requests(org_code) > 0 ";
+  $query .= "FROM organisation ";
+  $query .= "WHERE active ";
+  $query .= "AND last_org_request(org_code) IS NOT NULL ";
+  $query .= "AND EXISTS( SELECT 1 FROM org_system os JOIN system_usr su USING(system_id) WHERE os.org_code=organisation.org_code AND su.user_no=$session->user_no) ";
+  $query .= "AND active_org_requests(org_code) > 0 ";
   $query .= "ORDER BY LOWER(organisation.org_name) ";
   $query .= "LIMIT 100 ";
   $result = awm_pgexec( $dbconn, $query, "indexsupport", false, 5 );

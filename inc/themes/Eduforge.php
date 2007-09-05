@@ -251,7 +251,7 @@ EOHDR;
     global $c;
     echo <<<FOOTERTABLE
 <div id="page_footer">
-WRMS: $c->code_major.$c->code_minor.$c->code_patch-$c->code_debian , DB: $c->schema_major.$c->schema_minor.$c->schema_patch
+WRMS: $c->code_major.$c->code_minor.$c->code_patch, DB: $c->schema_major.$c->schema_minor.$c->schema_patch
 </div>
 FOOTERTABLE;
   }

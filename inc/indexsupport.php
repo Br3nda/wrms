@@ -22,7 +22,7 @@ see their currently active requests.
   $query .= "FROM organisation ";
   $query .= "WHERE active ";
   $query .= "AND last_org_request(org_code) IS NOT NULL ";
-  $query .= "AND EXISTS( SELECT 1 FROM org_system os JOIN system_usr su USING(system_id) WHERE os.org_code=organisation.org_code AND su.user_no=$session->user_no) ";
+  $query .= "AND EXISTS( SELECT 1 FROM org_system os JOIN system_usr su USING(system_id) WHERE os.org_code=organisation.org_code AND su.user_no=$session->user_no AND su.role IN ('A','S')) ";
   $query .= "AND active_org_requests(org_code) > 0 ";
   $query .= "ORDER BY LOWER(organisation.org_name) ";
   $query .= "LIMIT 100 ";

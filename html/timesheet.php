@@ -78,7 +78,7 @@ function build_time_list( $name, $from, $current, $delta ) {
   return $time_list;
 }
 
-  echo '<form name=control method=post action="/timesheet.php" enctype="multipart/form-data"><table width="100%" border="0" cellpadding="1" cellspacing="2">';
+  echo '<form name="control" method="post" action="/timesheet.php" enctype="multipart/form-data"><table width="100%" border="0" cellpadding="1" cellspacing="2">';
   echo "<tr>\n";
   echo "<th>Week Starting:</th><td>$week_list</td>\n";
   echo "<th>Periods:</th><td>$period_list</td>\n";
@@ -197,7 +197,7 @@ EOHEADERS;
     echo "</textarea></td>\n";
   }
   echo "</tr>\n";
-  echo "<tr><td><input type=hidden name=sow value=$sow><input type=hidden name=eod value=$eod></td><td align=center><input type=submit name=submit value=submit class=submit></td>";
+  echo "<tr><td><input type=\"hidden\" name=\"sow\" value=\"$sow\"><input type=\"hidden\" name=\"eod\" value=\"$eod\"></td><td align=\"center\"><input type=\"submit\" name=\"submit\" value=\"submit\" class=\"submit\"></td>";
   echo "<td colspan=6>Enter times as [WR#]/[Description], e.g. \"1537/Made the tea\".  Where you work on
   the same thing for several periods, you need only enter the description against the first period in the group (unless you want the descripion to change).</td></tr>\n";
   echo "</table>\n</form>\n";
@@ -223,10 +223,10 @@ EOQRY;
   if ( $qry->Exec("TimeSheet") && $qry->rows > 0 ) {
     echo "<h3>Recent Requests You Have Worked On</h3>\n";
     echo '<table width="100%" border="0" cellpadding="1" cellspacing="2">';
-    echo "<tr class=row1><th class=cols>WR #</th><th class=cols align=left>For</th><th class=cols align=left>System</th><th class=cols align=left>Request</th></tr>\n";
+    echo "<tr class=\"row1\"><th class=\"cols\">WR #</th><th class=\"cols\" align=\"left\">For</th><th class=\"cols\" align=\"left\">System</th><th class=\"cols\" align=\"left\">Request</th></tr>\n";
     while( $wr = $qry->Fetch() ) {
-      echo "<tr class=row" . $i%2 . ">";
-      echo "<th><a href=request.php?request_id=$wr->request_id>$wr->request_id</a></th>";
+      echo "<tr class=\"row" . $i%2 . "\">";
+      echo "<th><a href=\"wr.php?request_id=$wr->request_id\">$wr->request_id</a></th>";
       echo "<td>$wr->abbreviation</td>";
       echo "<td>$wr->system_desc</td>";
       echo "<td>$wr->brief</td>";

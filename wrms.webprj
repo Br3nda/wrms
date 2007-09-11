@@ -23,9 +23,7 @@
     <item modified_time="1109631132" url="html/form.php" uploadstatus="0" />
     <item modified_time="1109635641" url="html/index.php" uploadstatus="0" />
     <item modified_time="1110311178" url="html/lookups.php" uploadstatus="0" />
-    <item modified_time="1110504772" url="html/request.php" uploadstatus="0" />
     <item modified_time="1125440372" url="html/requestlist.php" uploadstatus="0" />
-    <item modified_time="1110505759" url="html/usr.php" uploadstatus="0" />
     <item modified_time="1110256588" url="html/usrsearch.php" uploadstatus="0" />
     <item url="scripts/dump-db.sh" uploadstatus="0" />
     <item url="scripts/get-latest.sh" uploadstatus="0" />
@@ -324,6 +322,8 @@
     <item url="html/opensearch.php" uploadstatus="1" />
     <item url="html/js/statuspie.js" uploadstatus="1" />
     <item url="inc/in.always.php" uploadstatus="1" />
-    <item url="scripts/dba/cluster.sql" />
+    <item url="scripts/dba/cluster.sql" uploadstatus="1" />
+    <item url="scripts/merge-utility.pl" />
+    <item url="scripts/patches/patch-1.99.17.sql" />
   </project>
 </webproject>

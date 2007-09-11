@@ -1,3 +1,12 @@
+wrms (2.6.2) unstable; urgency=low
+
+  * Remove references to that dead code we removed.
+  * Refine the selections on the front page of WRMS so they are more focused
+    on this person's interests.
+  * A (hopefully final) database patch to ready the DB for merging.
+
+ -- Andrew McMillan <debian@mcmillan.net.nz>  Wed, 12 Sep 2007 10:11:35 +1200
+
 wrms (2.6.1) unstable; urgency=low
 
   * Add login requirement to all places it should be on.

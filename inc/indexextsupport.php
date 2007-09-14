@@ -12,7 +12,7 @@
 
 ?> Since you're on the support side of things you now get to see a list of systems
 and the numbers of requests active for each one.  Click on the name of a system to
-see those currently active requests.
+see those currently active requests. Create a search called 'Home' to replace this default list.
 <?php
   // Should already be tested, but we might as well check again.
   if ( ! is_member_of('Admin','Support','Contractor') ) return;

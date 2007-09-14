@@ -1,6 +1,85 @@
 <?php
 if ( $logged_on ) {
-  if ( is_member_of('Admin','Support') ) {
+  $sql = "SELECT * FROM saved_queries WHERE user_no=$session->user_no AND lower(query_name)='home';";
+  $qry = new PgQuery( $sql );
+  if ( $qry->Exec("indexsupport") && $qry->rows > 0 ) {
+
+    // Can't just let anyone type in a where clause on the command line!
+    if ( ! is_member_of('Admin' ) ) {
+      $where_clause = "";
+    }
+
+    // Internal column names (some have 'nice' alternatives defined in header_row() )
+    // The order of these defines the ordering when columns are chosen
+    $available_columns = array(
+            "request_id" => "WR&nbsp;#",
+            "lby_fullname" => "Created By",
+            "lfull" => "Request For",
+            "request_on" => "Request On",
+            "lbrief" => "Description",
+            "request_type_desc" => "Type",
+            "request_tags" => "Tags",
+            "status_desc" => "Status",
+            "system_code" => "System Code",
+            "system_desc" => "System Name",
+            "request.last_activity" => "Last Chng",
+            "urgency" => "Urgency",
+            "importance" => "Importance",
+            "active" => "Active",
+    );
+
+    /**
+    * The hours column is not visible to clients.
+    */
+    if ( $session->AllowedTo("Support") || $session->AllowedTo("Admin") ) {
+      $available_columns["request_hours"] = "Hours";
+    }
+
+    $saved_qry_row = $qry->Fetch();
+    $search_query = $saved_qry_row->query_sql ;
+    // $style = 'stripped';
+
+    $query_params = unserialize($saved_qry_row->query_params);
+    $columns = $query_params["columns"];
+    if ( !isset($columns) || !is_array($columns) ) {
+      if ( $format == "edit" )
+        $columns = array("request_id","lfull","request_on","lbrief","status_desc","active","request_type_desc","request.last_activity");
+      else
+        $columns = array("request_id","lfull","request_on","lbrief","status_desc","request_type_desc","request.last_activity");
+    }
+
+
+    // If the maxresults they saved was non-default, use that, otherwise we
+    // increase the default anyway, because saved queries are more carefully
+    // crafted, and less likely to list the whole database
+    $mr = 1000;
+    if ( (!isset($maxresults) || intval($maxresults) == 0 || $maxresults == 100)
+           && intval($saved_qry_row->maxresults) != 100 && intval($saved_qry_row->maxresults) != 100 )
+      $mr = $saved_qry_row->maxresults;
+    $maxresults = $mr;
+    if ( $saved_qry_row->rlsort ) {
+      $rlsort = $saved_qry_row->rlsort;
+      $rlseq = $saved_qry_row->rlseq;
+    }
+    else {
+      // Enforce some sanity
+      $rlsort = (isset($_GET['rlsort']) ? $_GET['rlsort'] : 'last_activity');
+      $rlseq = (isset($_GET['rlseq']) && $_GET['rlseq'] == 'ASC' ? 'ASC' : 'DESC');
+    }
+
+    if ( isset($flipped_columns[$rlsort]) ) {
+      // We can only sort by a column if it is present in the target list!
+      $search_query .= " ORDER BY $rlsort $rlseq ";
+    }
+
+    if ( !isset($maxresults) || intval($maxresults) == 0 ) $maxresults = 200;
+    $search_query .= " LIMIT $maxresults ";
+
+    include_once("search_listing_functions.php");
+    include_once("search_list_results.php");
+
+  }
+  elseif ( is_member_of('Admin','Support') ) {
     include("indexsupport.php");
   }
   elseif ( $session->AllowedTo('Contractor') ) {

@@ -1,7 +1,8 @@
 <?php
 echo "<p><font color=$colors[link1]>$system_name &gt;&gt;&gt;</font>
 Please select an action from the menus at the top of the page, or select
-one of the recently modified requests from the list below.<br></p>";
+one of the recently modified requests from the list below.<br>
+Create a search called 'Home' to replace this default list.</p>";
 
   $query = "SELECT DISTINCT request.request_id, brief, fullname, email, last_activity, status.lookup_desc AS status_desc, ";
   $query .= "request.system_id, request_type.lookup_desc AS request_type_desc ";

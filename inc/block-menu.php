@@ -16,13 +16,13 @@ else {
 }
 
 function menu_url_line($url,$tooltip,$prompt,$head="") {
-  printf( ' &nbsp;<a href="%s" class="block%s" title="%s" alt="%s">%s</a><br />',
+  printf( ' &nbsp;<a href="%s" class="block%s" title="%s" alt="%s">%s</a><br >',
                      $url, $head, $tooltip, $tooltip, $prompt );
 }
 
 function menu_break_line() {
   global $theme;
-  printf('<img class="blocksep" src="/%s/menuBreak.gif" width="130" height="9"><br />'."\n", $theme->images);
+  printf('<img class="blocksep" src="/%s/menuBreak.gif" width="130" height="9"><br >'."\n", $theme->images);
 }
 
 function show_sidebar_menu() {
@@ -45,7 +45,7 @@ function show_sidebar_menu() {
     echo '<form method="get" action="/qams-project.php" name="quickwr" id="quickwr" style="display:inline">';
     printf('&nbsp;<b>PROJ:</b><input type="text" size="7" title="%s" value="%d" name="request_id">',
               'Enter a Project Number and press [Enter] to go to it directly.', $GLOBALS['request_id'] );
-    echo "</form><br />";
+    echo "</form><br >";
     menu_break_line();
 
     menu_url_line("/qams.php?filter=my", "Show projects I am involved in", "My Projects");
@@ -75,7 +75,7 @@ function show_sidebar_menu() {
     printf( <<<EOFORM
 <form method="get" action="/wr.php" name="quickwr" id="quickwr" style="display:inline">
 &nbsp;<b>W/R:</b><input type="text" size="7" title="%s" value="%d" name="request_id">
-</form><br />
+</form><br >
 EOFORM
             , 'Enter a W/R number and press [Enter] to go to it directly.', $GLOBALS['request_id'] );
 
@@ -89,9 +89,9 @@ EOFORM
         if ( $thisquery->query_params != "" ) {
           echo "&nbsp;<a href=\"/wrsearch.php?saved_query=" . urlencode($thisquery->query_name) . "\" class=\"block\" title=\"$tooltip2\"><b>&laquo;e&raquo;</b></a>";
         }
-        echo "<br />\n";
+        echo "<br >\n";
       }
-      echo "&nbsp; &nbsp;<a href=\"/saved_searches.php\">...more</a><br />\n";
+      echo "&nbsp; &nbsp;<a href=\"/saved_searches.php\">...more</a><br >\n";
     }
     else {
       menu_break_line();

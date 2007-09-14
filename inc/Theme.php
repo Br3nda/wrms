@@ -193,19 +193,19 @@ EOSTYLE;
     $width  = ($width  > 0 ? sprintf( ' width="%s"',  $width)  : '');
     $height = ($height > 0 ? sprintf( ' height="%s"', $height) : '');
     $image_locn = (file_exists("$this->images/$image_file") ? $this->images : "images");
-    $result = sprintf( '<img src="%s/%s" border="0" class="image"%s%s>', $image_locn, $image_file, $width, $height );
+    $result = sprintf( '<img src="%s/%s" border="0" class="image"%s%s >', $image_locn, $image_file, $width, $height );
     return $result;
   }
 
 
   /**
-  * Function to return an <a href="..."><img src="..."></a> kind of link.
+  * Function to return an <a href="..."><img src="..." ></a> kind of link.
   */
   function ImgLink($image_file, $link, $width=-1, $height=-1 ) {
     $width  = ($width  > 0 ? sprintf( ' width="%s"',  $width)  : '');
     $height = ($height > 0 ? sprintf( ' height="%s"', $height) : '');
     $image_locn = (file_exists("$this->images/$image_file") ? $this->images : "images");
-    $result = sprintf( '<a href="%s" class="imglink"><img src="%s/%s" class="imglink"%s%s></a>', $link, $image_locn, $image_file, $width, $height );
+    $result = sprintf( '<a href="%s" class="imglink"><img src="%s/%s" class="imglink"%s%s ></a>', $link, $image_locn, $image_file, $width, $height );
     return $result;
   }
 
@@ -239,26 +239,27 @@ INDEXNOTLOGGEDIN;
     if ( isset($c->page_title) ) $title = $c->page_title;
 
     // Standard headers included everywhere.
-    echo "<!DOC"."TYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\" \"http://www.w3.org/TR/REC-html40/loose.dtd\">\n";
+    echo "<!DOC"."TYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/html4/strict.dtd\">\n";
     echo "<html>\n<head>\n<title>$title</title>\n";
+    echo '<META http-equiv="Content-Type" content="text/html; charset=UTF-8">';
 
     if ( isset($this->favicon) ) {
-      printf( '<link rel="shortcut icon" href="%s" type="image/x-icon" />', $this->favicon);
+      printf( '<link rel="shortcut icon" href="%s" type="image/x-icon" >', $this->favicon);
       echo "\n";
     }
 
-    printf( '<link rel="search" type="application/opensearchdescription+xml" title="Get %s W/R" href="%s/opensearch.php/request.xml">', $c->shortname, $c->base_dns );
-    printf( '<link rel="search" type="application/opensearchdescription+xml" title="Search %s WRMS" href="%s/opensearch.php/search.xml">', $c->shortname, $c->base_dns );
+    printf( '<link rel="search" type="application/opensearchdescription+xml" title="Get %s W/R" href="%s/opensearch.php/request.xml" >', $c->shortname, $c->base_dns );
+    printf( '<link rel="search" type="application/opensearchdescription+xml" title="Search %s WRMS" href="%s/opensearch.php/search.xml" >', $c->shortname, $c->base_dns );
 
     if ( isset($this->stylesheets) ) {
       foreach ( $this->stylesheets AS $stylesheet ) {
-        echo "<link rel=\"stylesheet\" type=\"text/css\" href=\"$stylesheet\" />\n";
+        echo "<link rel=\"stylesheet\" type=\"text/css\" href=\"$stylesheet\" >\n";
       }
     }
     if ( isset($c->local_styles) ) {
       // Always load local styles last, so they can override prior ones...
       foreach ( $c->local_styles AS $stylesheet ) {
-        echo "<link rel=\"stylesheet\" type=\"text/css\" href=\"$stylesheet\" />\n";
+        echo "<link rel=\"stylesheet\" type=\"text/css\" href=\"$stylesheet\" >\n";
       }
     }
 
@@ -550,9 +551,9 @@ EOINSTYLE;
     $this->InlineStyles();
 
     echo "\n</style>\n";
-    echo "<style type=\"text/css\" media=\"print\"><!--\n";
+    echo "<style type=\"text/css\" media=\"print\">\n";
     echo ".noprint, #topbar, #searchbar, #top_menu { display: none; }\n";
-    echo "--></style>\n";
+    echo "\n</style>\n";
 
     // Now start the body
     echo "</head>\n";
@@ -574,7 +575,7 @@ EOINSTYLE;
     <td>
       <table width="100%" border="0" cellspacing="0" cellpadding="0"">
         <tr>
-          <td background="$this->images/tanTile.gif" height="55"><img src="$this->images/wrmsTOP.gif" width="700" height="60"></td>
+          <td background="$this->images/tanTile.gif" height="55"><img src="$this->images/wrmsTOP.gif" width="700" height="60" ></td>
         </tr>
       </table>
       <table width="100%" border="0" cellspacing="0" cellpadding="0"">
@@ -582,7 +583,7 @@ EOINSTYLE;
           <td width="40%">
             <table width="142" border="0" cellspacing="0" cellpadding="0">
               <tr>
-                <td align="left"><img src="$this->images/WRMSheader.gif" width="470" height="19"></td>
+                <td align="left"><img src="$this->images/WRMSheader.gif" width="470" height="19" ></td>
               </tr>
             </table>
           </td>
@@ -646,7 +647,7 @@ EOHDR;
   */
   function BeginContentArea() {
     // Begin the table that is the content area
-    echo "<td valign=top width=\"" . ($this->panel_right ? "80" : ($this->panel_left ? "90" : "100")) . "%\">";
+    echo "<td valign=\"top\" width=\"" . ($this->panel_right ? "80" : ($this->panel_left ? "90" : "100")) . "%\">";
   }
 
   /**

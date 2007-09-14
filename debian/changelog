@@ -1,3 +1,17 @@
+wrms (2.6.4) unstable; urgency=low
+
+  * When there is a saved query called 'Home', run that for people's default
+    page.
+  * Fix some XHTML-isms and other minor issues with the HTML.
+
+ -- Andrew McMillan <debian@mcmillan.net.nz>  Fri, 14 Sep 2007 13:51:43 +1200
+
+wrms (2.6.3) unstable; urgency=low
+
+  * Not quite such an aggressive approach to cutting down the front page.
+
+ -- Andrew McMillan <debian@mcmillan.net.nz>  Thu, 13 Sep 2007 06:38:15 +1200
+
 wrms (2.6.2) unstable; urgency=low
 
   * Remove references to that dead code we removed.
@@ -5,7 +19,7 @@ wrms (2.6.2) unstable; urgency=low
     on this person's interests.
   * A (hopefully final) database patch to ready the DB for merging.
 
- -- Andrew McMillan <debian@mcmillan.net.nz>  Wed, 12 Sep 2007 10:11:35 +1200
+ -- Andrew McMillan <debian@mcmillan.net.nz>  Wed, 12 Sep 2007 10:16:44 +1200
 
 wrms (2.6.1) unstable; urgency=low
 

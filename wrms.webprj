@@ -323,7 +323,7 @@
     <item url="html/js/statuspie.js" uploadstatus="1" />
     <item url="inc/in.always.php" uploadstatus="1" />
     <item url="scripts/dba/cluster.sql" uploadstatus="1" />
-    <item url="scripts/merge-utility.pl" />
-    <item url="scripts/patches/patch-1.99.17.sql" />
+    <item url="scripts/merge-utility.pl" uploadstatus="1" />
+    <item url="scripts/patches/patch-1.99.17.sql" uploadstatus="1" />
   </project>
 </webproject>

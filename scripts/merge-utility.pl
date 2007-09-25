@@ -59,7 +59,7 @@ UPDATE request_allocated SET allocated_to_id = \$1 WHERE allocated_to_id = \$2;
 UPDATE request_attachment SET attached_by = \$1 WHERE attached_by = \$2;
 UPDATE request_history SET entered_by = \$1 WHERE entered_by = \$2;
 UPDATE request_history SET requester_id = \$1 WHERE requester_id = \$2;
-UPDATE request_interested SET user_no = \$1 WHERE user_no = \$2;
+UPDATE request_interested SET user_no = \$1 WHERE user_no = \$2 AND NOT EXISTS( SELECT 1 FROM request_interested ri WHERE request_interested.request_id = ri.request_id AND ri.user_no = \$1);
 UPDATE request_note SET note_by_id = \$1 WHERE note_by_id = \$2;
 UPDATE request_project SET project_manager = \$1 WHERE project_manager = \$2;
 UPDATE request_project SET qa_mentor = \$1 WHERE qa_mentor = \$2;
@@ -74,16 +74,40 @@ UPDATE qa_project_approval SET assigned_to_usr = \$1 WHERE assigned_to_usr = \$2
 UPDATE qa_project_approval SET approval_by_usr = \$1 WHERE approval_by_usr = \$2;
 UPDATE caldav_data SET user_no = \$1 WHERE user_no = \$2;
 UPDATE caldav_data SET logged_user = \$1 WHERE logged_user = \$2;
-UPDATE help_hit SET user_no = \$1 WHERE user_no = \$2;
+UPDATE help_hit SET user_no = \$1 WHERE user_no = \$2 AND NOT EXISTS( SELECT 1 FROM help_hit hh WHERE help_hit.topic = hh.topic AND hh.user_no = \$1);
 UPDATE infonode SET created_by = \$1 WHERE created_by = \$2;
 UPDATE organisation SET admin_user_no = \$1 WHERE admin_user_no = \$2;
-UPDATE saved_queries SET user_no = \$1 WHERE user_no = \$2;
+UPDATE saved_queries SET user_no = \$1 WHERE user_no = \$2 AND NOT EXISTS( SELECT 1 FROM saved_queries sq WHERE saved_queries.query_name = sq.query_name AND sq.user_no = \$1);
 UPDATE session SET user_no = \$1 WHERE user_no = \$2;
-UPDATE system_usr SET user_no = \$1 WHERE user_no = \$2;
+UPDATE system_usr SET user_no = \$1 WHERE user_no = \$2 AND NOT EXISTS( SELECT 1 FROM system_usr su WHERE system_usr.system_id = su.system_id AND su.user_no = \$1);
 UPDATE timesheet_note SET note_by_id = \$1 WHERE note_by_id = \$2;
 UPDATE wu SET wu_by = \$1 WHERE wu_by = \$2;
 UPDATE wu_vote SET wu_by = \$1 WHERE wu_by = \$2;
 UPDATE wu_vote SET vote_by = \$1 WHERE vote_by = \$2;
+UPDATE saved_queries SET
+       query_sql = replace(query_sql,
+                       'requester_id = '||\$2::text||' ',
+		       'requester_id = '||\$1::text||' '), 
+       query_params = replace(query_params,
+                       '"requested_by";s:' || (length(\$2)::text) || ':"' || \$2 || '"',
+		       '"requested_by";s:' || (length(\$1)::text) || ':"' || \$1 || '"')
+		    WHERE query_sql ~ ('requester_id = '||\$2::text||' ');
+UPDATE saved_queries SET
+       query_sql = replace(query_sql,
+                       'interested.user_no = '||\$2::text||' ',
+		       'interested.user_no = '||\$1::text||' '), 
+       query_params = replace(query_params,
+                       '"interested_in";s:' || (length(\$2)::text) || ':"' || \$2 || '"',
+		       '"interested_in";s:' || (length(\$1)::text) || ':"' || \$1 || '"')
+		    WHERE query_sql ~ ('interested.user_no = '||\$2::text||' ');
+UPDATE saved_queries SET
+       query_sql = replace(query_sql,
+                       'allocated_to_id = '||\$2::text||' ',
+		       'allocated_to_id = '||\$1::text||' '), 
+       query_params = replace(query_params,
+                       '"allocated_to";s:' || (length(\$2)::text) || ':"' || \$2 || '"',
+		       '"allocated_to";s:' || (length(\$1)::text) || ':"' || \$1 || '"')
+		    WHERE query_sql ~ ('allocated_to_id = '||\$2::text||' ');
 EOQ
 }
 elsif ( $type =~ /^s/i ) {
@@ -92,6 +116,14 @@ UPDATE system_usr SET system_id = \$1 WHERE system_id = \$2;
 UPDATE org_system SET system_id = \$1 WHERE system_id = \$2;
 UPDATE organisation SET general_system = \$1 WHERE general_system = \$2;
 UPDATE request SET system_id = \$1 WHERE system_id = \$2;
+UPDATE saved_queries SET
+       query_sql = replace(query_sql,
+                       'system_id='||\$2::text||' ',
+		       'system_id='||\$1::text||' '), 
+       query_params = replace(query_params,
+                       '"system_id";s:' || (length(\$2)::text) || ':"' || \$2 || '"',
+		       '"system_id";s:' || (length(\$1)::text) || ':"' || \$1 || '"')
+		    WHERE query_sql ~ ('system_id='||\$2::text||' ');
 EOQ
 }
 elsif ( $type =~ /^o/i ) {
@@ -100,6 +132,14 @@ UPDATE org_system SET org_code = \$1 WHERE org_code = \$2;
 UPDATE organisation_action SET org_code = \$1 WHERE org_code = \$2;
 UPDATE organisation_tag SET org_code = \$1 WHERE org_code = \$2;
 UPDATE usr SET org_code = \$1 WHERE org_code = \$2;
+UPDATE saved_queries SET
+       query_sql = replace(query_sql,
+                       'org_code='||\$2::text||' ',
+		       'org_code='||\$1::text||' '), 
+       query_params = replace(query_params,
+                       '"org_code";s:' || (length(\$2)::text) || ':"' || \$2 || '"',
+		       '"org_code";s:' || (length(\$1)::text) || ':"' || \$1 || '"')
+		    WHERE query_sql ~ ('org_code='||\$2::text||' ');
 EOQ
 }
 
@@ -108,10 +148,14 @@ merge_two($id1,$id2) if ( defined($id1) && defined($id2) );
 if ( defined($idfile) ) {
   open( IDFILE, '<', $idfile);
   while( <IDFILE> ) {
-    /^[\s"]*(\d+)[\s"]*,[\s"]*(\d+)[\s"]$/ && merge_two( \$1, \$2 );
+    /^[\s"]*(\d+)[\s"]*,[\s"]*(\d+)[\s"]*(,.*)?$/ && merge_two( $1, $2 ) or do {
+      print "Skipping line\n";
+    };
   }
   close(IDFILE);
 }
+
+$dbh->commit;
 
 sub merge_two {
   my $id1 = shift;
@@ -119,26 +163,6 @@ sub merge_two {
 
   print "Merging $tword $id2 onto $id1\n";
   $merge_qry->execute( $id1, $id2 ) or die $dbh->errstr;
-
-}
-
-sub merge_users {
-  my $user1 = shift;
-  my $user2 = shift;
-
-  print "Merging user $user2 onto $user1\n";
-  $merge_qry->execute( $user1, $user2 ) or die $dbh->errstr;
-
-}
-
-sub merge_systems {
-  my $sys1 = shift;
-  my $sys2 = shift;
-}
-
-sub merge_organisations {
-  my $org1 = shift;
-  my $org2 = shift;
 }
 
 
